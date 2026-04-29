@@ -469,14 +469,17 @@
     </div>
 
     <!-- 아동 검색바 -->
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-      <input class="form-input" type="text" id="childSearchInput" placeholder="🔍 이름 검색..." style="flex:1;width:auto;min-width:0;margin-bottom:0;" oninput="renderChildGrid()">
-      <select class="form-input" id="childSortSel" style="width:auto;min-width:80px;max-width:90px;margin-bottom:0;font-size:12px;" onchange="renderChildGrid()">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+      <button onclick="toggleChildSearch()" id="childSearchBtn" style="width:42px;height:42px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:18px;cursor:pointer;flex-shrink:0;touch-action:manipulation;">🔍</button>
+      <select class="form-input" id="childSortSel" style="flex:1;margin-bottom:0;font-size:13px;" onchange="renderChildGrid()">
         <option value="name">가나다순</option>
         <option value="recent">최근세션</option>
         <option value="reg">등록순</option>
       </select>
-      <button class="btn btn-primary" style="margin-top:0;white-space:nowrap;padding:10px 12px;font-size:13px;" onclick="openChildRegModal()">➕</button>
+      <button class="btn btn-primary" style="width:42px;height:42px;padding:0;font-size:20px;margin-top:0;flex-shrink:0;" onclick="openChildRegModal()" title="이용자 등록">➕</button>
+    </div>
+    <div id="childSearchRow" style="display:none;margin-bottom:10px;">
+      <input class="form-input" type="text" id="childSearchInput" placeholder="이름 또는 전화번호 검색..." style="margin-bottom:0;width:100%;box-sizing:border-box;" oninput="renderChildGrid()">
     </div>
 
     <div class="child-grid" id="childGrid"><div class="child-card" id="cc_1777430329146"><div class="child-card-row" onclick="toggleChildCard(1777430329146)"><div class="child-avatar" style="background:#10b98122">📋</div><div class="child-name">강건우</div><div class="child-age-badge">6세 7개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2019-08-30</div><div class="child-meta">📞 (모) 010-4692-1189</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430329146)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430329146)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430329146)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430329146)">삭제</button></div></div></div><div class="child-card" id="cc_1777430329256"><div class="child-card-row" onclick="toggleChildCard(1777430329256)"><div class="child-avatar" style="background:#8b5cf622">📋</div><div class="child-name">강남</div><div class="child-age-badge">7세 3개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2019-01-20</div><div class="child-meta">📞 (모) 010-9666-0535</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430329256)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430329256)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430329256)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430329256)">삭제</button></div></div></div><div class="child-card" id="cc_1777430325753"><div class="child-card-row" onclick="toggleChildCard(1777430325753)"><div class="child-avatar" style="background:#0ea5a022">📋</div><div class="child-name">강다인</div><div class="child-age-badge">5세 4개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2020-12-07</div><div class="child-meta">📞 (부) 010-7586-0627
@@ -1643,19 +1646,22 @@ function setChildStatus(status, btn) {
 }
 
 function toggleChildSearch() {
+  var row = document.getElementById('childSearchRow');
   var inp = document.getElementById('childSearchInput');
   var btn = document.getElementById('childSearchBtn');
-  if (!inp) return;
-  var isOpen = inp.style.display !== 'none';
-  inp.style.display = isOpen ? 'none' : 'block';
-  btn.style.background = isOpen ? '' : 'var(--mint2)';
-  btn.style.color = isOpen ? '' : 'var(--mint)';
-  btn.style.borderColor = isOpen ? '' : 'var(--mint)';
-  if (!isOpen) {
-    inp.focus();
-  } else {
+  if (!row) return;
+  var isOpen = row.style.display !== 'none';
+  if (isOpen) {
+    row.style.display = 'none';
+    btn.style.background = 'white';
+    btn.style.borderColor = 'var(--border)';
     inp.value = '';
     renderChildGrid();
+  } else {
+    row.style.display = 'block';
+    btn.style.background = 'var(--mint2)';
+    btn.style.borderColor = 'var(--mint)';
+    setTimeout(function(){ inp.focus(); }, 100);
   }
 }
 
