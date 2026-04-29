@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=Raleway:wght@700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     :root {
       --mint:#0ea5a0; --mint2:#e0f7f6; --navy:#0f2942; --navy2:#1a3a5c;
@@ -463,6 +464,19 @@
       </div>
       <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
       <div id="restoreResult" style="margin-top:8px;font-size:13px;"></div>
+    </div>
+
+    <!-- GitHub 자동 배포 (관리자 전용) -->
+    <div class="card" id="deployCard" style="display:none;border:2px solid #24292e;">
+      <div class="card-title">
+        <div class="card-title-left">🚀 GitHub 자동 배포</div>
+        <span id="deployStatus" style="font-size:11px;color:var(--text2);"></span>
+      </div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">버튼 한 번으로 최신 파일을 GitHub에 자동 업로드합니다. 1~2분 후 반영됩니다.</p>
+      <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployToGitHub()" id="deployBtn">
+        🚀 GitHub에 지금 배포
+      </button>
+      <div id="deployResult" style="margin-top:8px;font-size:13px;"></div>
     </div>
 
     <!-- 데이터 이전 카드 -->
@@ -989,6 +1003,7 @@ function doLogin() {
       hideLoginScreen();
       applyUserUI();
       loadDBFromSupabase();
+      initRealtime();
     }).catch(function() {
       document.getElementById('loginError').textContent = '서버 오류가 발생했습니다.';
     });
@@ -1012,6 +1027,7 @@ function applyUserUI() {
 
 function showLogoutMenu() {
   if (confirm(currentUser.name + '님, 로그아웃 하시겠습니까?')) {
+    stopRealtime();
     currentUser = null;
     localStorage.removeItem('madi_user');
     childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
@@ -1022,8 +1038,8 @@ function showLogoutMenu() {
 }
 
 // ─────── Supabase DB 로드 / 저장 ───────
-function loadDBFromSupabase() {
-  showToast('📡 데이터 불러오는 중...');
+function loadDBFromSupabase(silent) {
+  if (!silent) showToast('📡 데이터 불러오는 중...');
   Promise.all([
     supaFetch('madi_children?select=id,data&order=id.asc'),
     supaFetch('madi_sessions?select=id,data&order=id.asc'),
@@ -1035,21 +1051,40 @@ function loadDBFromSupabase() {
       return arr.filter(function(r){ return r && r.data; })
                 .map(function(r){ var d=r.data; d.id=r.id; return d; });
     }
-    childDB      = safeMap(results[0]);
-    sessionDB    = safeMap(results[1]);
-    scheduleDB   = safeMap(results[2]);
-    assessmentDB = safeMap(results[3]);
+    var supaCh  = safeMap(results[0]);
+    var supaSe  = safeMap(results[1]);
+    var supaSch = safeMap(results[2]);
+    var supaAs  = safeMap(results[3]);
+
+    // ── Supabase 비어있고 로컬에 데이터 있으면 자동 마이그레이션 ──
+    var localCh = [];
+    try { localCh = JSON.parse(localStorage.getItem('cn3_children') || '[]'); } catch(e){}
+
+    if (supaCh.length === 0 && localCh.length > 0) {
+      childDB = localCh;
+      try { sessionDB    = JSON.parse(localStorage.getItem('cn3_sessions') || '[]'); } catch(e){ sessionDB=[]; }
+      try { scheduleDB   = JSON.parse(localStorage.getItem('cn3_schedule') || '[]'); } catch(e){ scheduleDB=[]; }
+      try { assessmentDB = JSON.parse(localStorage.getItem('cn3_assess')   || '[]'); } catch(e){ assessmentDB=[]; }
+      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
+      showToast('☁️ 기존 데이터 ' + childDB.length + '명 → Supabase 자동 업로드 완료!');
+    } else {
+      childDB      = supaCh;
+      sessionDB    = supaSe;
+      scheduleDB   = supaSch;
+      assessmentDB = supaAs;
+      if (silent) showToast('🔄 데이터 업데이트됨');
+      else showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
+    }
+
     renderChildGrid();
     populateChildSelects();
     renderGoalRows();
     renderSessionList();
     renderUnwrittenAlert();
     renderStaffCard();
-    showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
   }).catch(function(e) {
     console.error('loadDB 실패:', e);
-    showToast('❌ 데이터 로드 실패');
-    // 로컬 폴백
+    showToast('❌ 데이터 로드 실패 — 로컬 데이터로 표시합니다');
     loadDB();
     renderChildGrid();
     populateChildSelects();
@@ -1057,24 +1092,28 @@ function loadDBFromSupabase() {
 }
 
 function saveChildren() {
+  markMyChange();
   localStorage.setItem('cn3_children', JSON.stringify(childDB));
   if (childDB.length === 0) return;
   var rows = childDB.map(function(c){ return { id: c.id, data: c }; });
   supaFetch('madi_children?on_conflict=id', 'POST', rows);
 }
 function saveSessions() {
+  markMyChange();
   localStorage.setItem('cn3_sessions', JSON.stringify(sessionDB));
   if (sessionDB.length === 0) return;
   var rows = sessionDB.map(function(s){ return { id: s.id, data: s }; });
   supaFetch('madi_sessions?on_conflict=id', 'POST', rows);
 }
 function saveSchedule() {
+  markMyChange();
   localStorage.setItem('cn3_schedule', JSON.stringify(scheduleDB));
   if (scheduleDB.length === 0) return;
   var rows = scheduleDB.map(function(s){ return { id: s.id, data: s }; });
   supaFetch('madi_schedules?on_conflict=id', 'POST', rows);
 }
 function saveAssess() {
+  markMyChange();
   localStorage.setItem('cn3_assess', JSON.stringify(assessmentDB));
   if (assessmentDB.length === 0) return;
   var rows = assessmentDB.map(function(a){ return { id: a.id, data: a }; });
@@ -1743,10 +1782,12 @@ function makeSearchable(id) {
     inp.addEventListener('blur',   function() { setTimeout(function(){ drop.style.display='none'; }, 220); });
   }
   updateSSDrop(sel);
-  // 현재 선택값 표시
+  // 현재 선택값 표시 (sessionChild는 빈 기본값이면 input 비워서 placeholder 표시)
   var cur = sel.options[sel.selectedIndex];
   if (cur && cur.value && sel._ssInp) sel._ssInp.value = cur.textContent.trim();
   else if (sel._ssInp) sel._ssInp.value = '';
+  // sessionChild placeholder 개선
+  if (id === 'sessionChild' && sel._ssInp) sel._ssInp.placeholder = '아동 검색...';
 }
 
 function populateChildSelects() {
@@ -1755,9 +1796,13 @@ function populateChildSelects() {
     var el = document.getElementById(id);
     if (!el) return;
     var cur = el.value;
+    // sessionChild만 빈 기본 옵션 추가
+    var emptyOpt = (id === 'sessionChild')
+      ? '<option value="">아동 검색...</option>'
+      : '';
     el.innerHTML = childDB.length === 0
       ? '<option value="">아동을 먼저 등록해주세요</option>'
-      : childDB.map(function(c) { return '<option value="' + c.id + '">' + escHtml(c.name) + ' (' + escHtml(c.age) + ')</option>'; }).join('');
+      : emptyOpt + childDB.map(function(c) { return '<option value="' + c.id + '">' + escHtml(c.name) + ' (' + escHtml(c.age) + ')</option>'; }).join('');
     if (cur) el.value = cur;
   });
   var sc = document.getElementById('sessionChild');
@@ -3887,9 +3932,12 @@ function importBackup(e) {
 // ─────── 선생님 계정 관리 (관리자 전용) ───────
 function renderStaffCard() {
   var card = document.getElementById('staffCard');
+  var deployCard = document.getElementById('deployCard');
   if (!card) return;
-  card.style.display = (currentUser && currentUser.role === 'admin') ? 'block' : 'none';
-  if (!currentUser || currentUser.role !== 'admin') return;
+  var isAdmin = currentUser && currentUser.role === 'admin';
+  card.style.display = isAdmin ? 'block' : 'none';
+  if (deployCard) deployCard.style.display = isAdmin ? 'block' : 'none';
+  if (!isAdmin) return;
   supaFetch('madi_users?select=id,username,name,role,color&order=role.desc,name.asc')
     .then(function(users) {
       if (!Array.isArray(users)) return;
@@ -3949,6 +3997,120 @@ function deleteStaff(id, name) {
   supaFetch('madi_users?id=eq.' + id, 'DELETE').then(function() {
     renderStaffCard();
     showToast('🗑️ ' + name + ' 계정 삭제됨');
+  });
+}
+
+// ─────── Supabase Realtime 실시간 동기화 ───────
+var _supaClient = null;
+var _realtimeChannel = null;
+var _reloadTimer = null;
+
+function initRealtime() {
+  try {
+    if (typeof supabase === 'undefined' || !supabase.createClient) return;
+    _supaClient = supabase.createClient(SUPA_URL, SUPA_KEY);
+    subscribeRealtime();
+  } catch(e) {
+    console.warn('Realtime 초기화 실패:', e);
+  }
+}
+
+function subscribeRealtime() {
+  if (!_supaClient) return;
+  if (_realtimeChannel) {
+    _supaClient.removeChannel(_realtimeChannel);
+  }
+  _realtimeChannel = _supaClient
+    .channel('madi-sync')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_children' },    onRemoteChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_sessions' },    onRemoteChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_schedules' },   onRemoteChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_assessments' }, onRemoteChange)
+    .subscribe(function(status) {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Realtime 연결됨');
+      }
+    });
+}
+
+function onRemoteChange(payload) {
+  // 내가 방금 저장한 변경은 무시 (중복 리로드 방지)
+  if (_myChangeTs && Date.now() < _myChangeTs + 2000) return;
+  // 0.8초 디바운스 (연속 변경 시 한 번만 리로드)
+  clearTimeout(_reloadTimer);
+  _reloadTimer = setTimeout(function() {
+    loadDBFromSupabase(true); // silent=true (토스트 없이 조용히)
+  }, 800);
+}
+
+var _myChangeTs = 0;
+function markMyChange() { _myChangeTs = Date.now(); }
+
+function stopRealtime() {
+  if (_realtimeChannel && _supaClient) {
+    _supaClient.removeChannel(_realtimeChannel);
+    _realtimeChannel = null;
+  }
+}
+
+// ─────── GitHub 자동 배포 ───────
+var GITHUB_TOKEN = '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';
+var GITHUB_OWNER = 'namga1541-prog';
+var GITHUB_REPO  = 'MADI';
+var GITHUB_FILE  = 'index.html';
+
+function deployToGitHub() {
+  var btn    = document.getElementById('deployBtn');
+  var result = document.getElementById('deployResult');
+  var status = document.getElementById('deployStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ 배포 중...';
+  result.innerHTML = '';
+
+  // 1단계: 현재 파일 SHA 가져오기
+  fetch('https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + GITHUB_FILE, {
+    headers: {
+      'Authorization': 'token ' + GITHUB_TOKEN,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(fileInfo) {
+    var sha = fileInfo.sha;
+    // 2단계: 현재 HTML 전체를 Base64로 인코딩
+    var html = document.documentElement.outerHTML;
+    var b64  = btoa(unescape(encodeURIComponent(html)));
+    // 3단계: GitHub API로 파일 업데이트
+    return fetch('https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + GITHUB_FILE, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: '마디 앱 업데이트 — ' + new Date().toLocaleString('ko-KR'),
+        content: b64,
+        sha: sha
+      })
+    });
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    btn.disabled = false;
+    btn.textContent = '🚀 GitHub에 지금 배포';
+    if (res.content && res.content.sha) {
+      result.innerHTML = '<div style="color:var(--mint);font-weight:700;">✅ 배포 완료! 1~2분 후 반영됩니다.<br><span style="font-size:11px;color:var(--text2);">namga1541-prog.github.io/MADI</span></div>';
+      status.textContent = '최근 배포: ' + new Date().toLocaleTimeString('ko-KR');
+      showToast('🚀 GitHub 배포 완료!');
+    } else {
+      result.innerHTML = '<div style="color:#ef4444;">❌ 배포 실패: ' + (res.message || '알 수 없는 오류') + '</div>';
+    }
+  })
+  .catch(function(e) {
+    btn.disabled = false;
+    btn.textContent = '🚀 GitHub에 지금 배포';
+    result.innerHTML = '<div style="color:#ef4444;">❌ 오류: ' + e.message + '</div>';
   });
 }
 
@@ -4206,6 +4368,9 @@ function confirmImport() {
   var data = window._importPreview;
   if (!data) return;
 
+  // 대용량 import 중 Realtime 리로드 방지 (10초 잠금)
+  _myChangeTs = Date.now() + 8000;
+
   var children = data.children || [];
   var sessions  = data.sessions || [];
   var addedCount = 0, skippedCount = 0, sessionCount = 0;
@@ -4301,6 +4466,7 @@ function init() {
       applyUserUI();
       hideLoginScreen();
       loadDBFromSupabase();
+      initRealtime();
     } catch(e) {
       showLoginScreen();
     }
