@@ -470,16 +470,13 @@
 
     <!-- 아동 검색바 -->
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-      <div style="position:relative;flex:1;">
-        <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;">🔍</span>
-        <input class="form-input" type="text" id="childSearchInput" placeholder="이름 또는 전화번호 검색..." style="padding-left:34px;margin-bottom:0;" oninput="renderChildGrid()">
-      </div>
-      <select class="form-input" id="childSortSel" style="width:auto;min-width:90px;margin-bottom:0;" onchange="renderChildGrid()">
+      <input class="form-input" type="text" id="childSearchInput" placeholder="🔍 이름 검색..." style="flex:1;width:auto;min-width:0;margin-bottom:0;" oninput="renderChildGrid()">
+      <select class="form-input" id="childSortSel" style="width:auto;min-width:80px;max-width:90px;margin-bottom:0;font-size:12px;" onchange="renderChildGrid()">
         <option value="name">가나다순</option>
         <option value="recent">최근세션</option>
         <option value="reg">등록순</option>
       </select>
-      <button class="btn btn-primary" style="margin-top:0;white-space:nowrap;padding:10px 14px;font-size:13px;" onclick="scrollToChildForm()">➕ 이용자 등록</button>
+      <button class="btn btn-primary" style="margin-top:0;white-space:nowrap;padding:10px 12px;font-size:13px;" onclick="openChildRegModal()">➕</button>
     </div>
 
     <div class="child-grid" id="childGrid"><div class="child-card" id="cc_1777430329146"><div class="child-card-row" onclick="toggleChildCard(1777430329146)"><div class="child-avatar" style="background:#10b98122">📋</div><div class="child-name">강건우</div><div class="child-age-badge">6세 7개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2019-08-30</div><div class="child-meta">📞 (모) 010-4692-1189</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430329146)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430329146)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430329146)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430329146)">삭제</button></div></div></div><div class="child-card" id="cc_1777430329256"><div class="child-card-row" onclick="toggleChildCard(1777430329256)"><div class="child-avatar" style="background:#8b5cf622">📋</div><div class="child-name">강남</div><div class="child-age-badge">7세 3개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2019-01-20</div><div class="child-meta">📞 (모) 010-9666-0535</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430329256)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430329256)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430329256)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430329256)">삭제</button></div></div></div><div class="child-card" id="cc_1777430325753"><div class="child-card-row" onclick="toggleChildCard(1777430325753)"><div class="child-avatar" style="background:#0ea5a022">📋</div><div class="child-name">강다인</div><div class="child-age-badge">5세 4개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2020-12-07</div><div class="child-meta">📞 (부) 010-7586-0627
@@ -549,71 +546,19 @@
 (부) 010-7706-5505</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430330726)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430330726)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430330726)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430330726)">삭제</button></div></div></div><div class="child-card" id="cc_1777430334087"><div class="child-card-row" onclick="toggleChildCard(1777430334087)"><div class="child-avatar" style="background:#f59e0b22">📋</div><div class="child-name">홍사월</div><div class="child-age-badge">10세 3개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2016-01-21</div><div class="child-meta">📞 (모) 010-8061-9810</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430334087)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430334087)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430334087)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430334087)">삭제</button></div></div></div><div class="child-card" id="cc_1777430329797"><div class="child-card-row" onclick="toggleChildCard(1777430329797)"><div class="child-avatar" style="background:#8b5cf622">📋</div><div class="child-name">홍서아</div><div class="child-age-badge">5세 2개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2021-02-22</div><div class="child-meta">📞 (모) 010-5122-6667</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430329797)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430329797)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430329797)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430329797)">삭제</button></div></div></div><div class="child-card" id="cc_1777430328559"><div class="child-card-row" onclick="toggleChildCard(1777430328559)"><div class="child-avatar" style="background:#3b82f622">📋</div><div class="child-name">홍서우</div><div class="child-age-badge">6세</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2020-04-23</div><div class="child-meta">📞 (모) 010-4544-1107</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430328559)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430328559)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430328559)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430328559)">삭제</button></div></div></div><div class="child-card" id="cc_1777430329037"><div class="child-card-row" onclick="toggleChildCard(1777430329037)"><div class="child-avatar" style="background:#f59e0b22">📋</div><div class="child-name">홍유라</div><div class="child-age-badge">11세 3개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2015-01-21</div><div class="child-meta">📞 (모) 010-7405-6654</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430329037)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430329037)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430329037)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430329037)">삭제</button></div></div></div><div class="child-card" id="cc_1777430328130"><div class="child-card-row" onclick="toggleChildCard(1777430328130)"><div class="child-avatar" style="background:#3b82f622">📋</div><div class="child-name">홍찬영</div><div class="child-age-badge">12세 4개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2013-11-30</div><div class="child-meta">📞 (모) 010-7207-7546
 (조모) 010-9056-8129</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430328130)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430328130)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430328130)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430328130)">삭제</button></div></div></div><div class="child-card" id="cc_1777430326235"><div class="child-card-row" onclick="toggleChildCard(1777430326235)"><div class="child-avatar" style="background:#8b5cf622">📋</div><div class="child-name">홍태연</div><div class="child-age-badge">5세 9개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2020-07-07</div><div class="child-meta">📞 (모) 010-8739-6828</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430326235)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430326235)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430326235)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430326235)">삭제</button></div></div></div><div class="child-card" id="cc_1777430326981"><div class="child-card-row" onclick="toggleChildCard(1777430326981)"><div class="child-avatar" style="background:#f59e0b22">📋</div><div class="child-name">황성민</div><div class="child-age-badge">9세</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2017-04-25</div><div class="child-meta">📞 (모) 010-7767-3287</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430326981)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430326981)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430326981)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430326981)">삭제</button></div></div></div><div class="child-card" id="cc_1777430326730"><div class="child-card-row" onclick="toggleChildCard(1777430326730)"><div class="child-avatar" style="background:#ef444422">📋</div><div class="child-name">황지오</div><div class="child-age-badge">7세 2개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2019-01-31</div><div class="child-meta">📞 (모) 010-7922-7588</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430326730)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430326730)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430326730)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430326730)">삭제</button></div></div></div><div class="child-card" id="cc_1777430328526"><div class="child-card-row" onclick="toggleChildCard(1777430328526)"><div class="child-avatar" style="background:#3b82f622">📋</div><div class="child-name">황지오2</div><div class="child-age-badge">6세 3개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2020-01-16</div><div class="child-meta">📞 (모) 010-3782-8918</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430328526)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430328526)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430328526)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430328526)">삭제</button></div></div></div><div class="child-card" id="cc_1777430325821"><div class="child-card-row" onclick="toggleChildCard(1777430325821)"><div class="child-avatar" style="background:#0ea5a022">📋</div><div class="child-name">NAZAROV 로니</div><div class="child-age-badge">8세 8개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-meta">🎂 2017-08-28</div><div class="child-meta">📞 (조모) 010-9151-4500</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430325821)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430325821)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430325821)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777430325821)">삭제</button></div></div></div></div>
 
-    <div class="card" id="childRegForm">
-      <div class="card-title"><div class="card-title-left">➕ 아동 등록</div></div>
-
-      <div class="form-group">
-        <label class="form-label">이름</label>
-        <input class="form-input" type="text" id="childName" placeholder="아동 이름">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">생년월일</label>
-        <div class="form-row" style="margin-bottom:0; align-items:center;">
-          <input class="form-input" type="text" id="childBirth" placeholder="예: 20200429" maxlength="8" inputmode="numeric" pattern="[0-9]*" oninput="formatBirthInput(this);updateAgeDisplay()" onchange="updateAgeDisplay()">
-          <div id="ageDisplay" style="
-            flex:1; padding:10px 12px; background:#f0fdf4;
-            border-radius:10px; font-size:14px; font-weight:700;
-            color:var(--mint); text-align:center; white-space:nowrap;
-            border:1.5px solid var(--mint); min-width:100px;">
-            생활연령
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">장애 유형</label>
-        <select class="form-input" id="childType">
-          <option value="언어발달장애">언어발달장애</option>
-          <option value="조음음운장애">조음음운장애</option>
-          <option value="유창성장애">유창성장애 (말더듬)</option>
-          <option value="자폐스펙트럼">자폐스펙트럼 (언어)</option>
-          <option value="지적장애">지적장애 (언어)</option>
-          <option value="청각장애">청각장애</option>
-          <option value="기타">기타</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">연락처</label>
-        <input class="form-input" type="tel" id="childPhone" placeholder="예: 010-1234-5678">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">상태</label>
-        <select class="form-input" id="childStatus">
-          <option value="등록">✅ 등록</option>
-          <option value="대기">⏳ 대기</option>
-          <option value="종결">🔒 종결</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">메모</label>
-        <textarea class="form-input" id="childMemo" placeholder="특이사항, 가정환경 등" style="min-height:70px;"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">치료 목표 <span style="color:#94a3b8;font-weight:400;">(쉼표로 구분, 선택사항)</span></label>
-        <input class="form-input" type="text" id="childGoals" placeholder="예: ㅅ발음 정확도, 두 단어 조합, 말 속도 조절">
-      </div>
-
-      <!-- 숨김 필드 (기존 AI 기능 연동용) -->
+    <!-- 숨김 필드 (JS 연동용) -->
+    <div style="display:none;">
+      <input type="text" id="childName">
+      <input type="text" id="childBirth">
+      <select id="childType"><option value="언어발달장애">언어발달장애</option><option value="조음음운장애">조음음운장애</option><option value="유창성장애">유창성장애</option><option value="자폐스펙트럼">자폐스펙트럼</option><option value="지적장애">지적장애</option><option value="청각장애">청각장애</option><option value="기타">기타</option></select>
+      <input type="tel" id="childPhone">
+      <select id="childStatus"><option value="등록">등록</option><option value="대기">대기</option><option value="종결">종결</option></select>
+      <textarea id="childMemo"></textarea>
+      <input type="text" id="childGoals">
       <input type="hidden" id="childStartDate" value="">
       <input type="hidden" id="childVoucherLimit" value="0">
-      <div style="display:none;" id="recommendedGoals"></div>
-
-      <button class="btn btn-primary" onclick="addChild()">✅ 아동 등록</button>
+      <div id="ageDisplay"></div>
+      <div id="recommendedGoals"></div>
     </div>
   </div>
 </div>
@@ -1697,15 +1642,104 @@ function setChildStatus(status, btn) {
   renderChildGrid();
 }
 
-function scrollToChildForm() {
-  var el = document.getElementById('childRegForm');
+function toggleChildSearch() {
+  var inp = document.getElementById('childSearchInput');
+  var btn = document.getElementById('childSearchBtn');
+  if (!inp) return;
+  var isOpen = inp.style.display !== 'none';
+  inp.style.display = isOpen ? 'none' : 'block';
+  btn.style.background = isOpen ? '' : 'var(--mint2)';
+  btn.style.color = isOpen ? '' : 'var(--mint)';
+  btn.style.borderColor = isOpen ? '' : 'var(--mint)';
+  if (!isOpen) {
+    inp.focus();
+  } else {
+    inp.value = '';
+    renderChildGrid();
+  }
+}
+
+function openChildRegModal() {
+  var overlay = document.createElement('div');
+  overlay.className = 'sched-modal-overlay';
+  overlay.id = 'childRegModal';
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+
+  overlay.innerHTML = '<div class="sched-modal" style="max-height:90vh;overflow-y:auto;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+    + '<div class="sched-modal-title" style="margin-bottom:0;">➕ 이용자 등록</div>'
+    + '<button onclick="this.closest(\'.sched-modal-overlay\').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;">✕</button>'
+    + '</div>'
+
+    + '<div class="form-group"><label class="form-label">이름</label>'
+    + '<input class="form-input" type="text" id="m_childName" placeholder="아동 이름"></div>'
+
+    + '<div class="form-group"><label class="form-label">생년월일</label>'
+    + '<div style="display:flex;gap:8px;align-items:center;">'
+    + '<input class="form-input" type="text" id="m_childBirth" placeholder="예: 20200429" maxlength="8" inputmode="numeric" pattern="[0-9]*" oninput="formatBirthInput(this);m_updateAge()" onchange="m_updateAge()" style="flex:1;">'
+    + '<div id="m_ageDisplay" style="padding:10px 12px;background:#f0fdf4;border-radius:10px;font-size:13px;font-weight:700;color:var(--mint);border:1.5px solid var(--mint);white-space:nowrap;min-width:90px;text-align:center;">생활연령</div>'
+    + '</div></div>'
+
+    + '<div class="form-group"><label class="form-label">장애 유형</label>'
+    + '<select class="form-input" id="m_childType">'
+    + ['언어발달장애','조음음운장애','유창성장애','자폐스펙트럼','지적장애','청각장애','기타'].map(function(t){ return '<option value="'+t+'">'+t+'</option>'; }).join('')
+    + '</select></div>'
+
+    + '<div class="form-group"><label class="form-label">연락처</label>'
+    + '<input class="form-input" type="tel" id="m_childPhone" placeholder="예: 010-1234-5678"></div>'
+
+    + '<div class="form-group"><label class="form-label">상태</label>'
+    + '<select class="form-input" id="m_childStatus">'
+    + '<option value="등록">✅ 등록</option><option value="대기">⏳ 대기</option><option value="종결">🔒 종결</option>'
+    + '</select></div>'
+
+    + '<div class="form-group"><label class="form-label">메모</label>'
+    + '<textarea class="form-input" id="m_childMemo" placeholder="특이사항, 가정환경 등" style="min-height:60px;"></textarea></div>'
+
+    + '<button class="btn btn-primary" style="margin-top:4px;" onclick="addChildFromModal()">✅ 등록 완료</button>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+  setTimeout(function(){ document.getElementById('m_childName').focus(); }, 200);
+}
+
+function m_updateAge() {
+  var raw = (document.getElementById('m_childBirth')||{}).value || '';
+  raw = raw.replace(/[^0-9]/g,'').slice(0,8);
+  var birth = raw.length===8 ? raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8) : '';
+  var el = document.getElementById('m_ageDisplay');
   if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  // 이름 입력란에 포커스
-  setTimeout(function() {
-    var nameInput = document.getElementById('childName');
-    if (nameInput) nameInput.focus();
-  }, 400);
+  var age = calcAgeFromBirth(birth);
+  el.textContent = age || '생활연령';
+  el.style.color = age ? 'var(--mint)' : '#94a3b8';
+}
+
+function addChildFromModal() {
+  var name   = (document.getElementById('m_childName')||{}).value.trim();
+  var raw    = ((document.getElementById('m_childBirth')||{}).value||'').replace(/[^0-9]/g,'');
+  var birth  = raw.length===8 ? raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8) : '';
+  var age    = calcAgeFromBirth(birth) || birth;
+  var type   = (document.getElementById('m_childType')||{}).value || '기타';
+  var phone  = (document.getElementById('m_childPhone')||{}).value.trim();
+  var status = (document.getElementById('m_childStatus')||{}).value || '등록';
+  var memo   = (document.getElementById('m_childMemo')||{}).value.trim();
+
+  if (!name)  { showToast('이름을 입력해주세요.'); return; }
+  if (!birth) { showToast('생년월일을 입력해주세요.'); return; }
+
+  if (_addChildLock) return;
+  _addChildLock = true;
+  setTimeout(function(){ _addChildLock = false; }, 1500);
+
+  childDB.push({ id:Date.now(), name:name, birth:birth, age:age, type:type,
+    phone:phone, goals:[], memo:memo, status:status, startDate:'', voucherLimit:0,
+    color:CHILD_COLORS[childDB.length % CHILD_COLORS.length] });
+  saveChildren();
+  renderChildGrid();
+  populateChildSelects();
+  var modal = document.getElementById('childRegModal');
+  if (modal) modal.remove();
+  showToast('✅ ' + name + ' 등록 완료!');
 }
 
 function toggleChildCard(id) {
@@ -3001,7 +3035,7 @@ function renderMonthGrid() {
       var lbl    = (s.startTime ? s.startTime.slice(0,5)+' ' : '') + (child ? child.name : '?');
       if (s.teacher) lbl += ' (' + s.teacher + ')';
       html += '<span class="sched-tag" style="background:' + color + '22;color:' + color + ';border-left:3px solid ' + color + ';"'
-        + ' onclick="event.stopPropagation();deleteSchedConfirm(' + s.id + ')">' + escHtml(lbl) + '</span>';
+        + ' onclick="event.stopPropagation();openEditSchedModal(' + s.id + ')">' + escHtml(lbl) + '</span>';
     });
     if (extra > 0) html += '<span class="sched-more">+' + extra + '개</span>';
     html += '</div>';
@@ -3191,21 +3225,21 @@ function saveSchedFromModal() {
   if (!date)    { showToast('날짜를 선택해주세요.'); return; }
 
   var entries = [];
+  var groupId = Date.now(); // 반복 그룹 식별자
   if (repeat === 'weekly' && until && until >= date) {
-    // 선택된 요일 수집
     var selDays = [];
     document.querySelectorAll('.day-chip.sel').forEach(function(c) {
       selDays.push(parseInt(c.dataset.day));
     });
     if (selDays.length === 0) {
-      selDays.push(new Date(date + 'T00:00:00').getDay()); // 기본: 시작일 요일
+      selDays.push(new Date(date + 'T00:00:00').getDay());
     }
     var cur = new Date(date + 'T00:00:00');
     var end = new Date(until + 'T00:00:00');
     var idx = 0;
     while (cur <= end) {
       if (selDays.indexOf(cur.getDay()) > -1) {
-        entries.push({ id: Date.now() + idx * 1000, childId: childId,
+        entries.push({ id: Date.now() + idx * 1000, groupId: groupId, childId: childId,
           date: cur.toISOString().slice(0, 10),
           startTime: startTime, duration: duration, endTime: endTime,
           note: note, teacher: teacher.trim() });
@@ -3235,40 +3269,117 @@ function openEditSchedModal(id) {
   var s = scheduleDB.find(function(x){ return x.id === id; });
   if (!s) return;
   var child = childDB.find(function(c){ return c.id === s.childId; });
+  var hasGroup = s.groupId && scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; }).length > 1;
   var overlay = document.createElement('div');
   overlay.className = 'sched-modal-overlay';
+  overlay.id = 'editSchedOverlay';
   overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
   overlay.innerHTML = '<div class="sched-modal">'
-    + '<div class="sched-modal-title">✏️ 일정 수정</div>'
-    + '<div style="font-size:13px;font-weight:700;color:var(--mint);margin-bottom:12px;">' + escHtml(child ? child.name : '?') + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+    + '<div class="sched-modal-title" style="margin-bottom:0;">📅 일정 상세</div>'
+    + '<button onclick="document.getElementById(\'editSchedOverlay\').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;">✕</button>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;">'
+    + '<div style="font-size:15px;font-weight:700;color:var(--mint);">' + escHtml(child ? child.name : '?') + '</div>'
+    + (s.teacher ? '<div style="font-size:12px;color:var(--text2);">👤 ' + escHtml(s.teacher) + '</div>' : '')
+    + '</div>'
     + '<div class="form-group"><label class="form-label">날짜</label>'
     + '<input class="form-input" type="date" id="editSchedDate" value="' + escHtml(s.date||'') + '"></div>'
     + '<div class="form-row">'
     + '<div style="flex:1;"><label class="form-label">시작 시간</label>'
     + '<input class="form-input" type="time" id="editSchedStart" step="300" value="' + escHtml(s.startTime||'') + '" onclick="try{this.showPicker();}catch(e){}"></div>'
     + '<div style="flex:1;"><label class="form-label">치료 시간(분)</label>'
-    + '<input class="form-input" type="number" id="editSchedDur" value="' + (s.duration||'') + '" min="5" max="180" placeholder="예: 40" oninput="autoEditEndTime()"></div>'
+    + '<input class="form-input" type="number" id="editSchedDur" value="' + (s.duration||'') + '" min="5" max="180" placeholder="예: 40"></div>'
     + '</div>'
     + '<div class="form-group"><label class="form-label">담당 선생님</label>'
     + '<input class="form-input" type="text" id="editSchedTeacher" value="' + escHtml(s.teacher||'') + '" placeholder="예: 한기성"></div>'
     + '<div class="form-group"><label class="form-label">메모</label>'
-    + '<input class="form-input" type="text" id="editSchedNote" value="' + escHtml(s.note||'') + '" placeholder="특이사항"></div>'
-    + '<div style="display:flex;gap:8px;margin-top:4px;">'
+    + '<textarea class="form-input" id="editSchedNote" style="min-height:60px;" placeholder="특이사항 (예: 체험학습으로 인한 캔슬)">' + escHtml(s.note||'') + '</textarea></div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;">'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(' + id + ')">📝 회기기록</button>'
     + '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(' + id + ')">💾 저장</button>'
-    + '<button class="btn-ghost" style="flex:0.4;" onclick="this.closest(\'.sched-modal-overlay\').remove()">취소</button>'
+    + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(' + id + ',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>'
     + '</div></div>';
   document.body.appendChild(overlay);
 }
 
-function autoEditEndTime() {
-  var start = (document.getElementById('editSchedStart')||{}).value;
-  var dur   = parseInt((document.getElementById('editSchedDur')||{}).value)||0;
-  if (!start || !dur) return;
-  var parts = start.split(':');
-  var mins  = parseInt(parts[0])*60 + parseInt(parts[1]) + dur;
-  var h = Math.floor(mins/60)%24, m = mins%60;
-  // 종료시간은 표시용으로만, 저장 시 계산
+function goToSessionFromSched(schedId) {
+  var s = scheduleDB.find(function(x){ return x.id === schedId; });
+  if (!s) return;
+  var ol = document.getElementById('editSchedOverlay');
+  if (ol) ol.remove();
+  switchTab(1);
+  setTimeout(function() {
+    var sel = document.getElementById('sessionChild');
+    if (sel) {
+      sel.value = s.childId;
+      if (sel._ssInp) {
+        var ch = childDB.find(function(c){ return c.id === s.childId; });
+        sel._ssInp.value = ch ? ch.name + ' (' + ch.age + ')' : '';
+      }
+      loadGoalRows(s.childId);
+    }
+    if (s.date) document.getElementById('sessionDate').value = s.date;
+  }, 200);
 }
+
+function confirmSchedDelete(id, hasGroup) {
+  var s = scheduleDB.find(function(x){ return x.id === id; });
+  if (!s) return;
+  if (!hasGroup) {
+    if (!confirm('이 일정을 삭제할까요?')) return;
+    var ol = document.getElementById('editSchedOverlay');
+    if (ol) ol.remove();
+    execSchedDelete(id, false);
+    return;
+  }
+  var delOv = document.createElement('div');
+  delOv.id = 'delSchedOverlay';
+  delOv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;';
+  delOv.innerHTML = '<div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:320px;">'
+    + '<div style="text-align:center;font-size:32px;margin-bottom:12px;">⚠️</div>'
+    + '<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:6px;">삭제하시겠습니까?</div>'
+    + '<div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:18px;">이후의 반복계획된 일정도 삭제하시겠습니까?</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">'
+    + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--mint);border-radius:10px;cursor:pointer;">'
+    + '<input type="radio" name="delOpt" value="one" checked style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이번일정만</div></div></label>'
+    + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;">'
+    + '<input type="radio" name="delOpt" value="future" style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이후 반복일정포함</div></div></label>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove()">아니요</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(' + id + ')">네, 삭제하겠습니다</button>'
+    + '</div></div>';
+  document.body.appendChild(delOv);
+}
+
+function execSchedDeleteChoice(id) {
+  var opt = document.querySelector('input[name="delOpt"]:checked');
+  var future = opt && opt.value === 'future';
+  var ol1 = document.getElementById('editSchedOverlay');
+  var ol2 = document.getElementById('delSchedOverlay');
+  if (ol1) ol1.remove();
+  if (ol2) ol2.remove();
+  execSchedDelete(id, future);
+}
+
+function execSchedDelete(id, future) {
+  var s = scheduleDB.find(function(x){ return x.id === id; });
+  if (!s) return;
+  var toDelete = [];
+  if (future && s.groupId) {
+    toDelete = scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; }).map(function(x){ return x.id; });
+  } else {
+    toDelete = [id];
+  }
+  toDelete.forEach(function(did) { supaFetch('madi_schedules?id=eq.' + did, 'DELETE'); });
+  scheduleDB = scheduleDB.filter(function(x){ return toDelete.indexOf(x.id) === -1; });
+  saveSchedule();
+  renderSchedView();
+  showToast('🗑️ ' + toDelete.length + '개 일정 삭제됨');
+}
+
+function autoEditEndTime() {}
 
 function saveEditSched(id) {
   var idx = scheduleDB.findIndex(function(x){ return x.id === id; });
@@ -3282,19 +3393,17 @@ function saveEditSched(id) {
   if (start && dur) {
     var parts = start.split(':');
     var mins  = parseInt(parts[0])*60 + parseInt(parts[1]) + dur;
-    var h = String(Math.floor(mins/60)%24).padStart(2,'0');
-    var m = String(mins%60).padStart(2,'0');
-    endTime = h + ':' + m;
+    endTime = String(Math.floor(mins/60)%24).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
   }
-  scheduleDB[idx] = Object.assign({}, scheduleDB[idx], {
-    date: date, startTime: start, duration: dur,
-    endTime: endTime, teacher: teacher, note: note
-  });
+  scheduleDB[idx] = Object.assign({}, scheduleDB[idx], { date:date, startTime:start, duration:dur, endTime:endTime, teacher:teacher, note:note });
   saveSchedule();
-  document.querySelector('.sched-modal-overlay').remove();
+  var ol = document.getElementById('editSchedOverlay');
+  if (ol) ol.remove();
   renderSchedView();
   showToast('✅ 일정 수정 완료!');
 }
+
+function deleteSchedFromModal(id) { confirmSchedDelete(id, 0); }
 
 function deleteSchedConfirm(id) {
   if (!confirm('이 일정을 삭제할까요?')) return;
@@ -4519,19 +4628,27 @@ function parseRowsToChildren(rows) {
     var age    = colAge    ? String(row[colAge]    || '') : '';
     var phone  = colPhone  ? String(row[colPhone]  || '') : '';
     var memo   = colMemo   ? String(row[colMemo]   || '') : '';
-    var status = colStatus ? String(row[colStatus] || '') : '';
-    if (status.indexOf('종결') > -1 || status.indexOf('퇴원') > -1) {
-      memo = memo ? memo + ' (종결)' : '(종결)';
+    var rawStatus = colStatus ? String(row[colStatus] || '').trim() : '';
+
+    // 상태 정규화
+    var childStatus = '등록'; // 기본값
+    if (rawStatus.indexOf('종결') > -1 || rawStatus.indexOf('퇴원') > -1 || rawStatus.indexOf('종료') > -1) {
+      childStatus = '종결';
+    } else if (rawStatus.indexOf('대기') > -1 || rawStatus.indexOf('접수') > -1 || rawStatus.indexOf('신규') > -1) {
+      childStatus = '대기';
+    } else if (rawStatus.indexOf('등록') > -1 || rawStatus.indexOf('재원') > -1 || rawStatus.indexOf('이용') > -1 || rawStatus.indexOf('진행') > -1) {
+      childStatus = '등록';
     }
 
     children.push({
-      name:  name,
-      birth: birth,
-      age:   age,
-      type:  normalizeDisorderType(colType ? row[colType] : ''),
-      phone: phone,
-      goals: [],
-      memo:  memo
+      name:   name,
+      birth:  birth,
+      age:    age,
+      type:   normalizeDisorderType(colType ? row[colType] : ''),
+      phone:  phone,
+      goals:  [],
+      memo:   memo,
+      status: childStatus
     });
   });
   return children;
@@ -4670,6 +4787,7 @@ function confirmImport() {
         phone:        c.phone  || '',
         goals:        Array.isArray(c.goals) ? c.goals : [],
         memo:         c.memo   || '',
+        status:       c.status || '등록',
         startDate:    '',
         voucherLimit: 0,
         color:        CHILD_COLORS[childDB.length % CHILD_COLORS.length]
