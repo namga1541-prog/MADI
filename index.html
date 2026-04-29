@@ -202,7 +202,19 @@
     .day-chip { width:38px; height:38px; border-radius:50%; border:1.5px solid var(--border); background:white; color:var(--text2); font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; display:inline-flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
     .day-chip.sel { background:var(--mint); color:white; border-color:var(--mint); }
 
-    /* ─── 바우처 / 치료기간 ─── */
+    /* ─── 로그인 화면 ─── */
+    .login-screen { position:fixed; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; }
+    .login-box { background:white; border-radius:20px; padding:32px 28px; width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+    .login-logo { text-align:center; margin-bottom:24px; }
+    .login-logo-icon { width:60px; height:60px; background:var(--mint); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 10px; }
+    .login-logo h1 { font-family:'Raleway',sans-serif; font-size:24px; color:var(--navy); font-weight:700; }
+    .login-logo p { font-size:12px; color:var(--text2); margin-top:3px; }
+    .login-user-btn { width:100%; padding:14px; border-radius:12px; border:2px solid var(--border); background:white; font-size:15px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer; margin-bottom:8px; text-align:left; display:flex; align-items:center; gap:12px; transition:all 0.15s; touch-action:manipulation; }
+    .login-user-btn:hover { border-color:var(--mint); background:var(--mint2); }
+    .login-user-avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:white; flex-shrink:0; }
+    .header-user { display:flex; align-items:center; gap:8px; cursor:pointer; }
+    .header-user-name { color:white; font-size:12px; font-weight:700; }
+    .header-user-badge { background:rgba(255,255,255,0.2); color:white; font-size:10px; padding:2px 7px; border-radius:10px; }
     .voucher-bar { display:flex; align-items:center; gap:6px; margin-top:5px; }
     .voucher-track { flex:1; height:6px; background:#e2e8f0; border-radius:10px; overflow:hidden; }
     .voucher-fill  { height:100%; border-radius:10px; transition:width 0.3s; }
@@ -374,6 +386,25 @@
 </head>
 <body>
 
+<!-- 로그인 화면 -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">🗒️</div>
+      <h1>마디</h1>
+      <p>언어치료 AI 비서</p>
+    </div>
+    <div id="loginUserList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
+    <div id="loginPwForm" style="display:none;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel"></div>
+      <input class="form-input" type="password" id="loginPwInput" placeholder="비밀번호 입력" style="margin-bottom:10px;">
+      <button class="btn btn-primary" style="margin-top:0;" onclick="doLogin()">🔐 로그인</button>
+      <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToUserList()">← 뒤로</button>
+      <div id="loginError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
 <div class="header">
   <div class="logo">
     <div class="logo-icon">🗒️</div>
@@ -382,7 +413,13 @@
       <p>언어치료 AI 비서</p>
     </div>
   </div>
-  <div class="child-count-badge" id="childCountBadge">아동 0명</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="child-count-badge" id="childCountBadge">아동 0명</div>
+    <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display:none;">
+      <div class="header-user-name" id="headerUserName"></div>
+      <div class="header-user-badge" id="headerUserBadge"></div>
+    </div>
+  </div>
 </div>
 
 <div class="apikey-bar">
@@ -404,6 +441,29 @@
 <!-- TAB 0: 아동관리 -->
 <div class="tab-panel active" id="panel0">
   <div class="content">
+
+    <!-- 관리자 전용: 선생님 계정 관리 -->
+    <div class="card" id="staffCard" style="display:none;border:2px solid #f59e0b;">
+      <div class="card-title">
+        <div class="card-title-left">👑 선생님 계정 관리</div>
+        <button class="btn-ghost" onclick="openAddStaffModal()">+ 추가</button>
+      </div>
+      <div id="staffList"><div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">불러오는 중...</div></div>
+    </div>
+
+    <!-- 데이터 백업/복원 -->
+    <div class="card" style="border:2px solid var(--mint);">
+      <div class="card-title">
+        <div class="card-title-left">💾 데이터 백업 · 복원</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">기기 변경·URL 이동 시 데이터를 유지하려면 백업 파일을 저장하세요.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="exportBackup()">⬇️ 전체 백업</button>
+        <button class="btn-outline" style="flex:1;" onclick="document.getElementById('restoreFileInput').click()">⬆️ 백업 복원</button>
+      </div>
+      <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
+      <div id="restoreResult" style="margin-top:8px;font-size:13px;"></div>
+    </div>
 
     <!-- 데이터 이전 카드 -->
     <div class="card">
@@ -452,7 +512,7 @@
       <div class="form-group">
         <label class="form-label">생년월일</label>
         <div class="form-row" style="margin-bottom:0; align-items:center;">
-          <input class="form-input" type="date" id="childBirth" oninput="updateAgeDisplay()" onchange="updateAgeDisplay()">
+          <input class="form-input" type="text" id="childBirth" placeholder="예: 20200429" maxlength="8" inputmode="numeric" pattern="[0-9]*" oninput="formatBirthInput(this);updateAgeDisplay()" onchange="updateAgeDisplay()">
           <div id="ageDisplay" style="
             flex:1; padding:10px 12px; background:#f0fdf4;
             border-radius:10px; font-size:14px; font-weight:700;
@@ -833,6 +893,194 @@ function getTeacherColor(name) {
   return _teacherColorMap[name];
 }
 
+// ─────── Supabase 설정 ───────
+var SUPA_URL = 'https://ujxdhafzjyrglaclarwe.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqeGRoYWZ6anlyZ2xhY2xhcndlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODA3ODgsImV4cCI6MjA5Mjk1Njc4OH0.V0chvVlTG1M_pD_c2obJpNP41WuaYOtAHQt4Fg_nbig';
+
+function supaFetch(path, method, body) {
+  var headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY
+  };
+  if (method === 'POST') headers['Prefer'] = 'return=representation,resolution=merge-duplicates';
+  if (method === 'DELETE') headers['Prefer'] = 'return=representation';
+  return fetch(SUPA_URL + '/rest/v1/' + path, {
+    method: method || 'GET',
+    headers: headers,
+    body: body ? JSON.stringify(body) : undefined
+  }).then(function(r) {
+    if (!r.ok && r.status !== 200 && r.status !== 201) {
+      return r.text().then(function(t){ throw new Error(r.status + ': ' + t); });
+    }
+    var ct = r.headers.get('content-type') || '';
+    return ct.includes('json') ? r.json() : r.text();
+  });
+}
+
+// ─────── 현재 로그인 사용자 ───────
+var currentUser = null;
+
+// ─────── 로그인 화면 ───────
+function showLoginScreen() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  loadUserList();
+}
+
+function hideLoginScreen() {
+  document.getElementById('loginScreen').style.display = 'none';
+}
+
+function loadUserList() {
+  supaFetch('madi_users?select=id,username,name,role,color&order=role.desc,name.asc')
+    .then(function(users) {
+      if (!Array.isArray(users) || users.length === 0) {
+        document.getElementById('loginUserList').innerHTML =
+          '<div style="text-align:center;font-size:13px;color:var(--text2);">등록된 계정이 없습니다.<br>관리자에게 문의하세요.</div>';
+        return;
+      }
+      var html = '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;text-align:center;">계정을 선택하세요</div>';
+      users.forEach(function(u) {
+        var color = u.color || '#0ea5a0';
+        var badge = u.role === 'admin' ? '👑 관리자' : '👩‍⚕️ 선생님';
+        html += '<button class="login-user-btn" onclick="selectUser(\'' + u.id + '\',\'' + escHtml(u.username) + '\',\'' + escHtml(u.name) + '\',\'' + u.role + '\',\'' + color + '\')">'
+          + '<div class="login-user-avatar" style="background:' + color + ';">' + u.name.slice(0,1) + '</div>'
+          + '<div><div style="font-size:15px;">' + escHtml(u.name) + '</div>'
+          + '<div style="font-size:11px;color:var(--text2);font-weight:400;">' + badge + '</div></div>'
+          + '</button>';
+      });
+      document.getElementById('loginUserList').innerHTML = html;
+    }).catch(function(err) {
+      document.getElementById('loginUserList').innerHTML =
+        '<div style="color:#ef4444;font-size:13px;text-align:center;">서버 연결 실패.<br>잠시 후 다시 시도해주세요.<br><br>'
+        + '<button class="btn-ghost" style="font-size:12px;" onclick="loadUserList()">🔄 다시 시도</button></div>';
+    });
+}
+
+var _selectedUser = null;
+function selectUser(id, username, name, role, color) {
+  _selectedUser = { id:id, username:username, name:name, role:role, color:color };
+  document.getElementById('loginUserList').style.display = 'none';
+  document.getElementById('loginPwLabel').textContent = name + '님, 비밀번호를 입력하세요';
+  document.getElementById('loginPwInput').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginPwForm').style.display = 'block';
+  setTimeout(function(){ document.getElementById('loginPwInput').focus(); }, 200);
+}
+
+function backToUserList() {
+  document.getElementById('loginPwForm').style.display = 'none';
+  document.getElementById('loginUserList').style.display = 'block';
+  _selectedUser = null;
+}
+
+function doLogin() {
+  if (!_selectedUser) return;
+  var pw = document.getElementById('loginPwInput').value;
+  if (!pw) { document.getElementById('loginError').textContent = '비밀번호를 입력해주세요.'; return; }
+  supaFetch('madi_users?username=eq.' + encodeURIComponent(_selectedUser.username) + '&password=eq.' + encodeURIComponent(pw) + '&select=id,username,name,role,color')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        document.getElementById('loginError').textContent = '비밀번호가 틀렸습니다.';
+        return;
+      }
+      currentUser = rows[0];
+      localStorage.setItem('madi_user', JSON.stringify(currentUser));
+      hideLoginScreen();
+      applyUserUI();
+      loadDBFromSupabase();
+    }).catch(function() {
+      document.getElementById('loginError').textContent = '서버 오류가 발생했습니다.';
+    });
+}
+
+// 엔터키 로그인
+document.addEventListener('DOMContentLoaded', function() {
+  var pwInput = document.getElementById('loginPwInput');
+  if (pwInput) pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+});
+
+function applyUserUI() {
+  if (!currentUser) return;
+  var headerUser = document.getElementById('headerUser');
+  var headerUserName = document.getElementById('headerUserName');
+  var headerUserBadge = document.getElementById('headerUserBadge');
+  headerUserName.textContent = currentUser.name;
+  headerUserBadge.textContent = currentUser.role === 'admin' ? '관리자' : '선생님';
+  headerUser.style.display = 'flex';
+}
+
+function showLogoutMenu() {
+  if (confirm(currentUser.name + '님, 로그아웃 하시겠습니까?')) {
+    currentUser = null;
+    localStorage.removeItem('madi_user');
+    childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
+    renderChildGrid();
+    document.getElementById('headerUser').style.display = 'none';
+    showLoginScreen();
+  }
+}
+
+// ─────── Supabase DB 로드 / 저장 ───────
+function loadDBFromSupabase() {
+  showToast('📡 데이터 불러오는 중...');
+  Promise.all([
+    supaFetch('madi_children?select=id,data&order=id.asc'),
+    supaFetch('madi_sessions?select=id,data&order=id.asc'),
+    supaFetch('madi_schedules?select=id,data&order=id.asc'),
+    supaFetch('madi_assessments?select=id,data&order=id.asc')
+  ]).then(function(results) {
+    function safeMap(arr) {
+      if (!Array.isArray(arr)) return [];
+      return arr.filter(function(r){ return r && r.data; })
+                .map(function(r){ var d=r.data; d.id=r.id; return d; });
+    }
+    childDB      = safeMap(results[0]);
+    sessionDB    = safeMap(results[1]);
+    scheduleDB   = safeMap(results[2]);
+    assessmentDB = safeMap(results[3]);
+    renderChildGrid();
+    populateChildSelects();
+    renderGoalRows();
+    renderSessionList();
+    renderUnwrittenAlert();
+    renderStaffCard();
+    showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
+  }).catch(function(e) {
+    console.error('loadDB 실패:', e);
+    showToast('❌ 데이터 로드 실패');
+    // 로컬 폴백
+    loadDB();
+    renderChildGrid();
+    populateChildSelects();
+  });
+}
+
+function saveChildren() {
+  localStorage.setItem('cn3_children', JSON.stringify(childDB));
+  if (childDB.length === 0) return;
+  var rows = childDB.map(function(c){ return { id: c.id, data: c }; });
+  supaFetch('madi_children?on_conflict=id', 'POST', rows);
+}
+function saveSessions() {
+  localStorage.setItem('cn3_sessions', JSON.stringify(sessionDB));
+  if (sessionDB.length === 0) return;
+  var rows = sessionDB.map(function(s){ return { id: s.id, data: s }; });
+  supaFetch('madi_sessions?on_conflict=id', 'POST', rows);
+}
+function saveSchedule() {
+  localStorage.setItem('cn3_schedule', JSON.stringify(scheduleDB));
+  if (scheduleDB.length === 0) return;
+  var rows = scheduleDB.map(function(s){ return { id: s.id, data: s }; });
+  supaFetch('madi_schedules?on_conflict=id', 'POST', rows);
+}
+function saveAssess() {
+  localStorage.setItem('cn3_assess', JSON.stringify(assessmentDB));
+  if (assessmentDB.length === 0) return;
+  var rows = assessmentDB.map(function(a){ return { id: a.id, data: a }; });
+  supaFetch('madi_assessments?on_conflict=id', 'POST', rows);
+}
+
 var childDB = [], sessionDB = [], scheduleDB = [], assessmentDB = [];
 
 function loadDB() {
@@ -841,10 +1089,6 @@ function loadDB() {
   try { scheduleDB   = JSON.parse(localStorage.getItem('cn3_schedule') || '[]'); } catch(e) { scheduleDB = []; }
   try { assessmentDB = JSON.parse(localStorage.getItem('cn3_assess')   || '[]'); } catch(e) { assessmentDB = []; }
 }
-function saveChildren()  { localStorage.setItem('cn3_children', JSON.stringify(childDB)); }
-function saveSessions()  { localStorage.setItem('cn3_sessions', JSON.stringify(sessionDB)); }
-function saveSchedule()  { localStorage.setItem('cn3_schedule', JSON.stringify(scheduleDB)); }
-function saveAssess()    { localStorage.setItem('cn3_assess',   JSON.stringify(assessmentDB)); }
 
 // ─────── Toast ───────
 var toastTimer = null;
@@ -1093,8 +1337,9 @@ function addChild() {
   _addChildLock = true;
   setTimeout(function(){ _addChildLock = false; }, 1500);
   var name  = document.getElementById('childName').value.trim();
-  var birth = document.getElementById('childBirth').value;
-  var age   = calcAgeFromBirth(birth); // iOS에서 onchange 늦어도 여기서 직접 계산
+  var birthRaw = document.getElementById('childBirth').value.replace(/[^0-9]/g,'');
+  var birth = birthRaw.length===8 ? birthRaw.slice(0,4)+'-'+birthRaw.slice(4,6)+'-'+birthRaw.slice(6,8) : '';
+  var age   = calcAgeFromBirth(birth);
   var type  = document.getElementById('childType').value;
   var phone = document.getElementById('childPhone').value.trim();
   var goals = document.getElementById('childGoals').value.split(',').map(function(g) { return g.trim(); }).filter(Boolean);
@@ -1157,6 +1402,12 @@ function deleteChild(id) {
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) return;
   if (!confirm(c.name + ' 정보와 모든 세션을 삭제할까요?')) return;
+  // Supabase에서도 삭제
+  supaFetch('madi_children?id=eq.' + id, 'DELETE');
+  var sessIds = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
+  if (sessIds.length > 0) {
+    supaFetch('madi_sessions?id=in.(' + sessIds.join(',') + ')', 'DELETE');
+  }
   childDB = childDB.filter(function(c) { return c.id !== id; });
   sessionDB = sessionDB.filter(function(s) { return s.childId !== id; });
   saveChildren(); saveSessions();
@@ -1344,7 +1595,7 @@ function openEditModal(id) {
 
     + '<div class="form-group"><label class="form-label">생년월일</label>'
     + '<div style="display:flex;gap:8px;align-items:center;">'
-    + '<input class="form-input" type="date" id="editBirth" value="' + escHtml(child.birth || '') + '" oninput="updateEditAge()" style="flex:1;">'
+    + '<input class="form-input" type="text" id="editBirth" value="' + escHtml((child.birth||'').replace(/-/g,'')) + '" placeholder="예: 20200429" maxlength="8" inputmode="numeric" pattern="[0-9]*" oninput="formatBirthInput(this);updateEditAge()" style="flex:1;">'
     + '<div id="editAgeDisplay" style="padding:10px 12px;background:#f0fdf4;border-radius:10px;font-size:13px;font-weight:700;color:var(--mint);border:1.5px solid var(--mint);white-space:nowrap;min-width:90px;text-align:center;">'
     + escHtml(child.age || '생활연령') + '</div>'
     + '</div></div>'
@@ -1406,7 +1657,8 @@ function saveEditModal(id) {
   if (idx < 0) return;
 
   var name  = document.getElementById('editName').value.trim();
-  var birth = document.getElementById('editBirth').value;
+  var birthRaw = document.getElementById('editBirth').value.replace(/[^0-9]/g,'');
+  var birth = birthRaw.length===8 ? birthRaw.slice(0,4)+'-'+birthRaw.slice(4,6)+'-'+birthRaw.slice(6,8) : document.getElementById('editBirth').value;
   var age   = calcAgeFromBirth(birth) || childDB[idx].age;
   var type  = document.getElementById('editType').value;
   var phone = document.getElementById('editPhone').value.trim();
@@ -1677,6 +1929,7 @@ function renderSessionList() {
 
 function deleteSession(id) {
   if (!confirm('이 세션을 삭제할까요?')) return;
+  supaFetch('madi_sessions?id=eq.' + id, 'DELETE');
   sessionDB = sessionDB.filter(function(s) { return s.id !== id; });
   saveSessions();
   renderSessionList();
@@ -2338,13 +2591,29 @@ function copyFAQText(btn) {
 }
 
 // ─────── 유틸 ───────
+// ─────── 생년월일 숫자 입력 처리 ───────
+function formatBirthInput(el) {
+  // 숫자만 허용
+  el.value = el.value.replace(/[^0-9]/g, '').slice(0, 8);
+}
+
+function parseBirth(val) {
+  // YYYY-MM-DD 또는 YYYYMMDD 모두 허용
+  if (!val) return null;
+  var s = val.replace(/-/g, '');
+  if (s.length !== 8) return null;
+  var y = s.slice(0,4), m = s.slice(4,6), d = s.slice(6,8);
+  var dt = new Date(y + '-' + m + '-' + d + 'T00:00:00');
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
 function calcAgeFromBirth(birthStr) {
-  if (!birthStr) return '';
-  var birth = new Date(birthStr);
+  var birth = parseBirth(birthStr);
+  if (!birth) return '';
   var today = new Date();
-  if (isNaN(birth.getTime()) || birth > today) return '';
+  if (birth > today) return '';
   var years  = today.getFullYear() - birth.getFullYear();
-  var months = today.getMonth()    - birth.getMonth();
+  var months = today.getMonth() - birth.getMonth();
   if (today.getDate() < birth.getDate()) months--;
   if (months < 0) { years--; months += 12; }
   if (years < 0) return '';
@@ -2725,6 +2994,7 @@ function saveSchedFromModal() {
 
 function deleteSchedConfirm(id) {
   if (!confirm('이 일정을 삭제할까요?')) return;
+  supaFetch('madi_schedules?id=eq.' + id, 'DELETE');
   scheduleDB = scheduleDB.filter(function(s) { return s.id !== id; });
   saveSchedule();
   renderSchedView();
@@ -3235,11 +3505,12 @@ var ASSESS_SCHEMA = {
   ],
   'PRES': [
     {key:'receptiveRaw', label:'수용언어 원점수', type:'num'},
-    {key:'receptiveEq',  label:'수용언어 등가월령', type:'text', ph:'예: 36개월'},
+    {key:'receptiveEq',  label:'수용언어 등가월령 (직접입력)', type:'text', ph:'예: 36개월', manual:true},
     {key:'receptivePct', label:'수용언어 %ile', type:'num'},
     {key:'expressiveRaw',label:'표현언어 원점수', type:'num'},
-    {key:'expressiveEq', label:'표현언어 등가월령', type:'text', ph:'예: 36개월'},
-    {key:'expressivePct',label:'표현언어 %ile', type:'num'}
+    {key:'expressiveEq', label:'표현언어 등가월령 (직접입력)', type:'text', ph:'예: 24개월', manual:true},
+    {key:'expressivePct',label:'표현언어 %ile', type:'num'},
+    {key:'integratedEq', label:'통합언어 등가월령 (직접입력)', type:'text', ph:'예: 30개월 / 약 6M delayed', manual:true}
   ],
   'UTAP': [
     {key:'wordAccuracy', label:'낱말수준 자음정확도(%)', type:'num', ph:'예: 85.5'},
@@ -3376,6 +3647,7 @@ function renderAssessmentList() {
 
 function deleteAssessment(id) {
   if (!confirm('이 검사 결과를 삭제할까요?')) return;
+  supaFetch('madi_assessments?id=eq.' + id, 'DELETE');
   assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
   saveAssess();
   renderAssessmentList();
@@ -3456,7 +3728,9 @@ function generateAssessReport() {
     + '- 전문 문어체 경어(~함, ~됨, ~임)\n'
     + '- 각 섹션 제목은 "I. 배경정보", "II. 검사태도" 형식 유지\n'
     + '- 등가연령 범위 표기 시 "X세 X-X개월" 또는 "XM" 형식\n'
-    + '- ** 또는 * 마크다운 볼드/이탤릭 절대 사용 금지. 강조는 섹션 제목(로마 숫자, 가나다 번호)으로만 할 것';
+    + '- ** 또는 * 마크다운 볼드/이탤릭 절대 사용 금지. 강조는 섹션 제목(로마 숫자, 가나다 번호)으로만 할 것\n'
+    + '- 검사명 표기 규칙: U-TAP은 반드시 "우리말 조음·음운 평가(U-TAP)"으로만 표기. "UTAP2", "U-TAP2", "U-TAP-2" 등 숫자 붙인 표기 절대 금지\n'
+    + '- PRES 검사에서 등가월령은 제공된 값을 그대로 사용하고 임의로 수정하지 말 것';
 
   var USER = '【아동 정보】\n'
     + '이름: ' + child.name + '\n'
@@ -3473,6 +3747,8 @@ function generateAssessReport() {
     .then(function(raw) {
       // ** 마크다운 볼드/이탤릭 제거
       raw = raw.replace(/\*\*([^*\n]+)\*\*/g, '$1').replace(/\*([^*\n]+)\*/g, '$1');
+      // UTAP2 → U-TAP 자동 교체
+      raw = raw.replace(/U-TAP-?2/g, 'U-TAP').replace(/UTAP-?2/g, 'U-TAP');
       var cn = escHtml(child.name);
       result.innerHTML = '<div id="assessReportText" contenteditable="false" class="report-box"'
         + ' style="white-space:pre-wrap;outline:none;cursor:text;transition:border 0.2s,background 0.2s;">'
@@ -3556,6 +3832,126 @@ function printParentEdu(childName) {
 }
 
 // ─────── 데이터 이전 ───────
+// ─────── 전체 데이터 백업 / 복원 ───────
+function exportBackup() {
+  var data = {
+    version:     '1.0',
+    exportedAt:  new Date().toISOString(),
+    children:    childDB,
+    sessions:    sessionDB,
+    schedules:   scheduleDB,
+    assessments: assessmentDB
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'madi_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  showToast('✅ 백업 파일 저장 완료!');
+}
+
+function importBackup(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var resultEl = document.getElementById('restoreResult');
+  resultEl.textContent = '읽는 중...';
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var data = JSON.parse(ev.target.result);
+      if (!data.children) { resultEl.textContent = '❌ 올바른 백업 파일이 아닙니다.'; return; }
+      if (!confirm('현재 데이터를 백업 파일로 교체합니다. 기존 데이터는 사라집니다. 계속할까요?')) {
+        resultEl.textContent = ''; return;
+      }
+      childDB      = data.children    || [];
+      sessionDB    = data.sessions    || [];
+      scheduleDB   = data.schedules   || [];
+      assessmentDB = data.assessments || [];
+      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
+      renderChildGrid(); populateChildSelects();
+      var cnt = childDB.length + '명 아동 / ' + sessionDB.length + '개 세션 / ' + scheduleDB.length + '개 일정';
+      resultEl.innerHTML = '<span style="color:var(--mint);font-weight:700;">✅ ' + cnt + ' 복원 완료!</span>';
+      showToast('✅ 데이터 복원 완료!');
+    } catch(err) {
+      resultEl.textContent = '❌ 파일 읽기 실패: ' + err.message;
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ─────── 선생님 계정 관리 (관리자 전용) ───────
+function renderStaffCard() {
+  var card = document.getElementById('staffCard');
+  if (!card) return;
+  card.style.display = (currentUser && currentUser.role === 'admin') ? 'block' : 'none';
+  if (!currentUser || currentUser.role !== 'admin') return;
+  supaFetch('madi_users?select=id,username,name,role,color&order=role.desc,name.asc')
+    .then(function(users) {
+      if (!Array.isArray(users)) return;
+      var html = '';
+      users.forEach(function(u) {
+        var color = u.color || '#0ea5a0';
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;">'
+          + '<div style="width:34px;height:34px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">' + u.name.slice(0,1) + '</div>'
+          + '<div style="flex:1;"><div style="font-size:14px;font-weight:700;">' + escHtml(u.name) + '</div>'
+          + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(u.username) + ' · ' + (u.role==='admin'?'👑 관리자':'👩‍⚕️ 선생님') + '</div></div>'
+          + (u.id !== currentUser.id ? '<button class="btn-del" onclick="deleteStaff(\'' + u.id + '\',\'' + escHtml(u.name) + '\')">삭제</button>' : '<span style="font-size:11px;color:var(--mint);">나</span>')
+          + '</div>';
+      });
+      document.getElementById('staffList').innerHTML = html || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">등록된 계정 없음</div>';
+    });
+}
+
+function openAddStaffModal() {
+  var overlay = document.createElement('div');
+  overlay.className = 'sched-modal-overlay';
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML = '<div class="sched-modal">'
+    + '<div class="sched-modal-title">👤 선생님 계정 추가</div>'
+    + '<div class="form-group"><label class="form-label">이름</label><input class="form-input" type="text" id="newStaffName" placeholder="예: 김지영"></div>'
+    + '<div class="form-group"><label class="form-label">아이디 (로그인용)</label><input class="form-input" type="text" id="newStaffId" placeholder="예: jiyoung" autocomplete="off"></div>'
+    + '<div class="form-group"><label class="form-label">비밀번호</label><input class="form-input" type="text" id="newStaffPw" placeholder="예: 1234" autocomplete="off"></div>'
+    + '<div class="form-group"><label class="form-label">역할</label>'
+    + '<select class="form-input" id="newStaffRole"><option value="teacher">👩‍⚕️ 선생님</option><option value="admin">👑 관리자</option></select></div>'
+    + '<div id="addStaffError" style="color:#ef4444;font-size:13px;margin-bottom:8px;"></div>'
+    + '<button class="btn btn-primary" style="margin-top:0;" onclick="saveNewStaff(this)">✅ 추가</button>'
+    + '</div>';
+  document.body.appendChild(overlay);
+}
+
+function saveNewStaff(btn) {
+  var name     = document.getElementById('newStaffName').value.trim();
+  var username = document.getElementById('newStaffId').value.trim();
+  var password = document.getElementById('newStaffPw').value.trim();
+  var role     = document.getElementById('newStaffRole').value;
+  var errEl    = document.getElementById('addStaffError');
+  if (!name || !username || !password) { errEl.textContent = '모든 항목을 입력해주세요.'; return; }
+  var color = TEACHER_COLORS[Math.floor(Math.random() * TEACHER_COLORS.length)];
+  supaFetch('madi_users', 'POST', [{ username:username, password:password, name:name, role:role, color:color }])
+    .then(function(r) {
+      if (r && r[0] && r[0].id) {
+        btn.closest('.sched-modal-overlay').remove();
+        renderStaffCard();
+        showToast('✅ ' + name + ' 계정 추가 완료!');
+      } else {
+        errEl.textContent = '추가 실패 (아이디 중복일 수 있음)';
+      }
+    }).catch(function(){ errEl.textContent = '서버 오류'; });
+}
+
+function deleteStaff(id, name) {
+  if (!confirm(name + ' 계정을 삭제할까요?')) return;
+  supaFetch('madi_users?id=eq.' + id, 'DELETE').then(function() {
+    renderStaffCard();
+    showToast('🗑️ ' + name + ' 계정 삭제됨');
+  });
+}
+
 function toggleImportCard() {
   var card = document.getElementById('importCard');
   var btn  = document.getElementById('importToggleBtn');
@@ -3885,11 +4281,10 @@ function cancelImport() {
 
 // ─────── 초기화 ───────
 function init() {
-  loadDB();
   var today = new Date().toISOString().slice(0, 10);
-  document.getElementById('sessionDate').value  = today;
-  document.getElementById('portfolioMonth').value = today.slice(0, 7);
-  document.getElementById('assessDate').value   = today;
+  document.getElementById('sessionDate').value     = today;
+  document.getElementById('portfolioMonth').value  = today.slice(0, 7);
+  document.getElementById('assessDate').value      = today;
   schedCurrentDate = new Date();
 
   var saved = localStorage.getItem('cn3_apikey');
@@ -3898,13 +4293,26 @@ function init() {
     if (this.value.startsWith('sk-ant')) localStorage.setItem('cn3_apikey', this.value);
   });
 
-  // iOS Safari: CSS touch-action:manipulation 으로 300ms 딜레이 제거 (JS 핸들러 불필요)
-
-  renderChildGrid();
-  populateChildSelects();
-  renderGoalRows();
-  renderSessionList();
-  renderUnwrittenAlert();
+  // 저장된 로그인 세션 확인
+  var savedUser = localStorage.getItem('madi_user');
+  if (savedUser) {
+    try {
+      currentUser = JSON.parse(savedUser);
+      applyUserUI();
+      hideLoginScreen();
+      loadDBFromSupabase();
+    } catch(e) {
+      showLoginScreen();
+    }
+  } else {
+    loadDB(); // 로컬 임시 로드
+    renderChildGrid();
+    populateChildSelects();
+    renderGoalRows();
+    renderSessionList();
+    renderUnwrittenAlert();
+    showLoginScreen();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
