@@ -4054,12 +4054,23 @@ function stopRealtime() {
 }
 
 // ─────── GitHub 자동 배포 ───────
-var GITHUB_TOKEN = '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';
 var GITHUB_OWNER = 'namga1541-prog';
 var GITHUB_REPO  = 'MADI';
 var GITHUB_FILE  = 'index.html';
 
+function getGithubToken() {
+  return localStorage.getItem('madi_gh_token') || '';
+}
+
 function deployToGitHub() {
+  var token = getGithubToken();
+  if (!token) {
+    var t = prompt('GitHub Token을 입력하세요:\n(한 번 입력하면 저장됩니다)');
+    if (!t) return;
+    localStorage.setItem('madi_gh_token', t.trim());
+    token = t.trim();
+  }
+
   var btn    = document.getElementById('deployBtn');
   var result = document.getElementById('deployResult');
   var status = document.getElementById('deployStatus');
@@ -4067,24 +4078,22 @@ function deployToGitHub() {
   btn.textContent = '⏳ 배포 중...';
   result.innerHTML = '';
 
-  // 1단계: 현재 파일 SHA 가져오기
   fetch('https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + GITHUB_FILE, {
     headers: {
-      'Authorization': 'token ' + GITHUB_TOKEN,
+      'Authorization': 'token ' + token,
       'Accept': 'application/vnd.github.v3+json'
     }
   })
   .then(function(r) { return r.json(); })
   .then(function(fileInfo) {
-    var sha = fileInfo.sha;
-    // 2단계: 현재 HTML 전체를 Base64로 인코딩
+    if (!fileInfo.sha) throw new Error(fileInfo.message || 'SHA 가져오기 실패');
+    var sha  = fileInfo.sha;
     var html = document.documentElement.outerHTML;
     var b64  = btoa(unescape(encodeURIComponent(html)));
-    // 3단계: GitHub API로 파일 업데이트
     return fetch('https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + GITHUB_FILE, {
       method: 'PUT',
       headers: {
-        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Authorization': 'token ' + token,
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
       },
@@ -4100,11 +4109,17 @@ function deployToGitHub() {
     btn.disabled = false;
     btn.textContent = '🚀 GitHub에 지금 배포';
     if (res.content && res.content.sha) {
-      result.innerHTML = '<div style="color:var(--mint);font-weight:700;">✅ 배포 완료! 1~2분 후 반영됩니다.<br><span style="font-size:11px;color:var(--text2);">namga1541-prog.github.io/MADI</span></div>';
+      result.innerHTML = '<div style="color:var(--mint);font-weight:700;">✅ 배포 완료!<br><span style="font-size:11px;color:var(--text2);">1~2분 후 namga1541-prog.github.io/MADI 에 반영됩니다.</span></div>';
       status.textContent = '최근 배포: ' + new Date().toLocaleTimeString('ko-KR');
       showToast('🚀 GitHub 배포 완료!');
     } else {
-      result.innerHTML = '<div style="color:#ef4444;">❌ 배포 실패: ' + (res.message || '알 수 없는 오류') + '</div>';
+      // 토큰 오류 가능성
+      if (res.message && res.message.includes('Bad credentials')) {
+        localStorage.removeItem('madi_gh_token');
+        result.innerHTML = '<div style="color:#ef4444;">❌ Token 오류 — 다시 배포 버튼을 눌러 Token을 재입력해주세요.</div>';
+      } else {
+        result.innerHTML = '<div style="color:#ef4444;">❌ 배포 실패: ' + (res.message || '알 수 없는 오류') + '</div>';
+      }
     }
   })
   .catch(function(e) {
