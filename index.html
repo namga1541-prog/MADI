@@ -406,13 +406,13 @@
       <h1>마디</h1>
       <p>언어치료 AI 비서</p>
     </div>
-    <div id="loginUserList" style="display: none;"><div style="font-size:12px;color:var(--text2);margin-bottom:10px;text-align:center;">계정을 선택하세요</div><button class="login-user-btn" onclick="selectUser('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','dasol_bae','배다솔','teacher','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">배</div><div><div style="font-size:15px;">배다솔</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👩‍⚕️ 선생님</div></div></button><button class="login-user-btn" onclick="selectUser('8dce5d80-40bc-4781-82eb-cd3d12e33011','admin','관리자','admin','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">관</div><div><div style="font-size:15px;">관리자</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button></div>
-    <div id="loginPwForm" style="display: block;">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel">관리자님, 비밀번호를 입력하세요</div>
+    <div id="loginUserList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
+    <div id="loginPwForm" style="display:none;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel"></div>
       <input class="form-input" type="password" id="loginPwInput" placeholder="비밀번호 입력" style="margin-bottom:10px;">
       <button class="btn btn-primary" style="margin-top:0;" onclick="doLogin()">🔐 로그인</button>
       <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToUserList()">← 뒤로</button>
-      <div id="loginError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;">비밀번호가 틀렸습니다.</div>
+      <div id="loginError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;"></div>
     </div>
   </div>
 </div>
@@ -455,15 +455,6 @@
 <div class="tab-panel" id="panel0">
   <div class="content">
 
-    <!-- 관리자 전용: 선생님 계정 관리 -->
-    <div class="card" id="staffCard" style="display: block; border: 2px solid rgb(245, 158, 11);">
-      <div class="card-title">
-        <div class="card-title-left">👑 선생님 계정 관리</div>
-        <button class="btn-ghost" onclick="openAddStaffModal()">+ 추가</button>
-      </div>
-      <div id="staffList"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">배</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">배다솔</div><div style="font-size:11px;color:var(--text2);">@dasol_bae · 👩‍⚕️ 선생님</div></div><button class="btn-del" onclick="deleteStaff('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','배다솔')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">관</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">관리자</div><div style="font-size:11px;color:var(--text2);">@admin · 👑 관리자</div></div><span style="font-size:11px;color:var(--mint);">나</span></div></div>
-    </div>
-
     <!-- 아동 상태 탭 -->
     <div class="child-status-tabs" id="childStatusTabs">
       <button class="child-status-tab active" data-status="등록" onclick="setChildStatus('등록',this)">
@@ -490,7 +481,7 @@
       </select>
     </div>
 
-    <div class="child-grid" id="childGrid"><div class="child-card" id="cc_1777348761852"><div class="child-card-row" onclick="toggleChildCard(1777348761852)"><div class="child-avatar" style="background:#0ea5a022">🌈</div><div class="child-name">서규민</div><div class="child-age-badge">3세</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">자폐스펙트럼</div><div class="child-session-count">세션 1회 | 최근: 2026-04-28</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777348761852)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777348761852)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777348761852)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777348761852)">삭제</button></div></div></div></div>
+    <div class="child-grid" id="childGrid"><div class="child-card" id="cc_1777348761852"><div class="child-card-row" onclick="toggleChildCard(1777348761852)"><div class="child-avatar" style="background:#0ea5a022">🌈</div><div class="child-name">서규민</div><div class="child-age-badge">6세 1개월</div><span class="child-expand-icon">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">자폐스펙트럼</div><div class="child-meta">🎂 2020-03-11</div><div class="child-session-count">세션 1회 | 최근: 2026-04-28</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777348761852)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777348761852)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777348761852)">🔍 상세</button><button class="btn-del" onclick="event.stopPropagation();deleteChild(1777348761852)">삭제</button></div></div></div></div>
 
     <div class="card">
       <div class="card-title"><div class="card-title-left">➕ 아동 등록</div></div>
@@ -570,7 +561,7 @@
 
       <div class="form-group">
         <label class="form-label">아동 선택</label>
-        <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="아동 검색..." autocomplete="off"><select class="form-input" id="sessionChild" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+        <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="아동 검색..." autocomplete="off"><select class="form-input" id="sessionChild" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
       </div>
       <div class="form-group">
         <label class="form-label">세션 날짜</label>
@@ -609,7 +600,7 @@
 
     <div class="card">
       <div class="card-title"><div class="card-title-left">📋 최근 세션</div></div>
-      <div id="sessionList"><div class="session-item" style="border-left-color:#0ea5a0"><div class="session-header"><span class="session-child" style="color:#0ea5a0">서규민</span><div style="display:flex;gap:6px;align-items:center;"><span class="session-date">📅 2026-04-28</span><button class="btn-del" onclick="deleteSession(1777348862890)">삭제</button></div></div><div class="session-goals"><span class="goal-chip bad">눈맞춤 3초 유지 10%</span><span class="goal-chip bad">이름 호명 반응 10%</span><span class="goal-chip bad">요구하기 5어휘 산출 10%</span></div><div class="session-note">서규민 아동의 전반적 수행이 매우 저조한 세션이었음. 목표 행동 전반에서 반응을 이끌어내기 어려웠음. 컨디션 및 환경 요인 점검이 필요함.</div><div class="session-ai-note">🤖 3세 자폐스펙트럼 아동의 '아무것도 못함' 기록은 임상적으로 추가 정보가 필요합니다. 다음 세션 기록 시 ①각 목표별 시도 횟수 및 반응률(예: 호명 반응 0/10), ②비언어적 반응 유무(시선 이동, 신체 지향), ③회피·거부 행동의 형태(울음, 자리이탈, 상동행동 증가 등), ④감각 컨디션(수면, 식사, 환경 자극)을 분리하여 기술해 주십시오. 또한 '말귀를 못 알아듣고 헛소리'라는 표현보다는 '지시 이해 제한, 비목적적 발성 관찰'과 같은 객관적 기술을 권장합니다. 현 수행 수준을 고려할 때 목표 난이도 하향(예: 눈맞춤 1초, 호명 시 시선 이동만으로도 정반응 인정) 및 선호 강화제 재탐색, 공동주의 형성 단계부터의 재접근을 검토해 보시기 바랍니다.</div></div></div>
+      <div id="sessionList"><div class="session-item" style="border-left-color:#64748b"><div class="session-header"><span class="session-child" style="color:#64748b">알수없음</span><div style="display:flex;gap:6px;align-items:center;"><span class="session-date">📅 2026-04-29</span><button class="btn-del" onclick="deleteSession(1777425965566)">삭제</button></div></div><div class="session-note">뽀로로 놀이함. 상호작용이 제한적이었음</div></div><div class="session-item" style="border-left-color:#0ea5a0"><div class="session-header"><span class="session-child" style="color:#0ea5a0">서규민</span><div style="display:flex;gap:6px;align-items:center;"><span class="session-date">📅 2026-04-28</span><button class="btn-del" onclick="deleteSession(1777348862890)">삭제</button></div></div><div class="session-goals"><span class="goal-chip bad">눈맞춤 3초 유지 10%</span><span class="goal-chip bad">이름 호명 반응 10%</span><span class="goal-chip bad">요구하기 5어휘 산출 10%</span></div><div class="session-note">서규민 아동의 전반적 수행이 매우 저조한 세션이었음. 목표 행동 전반에서 반응을 이끌어내기 어려웠음. 컨디션 및 환경 요인 점검이 필요함.</div><div class="session-ai-note">🤖 3세 자폐스펙트럼 아동의 '아무것도 못함' 기록은 임상적으로 추가 정보가 필요합니다. 다음 세션 기록 시 ①각 목표별 시도 횟수 및 반응률(예: 호명 반응 0/10), ②비언어적 반응 유무(시선 이동, 신체 지향), ③회피·거부 행동의 형태(울음, 자리이탈, 상동행동 증가 등), ④감각 컨디션(수면, 식사, 환경 자극)을 분리하여 기술해 주십시오. 또한 '말귀를 못 알아듣고 헛소리'라는 표현보다는 '지시 이해 제한, 비목적적 발성 관찰'과 같은 객관적 기술을 권장합니다. 현 수행 수준을 고려할 때 목표 난이도 하향(예: 눈맞춤 1초, 호명 시 시선 이동만으로도 정반응 인정) 및 선호 강화제 재탐색, 공동주의 형성 단계부터의 재접근을 검토해 보시기 바랍니다.</div></div></div>
     </div>
   </div>
 </div>
@@ -665,7 +656,7 @@
       <div class="form-group">
         <label class="form-label">아동 선택</label>
         <div style="display:flex;gap:8px;align-items:center;">
-          <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="assessChild" onchange="onAssessChildChange()" style="flex: 1 1 0%; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+          <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="assessChild" onchange="onAssessChildChange()" style="flex: 1 1 0%; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
           <div id="assessAgeDisplay" style="
             padding:10px 12px; background:#f0fdf4; border-radius:10px;
             font-size:13px; font-weight:700; color:var(--mint);
@@ -720,7 +711,7 @@
     <div class="card">
       <div class="card-title"><div class="card-title-left">📄 AI 평가 보고서</div></div>
       <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">검사 결과를 바탕으로 AI가 <strong>임상 수준의 전문 평가 보고서</strong>를 작성합니다.</p>
-      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="assessReportChild" style="margin-bottom: 10px; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="assessReportChild" style="margin-bottom: 10px; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
 
       <!-- 보고서 상세 정보 (선택사항) -->
       <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border);">
@@ -754,7 +745,7 @@
     </div>
     <div class="card">
       <div class="card-title"><div class="card-title-left">📊 검사 결과 목록</div></div>
-      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="assessListChild" style="margin-bottom: 10px; display: none;" onchange="renderAssessmentList()"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="assessListChild" style="margin-bottom: 10px; display: none;" onchange="renderAssessmentList()"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
       <div id="assessmentList"></div>
     </div>
   </div>
@@ -765,7 +756,7 @@
   <div class="content">
     <div class="card">
       <div class="card-title"><div class="card-title-left">📊 아동 선택</div></div>
-      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="chartChild" onchange="renderChart()" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="chartChild" onchange="renderChart()" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
       <button class="btn-outline" onclick="detectStagnation()" style="margin-top:8px;width:100%;color:var(--amber);border-color:var(--amber);">⚠️ AI 정체 감지 분석</button>
     </div>
 
@@ -790,7 +781,7 @@
       <div class="card-title"><div class="card-title-left">📨 부모 보고서</div></div>
       <div class="form-group">
         <label class="form-label">아동 선택</label>
-        <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="reportChild" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+        <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="reportChild" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
       </div>
       <div class="form-group">
         <label class="form-label">기간</label>
@@ -808,7 +799,7 @@
     <div class="card" style="margin-top:4px;">
       <div class="card-title"><div class="card-title-left">🏠 부모 교육 자료 생성</div></div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">세션 내용을 바탕으로 부모가 집에서 바로 실천할 수 있는 <strong>A4 한 장짜리 교육 자료</strong>를 생성합니다.</p>
-      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="eduChild" style="margin-bottom: 8px; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="eduChild" style="margin-bottom: 8px; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
       <button class="btn btn-primary" id="eduBtn" onclick="generateParentEdu()" style="background:var(--green);">🖨️ 부모 교육 자료 생성</button>
       <div id="eduResult" style="margin-top:12px;"></div>
     </div>
@@ -826,7 +817,7 @@
     <div class="card">
       <div class="form-group">
         <label class="form-label">아동 선택</label>
-        <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="portfolioChild" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+        <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="portfolioChild" style="display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
       </div>
       <div class="form-group">
         <label class="form-label">대상 월</label>
@@ -853,7 +844,7 @@
     <div class="card">
       <div class="card-title"><div class="card-title-left">💬 부모 FAQ 답변 보조</div></div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6;">부모가 묻기 까다로운 질문에 대한 전문가 답변 예시를 AI가 작성합니다.</p>
-      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="faqChild" style="margin-bottom: 8px; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (3세)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (3세)">서규민 (3세)</div></div></div>
+      <div class="ss-wrap"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off"><select class="form-input" id="faqChild" style="margin-bottom: 8px; display: none;"><option value="">아동 검색...</option><option value="1777348761852">서규민 (6세 1개월)</option></select><div class="ss-drop"><div class="ss-item" data-val="1777348761852" data-label="서규민 (6세 1개월)">서규민 (6세 1개월)</div></div></div>
       <textarea class="form-input" id="faqQuestion" placeholder="예: 우리 아이는 왜 진전이 없나요?
 예: 언제까지 치료받아야 하나요?" style="min-height:70px;"></textarea>
       <button class="btn btn-purple" id="faqBtn" onclick="generateFAQ()" style="margin-top:8px;">💬 답변 예시 생성</button>
@@ -865,6 +856,15 @@
 <!-- TAB 8: 설정 -->
 <div class="tab-panel active" id="panel8">
   <div class="content">
+
+    <!-- 관리자 전용: 선생님 계정 관리 -->
+    <div class="card" id="staffCard" style="display: block; border: 2px solid rgb(245, 158, 11);">
+      <div class="card-title">
+        <div class="card-title-left">👑 선생님 계정 관리</div>
+        <button class="btn-ghost" onclick="openAddStaffModal()">+ 추가</button>
+      </div>
+      <div id="staffList"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">배</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">배다솔</div><div style="font-size:11px;color:var(--text2);">@dasol_bae · 👩‍⚕️ 선생님</div></div><button class="btn-del" onclick="deleteStaff('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','배다솔')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">관</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">관리자</div><div style="font-size:11px;color:var(--text2);">@admin · 👑 관리자</div></div><span style="font-size:11px;color:var(--mint);">나</span></div></div>
+    </div>
 
     <!-- 데이터 백업/복원 -->
     <div class="card" style="border:2px solid var(--mint);">
@@ -912,7 +912,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast">☁️ 기존 데이터 1명 → Supabase 자동 업로드 완료!</div>
+<div class="toast" id="toast">✅ 데이터 로드 완료 (아동 1명)</div>
 
 <script>
 // ─────── 상수 ───────
@@ -1130,28 +1130,50 @@ function saveChildren() {
   localStorage.setItem('cn3_children', JSON.stringify(childDB));
   if (childDB.length === 0) return;
   var rows = childDB.map(function(c){ return { id: c.id, data: c }; });
-  supaFetch('madi_children?on_conflict=id', 'POST', rows);
+  // 50개씩 나눠서 저장 (대용량 요청 실패 방지)
+  var batches = [];
+  for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
+  batches.reduce(function(p, batch) {
+    return p.then(function() {
+      return supaFetch('madi_children?on_conflict=id', 'POST', batch);
+    });
+  }, Promise.resolve()).catch(function(e) {
+    console.error('아동 저장 실패:', e);
+    showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요');
+  });
 }
 function saveSessions() {
   markMyChange();
   localStorage.setItem('cn3_sessions', JSON.stringify(sessionDB));
   if (sessionDB.length === 0) return;
   var rows = sessionDB.map(function(s){ return { id: s.id, data: s }; });
-  supaFetch('madi_sessions?on_conflict=id', 'POST', rows);
+  var batches = [];
+  for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
+  batches.reduce(function(p, batch) {
+    return p.then(function() { return supaFetch('madi_sessions?on_conflict=id', 'POST', batch); });
+  }, Promise.resolve()).catch(function(e) { showToast('❌ 세션 저장 실패'); });
 }
 function saveSchedule() {
   markMyChange();
   localStorage.setItem('cn3_schedule', JSON.stringify(scheduleDB));
   if (scheduleDB.length === 0) return;
   var rows = scheduleDB.map(function(s){ return { id: s.id, data: s }; });
-  supaFetch('madi_schedules?on_conflict=id', 'POST', rows);
+  var batches = [];
+  for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
+  batches.reduce(function(p, batch) {
+    return p.then(function() { return supaFetch('madi_schedules?on_conflict=id', 'POST', batch); });
+  }, Promise.resolve()).catch(function(e) { showToast('❌ 스케줄 저장 실패'); });
 }
 function saveAssess() {
   markMyChange();
   localStorage.setItem('cn3_assess', JSON.stringify(assessmentDB));
   if (assessmentDB.length === 0) return;
   var rows = assessmentDB.map(function(a){ return { id: a.id, data: a }; });
-  supaFetch('madi_assessments?on_conflict=id', 'POST', rows);
+  var batches = [];
+  for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
+  batches.reduce(function(p, batch) {
+    return p.then(function() { return supaFetch('madi_assessments?on_conflict=id', 'POST', batch); });
+  }, Promise.resolve()).catch(function(e) { showToast('❌ 검사 저장 실패'); });
 }
 
 var childDB = [], sessionDB = [], scheduleDB = [], assessmentDB = [];
@@ -4524,7 +4546,11 @@ function confirmImport() {
     + '세션 기록: <strong>' + sessionCount + '개</strong>'
     + '</div></div>';
 
-  showToast('✅ 데이터 이전 완료! 아동 ' + addedCount + '명, 세션 ' + sessionCount + '개');
+  showToast('✅ ' + addedCount + '명 추가! 서버 저장 중...(잠시 기다려주세요)');
+  // 전체 저장 완료 후 최종 확인
+  setTimeout(function() {
+    showToast('☁️ 서버 저장 완료! 아동 ' + childDB.length + '명');
+  }, addedCount * 100 + 3000);
 }
 
 function cancelImport() {
