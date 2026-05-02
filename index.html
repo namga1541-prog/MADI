@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/3029555c-88d9-4d61-b7f6-e746a7120628">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/6b4a8eb7-0e0f-4deb-b920-33fb1ce3bff1">
+  <link rel="manifest" id="pwaManifest" href="blob:null/ad9537f7-0175-420c-a3b2-a00ded664ee0">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/1fe51e96-d3d3-4291-82df-7c16172667de">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -23,7 +23,34 @@
       --bg:#f4f8fb; --white:#fff; --red:#ef4444; --amber:#f59e0b;
       --green:#10b981; --purple:#8b5cf6; --text:#1e293b; --text2:#64748b;
       --border:#e2e8f0; --radius:14px; --shadow:0 2px 14px rgba(0,0,0,0.07);
+      --card-bg:#fff; --input-bg:#fff; --input-border:#cbd5e1;
     }
+    body.dark-mode {
+      --mint:#2dd4bf; --mint2:#134e4a; --navy:#020617; --navy2:#0f172a;
+      --bg:#0f172a; --white:#1e293b; --red:#f87171; --amber:#fbbf24;
+      --green:#34d399; --purple:#a78bfa; --text:#e2e8f0; --text2:#94a3b8;
+      --border:#334155; --shadow:0 2px 14px rgba(0,0,0,0.4);
+      --card-bg:#1e293b; --input-bg:#0f172a; --input-border:#475569;
+    }
+    /* 다크 모드 인라인 스타일 보정 */
+    body.dark-mode .form-input,
+    body.dark-mode select.form-input,
+    body.dark-mode textarea.form-input { background:var(--input-bg) !important; border-color:var(--input-border) !important; color:var(--text); }
+    body.dark-mode .btn-outline { background:var(--card-bg); color:var(--mint); }
+    body.dark-mode .btn-ghost { background:#0f172a; color:var(--text2); border-color:var(--border); }
+    body.dark-mode .child-card { background:var(--card-bg); border-color:var(--border); }
+    body.dark-mode .child-card:hover { background:#0f172a; }
+    body.dark-mode .child-status-tabs { background:var(--card-bg); }
+    body.dark-mode .session-card,
+    body.dark-mode .card,
+    body.dark-mode .stagnation-card,
+    body.dark-mode .ai-response-box { background:var(--card-bg); border-color:var(--border); }
+    body.dark-mode .session-ai-note { background:#0f172a; }
+    body.dark-mode .goal-chip.good { background:#064e3b; color:#6ee7b7; }
+    body.dark-mode .goal-chip.mid { background:#451a03; color:#fbbf24; }
+    body.dark-mode .empty { color:var(--text2); }
+    body.dark-mode .add-goal-btn { background:#134e4a; color:#5eead4; }
+    body.dark-mode .toast { background:#475569; }
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
     body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100%; }
 
@@ -43,8 +70,34 @@
 
     .tabs { display:flex; background:var(--white); border-bottom:2px solid var(--border); overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
     .tabs::-webkit-scrollbar { display:none; }
-    .tab-btn { flex:1; min-width:62px; padding:12px 4px; font-size:11.5px; font-weight:700; color:var(--text2); cursor:pointer; border:none; background:none; border-bottom:3px solid transparent; transition:all 0.2s; margin-bottom:-2px; white-space:nowrap; -webkit-tap-highlight-color:rgba(0,0,0,0); touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+    .tab-btn {
+      flex:1 1 0;
+      min-width:48px;
+      padding:7px 2px 6px;
+      font-size:9px;
+      font-weight:700;
+      color:var(--text2);
+      cursor:pointer;
+      border:none;
+      background:none;
+      border-bottom:3px solid transparent;
+      transition:color 0.2s, border-color 0.2s;
+      margin-bottom:-2px;
+      -webkit-tap-highlight-color:rgba(0,0,0,0);
+      touch-action:manipulation;
+      user-select:none;
+      -webkit-user-select:none;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:3px;
+      box-sizing:border-box;
+    }
+    .tab-btn .tab-ico { font-size:18px; line-height:1.1; display:block; }
+    .tab-btn .tab-lbl { font-size:9px; font-weight:700; line-height:1.1; display:block; white-space:nowrap; }
     .tab-btn.active { color:var(--mint); border-bottom-color:var(--mint); }
+    .tab-btn.active .tab-lbl { color:var(--mint); }
 
     .content { padding:14px; max-width:860px; margin:0 auto; }
     .tab-panel { display:none; }
@@ -146,6 +199,20 @@
     .goal-name-input:focus { outline:none; }
     .goal-score-input { width:60px; text-align:center; border:1.5px solid var(--border); border-radius:8px; padding:5px 8px; font-size:13px; font-weight:700; font-family:'Noto Sans KR',sans-serif; }
     .goal-score-input:focus { outline:none; border-color:var(--mint); }
+    /* 음소 매트릭스 */
+    .phoneme-row { display:grid; grid-template-columns:52px 1fr 1fr 1fr 28px; gap:4px; align-items:center; margin-bottom:5px; }
+    .phoneme-label { font-size:15px; font-weight:700; color:var(--navy); text-align:center; background:#fff0f6; border-radius:8px; padding:7px 4px; }
+    .phoneme-input { text-align:center; border:1.5px solid var(--border); border-radius:8px; padding:7px 4px; font-size:13px; font-weight:700; font-family:'Noto Sans KR',sans-serif; color:var(--text); width:100%; background:var(--input-bg,#fff); }
+    .phoneme-input:focus { outline:none; border-color:#db2777; }
+    .phoneme-input.filled-good { background:#f0fdf4; border-color:#86efac; color:#15803d; }
+    .phoneme-input.filled-mid  { background:#fffbeb; border-color:#fcd34d; color:#b45309; }
+    .phoneme-input.filled-bad  { background:#fef2f2; border-color:#fca5a5; color:#dc2626; }
+    .phoneme-chip { font-size:13px; padding:5px 11px; background:#fff0f6; color:#db2777; border:1.5px solid #fbcfe8; border-radius:20px; cursor:pointer; font-weight:700; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+    .phoneme-chip:active { background:#db2777; color:white; }
+    .phoneme-chip.added { background:#f1f5f9; color:#94a3b8; border-color:#e2e8f0; cursor:default; }
+    body.dark-mode .phoneme-label { background:#4c0519; color:#fda4af; }
+    body.dark-mode .phoneme-input { background:#0f172a; border-color:#334155; }
+    body.dark-mode .phoneme-chip { background:#4c0519; color:#fda4af; border-color:#9f1239; }
     .add-goal-btn { font-size:12px; color:var(--mint); background:var(--mint2); border:none; border-radius:8px; padding:7px 12px; cursor:pointer; font-weight:700; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
     .add-goal-btn:disabled { background:#f1f5f9; color:#94a3b8; cursor:not-allowed; opacity:0.7; }
 
@@ -194,7 +261,9 @@
       .form-row { flex-direction:column; }
       .btn-row { flex-direction:column; }
       /* 탭 폰트 */
-      .tab-btn { font-size:11px; }
+      .tab-btn { min-width:40px; }
+      .tab-btn .tab-ico { font-size:16px; }
+      .tab-btn .tab-lbl { font-size:8.5px; }
       /* API Key 바 레이블 숨김 (입력란 공간 확보) */
       .apikey-bar label { display:none; }
       /* 삭제 버튼 터치 영역 확대 (최소 44px) */
@@ -521,7 +590,10 @@
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
-    <div class="child-count-badge" id="childCountBadge">아동 467명</div>
+    <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">18:45</div>
+      <div id="clockNext" style="font-size:10px;color:rgba(255,255,255,0.65);">아동 467명</div>
+    </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
       <div class="header-user-name" id="headerUserName">남그</div>
       <div class="header-user-badge" id="headerUserBadge">관리자</div>
@@ -535,15 +607,15 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)">👶 아동 🔴</button>
-  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)">📝 세션</button>
-  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">📅 스케줄</button>
-  <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)">📋 검사</button>
-  <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)">📊 추이</button>
-  <button class="tab-btn" id="tabBtn5" onclick="switchTab(5)">📨 부모상담 리포트</button>
-  <button class="tab-btn" id="tabBtn6" onclick="switchTab(6)">📁 포트폴리오</button>
-  <button class="tab-btn" id="tabBtn7" onclick="switchTab(7)">🤖 AI도구</button>
-  <button class="tab-btn active" id="tabBtn8" onclick="switchTab(8)">⚙️ 설정</button>
+  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)" style="position: relative;"><span class="tab-ico">👶</span><span class="tab-lbl">아동</span><span class="tab-alert" style="position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; background: rgb(239, 68, 68); border-radius: 50%;"></span></button>
+  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">📝</span><span class="tab-lbl">세션</span></button>
+  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📅</span><span class="tab-lbl">일정</span></button>
+  <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📋</span><span class="tab-lbl">검사</span></button>
+  <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)"><span class="tab-ico">📊</span><span class="tab-lbl">추이</span></button>
+  <button class="tab-btn" id="tabBtn5" onclick="switchTab(5)"><span class="tab-ico">📨</span><span class="tab-lbl">리포트</span></button>
+  <button class="tab-btn" id="tabBtn6" onclick="switchTab(6)"><span class="tab-ico">📁</span><span class="tab-lbl">포트</span></button>
+  <button class="tab-btn" id="tabBtn7" onclick="switchTab(7)"><span class="tab-ico">🤖</span><span class="tab-lbl">AI도구</span></button>
+  <button class="tab-btn active" id="tabBtn8" onclick="switchTab(8)"><span class="tab-ico">⚙️</span><span class="tab-lbl">설정</span></button>
 </div>
 
 <!-- TAB 0: 아동관리 -->
@@ -692,6 +764,38 @@
           <label class="form-label">세션 메모</label>
           <textarea class="form-input" id="sessionMemo" placeholder="반응, 특이사항 등"></textarea>
         </div>
+
+        <!-- 음소 오류 매트릭스 -->
+        <div class="form-group" style="margin-top:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <button class="add-goal-btn" id="phonemeToggleBtn" onclick="togglePhonemeMatrix()" style="background:#fff0f6;color:#db2777;font-size:12px;">🎯 조음 데이터 입력</button>
+            <span id="phonemeCount" style="font-size:11px;color:var(--text2);display:none;"></span>
+          </div>
+          <div id="phonemeMatrix" style="display:none;">
+            <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5;">
+              측정한 음소의 위치별 정확도(%)를 입력하세요. 빈 칸은 측정 안 함으로 처리됩니다.
+            </div>
+            <!-- 헤더 -->
+            <div style="display:grid;grid-template-columns:52px 1fr 1fr 1fr;gap:4px;margin-bottom:4px;">
+              <div></div>
+              <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);">어두</div>
+              <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);">어중</div>
+              <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);">어말</div>
+            </div>
+            <!-- 음소 행 목록 -->
+            <div id="phonemeRows"></div>
+            <!-- 음소 추가 버튼들 -->
+            <div style="margin-top:8px;">
+              <div style="font-size:11px;color:var(--text2);margin-bottom:5px;">자주 쓰는 음소:</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;" id="phonemeChips"></div>
+              <div style="display:flex;gap:5px;margin-top:6px;">
+                <input class="form-input" id="phonemeCustomInput" placeholder="직접 입력 (예: ㅈ)" style="flex:1;font-size:13px;padding:7px 10px;" maxlength="3" onkeydown="if(event.key==='Enter'){addPhonemeRow(document.getElementById('phonemeCustomInput').value);this.value='';}">
+                <button class="btn-ghost" style="flex-shrink:0;padding:7px 12px;" onclick="var v=document.getElementById('phonemeCustomInput').value;if(v){addPhonemeRow(v);document.getElementById('phonemeCustomInput').value='';}">추가</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <button class="btn btn-primary" onclick="saveSession('')">💾 세션 저장</button>
       </div>
 
@@ -882,6 +986,25 @@
       <div class="card-title"><div class="card-title-left">🎯 목표별 최근 달성도</div></div>
       <div id="scoreBars"></div>
     </div>
+
+    <!-- 음소 추이 차트 -->
+    <div class="card" id="phonemeChartCard" style="display:none;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#db2777;">🎯 음소 오류 추이</div>
+      </div>
+      <!-- 음소 선택 필터 -->
+      <div id="phonemeChartFilter" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;"></div>
+      <!-- 위치 토글 -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="btn-ghost" id="posAll" onclick="setPhonemePos('all')" style="font-size:11px;padding:5px 10px;color:#db2777;border-color:#fbcfe8;">전체</button>
+        <button class="btn-ghost" id="posInit" onclick="setPhonemePos('initial')" style="font-size:11px;padding:5px 10px;">어두</button>
+        <button class="btn-ghost" id="posMed" onclick="setPhonemePos('medial')" style="font-size:11px;padding:5px 10px;">어중</button>
+        <button class="btn-ghost" id="posFin" onclick="setPhonemePos('final')" style="font-size:11px;padding:5px 10px;">어말</button>
+      </div>
+      <div class="chart-wrap"><canvas id="phonemeChart"></canvas></div>
+      <!-- 최신 매트릭스 테이블 -->
+      <div id="phonemeMatrixTable" style="margin-top:12px;overflow-x:auto;"></div>
+    </div>
   </div>
 </div>
 
@@ -1035,6 +1158,17 @@
       <div id="staffList"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">배</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">배다솔</div><div style="font-size:11px;color:var(--text2);">@dasol_bae · 👩‍⚕️ 선생님</div></div><button class="btn-del" onclick="deleteStaff('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','배다솔')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">관</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">관리자</div><div style="font-size:11px;color:var(--text2);">@admin · 👑 관리자</div></div><button class="btn-del" onclick="deleteStaff('8dce5d80-40bc-4781-82eb-cd3d12e33011','관리자')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#a855f7;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">남</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">남그</div><div style="font-size:11px;color:var(--text2);">@dinosau · 👑 관리자</div></div><span style="font-size:11px;color:var(--mint);">나</span></div></div>
     </div>
 
+    <!-- UX: 화면 모드 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">🎨 화면 모드</div>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">야간 사용이나 어두운 환경에서는 다크 모드가 눈이 편합니다.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-outline" onclick="toggleDarkMode()" style="flex:1;">🌙 다크 모드 전환</button>
+      </div>
+    </div>
+
     <!-- W8: 정체 감지 기준 설정 -->
     <div class="card" style="border:2px solid var(--amber);">
       <div class="card-title">
@@ -1110,7 +1244,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast">✅ 데이터 로드 완료 (아동 467명)</div>
+<div class="toast" id="toast" style="pointer-events: none;">✅ 데이터 로드 완료 (아동 467명)</div>
 
 <script>
 // ─────── 상수 ───────
@@ -1428,12 +1562,103 @@ function loadActivitiesFromSupa() {
 
 // ─────── Toast ───────
 var toastTimer = null;
-function showToast(msg) {
+function showToast(msg, opts) {
   var el = document.getElementById('toast');
-  el.textContent = msg;
+  opts = opts || {};
+  if (opts.undo && typeof opts.undo === 'function') {
+    el.innerHTML = '<span>' + msg + '</span> <span style="display:inline-block;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.18);border-radius:14px;color:#5eead4;font-size:12px;cursor:pointer;pointer-events:auto;" id="toastUndoBtn">↩️ 실행취소</span>';
+    el.style.pointerEvents = 'auto';
+    setTimeout(function() {
+      var b = document.getElementById('toastUndoBtn');
+      if (b) b.onclick = function(e) {
+        e.stopPropagation();
+        opts.undo();
+        el.classList.remove('show');
+      };
+    }, 0);
+  } else {
+    el.textContent = msg;
+    el.style.pointerEvents = 'none';
+  }
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2400);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, opts.undo ? 5000 : 2400);
+}
+
+// ─────── UX: 진동 피드백 (모바일) ───────
+function vibrate(pattern) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(pattern || 30);
+  } catch(e) {}
+}
+
+// ─────── UX: 다크 모드 ───────
+function toggleDarkMode() {
+  var isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('madi_dark', isDark ? '1' : '0');
+  // 메타 테마 컬러도 변경
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', isDark ? '#020617' : '#0ea5a0');
+  showToast(isDark ? '🌙 다크 모드' : '☀️ 라이트 모드');
+}
+
+function loadDarkMode() {
+  var saved = localStorage.getItem('madi_dark');
+  if (saved === '1') {
+    document.body.classList.add('dark-mode');
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', '#020617');
+  }
+}
+
+// ─────── UX: 헤더 시계 + 다음 세션 카운트다운 ───────
+function updateHeaderClock() {
+  var timeEl = document.getElementById('clockTime');
+  var nextEl = document.getElementById('clockNext');
+  if (!timeEl || !nextEl) return;
+
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2, '0');
+  var mm = String(now.getMinutes()).padStart(2, '0');
+  timeEl.textContent = hh + ':' + mm;
+
+  // 다음 세션 찾기 (오늘 일정 중 현재 시각 이후)
+  var today = now.toISOString().slice(0, 10);
+  var nowMin = now.getHours() * 60 + now.getMinutes();
+  var upcoming = (typeof scheduleDB !== 'undefined' ? scheduleDB : [])
+    .filter(function(s) {
+      if (s.date !== today || !s.startTime) return false;
+      var parts = s.startTime.split(':');
+      return parseInt(parts[0]) * 60 + parseInt(parts[1]) >= nowMin;
+    })
+    .sort(function(a, b) { return a.startTime.localeCompare(b.startTime); });
+
+  if (upcoming.length > 0) {
+    var next = upcoming[0];
+    var child = (typeof childDB !== 'undefined' ? childDB : []).find(function(c){ return c.id === next.childId; });
+    var name = child ? child.name : '?';
+    var p = next.startTime.split(':');
+    var diff = (parseInt(p[0]) * 60 + parseInt(p[1])) - nowMin;
+    var label;
+    if (diff === 0) label = '🔔 ' + name + ' 지금';
+    else if (diff < 60) label = '⏱️ ' + name + ' ' + diff + '분 후';
+    else label = '📅 ' + name + ' ' + next.startTime;
+    nextEl.textContent = label;
+  } else {
+    var count = (typeof childDB !== 'undefined' ? childDB.length : 0);
+    nextEl.textContent = count > 0 ? '아동 ' + count + '명' : '오늘 일정 없음';
+  }
+}
+
+// 1분마다 갱신 + 페이지 표시될 때마다 즉시 갱신
+var _clockTimer = null;
+function startHeaderClock() {
+  updateHeaderClock();
+  if (_clockTimer) clearInterval(_clockTimer);
+  _clockTimer = setInterval(updateHeaderClock, 60000);
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) updateHeaderClock();
+  });
 }
 
 // ─────── 공통 AI 호출 ───────
@@ -1635,6 +1860,151 @@ function getLastSessionForChild(childId) {
   return ss[0];
 }
 
+// ─────── 음소 오류 매트릭스 ───────
+var phonemeData = {}; // { 'ㅅ': {initial:70, medial:40, final:30}, ... }
+
+var COMMON_PHONEMES = ['ㅅ','ㄹ','ㄷ','ㄴ','ㅈ','ㅊ','ㅆ','ㅉ','ㅎ','ㄱ','ㅋ','ㅌ','ㅍ','ㅂ'];
+
+function initPhonemeChips() {
+  var el = document.getElementById('phonemeChips');
+  if (!el) return;
+  el.innerHTML = COMMON_PHONEMES.map(function(p) {
+    return '<span class="phoneme-chip' + (phonemeData[p] ? ' added' : '') + '" '
+      + 'id="chip_' + p + '" onclick="addPhonemeRow(\'' + p + '\')">' + p + '</span>';
+  }).join('');
+}
+
+function togglePhonemeMatrix() {
+  var matrix = document.getElementById('phonemeMatrix');
+  var btn    = document.getElementById('phonemeToggleBtn');
+  if (!matrix) return;
+  var isOpen = matrix.style.display !== 'none';
+  matrix.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '🎯 조음 데이터 입력' : '🎯 조음 데이터 닫기';
+  btn.style.background = isOpen ? '#fff0f6' : '#db2777';
+  btn.style.color      = isOpen ? '#db2777' : 'white';
+  if (!isOpen) initPhonemeChips();
+  updatePhonemeCount();
+}
+
+function addPhonemeRow(phoneme) {
+  if (!phoneme) return;
+  phoneme = phoneme.trim();
+  if (!phoneme) return;
+
+  // 이미 있으면 스킵
+  if (document.getElementById('pr_' + phoneme)) {
+    showToast(phoneme + ' 은(는) 이미 추가되어 있습니다.');
+    return;
+  }
+
+  if (!phonemeData[phoneme]) phonemeData[phoneme] = { initial: '', medial: '', final: '' };
+
+  var row = document.createElement('div');
+  row.className = 'phoneme-row';
+  row.id = 'pr_' + phoneme;
+
+  var NL = String.fromCharCode(10);
+  row.innerHTML = '<div class="phoneme-label">' + escHtml(phoneme) + '</div>'
+    + makePhonemeCell(phoneme, 'initial')
+    + makePhonemeCell(phoneme, 'medial')
+    + makePhonemeCell(phoneme, 'final')
+    + '<button onclick="removePhonemeRow(\'' + phoneme + '\')" '
+    + 'style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:0;line-height:1;">×</button>';
+
+  document.getElementById('phonemeRows').appendChild(row);
+
+  // 칩 비활성화
+  var chip = document.getElementById('chip_' + phoneme);
+  if (chip) chip.classList.add('added');
+
+  updatePhonemeCount();
+}
+
+function makePhonemeCell(phoneme, pos) {
+  var val = (phonemeData[phoneme] || {})[pos];
+  return '<input class="phoneme-input' + getPhonemeClass(val) + '" '
+    + 'type="number" min="0" max="100" placeholder="—" '
+    + 'value="' + (val !== '' && val !== null && val !== undefined ? val : '') + '" '
+    + 'oninput="onPhonemeInput(this,\'' + phoneme + '\',\'' + pos + '\')">';
+}
+
+function getPhonemeClass(val) {
+  if (val === '' || val === null || val === undefined) return '';
+  var n = parseInt(val);
+  if (isNaN(n)) return '';
+  if (n >= 70) return ' filled-good';
+  if (n >= 40) return ' filled-mid';
+  return ' filled-bad';
+}
+
+function onPhonemeInput(el, phoneme, pos) {
+  var val = el.value.trim();
+  var n = val !== '' ? parseInt(val) : '';
+  if (!phonemeData[phoneme]) phonemeData[phoneme] = {};
+  phonemeData[phoneme][pos] = n;
+  // 색상 즉시 반영
+  el.className = 'phoneme-input' + getPhonemeClass(n);
+  updatePhonemeCount();
+}
+
+function removePhonemeRow(phoneme) {
+  var row = document.getElementById('pr_' + phoneme);
+  if (row) row.remove();
+  delete phonemeData[phoneme];
+  var chip = document.getElementById('chip_' + phoneme);
+  if (chip) chip.classList.remove('added');
+  updatePhonemeCount();
+}
+
+function updatePhonemeCount() {
+  var keys = Object.keys(phonemeData).filter(function(k) {
+    var d = phonemeData[k];
+    return d.initial !== '' || d.medial !== '' || d.final !== '';
+  });
+  var el = document.getElementById('phonemeCount');
+  if (!el) return;
+  if (keys.length > 0) {
+    el.textContent = '측정 음소 ' + keys.length + '개';
+    el.style.display = 'inline';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function getPhonemeSnapshot() {
+  // 저장 시 사용할 스냅샷 (값 있는 음소만)
+  var result = {};
+  Object.keys(phonemeData).forEach(function(k) {
+    var d = phonemeData[k];
+    if (d.initial !== '' || d.medial !== '' || d.final !== '') {
+      result[k] = {
+        initial: d.initial !== '' ? parseInt(d.initial) : null,
+        medial:  d.medial  !== '' ? parseInt(d.medial)  : null,
+        final:   d.final   !== '' ? parseInt(d.final)   : null
+      };
+    }
+  });
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+function resetPhonemeMatrix() {
+  phonemeData = {};
+  var rows = document.getElementById('phonemeRows');
+  if (rows) rows.innerHTML = '';
+  // 칩 초기화
+  COMMON_PHONEMES.forEach(function(p) {
+    var chip = document.getElementById('chip_' + p);
+    if (chip) chip.classList.remove('added');
+  });
+  updatePhonemeCount();
+  // 매트릭스 닫기
+  var matrix = document.getElementById('phonemeMatrix');
+  var btn    = document.getElementById('phonemeToggleBtn');
+  if (matrix) matrix.style.display = 'none';
+  if (btn) { btn.textContent = '🎯 조음 데이터 입력'; btn.style.background = '#fff0f6'; btn.style.color = '#db2777'; }
+}
+
 function cloneLastSession() {
   var sel = document.getElementById('sessionChild');
   if (!sel || !sel.value) { showToast('아동을 먼저 선택해주세요.'); return; }
@@ -1644,13 +2014,31 @@ function cloneLastSession() {
     showToast('지난 세션이 없습니다.');
     return;
   }
-  // 목표 이름만 복사, 점수는 빈 칸 (재측정 의도)
+  // 목표 이름만 복사, 점수는 빈 칸
   goalRows = last.goals
     .filter(function(g) { return g.name; })
     .map(function(g) { return { name: g.name, score: '' }; });
   if (goalRows.length === 0) goalRows = [{ name: '', score: '' }];
   renderGoalRows();
-  showToast('↻ 지난 세션 목표 ' + goalRows.length + '개 불러옴 (' + last.date + ')');
+
+  // 음소 구조 복제 — 지난 세션에 음소 데이터 있으면 행 구조만 복원 (점수 빈칸)
+  if (last.phonemes && Object.keys(last.phonemes).length > 0) {
+    resetPhonemeMatrix();
+    // 매트릭스 열기
+    var matrix = document.getElementById('phonemeMatrix');
+    var btn    = document.getElementById('phonemeToggleBtn');
+    if (matrix) matrix.style.display = 'block';
+    if (btn) { btn.textContent = '🎯 조음 데이터 닫기'; btn.style.background = '#db2777'; btn.style.color = 'white'; }
+    initPhonemeChips();
+    // 지난 세션 음소 행 추가 (점수는 빈칸)
+    Object.keys(last.phonemes).forEach(function(p) {
+      phonemeData[p] = { initial: '', medial: '', final: '' };
+      addPhonemeRow(p);
+    });
+    showToast('↻ 목표 ' + goalRows.length + '개 + 음소 ' + Object.keys(last.phonemes).length + '개 복제됨');
+  } else {
+    showToast('↻ 지난 세션 목표 ' + goalRows.length + '개 불러옴 (' + last.date + ')');
+  }
 }
 function renderGoalRows() {
   var c = document.getElementById('goalInputList');
@@ -1681,50 +2069,6 @@ function addRecommendedGoal(goalText) {
 
 // ─────── 아동 등록 ───────
 var _addChildLock = false;
-function addChild() {
-  if (_addChildLock) return;
-  _addChildLock = true;
-  setTimeout(function(){ _addChildLock = false; }, 1500);
-  var name  = document.getElementById('childName').value.trim();
-  var birthRaw = document.getElementById('childBirth').value.replace(/[^0-9]/g,'');
-  var birth = birthRaw.length===8 ? birthRaw.slice(0,4)+'-'+birthRaw.slice(4,6)+'-'+birthRaw.slice(6,8) : '';
-  var age   = calcAgeFromBirth(birth);
-  var type  = document.getElementById('childType').value;
-  var phone = document.getElementById('childPhone').value.trim();
-  var goals = document.getElementById('childGoals').value.split(',').map(function(g) { return g.trim(); }).filter(Boolean);
-  var memo  = document.getElementById('childMemo').value.trim();
-  var status = (document.getElementById('childStatus') || {}).value || '등록';
-
-  if (!name)  { showToast('이름을 입력해주세요.'); return; }
-  if (!birth) { showToast('생년월일을 입력해주세요.'); return; }
-  if (!age)   { age = birth; } // 연령 계산 실패 시 생년월일 그대로 사용 (iOS 오류 방지)
-
-  childDB.push({
-    id:           Date.now(),
-    name:         name,
-    birth:        birth,
-    age:          age,
-    type:         type,
-    phone:        phone,
-    goals:        goals,
-    memo:         memo,
-    status:       status,
-    startDate:    '',
-    voucherLimit: 0,
-    color:        CHILD_COLORS[childDB.length % CHILD_COLORS.length]
-  });
-  saveChildren();
-  renderChildGrid();
-  populateChildSelects();
-
-  document.getElementById('childName').value  = '';
-  document.getElementById('childBirth').value = '';
-  document.getElementById('childPhone').value = '';
-  document.getElementById('childGoals').value = '';
-  document.getElementById('childMemo').value  = '';
-  updateAgeDisplay();
-  showToast('✅ ' + name + ' 등록 완료!');
-}
 
 // 치료 기간 계산 헬퍼
 function getTreatDuration(startDate) {
@@ -1770,10 +2114,29 @@ function deleteChild(id) {
 
 function renderChildGrid() {
   var c = document.getElementById('childGrid');
-  document.getElementById('childCountBadge').textContent = '아동 ' + childDB.length + '명';
+  updateHeaderClock(); // 헤더 시계+다음 세션 동시 갱신
   var unwritten = getUnwrittenSessions();
-  var alertBadge = document.getElementById('tabBtn0');
-  if (alertBadge) alertBadge.textContent = unwritten.length > 0 ? '👶 아동 🔴' : '👶 아동';
+  // 아동 탭 미작성 뱃지 (탭 구조 안 깨지게 별도 처리)
+  var tabBtn0 = document.getElementById('tabBtn0');
+  if (tabBtn0) {
+    var lbl0 = tabBtn0.querySelector('.tab-lbl');
+    if (lbl0) {
+      lbl0.textContent = '아동';
+      if (unwritten.length > 0) {
+        var dot = tabBtn0.querySelector('.tab-alert');
+        if (!dot) {
+          dot = document.createElement('span');
+          dot.className = 'tab-alert';
+          dot.style.cssText = 'position:absolute;top:4px;right:6px;width:7px;height:7px;background:#ef4444;border-radius:50%;';
+          tabBtn0.style.position = 'relative';
+          tabBtn0.appendChild(dot);
+        }
+      } else {
+        var dot2 = tabBtn0.querySelector('.tab-alert');
+        if (dot2) dot2.remove();
+      }
+    }
+  }
 
   // 상태별 뱃지 카운트 업데이트
   ['등록','대기','종결'].forEach(function(s){
@@ -1782,7 +2145,12 @@ function renderChildGrid() {
   });
 
   if (childDB.length === 0) {
-    c.innerHTML = '<div class="empty"><div class="empty-icon">👶</div><p>등록된 아동이 없습니다.</p></div>';
+    c.innerHTML = '<div class="empty" style="padding:30px 16px;">'
+      + '<div class="empty-icon" style="font-size:48px;">👶</div>'
+      + '<p style="font-size:15px;font-weight:700;color:var(--text);margin-top:8px;">아직 등록된 아동이 없습니다</p>'
+      + '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-top:8px;">화면 상단 <strong style="color:var(--mint);">[+ 아동 등록]</strong> 버튼을 눌러<br>첫 아동을 추가해보세요.</p>'
+      + '<p style="font-size:11px;color:var(--text2);margin-top:14px;background:var(--mint2);color:var(--mint);padding:10px 14px;border-radius:9px;display:inline-block;">💡 등록 후 세션 기록·추이 차트·부모 리포트를<br>모두 자동으로 관리할 수 있어요</p>'
+      + '</div>';
     return;
   }
 
@@ -2329,15 +2697,17 @@ function saveSession(aiNote) {
   });
 
   var sessionId = Date.now();
-  sessionDB.push({ id: sessionId, childId: childId, date: date, goals: goals, memo: memo, aiNote: aiNote || '' });
+  sessionDB.push({ id: sessionId, childId: childId, date: date, goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
   saveSessions();
   renderSessionList();
   renderChildGrid();
   document.getElementById('sessionMemo').value = '';
   goalRows.forEach(function(r) { r.score = ''; });
   renderGoalRows();
+  resetPhonemeMatrix();
   updateCloneBtnState(childId);
   showToast('✅ 세션 저장 완료!');
+  vibrate(40);  // UX: 햅틱 피드백
   setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
   setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
   setTimeout(function() { checkAutoStagnation(childId); }, 1200);
@@ -2368,13 +2738,16 @@ function saveSessionAI() {
       var sessionId = Date.now();
       sessionDB.push({
         id: sessionId, childId: childId, date: date,
-        goals: p.goals || [], memo: p.memo || aiText, aiNote: p.aiNote || ''
+        goals: p.goals || [], memo: p.memo || aiText, aiNote: p.aiNote || '',
+        phonemes: getPhonemeSnapshot()
       });
       saveSessions();
       renderSessionList();
       renderChildGrid();
       document.getElementById('aiInput').value = '';
       showToast('🤖 AI 정리 저장 완료!');
+      vibrate(40);  // UX: 햅틱 피드백
+      resetPhonemeMatrix();
       setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
       setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
       setTimeout(function() { checkAutoStagnation(childId); }, 1200);
@@ -2493,6 +2866,25 @@ function renderSessionList() {
       + '</div></div>'
       // 목표 달성도
       + goalHtml
+      // 음소 데이터 뱃지
+      + (s.phonemes && Object.keys(s.phonemes).length > 0
+          ? '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">'
+            + Object.keys(s.phonemes).map(function(p) {
+                var d = s.phonemes[p];
+                var parts = [];
+                if (d.initial !== null && d.initial !== undefined) parts.push('초:' + d.initial + '%');
+                if (d.medial  !== null && d.medial  !== undefined) parts.push('중:' + d.medial  + '%');
+                if (d.final   !== null && d.final   !== undefined) parts.push('말:' + d.final   + '%');
+                var avg = parts.length > 0
+                  ? Math.round([d.initial, d.medial, d.final].filter(function(v){ return v !== null && v !== undefined; }).reduce(function(a,b){ return a+b; }, 0) / parts.length)
+                  : null;
+                var col = avg === null ? '#94a3b8' : avg >= 70 ? '#15803d' : avg >= 40 ? '#b45309' : '#dc2626';
+                var bg  = avg === null ? '#f1f5f9' : avg >= 70 ? '#f0fdf4' : avg >= 40 ? '#fffbeb' : '#fef2f2';
+                return '<span style="font-size:11px;padding:3px 8px;background:' + bg + ';color:' + col + ';border-radius:12px;font-weight:700;">'
+                  + '🎯 ' + escHtml(p) + ' ' + parts.join(' / ') + '</span>';
+              }).join('')
+            + '</div>'
+          : '')
       // 메모
       + (s.memo ? '<div style="font-size:13px;color:#334155;margin-top:8px;line-height:1.6;padding:8px 10px;background:#f8fafc;border-radius:8px;">' + escHtml(s.memo) + '</div>' : '')
       // AI 노트
@@ -2518,12 +2910,28 @@ function editSessionDate(id) {
 
 function deleteSession(id) {
   if (!confirm('이 세션을 삭제할까요?')) return;
+  // 삭제 전 백업 보관 (실행취소용)
+  var backup = sessionDB.find(function(s) { return s.id === id; });
+  if (!backup) return;
+
   supaFetch('madi_sessions?id=eq.' + id, 'DELETE');
   sessionDB = sessionDB.filter(function(s) { return s.id !== id; });
   saveSessions();
   renderSessionList();
   renderChildGrid();
-  showToast('🗑️ 삭제됨');
+
+  showToast('🗑️ 세션 삭제됨', {
+    undo: function() {
+      sessionDB.push(backup);
+      saveSessions();
+      // Supabase 복원
+      var row = Object.assign({}, backup);
+      supaFetch('madi_sessions', 'POST', [row]).catch(function(){});
+      renderSessionList();
+      renderChildGrid();
+      showToast('↩️ 세션 복원됨');
+    }
+  });
 }
 
 // ─────── 차트 ───────
@@ -2590,9 +2998,187 @@ function renderChart() {
       + '<div class="score-val" style="color:' + color + '">' + last + '%</div></div>';
   }
   document.getElementById('scoreBars').innerHTML = bars || '<div class="empty"><p>달성도 데이터가 없습니다.</p></div>';
+
+  // 음소 추이 차트 연동
+  _selectedPhonemes = null; // 아동 바뀌면 선택 초기화
+  renderPhonemeChart(childId);
 }
 
 // ─────── 기능 3: 발달 정체 자동 감지 + W7 액션 제안 ───────
+var phonemeChartObj = null;
+var _phonemePos = 'all'; // 'all' | 'initial' | 'medial' | 'final'
+var _selectedPhonemes = null; // null = 전체
+
+function renderPhonemeChart(childId) {
+  var card = document.getElementById('phonemeChartCard');
+  if (!card) return;
+
+  // 해당 아동 세션 중 음소 데이터 있는 것만
+  var sessions = sessionDB
+    .filter(function(s) { return s.childId === childId && s.phonemes && Object.keys(s.phonemes).length > 0; })
+    .sort(function(a, b) { return a.date.localeCompare(b.date); });
+
+  if (sessions.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  // 전체 등장 음소 목록 (최신 세션 기준 정렬)
+  var allPhonemes = [];
+  sessions.forEach(function(s) {
+    Object.keys(s.phonemes).forEach(function(p) {
+      if (allPhonemes.indexOf(p) === -1) allPhonemes.push(p);
+    });
+  });
+  if (_selectedPhonemes === null) _selectedPhonemes = allPhonemes.slice();
+
+  // 필터 칩 렌더링
+  var filterEl = document.getElementById('phonemeChartFilter');
+  if (filterEl) {
+    filterEl.innerHTML = allPhonemes.map(function(p) {
+      var active = _selectedPhonemes.indexOf(p) > -1;
+      return '<span onclick="togglePhonemeFilter(\'' + p + '\')" '
+        + 'style="font-size:12px;padding:4px 10px;border-radius:20px;cursor:pointer;font-weight:700;'
+        + 'background:' + (active ? '#db2777' : '#f1f5f9') + ';'
+        + 'color:' + (active ? 'white' : '#94a3b8') + ';'
+        + 'border:1.5px solid ' + (active ? '#db2777' : '#e2e8f0') + ';">' + p + '</span>';
+    }).join('');
+  }
+
+  // 위치 버튼 상태
+  ['All','Init','Med','Fin'].forEach(function(k) {
+    var el = document.getElementById('pos' + k);
+    if (!el) return;
+    var isActive = (k === 'All' && _phonemePos === 'all')
+      || (k === 'Init' && _phonemePos === 'initial')
+      || (k === 'Med'  && _phonemePos === 'medial')
+      || (k === 'Fin'  && _phonemePos === 'final');
+    el.style.background = isActive ? '#db2777' : '';
+    el.style.color      = isActive ? 'white' : '';
+    el.style.borderColor = isActive ? '#db2777' : '';
+  });
+
+  // 데이터셋 구성
+  var labels = sessions.map(function(s) { return s.date.slice(5); });
+  var palette = ['#db2777','#0ea5a0','#8b5cf6','#f59e0b','#3b82f6','#10b981','#ef4444'];
+  var posKeys = _phonemePos === 'all'
+    ? ['initial','medial','final']
+    : [_phonemePos];
+  var posLabels = { initial:'어두', medial:'어중', final:'어말' };
+  var datasets = [];
+  var ci = 0;
+
+  _selectedPhonemes.forEach(function(p) {
+    posKeys.forEach(function(pos) {
+      var data = sessions.map(function(s) {
+        var d = s.phonemes[p];
+        if (!d) return null;
+        var v = d[pos];
+        return (v !== null && v !== undefined && v !== '') ? v : null;
+      });
+      if (data.every(function(v){ return v === null; })) return;
+      var col = palette[ci % palette.length];
+      var label = posKeys.length > 1 ? p + ' ' + posLabels[pos] : p;
+      datasets.push({
+        label: label,
+        data: data,
+        borderColor: col,
+        backgroundColor: col + '22',
+        tension: 0.35, fill: false, pointRadius: 5,
+        pointHoverRadius: 8, borderWidth: 2.5, spanGaps: true,
+        borderDash: pos === 'medial' ? [4,3] : pos === 'final' ? [1,2] : []
+      });
+      ci++;
+    });
+  });
+
+  // 차트 그리기
+  if (phonemeChartObj) { phonemeChartObj.destroy(); phonemeChartObj = null; }
+  var wrap = document.getElementById('phonemeChart');
+  if (!wrap) return;
+
+  if (datasets.length === 0) {
+    wrap.parentNode.innerHTML = '<div class="empty" style="padding:16px;text-align:center;font-size:13px;color:var(--text2);">선택한 음소의 데이터가 없습니다.</div><canvas id="phonemeChart"></canvas>';
+    return;
+  }
+
+  phonemeChartObj = new Chart(wrap, {
+    type: 'line',
+    data: { labels: labels, datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11, family: 'Noto Sans KR' }, boxWidth: 14 } },
+        tooltip: { callbacks: {
+          label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y + '%' : '—'); }
+        }}
+      },
+      scales: {
+        y: { min: 0, max: 100, ticks: { callback: function(v){ return v + '%'; }, font: { size: 11 } },
+             grid: { color: 'rgba(0,0,0,0.05)' } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // 최신 매트릭스 테이블 (가장 최근 세션 기준)
+  renderPhonemeMatrixTable(sessions[sessions.length - 1], allPhonemes);
+}
+
+function renderPhonemeMatrixTable(session, allPhonemes) {
+  var el = document.getElementById('phonemeMatrixTable');
+  if (!el || !session.phonemes) return;
+
+  var posLabels = ['어두','어중','어말'];
+  var posKeys   = ['initial','medial','final'];
+
+  var html = '<div style="font-size:11px;color:var(--text2);margin-bottom:6px;">최근 세션(' + session.date + ') 음소 현황</div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    + '<tr style="border-bottom:2px solid var(--border);">'
+    + '<th style="padding:6px 8px;text-align:left;color:var(--text2);font-weight:700;width:52px;">음소</th>'
+    + posLabels.map(function(l){ return '<th style="padding:6px;text-align:center;color:var(--text2);font-weight:700;">' + l + '</th>'; }).join('')
+    + '</tr>';
+
+  allPhonemes.forEach(function(p) {
+    var d = session.phonemes[p] || {};
+    html += '<tr style="border-bottom:1px solid var(--border);">'
+      + '<td style="padding:7px 8px;font-size:15px;font-weight:700;color:#db2777;">' + escHtml(p) + '</td>'
+      + posKeys.map(function(pos) {
+          var v = d[pos];
+          var hasVal = v !== null && v !== undefined && v !== '';
+          var n = hasVal ? parseInt(v) : null;
+          var bg  = !hasVal ? '' : n >= 70 ? '#f0fdf4' : n >= 40 ? '#fffbeb' : '#fef2f2';
+          var col = !hasVal ? 'var(--text2)' : n >= 70 ? '#15803d' : n >= 40 ? '#b45309' : '#dc2626';
+          return '<td style="padding:7px 4px;text-align:center;background:' + bg + ';font-weight:700;color:' + col + ';">'
+            + (hasVal ? n + '%' : '—') + '</td>';
+        }).join('')
+      + '</tr>';
+  });
+
+  html += '</table>';
+  el.innerHTML = html;
+}
+
+function togglePhonemeFilter(phoneme) {
+  if (!_selectedPhonemes) return;
+  var idx = _selectedPhonemes.indexOf(phoneme);
+  if (idx > -1) {
+    if (_selectedPhonemes.length === 1) return; // 최소 1개
+    _selectedPhonemes.splice(idx, 1);
+  } else {
+    _selectedPhonemes.push(phoneme);
+  }
+  var childId = parseInt(document.getElementById('chartChild').value);
+  if (childId) renderPhonemeChart(childId);
+}
+
+function setPhonemePos(pos) {
+  _phonemePos = pos;
+  var childId = parseInt(document.getElementById('chartChild').value);
+  if (childId) renderPhonemeChart(childId);
+}
+
 function detectStagnation() {
   var apiKey = getApiKeyOrAlert();
   if (!apiKey) return;
@@ -4104,10 +4690,7 @@ function updateAgeDisplay() {
   }
 }
 
-// 하위 호환용 (혹시 남아있는 참조 대비)
-function getChildAge() {
-  return calcAgeFromBirth(document.getElementById('childBirth').value);
-}
+// 하위 호환용 함수는 더 이상 필요하지 않음 (직접 호출 없음)
 
 function escHtml(str) {
   if (str === null || str === undefined) return '';
@@ -6194,6 +6777,8 @@ function cancelImport() {
 
 // ─────── 초기화 ───────
 function init() {
+  loadDarkMode();         // UX: 다크 모드 자동 적용
+  startHeaderClock();     // UX: 헤더 시계 시작
   var today = new Date().toISOString().slice(0, 10);
   document.getElementById('sessionDate').value     = today;
   document.getElementById('portfolioMonth').value  = today.slice(0, 7);
