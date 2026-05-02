@@ -422,13 +422,13 @@
       <h1>마디</h1>
       <p>언어치료 AI 비서</p>
     </div>
-    <div id="loginUserList" style="display: none;"><div style="font-size:12px;color:var(--text2);margin-bottom:10px;text-align:center;">계정을 선택하세요</div><button class="login-user-btn" onclick="selectUser('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','dasol_bae','배다솔','teacher','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">배</div><div><div style="font-size:15px;">배다솔</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👩‍⚕️ 선생님</div></div></button><button class="login-user-btn" onclick="selectUser('8dce5d80-40bc-4781-82eb-cd3d12e33011','admin','관리자','admin','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">관</div><div><div style="font-size:15px;">관리자</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button></div>
-    <div id="loginPwForm" style="display: block;">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel">관리자님, 비밀번호를 입력하세요</div>
+    <div id="loginUserList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
+    <div id="loginPwForm" style="display:none;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel"></div>
       <input class="form-input" type="password" id="loginPwInput" placeholder="비밀번호 입력" style="margin-bottom:10px;">
       <button class="btn btn-primary" style="margin-top:0;" onclick="doLogin()">🔐 로그인</button>
       <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToUserList()">← 뒤로</button>
-      <div id="loginError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;">비밀번호가 틀렸습니다.</div>
+      <div id="loginError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;"></div>
     </div>
   </div>
 </div>
@@ -3010,7 +3010,7 @@ function getUnwrittenSessions() {
     });
     if (!hasSession) {
       var child = childDB.find(function(c) { return c.id === s.childId; });
-      unwritten.push({ date: s.date, childName: child ? child.name : '알 수 없음', schedId: s.id });
+      unwritten.push({ date: s.date, childName: child ? child.name : '알 수 없음', schedId: s.id, teacher: s.teacher || '' });
     }
   });
   return unwritten.sort(function(a, b) { return b.date < a.date ? -1 : 1; });
@@ -5094,7 +5094,7 @@ document.addEventListener('DOMContentLoaded', init);
   <span class="unread-dot" id="unreadDot"></span>
 </button>
 
-<div class="chat-window" id="chatWindow">
+<div class="chat-window open" id="chatWindow">
   <div class="chat-header">
     <div class="chat-header-avatar">🤖</div>
     <div class="chat-header-info">
@@ -5103,15 +5103,15 @@ document.addEventListener('DOMContentLoaded', init);
     </div>
     <button class="chat-close-btn" onclick="toggleChat()">✕</button>
   </div>
-  <div class="chat-messages" id="chatMessages"></div>
-  <div class="chat-quick-btns" id="chatQuickBtns">
+  <div class="chat-messages" id="chatMessages"><div class="msg-row ai"><div class="msg-avatar">🤖</div><div><div class="msg-bubble">좋은 아침이에요! 👋 저는 마디 AI 비서예요.<br>현재 등록된 아동 467명의 데이터를 알고 있어요.<br><br>⚠️ 미작성 세션이 1개 있어요. 확인해볼까요?<br><br>💡 /도움말 입력하면 매크로 목록을 보여드려요.</div><div class="msg-time">오전 11:04</div></div></div><div class="msg-row user"><div><div class="msg-bubble">/오늘브리핑</div><div class="msg-time">오전 11:04</div></div><div class="msg-avatar" style="background:#dbeafe;">😊</div></div><div class="msg-row ai"><div class="msg-avatar">🤖</div><div><div class="msg-bubble">☀️ 5월 2일 (토) 브리핑<br>👤 관리자 선생님<br><br>📅 오늘 일정 0건<br><br>⚠️ 미작성 1건 — 빠르게 정리해드릴까요?</div><div class="msg-time">오전 11:04</div></div></div><div class="msg-row user"><div><div class="msg-bubble">배다솔 선생님 오늘 일정</div><div class="msg-time">오전 11:04</div></div><div class="msg-avatar" style="background:#dbeafe;">😊</div></div><div class="msg-row ai"><div class="msg-avatar">🤖</div><div><div class="msg-bubble">죄송해요, 현재 등록된 치료사 중에 **배다솔** 선생님은 없어요. 😅<br><br>등록된 치료사는:<br>- **한기성** (오늘 0건, 이번 주 522건)<br><br>혹시 다른 선생님 일정을 확인하고 싶으신가요?</div><div class="msg-time">오전 11:04</div></div></div><div class="msg-row user"><div><div class="msg-bubble">치료사 등록은 어떻게 해?</div><div class="msg-time">오전 11:04</div></div><div class="msg-avatar" style="background:#dbeafe;">😊</div></div><div class="msg-row ai"><div class="msg-avatar">🤖</div><div><div class="msg-bubble">좋은 질문이에요! 👨‍⚕️<br><br>현재 마디 앱에서는 **설정 탭**에서 치료사를 등록할 수 있어요. <br>관리자 권한으로 새로운 치료사의 이름, 자격, 담당 아동 등을 추가하면 돼요.<br><br>혹은 제 도움이 필요하면 말씀해 주세요! 🙌</div><div class="msg-time">오전 11:04</div></div></div><div class="msg-row user"><div><div class="msg-bubble">설정탭 가보니깐 배다솔 선생님 있는데</div><div class="msg-time">오전 11:04</div></div><div class="msg-avatar" style="background:#dbeafe;">😊</div></div><div class="msg-row ai"><div class="msg-avatar">🤖</div><div><div class="msg-bubble">아, 그렇군요! 제 데이터가 아직 동기화되지 않았나봐요. 🔄<br><br>**배다솔** 선생님이 이미 등록되어 있다면, 선생님의 오늘 일정을 확인해드릴 수 있어요.<br>배다솔 선생님 오늘 일정이 몇 건인지 알려주시면 더 도와드릴게요! 😊</div><div class="msg-time">오전 11:04</div></div></div></div>
+  <div class="chat-quick-btns" id="chatQuickBtns" style="display: flex;">
     <button class="quick-btn" onclick="sendQuick('오늘 세션 요약해줘')">오늘 요약</button>
     <button class="quick-btn" onclick="sendQuick('미작성 세션 있어?')">미작성 확인</button>
     <button class="quick-btn" onclick="sendQuick('이번 달 바우처 현황 알려줘')">바우처 현황</button>
     <button class="quick-btn" onclick="sendQuick('정체된 아동 있어?')">정체 확인</button>
   </div>
   <div class="chat-input-row">
-    <textarea class="chat-input" id="chatInput" placeholder="무엇이든 물어보세요... (/ 입력 시 매크로)" rows="1" onkeydown="onChatKeydown(event)" oninput="autoResizeChat(this)"></textarea>
+    <textarea class="chat-input" id="chatInput" placeholder="무엇이든 물어보세요... (/ 입력 시 매크로)" rows="1" onkeydown="onChatKeydown(event)" oninput="autoResizeChat(this)" style="height: auto;"></textarea>
     <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleChatVoiceInput()" title="음성 입력">🎤</button>
     <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()">➤</button>
   </div>
@@ -5257,21 +5257,35 @@ function actAddSchedule(a) {
     var totalMin = parseInt(parts[0]) * 60 + parseInt(parts[1]) + dur;
     endTime = String(Math.floor(totalMin / 60)).padStart(2, '0') + ':' + String(totalMin % 60).padStart(2, '0');
   } catch(e) { endTime = a.startTime; }
+  // 치료사 결정: AI가 명시한 teacher 우선 → 없으면 현재 로그인 사용자
+  var teacherName = '';
+  var teacherColor = '';
+  if (a.teacher && typeof a.teacher === 'string' && a.teacher.trim()) {
+    teacherName = a.teacher.trim();
+    // 기존 scheduleDB에서 같은 이름의 색상 찾기 (일관성)
+    var existing = scheduleDB.find(function(s) { return s.teacher === teacherName && s.teacherColor; });
+    teacherColor = existing ? existing.teacherColor : (typeof getTeacherColor === 'function' ? getTeacherColor(teacherName) : '');
+  } else if (currentUser) {
+    teacherName = currentUser.name;
+    teacherColor = currentUser.color || '';
+  }
+
   var newSched = {
     id: 'sched_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
     childId: child.id,
     date: a.date,
     startTime: a.startTime,
     endTime: endTime,
-    teacher: currentUser ? currentUser.name : '',
-    teacherColor: currentUser ? currentUser.color : '',
+    teacher: teacherName,
+    teacherColor: teacherColor,
     repeat: 'none'
   };
   scheduleDB.push(newSched);
   saveSchedule();
   if (typeof renderSchedView === 'function') renderSchedView();
   if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert();
-  showToast('✅ ' + child.name + ' 일정 추가 (' + a.date + ' ' + a.startTime + ')');
+  var teacherTxt = teacherName ? ' [' + teacherName + ']' : '';
+  showToast('✅ ' + child.name + ' 일정 추가 (' + a.date + ' ' + a.startTime + ')' + teacherTxt);
 }
 
 function actOpenSessionForChild(a) {
@@ -5345,13 +5359,15 @@ function macroTodayBrief() {
     .sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
   var unwritten = typeof getUnwrittenSessions === 'function' ? getUnwrittenSessions() : [];
 
-  var msg = '☀️ ' + todayName + ' 브리핑\n\n';
-  msg += '📅 오늘 일정 ' + todaySchedules.length + '건';
+  var msg = '☀️ ' + todayName + ' 브리핑\n';
+  if (currentUser) msg += '👤 ' + currentUser.name + ' 선생님\n';
+  msg += '\n📅 오늘 일정 ' + todaySchedules.length + '건';
   if (todaySchedules.length > 0) {
     msg += '\n';
     todaySchedules.slice(0, 6).forEach(function(s) {
       var c = childDB.find(function(c) { return c.id === s.childId; });
-      msg += '  ' + (s.startTime || '') + ' ' + (c ? c.name : '?') + '\n';
+      var teacherTxt = s.teacher ? ' · ' + s.teacher : '';
+      msg += '  ' + (s.startTime || '') + ' ' + (c ? c.name : '?') + teacherTxt + '\n';
     });
   } else {
     msg += '\n';
@@ -5527,8 +5543,8 @@ function sendChat() {
     + '형식 (반드시 ```action 펜스 안에 JSON):\n'
     + '```action\n{"type":"액션명","...":""}\n```\n\n'
     + '지원 액션:\n'
-    + '1. addSchedule: 일정 추가 (위 데이터의 [id:xxx] 사용)\n'
-    + '   {"type":"addSchedule","childId":"<id>","date":"YYYY-MM-DD","startTime":"HH:MM","duration":40}\n'
+    + '1. addSchedule: 일정 추가 (위 데이터의 [id:xxx] 사용. teacher는 위 [치료사 목록]의 정확한 이름 또는 생략 시 현재 로그인 사용자)\n'
+    + '   {"type":"addSchedule","childId":"<id>","date":"YYYY-MM-DD","startTime":"HH:MM","duration":40,"teacher":"<선생님 이름>"}\n'
     + '2. openSessionForChild: 세션 기록 화면 열기\n'
     + '   {"type":"openSessionForChild","childId":"<id>"}\n'
     + '3. openParentReport: 부모 리포트 화면 열기\n'
@@ -5537,6 +5553,7 @@ function sendChat() {
     + '   {"type":"switchTab","tab":1}\n'
     + '5. showUnwritten: 미작성 세션 강조\n'
     + '   {"type":"showUnwritten"}\n\n'
+    + '치료사별 일정 질문 시 위 [치료사 목록]과 [오늘 스케줄]의 (담당: ___) 정보를 활용하세요. '
     + '액션 블록은 사용자에게 보이지 않고 자동 처리됩니다. 자연스러운 답변 + 필요시 액션블록 형식으로 응답하세요.';
 
   var messages = chatHistory.slice(0, -1).slice(-8).concat([{ role: 'user', content: text }]);
@@ -5577,7 +5594,37 @@ function sendChat() {
 
 function buildChatContext() {
   var today = new Date().toISOString().slice(0, 10);
-  var lines = ['📅 오늘: ' + today, '👶 등록 아동: ' + childDB.length + '명'];
+  var lines = ['📅 오늘: ' + today];
+
+  // 현재 로그인 사용자
+  if (currentUser) {
+    var roleTxt = currentUser.role === 'admin' ? '관리자' : '선생님';
+    lines.push('🔑 현재 로그인: ' + currentUser.name + ' (' + roleTxt + ')');
+  }
+  lines.push('👶 등록 아동: ' + childDB.length + '명');
+
+  // 치료사 목록 + 일정 통계 (scheduleDB에서 unique 추출 → 사용자 추가 시 자동 반영)
+  var weekStart = new Date();
+  var dayOfWeek = weekStart.getDay();
+  weekStart.setDate(weekStart.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  var weekStartStr = weekStart.toISOString().slice(0, 10);
+
+  var teachers = {};
+  scheduleDB.forEach(function(s) {
+    if (!s.teacher) return;
+    if (!teachers[s.teacher]) teachers[s.teacher] = { todayCnt: 0, weekCnt: 0, totalCnt: 0 };
+    teachers[s.teacher].totalCnt++;
+    if (s.date === today)         teachers[s.teacher].todayCnt++;
+    if (s.date >= weekStartStr)   teachers[s.teacher].weekCnt++;
+  });
+  var teacherNames = Object.keys(teachers);
+  if (teacherNames.length > 0) {
+    lines.push('\n👥 치료사 목록 (' + teacherNames.length + '명, 일정 기반):');
+    teacherNames.forEach(function(name) {
+      var t = teachers[name];
+      lines.push('  - ' + name + ': 오늘 ' + t.todayCnt + '건, 이번 주 ' + t.weekCnt + '건, 전체 ' + t.totalCnt + '건');
+    });
+  }
 
   childDB.forEach(function(c) {
     var ss    = sessionDB.filter(function(s) { return s.childId === c.id; });
@@ -5597,15 +5644,20 @@ function buildChatContext() {
   var uw = getUnwrittenSessions();
   if (uw.length > 0) {
     lines.push('\n⚠️ 미작성 세션 ' + uw.length + '건:');
-    uw.forEach(function(u) { lines.push('  - ' + u.date + ' ' + u.childName); });
+    uw.forEach(function(u) {
+      var teacherTxt = u.teacher ? ' (담당: ' + u.teacher + ')' : '';
+      lines.push('  - ' + u.date + ' ' + u.childName + teacherTxt);
+    });
   }
 
-  var todaySched = scheduleDB.filter(function(s) { return s.date === today; });
+  var todaySched = scheduleDB.filter(function(s) { return s.date === today; })
+    .sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
   if (todaySched.length > 0) {
     lines.push('\n📅 오늘 스케줄:');
     todaySched.forEach(function(s) {
       var c = childDB.find(function(c) { return c.id === s.childId; });
-      lines.push('  - ' + (s.startTime || '') + ' ' + (c ? c.name : '?'));
+      var teacherTxt = s.teacher ? ' (담당: ' + s.teacher + ')' : '';
+      lines.push('  - ' + (s.startTime || '') + ' ' + (c ? c.name : '?') + teacherTxt);
     });
   }
 
