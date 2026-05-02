@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/81b267d9-6a43-4bc6-bef4-f91703f22b30">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/9825060e-19b2-432f-abad-29e8e9c9f2cd">
+  <link rel="manifest" id="pwaManifest" href="blob:null/3029555c-88d9-4d61-b7f6-e746a7120628">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/6b4a8eb7-0e0f-4deb-b920-33fb1ce3bff1">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -146,7 +146,8 @@
     .goal-name-input:focus { outline:none; }
     .goal-score-input { width:60px; text-align:center; border:1.5px solid var(--border); border-radius:8px; padding:5px 8px; font-size:13px; font-weight:700; font-family:'Noto Sans KR',sans-serif; }
     .goal-score-input:focus { outline:none; border-color:var(--mint); }
-    .add-goal-btn { font-size:12px; color:var(--mint); background:var(--mint2); border:none; border-radius:8px; padding:7px 12px; cursor:pointer; font-weight:700; font-family:'Noto Sans KR',sans-serif; }
+    .add-goal-btn { font-size:12px; color:var(--mint); background:var(--mint2); border:none; border-radius:8px; padding:7px 12px; cursor:pointer; font-weight:700; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
+    .add-goal-btn:disabled { background:#f1f5f9; color:#94a3b8; cursor:not-allowed; opacity:0.7; }
 
     /* AI 추천 목표 칩 */
     .recommend-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; padding:10px; background:linear-gradient(135deg,#f5f3ff,#ede9fe); border-radius:10px; border:1px dashed var(--purple); }
@@ -682,7 +683,10 @@
         <div class="form-group">
           <label class="form-label">목표별 달성도</label>
           <div id="goalInputList"></div>
-          <button class="add-goal-btn" onclick="addGoalRow()">+ 항목 추가</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="add-goal-btn" onclick="addGoalRow()" style="flex:0 0 auto;">+ 항목 추가</button>
+            <button class="add-goal-btn" id="cloneLastBtn" onclick="cloneLastSession()" disabled="" style="flex:0 0 auto;background:#f5f3ff;color:var(--purple);">↻ 지난 세션 복제</button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">세션 메모</label>
@@ -1603,6 +1607,50 @@ function loadGoalRows(childId) {
     goalRows = [{ name: '', score: '' }];
   }
   renderGoalRows();
+  updateCloneBtnState(childId);
+}
+
+function updateCloneBtnState(childId) {
+  var btn = document.getElementById('cloneLastBtn');
+  if (!btn) return;
+  var last = getLastSessionForChild(childId);
+  if (last && last.goals && last.goals.length > 0) {
+    btn.disabled = false;
+    btn.title = '지난 세션(' + last.date + ')의 목표 ' + last.goals.length + '개 불러오기';
+  } else {
+    btn.disabled = true;
+    btn.title = '지난 세션이 없습니다';
+  }
+}
+
+function getLastSessionForChild(childId) {
+  if (!childId) return null;
+  var ss = sessionDB.filter(function(s) { return s.childId === childId; });
+  if (ss.length === 0) return null;
+  // 날짜 내림차순 → 같은 날이면 id 큰 순
+  ss.sort(function(a, b) {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return (b.id || 0) - (a.id || 0);
+  });
+  return ss[0];
+}
+
+function cloneLastSession() {
+  var sel = document.getElementById('sessionChild');
+  if (!sel || !sel.value) { showToast('아동을 먼저 선택해주세요.'); return; }
+  var childId = parseInt(sel.value);
+  var last = getLastSessionForChild(childId);
+  if (!last || !last.goals || last.goals.length === 0) {
+    showToast('지난 세션이 없습니다.');
+    return;
+  }
+  // 목표 이름만 복사, 점수는 빈 칸 (재측정 의도)
+  goalRows = last.goals
+    .filter(function(g) { return g.name; })
+    .map(function(g) { return { name: g.name, score: '' }; });
+  if (goalRows.length === 0) goalRows = [{ name: '', score: '' }];
+  renderGoalRows();
+  showToast('↻ 지난 세션 목표 ' + goalRows.length + '개 불러옴 (' + last.date + ')');
 }
 function renderGoalRows() {
   var c = document.getElementById('goalInputList');
@@ -2288,6 +2336,7 @@ function saveSession(aiNote) {
   document.getElementById('sessionMemo').value = '';
   goalRows.forEach(function(r) { r.score = ''; });
   renderGoalRows();
+  updateCloneBtnState(childId);
   showToast('✅ 세션 저장 완료!');
   setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
   setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
