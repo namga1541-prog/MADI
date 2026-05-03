@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/42d45558-ec4a-4419-a899-61ad212b88e5">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/ee15f5d6-693e-4c02-9b03-10f429c62e1b">
+  <link rel="manifest" id="pwaManifest" href="blob:null/6d9616a0-62c1-4a17-969b-f4f037a031bd">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/a0705537-e774-4a82-9ff0-7a6fbfd39d32">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -134,7 +134,9 @@
     .child-grid { display:flex; flex-direction:column; gap:0; margin-bottom:14px; border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
     .child-card { background:var(--white); border-bottom:1px solid var(--border); cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); transition:background 0.1s; }
     .child-card:last-child { border-bottom:none; }
-    .child-card:hover { background:#f8fafc; }
+    @media (hover: hover) {
+      .child-card:hover { background:#f8fafc; }
+    }
     .child-card-row { display:flex; align-items:center; gap:10px; padding:11px 14px; }
     .child-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
     .child-name { font-size:14px; font-weight:700; }
@@ -433,7 +435,7 @@
 
     .chat-window {
       position: fixed; bottom: 92px; right: 20px; z-index: 200;
-      width: 340px; max-height: 520px;
+      width: 340px; max-height: min(520px, calc(100dvh - 110px));
       background: white; border-radius: 20px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.18);
       display: flex; flex-direction: column;
@@ -542,6 +544,11 @@
       .chat-window { width: calc(100vw - 24px); right: 12px; bottom: 84px; }
       .float-btn { right: 16px; bottom: 20px; }
     }
+    /* 가로 모드 (낮은 높이) — 모달 잘림 방지 */
+    @media (max-height: 500px) {
+      .sched-modal { max-height: 95vh !important; padding: 16px 20px 20px !important; }
+      .chat-window { max-height: calc(100dvh - 90px) !important; }
+    }
   </style>
 </head>
 <body>
@@ -591,7 +598,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">01:13</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">23:44</div>
       <div id="clockNext" style="font-size:10px;color:rgba(255,255,255,0.65);">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -601,7 +608,7 @@
   </div>
 </div>
 
-<div class="apikey-bar">
+<div class="apikey-bar" id="apikeyBar" style="display: flex;">
   <label>🔑 API Key</label>
   <div style="flex:1;display:flex;align-items:center;gap:6px;position:relative;">
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" onfocus="onApiKeyFocus()" onblur="onApiKeyBlur()" style="display: none;">
@@ -642,7 +649,7 @@
     <!-- 아동 검색바 -->
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
       <input class="form-input" type="text" id="childSearchInput" placeholder="🔍 이름 또는 전화번호 검색..." style="flex:1;margin-bottom:0;min-width:0;" oninput="onChildSearchInput()">
-      <select class="form-input" id="childSortSel" style="flex-shrink:0;width:72px;margin-bottom:0;font-size:11px;padding:10px 4px 10px 8px;" onchange="renderChildGrid()">
+      <select class="form-input" id="childSortSel" style="flex-shrink:0;width:78px;margin-bottom:0;font-size:16px;padding:10px 4px 10px 8px;" onchange="renderChildGrid()">
         <option value="name">가나다</option>
         <option value="recent">최근</option>
         <option value="reg">등록순</option>
@@ -1075,8 +1082,8 @@
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">치료에 사용하는 활동 자료를 등록하면 <strong>세션 저장 후 AI가 해당 자료를 우선 추천</strong>합니다.</p>
       <!-- W8: 검색 + 진단 필터 -->
       <div style="display:flex;gap:6px;margin-bottom:10px;">
-        <input class="form-input" type="text" id="actSearchInput" placeholder="🔍 자료명·태그 검색..." style="flex:1;margin-bottom:0;font-size:14px;" oninput="renderActivityCatalog()">
-        <select class="form-input" id="actDiagFilter" style="flex-shrink:0;width:100px;font-size:12px;padding:10px 4px 10px 8px;" onchange="renderActivityCatalog()">
+        <input class="form-input" type="text" id="actSearchInput" placeholder="🔍 자료명·태그 검색..." style="flex:1;margin-bottom:0;font-size:16px;" oninput="renderActivityCatalog()">
+        <select class="form-input" id="actDiagFilter" style="flex-shrink:0;width:108px;font-size:16px;padding:10px 4px 10px 8px;" onchange="renderActivityCatalog()">
           <option value="">전체</option>
           <option value="언어발달장애">언어발달</option>
           <option value="조음음운장애">조음음운</option>
@@ -1103,6 +1110,31 @@
         <button class="btn-ghost" onclick="openAddStaffModal()">+ 추가</button>
       </div>
       <div id="staffList"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">배</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">배다솔</div><div style="font-size:11px;color:var(--text2);">@dasol_bae · 👩‍⚕️ 선생님</div></div><button class="btn-del" onclick="deleteStaff('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','배다솔')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">관</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">관리자</div><div style="font-size:11px;color:var(--text2);">@admin · 👑 관리자</div></div><button class="btn-del" onclick="deleteStaff('8dce5d80-40bc-4781-82eb-cd3d12e33011','관리자')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#a855f7;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">남</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">남그</div><div style="font-size:11px;color:var(--text2);">@dinosau · 👑 관리자</div></div><span style="font-size:11px;color:var(--mint);">나</span></div></div>
+    </div>
+
+    <!-- 관리자 전용: 센터 API 키 관리 -->
+    <div class="card" id="centerApiKeyCard" style="display: block; border: 2px solid var(--mint);">
+      <div class="card-title">
+        <div class="card-title-left" style="color:var(--mint);">🔑 센터 AI 키 관리</div>
+        <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+        여기에 키를 저장하면 <strong>모든 선생님이 별도 입력 없이</strong> AI 기능을 바로 사용할 수 있습니다.<br>
+        비용은 이 키의 소유자(관리자) 계정으로 청구됩니다.
+      </p>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <input type="password" class="form-input" id="centerApiKeyInput" placeholder="sk-ant-api03-..." style="flex:1;font-family:monospace;font-size:14px;" autocomplete="off">
+        <button type="button" class="btn-ghost" onclick="toggleCenterKeyVisibility()" id="centerKeyEye" style="flex-shrink:0;padding:10px 14px;">👁️</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveCenterApiKey()">
+          💾 Supabase에 저장
+        </button>
+        <button class="btn-outline" style="flex:0.5;" onclick="loadCenterApiKey(true)">
+          🔄 불러오기
+        </button>
+      </div>
+      <div id="centerKeyStatus" style="font-size:12px;margin-top:8px;"></div>
     </div>
 
     <!-- UX: 화면 모드 -->
@@ -1169,7 +1201,7 @@
         매일 자동으로 최근 <strong>7일치 데이터</strong>가 기기 안에 저장됩니다.<br>
         실수로 데이터를 잃었을 때 클릭 한 번으로 복원할 수 있습니다.
       </p>
-      <div id="backupList"><div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">저장된 자동 백업이 없습니다.</div></div>
+      <div id="backupList"><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-03</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-03')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-03')">↻ 이 백업으로 복원</button></div><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-02</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-02')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-02')">↻ 이 백업으로 복원</button></div></div>
     </div>
 
     <!-- 디버그 정보 (운영 모니터링) -->
@@ -1344,6 +1376,8 @@ function doLogin() {
       localStorage.setItem('madi_user', JSON.stringify(currentUser));
       hideLoginScreen();
       applyUserUI();
+      applyRoleUI();          // role에 따라 API 키 입력란 표시/숨김
+      loadCenterApiKey();     // Supabase에서 센터 공용 키 자동 로드
       loadDBFromSupabase();
       initRealtime();
     }).catch(function() {
@@ -2295,6 +2329,94 @@ function parseJSON(raw) {
   throw new Error('JSON 응답 파싱 실패 — 응답이 너무 길거나 형식이 올바르지 않습니다.');
 }
 
+// ─────── 센터 API 키 관리 (선택지 2) ───────
+function loadCenterApiKey(showFeedback) {
+  // Supabase에서 센터 공용 API 키 로드
+  return supaFetch('madi_settings?key=eq.api_key&select=value', 'GET')
+    .then(function(rows) {
+      if (!rows || rows.length === 0 || !rows[0].value) {
+        // Supabase에 키 없으면 로컬 키 사용 (기존 호환)
+        var local = localStorage.getItem('cn3_apikey');
+        if (local) {
+          document.getElementById('apiKey').value = local;
+          showMaskedApiKey();
+        }
+        if (showFeedback) showToast('ℹ️ Supabase에 저장된 키 없음 — 로컬 키 사용 중');
+        return;
+      }
+      var key = rows[0].value;
+      document.getElementById('apiKey').value = key;
+      localStorage.setItem('cn3_apikey', key);
+      showMaskedApiKey();
+      if (showFeedback) showToast('✅ 센터 AI 키 불러옴');
+
+      // 관리자 설정 탭 입력란에도 채우기
+      var adminInput = document.getElementById('centerApiKeyInput');
+      if (adminInput) {
+        adminInput.value = key;
+        var statusEl = document.getElementById('centerKeyStatus');
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 현재 저장된 키: ' + maskApiKey(key) + '</span>';
+      }
+    })
+    .catch(function(err) {
+      // 로컬 키 폴백
+      var local = localStorage.getItem('cn3_apikey');
+      if (local) {
+        document.getElementById('apiKey').value = local;
+        showMaskedApiKey();
+      }
+      console.error('센터 키 로드 실패:', err);
+    });
+}
+
+function saveCenterApiKey() {
+  var key = (document.getElementById('centerApiKeyInput') || {}).value || '';
+  key = key.trim();
+  if (!key.startsWith('sk-ant')) {
+    showToast('❌ 유효한 Anthropic API 키를 입력해주세요 (sk-ant-로 시작)');
+    return;
+  }
+  var statusEl = document.getElementById('centerKeyStatus');
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--text2);">저장 중...</span>';
+
+  supaFetch('madi_settings', 'POST', [{ key: 'api_key', value: key }])
+    .then(function() {
+      // 현재 세션에도 즉시 적용
+      document.getElementById('apiKey').value = key;
+      localStorage.setItem('cn3_apikey', key);
+      showMaskedApiKey();
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 저장 완료: ' + maskApiKey(key) + '</span>';
+      showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
+    })
+    .catch(function(err) {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--red);">❌ 저장 실패: ' + escHtml(err.message || '오류') + '</span>';
+      showToast('❌ 저장 실패');
+    });
+}
+
+function toggleCenterKeyVisibility() {
+  var input = document.getElementById('centerApiKeyInput');
+  var btn = document.getElementById('centerKeyEye');
+  if (!input || !btn) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+
+function applyRoleUI() {
+  // 관리자: 헤더 키 입력란 + 설정탭 키 카드 표시
+  // 선생님: 둘 다 숨김 (Supabase에서 자동 로드됨)
+  var isAdmin = currentUser && currentUser.role === 'admin';
+  var apikeyBar = document.getElementById('apikeyBar');
+  var centerCard = document.getElementById('centerApiKeyCard');
+  if (apikeyBar) apikeyBar.style.display = isAdmin ? 'flex' : 'none';
+  if (centerCard) centerCard.style.display = isAdmin ? 'block' : 'none';
+}
+
 function getApiKeyOrAlert() {
   var k = document.getElementById('apiKey').value.trim();
   if (!k) { showToast('API 키를 먼저 입력해주세요.'); return null; }
@@ -2318,7 +2440,15 @@ function switchTab(idx) {
   if (idx === 5) { populateChildSelects(); }
   if (idx === 6) { populateChildSelects(); }
   if (idx === 7) { populateChildSelects(); renderEffectStats(); }
-  if (idx === 8) { renderStaffCard(); loadStagnationSettings(); renderBackupList(); renderDebugInfo(); }
+  if (idx === 8) {
+    renderStaffCard();
+    loadStagnationSettings();
+    renderBackupList();
+    renderDebugInfo();
+    if (currentUser && currentUser.role === 'admin') {
+      loadCenterApiKey(false); // 조용히 로드해서 상태 표시
+    }
+  }
 }
 
 // ─────── 입력 모드 ───────
@@ -7431,6 +7561,8 @@ function init() {
     try {
       currentUser = JSON.parse(savedUser);
       applyUserUI();
+      applyRoleUI();       // role에 따라 API 키 입력란 표시/숨김
+      loadCenterApiKey();  // 센터 공용 키 자동 로드
       hideLoginScreen();
       loadDBFromSupabase();
       initRealtime();
