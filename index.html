@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/4272f93d-9c0d-4bbf-b805-50ea111013f2">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/96501ce7-2513-4766-ab23-e24af146d600">
+  <link rel="manifest" id="pwaManifest" href="blob:null/794a908b-f7d1-455c-89cc-19f5404ee06b">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/4fba59df-be7d-4560-be57-d0d168edf7e4">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -97,6 +97,42 @@
     .tab-btn .tab-ico { font-size:18px; line-height:1.1; display:block; }
     .tab-btn .tab-lbl { font-size:9px; font-weight:700; line-height:1.1; display:block; white-space:nowrap; }
     .tab-btn.active { color:var(--mint); border-bottom-color:var(--mint); }
+    /* ─── 서브탭 시스템 ─── */
+    .sub-panel { display: none; }
+    .sub-panel.sub-active { display: block; }
+    .subtab-nav {
+      display: flex; background: var(--white);
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto; scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .subtab-nav::-webkit-scrollbar { display: none; }
+    .subtab-btn {
+      flex: 1; min-width: 56px; padding: 10px 6px 9px;
+      font-size: 12px; font-weight: 700; color: var(--text2);
+      border: none; background: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer; margin-bottom: -2px;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      touch-action: manipulation;
+      white-space: nowrap; text-align: center;
+    }
+    .subtab-btn.active { color: var(--mint); border-bottom-color: var(--mint); }
+    /* 서비스관리 현황 카드 */
+    .svc-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .svc-stat-card { background: var(--bg); border-radius: 12px; padding: 14px; text-align: center; border: 1.5px solid var(--border); }
+    .svc-stat-card .stat-num { font-size: 24px; font-weight: 900; color: var(--mint); }
+    .svc-stat-card .stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    /* 공지사항 */
+    .notice-card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .notice-card.pinned { border-left: 4px solid var(--amber); }
+    .notice-card.important { border-left: 4px solid var(--red); }
+    .notice-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-bottom: 6px; }
+    .notice-badge.pin { background: #fef3c7; color: #92400e; }
+    .notice-badge.imp { background: #fee2e2; color: #991b1b; }
+    .notice-badge.info { background: #e0f2fe; color: #0c4a6e; }
+
     .tab-btn.active .tab-lbl { color:var(--mint); }
 
     .content { padding:14px; max-width:860px; margin:0 auto; }
@@ -147,6 +183,29 @@
     .child-card.open .child-detail { display:block; }
     .child-meta { font-size:11px; color:var(--text2); margin-bottom:2px; }
     .child-session-count { font-size:11px; color:var(--text2); margin-top:4px; }
+
+    /* 일괄 처리 모드 */
+    .child-card.bulk-selected { background:#f0fdf4; box-shadow:inset 3px 0 0 var(--mint); }
+    body.dark-mode .child-card.bulk-selected { background:#064e3b22; }
+    .bulk-checkbox { width:22px; height:22px; flex-shrink:0; cursor:pointer; accent-color:var(--mint); }
+    .bulk-action-bar {
+      position:fixed; left:0; right:0; bottom:62px;
+      background:var(--navy); color:white; padding:10px 14px;
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+      box-shadow:0 -4px 12px rgba(0,0,0,0.15); z-index:900;
+    }
+    .bulk-action-bar .bulk-count { font-size:14px; font-weight:700; flex-shrink:0; }
+    .bulk-action-bar button { font-size:12px; font-weight:700; padding:7px 11px; border-radius:8px; border:none; cursor:pointer; touch-action:manipulation; }
+    .bulk-action-bar .ba-close   { background:#f59e0b; color:white; }
+    .bulk-action-bar .ba-reg     { background:#10b981; color:white; }
+    .bulk-action-bar .ba-wait    { background:#8b5cf6; color:white; }
+    .bulk-action-bar .ba-all     { background:#0ea5a0; color:white; }
+    .bulk-action-bar .ba-cancel  { background:rgba(255,255,255,0.15); color:white; margin-left:auto; }
+    .bulk-toggle-btn { padding:10px 12px; height:42px; border-radius:10px; border:1.5px solid var(--mint); background:white; color:var(--mint); font-weight:700; font-size:12px; cursor:pointer; touch-action:manipulation; flex-shrink:0; }
+    .bulk-toggle-btn.active { background:var(--mint); color:white; }
+    /* 일괄 모드 시 액션바에 가려지지 않게 콘텐츠 하단 여유 */
+    body.bulk-mode .content { padding-bottom:90px; }
+
     /* 아동 상태 탭 */
     .child-status-tabs { display:flex; background:white; border-radius:12px; overflow:hidden; box-shadow:var(--shadow); margin-bottom:10px; }
     .child-status-tab { flex:1; padding:10px 4px; font-size:12px; font-weight:700; border:none; background:none; color:var(--text2); cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; touch-action:manipulation; border-bottom:3px solid transparent; }
@@ -572,6 +631,41 @@
   </div>
 </div>
 
+<!-- 일괄 종결일 입력 모달 -->
+<div id="bulkClosedDateModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:20px;padding:24px 22px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto;">
+    <div style="text-align:center;font-size:36px;margin-bottom:8px;">🔒</div>
+    <div style="text-align:center;font-size:17px;font-weight:700;color:#1e293b;margin-bottom:4px;">일괄 종결 처리</div>
+    <div style="text-align:center;font-size:13px;color:#64748b;margin-bottom:12px;">
+      <span id="bcdCount" style="color:#0ea5a0;font-weight:700;">0</span>명 아동을 종결 처리합니다
+    </div>
+
+    <!-- 선택된 아동 이름 미리보기 -->
+    <div id="bcdNamePreview" style="background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#475569;line-height:1.7;max-height:80px;overflow-y:auto;"></div>
+
+    <!-- 종결일 -->
+    <label style="font-size:12px;font-weight:700;color:#475569;display:block;margin-bottom:6px;">종결일</label>
+    <input id="bcdDateInput" type="date" class="form-input" style="width:100%;font-size:16px;margin-bottom:12px;">
+
+    <!-- 종결 사유 -->
+    <label style="font-size:12px;font-weight:700;color:#475569;display:block;margin-bottom:6px;">종결 사유</label>
+    <select id="bcdReasonSelect" class="form-input" style="width:100%;font-size:16px;margin-bottom:6px;" onchange="toggleBcdReasonEtc()">
+      <option value="치료 완료">✅ 치료 완료</option>
+      <option value="자발적 종결">🙋 자발적 종결 (보호자 요청)</option>
+      <option value="이사">📦 이사</option>
+      <option value="기관 이전">🏥 기관 이전</option>
+      <option value="경제적 사유">💰 경제적 사유</option>
+      <option value="기타">✏️ 기타 (직접 입력)</option>
+    </select>
+    <input id="bcdReasonEtc" type="text" class="form-input" placeholder="직접 입력" style="width:100%;font-size:16px;display:none;margin-bottom:0;">
+
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn-ghost" style="flex:1;padding:12px;" onclick="closeBulkClosedDateModal()">취소</button>
+      <button style="flex:1;padding:12px;background:#f59e0b;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;" onclick="confirmBulkClosedDate()">🔒 종결 처리</button>
+    </div>
+  </div>
+</div>
+
 <!-- 로그인 화면 -->
 <div class="login-screen" id="loginScreen" style="display: none;">
   <div class="login-box">
@@ -588,9 +682,9 @@
       <h1>마디</h1>
       <p>언어치료 AI 비서</p>
     </div>
-    <div id="loginUserList" style="display: none;"><div style="font-size:12px;color:var(--text2);margin-bottom:10px;text-align:center;">계정을 선택하세요</div><button class="login-user-btn" onclick="selectUser('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','dasol_bae','배다솔','teacher','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">배</div><div><div style="font-size:15px;">배다솔</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👩‍⚕️ 선생님</div></div></button><button class="login-user-btn" onclick="selectUser('8dce5d80-40bc-4781-82eb-cd3d12e33011','admin','관리자','admin','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">관</div><div><div style="font-size:15px;">관리자</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button><button class="login-user-btn" onclick="selectUser('33b39ef4-5bfa-4c57-9538-fd8def867a82','dinosau','남그','admin','#a855f7')"><div class="login-user-avatar" style="background:#a855f7;">남</div><div><div style="font-size:15px;">남그</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button></div>
-    <div id="loginPwForm" style="display: block;">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel">남그님, 비밀번호를 입력하세요</div>
+    <div id="loginUserList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
+    <div id="loginPwForm" style="display:none;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel"></div>
       <input class="form-input" type="password" id="loginPwInput" placeholder="비밀번호 입력" style="margin-bottom:10px;">
       <button class="btn btn-primary" style="margin-top:0;" onclick="doLogin()">🔐 로그인</button>
       <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToUserList()">← 뒤로</button>
@@ -655,7 +749,7 @@
 
 <div class="header">
   <div class="logo">
-    <div class="logo-icon" onclick="switchTab(2)" style="cursor:pointer;" title="스케줄로 이동">
+    <div class="logo-icon" onclick="switchTab(0)" style="cursor:pointer;" title="캘린더로 이동">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="22" height="22">
         <rect x="2" y="2" width="44" height="33" rx="9" fill="white"></rect>
         <polygon points="8,35 2,48 26,35" fill="white"></polygon>
@@ -671,7 +765,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">12:46</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">13:45</div>
       <div id="clockNext" style="font-size:10px;color:rgba(255,255,255,0.65);">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -691,15 +785,13 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)" style="position: relative;"><span class="tab-ico">👶</span><span class="tab-lbl">아동</span><span class="tab-alert" style="position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; background: rgb(239, 68, 68); border-radius: 50%;"></span></button>
-  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">📝</span><span class="tab-lbl">세션</span></button>
-  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📅</span><span class="tab-lbl">일정</span></button>
-  <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📋</span><span class="tab-lbl">검사</span></button>
-  <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)"><span class="tab-ico">📊</span><span class="tab-lbl">추이</span></button>
-  <button class="tab-btn" id="tabBtn5" onclick="switchTab(5)"><span class="tab-ico">📨</span><span class="tab-lbl">리포트</span></button>
-  <button class="tab-btn" id="tabBtn6" onclick="switchTab(6)"><span class="tab-ico">📁</span><span class="tab-lbl">포트</span></button>
-  <button class="tab-btn" id="tabBtn7" onclick="switchTab(7)"><span class="tab-ico">🤖</span><span class="tab-lbl">AI도구</span></button>
-  <button class="tab-btn active" id="tabBtn8" onclick="switchTab(8)"><span class="tab-ico">⚙️</span><span class="tab-lbl">설정</span></button>
+  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)" style="position: relative;"><span class="tab-ico">📅</span><span class="tab-lbl">아동</span><span class="tab-alert" style="position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; background: rgb(239, 68, 68); border-radius: 50%;"></span></button>
+  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">📢</span><span class="tab-lbl">공지사항</span></button>
+  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">👤</span><span class="tab-lbl">이용자</span></button>
+  <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
+  <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
+  <button class="tab-btn" id="tabBtn5" onclick="switchTab(5)"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
+  <button class="tab-btn active" id="tabBtn6" onclick="switchTab(6)"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
 </div>
 
 <!-- TAB 0: 아동관리 -->
@@ -727,7 +819,18 @@
         <option value="recent">최근</option>
         <option value="reg">등록순</option>
       </select>
+      <button class="bulk-toggle-btn" id="bulkToggleBtn" onclick="toggleBulkMode()" title="일괄 처리 모드">☑️</button>
       <button class="btn btn-primary" style="flex-shrink:0;width:42px;height:42px;padding:0;font-size:20px;margin-top:0;" onclick="openChildRegModal()" title="이용자 등록">➕</button>
+    </div>
+
+    <!-- 일괄 처리 액션바 (일괄 모드 ON 시 표시) -->
+    <div class="bulk-action-bar" id="bulkActionBar" style="display:none;">
+      <span class="bulk-count" id="bulkCountLabel">0명 선택</span>
+      <button class="ba-all" onclick="bulkSelectAllVisible()">☑️ 전체</button>
+      <button class="ba-close" onclick="bulkChangeStatus('종결')">🔒 종결</button>
+      <button class="ba-reg" onclick="bulkChangeStatus('등록')">✅ 등록</button>
+      <button class="ba-wait" onclick="bulkChangeStatus('대기')">⏳ 대기</button>
+      <button class="ba-cancel" onclick="toggleBulkMode()">✕ 닫기</button>
     </div>
 
     <div class="child-grid" id="childGrid"><div class="child-card" id="cc_1777430329256"><div class="child-card-row" onclick="toggleChildCard(1777430329256)"><div class="child-avatar" style="background:#8b5cf622">📋</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><div class="child-name">강남</div><div style="font-size:12px;color:var(--mint);font-weight:700;">7세 3개월</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;"><span style="font-size:11px;color:var(--text2);">🎂 2019-01-20</span><span style="font-size:11px;color:var(--text2);">📞 (모) 010-9666-0535</span></div></div><span class="child-expand-icon" style="flex-shrink:0;">▼</span></div><div class="child-detail"><div class="child-meta" style="margin-top:6px;">기타</div><div class="child-session-count">세션 0회 | 최근: 세션 없음</div><div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><button class="btn-ghost" onclick="event.stopPropagation();goToSession(1777430329256)">📝 기록</button><button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(1777430329256)">✏️ 편집</button><button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(1777430329256)">🔍 상세</button><button class="btn-ghost" style="color:#f59e0b;border-color:#f59e0b;" onclick="event.stopPropagation();closeChild(1777430329256)">🔒 종결</button></div></div></div><div class="child-card" id="cc_1777430325753"><div class="child-card-row" onclick="toggleChildCard(1777430325753)"><div class="child-avatar" style="background:#0ea5a022">📋</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><div class="child-name">강다인</div><div style="font-size:12px;color:var(--mint);font-weight:700;">5세 4개월</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;"><span style="font-size:11px;color:var(--text2);">🎂 2020-12-07</span><span style="font-size:11px;color:var(--text2);">📞 (부) 010-7586-0627
@@ -759,7 +862,7 @@
 </div>
 
 <!-- TAB 1: 세션기록 -->
-<div class="tab-panel" id="panel1">
+<div class="sub-panel" id="panel1">
   <div class="content">
     <div id="unwrittenAlert"><div class="unwritten-card"><div class="unwritten-title">⚠️ 미작성 세션 1개</div><div class="unwritten-item"><span>📅 2026-04-30 · 서규민</span><button class="btn-ghost" style="font-size:11px;padding:7px 12px;" onclick="quickFillSession('2026-04-30',1777433805671)">지금 작성</button></div></div></div>
     <div class="card">
@@ -889,7 +992,7 @@
 </div>
 
 <!-- TAB 3: 표준화 검사 -->
-<div class="tab-panel" id="panel3">
+<div class="sub-panel" id="panel3">
   <div class="content">
     <div class="card">
       <div class="card-title"><div class="card-title-left">📋 검사 결과 입력</div></div>
@@ -995,7 +1098,7 @@
 </div>
 
 <!-- TAB 2: 발달추이 -->
-<div class="tab-panel" id="panel4">
+<div class="sub-panel" id="panel4">
   <div class="content">
     <div class="card">
       <div class="card-title"><div class="card-title-left">📊 아동 선택</div></div>
@@ -1037,7 +1140,7 @@
 </div>
 
 <!-- TAB 3: 부모 보고서 -->
-<div class="tab-panel" id="panel5">
+<div class="sub-panel" id="panel5">
   <div class="content">
     <div class="card">
       <div class="card-title"><div class="card-title-left">📨 부모보고 리포트</div></div>
@@ -1091,7 +1194,7 @@
 </div>
 
 <!-- TAB 4: 월간 포트폴리오 -->
-<div class="tab-panel" id="panel6">
+<div class="sub-panel" id="panel6">
   <div class="content">
     <div class="card" style="background:linear-gradient(135deg,#0ea5a0,#0c8c88);color:white;">
       <div style="font-size:14px;font-weight:700;margin-bottom:8px;">📁 월간 포트폴리오</div>
@@ -1115,7 +1218,7 @@
 </div>
 
 <!-- TAB 5: AI 도구 -->
-<div class="tab-panel" id="panel7">
+<div class="sub-panel" id="panel7">
   <div class="content">
 
     <!-- W8: 효과 통계 대시보드 -->
@@ -1173,7 +1276,116 @@
   </div>
 </div>
 
-<!-- TAB 8: 설정 -->
+
+<!-- TAB 1: 공지사항 (NEW) -->
+<div class="tab-panel" id="panelNotice">
+  <div class="content">
+    <!-- 관리자 전용: 공지 작성 -->
+    <div class="card" id="noticeWriteCard" style="display:none;border:2px solid var(--amber);">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#b45309;">📢 공지 작성</div>
+        <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
+      </div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <div style="flex:1;">
+          <label class="form-label">유형</label>
+          <select class="form-input" id="noticeType">
+            <option value="info">📌 일반</option>
+            <option value="pin">📍 중요</option>
+            <option value="imp">🚨 긴급</option>
+          </select>
+        </div>
+        <div style="flex:2;">
+          <label class="form-label">제목</label>
+          <input class="form-input" type="text" id="noticeTitle" placeholder="공지 제목">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">내용</label>
+        <textarea class="form-input" id="noticeContent" placeholder="공지 내용을 입력하세요" style="min-height:80px;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveNotice()">📢 공지 저장</button>
+    </div>
+
+    <!-- 공지 목록 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📢 센터 공지사항</div>
+        <button class="btn-ghost" onclick="loadNotices()">새로고침</button>
+      </div>
+      <div id="noticeList">
+        <div class="empty"><div class="empty-icon">📢</div><p>등록된 공지가 없습니다.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: 보고서 (서브탭 wrapper) -->
+<div class="tab-panel" id="panelReport">
+  <div class="subtab-nav">
+    <button class="subtab-btn active" id="rtBtn_session" onclick="switchReportTab('session')">📝 세션기록</button>
+    <button class="subtab-btn" id="rtBtn_assess" onclick="switchReportTab('assess')">📋 표준화검사</button>
+    <button class="subtab-btn" id="rtBtn_report" onclick="switchReportTab('report')">📨 리포트·IEP</button>
+  </div>
+</div>
+
+<!-- TAB 4: 포트폴리오&교육자료 (서브탭 wrapper) -->
+<div class="tab-panel" id="panelPortfolio">
+  <div class="subtab-nav">
+    <button class="subtab-btn active" id="ptBtn_trend" onclick="switchPortfolioTab('trend')">📊 발달추이</button>
+    <button class="subtab-btn" id="ptBtn_portfolio" onclick="switchPortfolioTab('portfolio')">📁 포트폴리오</button>
+    <button class="subtab-btn" id="ptBtn_ai" onclick="switchPortfolioTab('ai')">🤖 AI·활동자료</button>
+  </div>
+</div>
+
+<!-- TAB 5: 서비스관리 (NEW) -->
+<div class="tab-panel" id="panelService">
+  <div class="content">
+    <!-- 현황 카드 4가지 -->
+    <div class="svc-stat-grid">
+      <div class="svc-stat-card">
+        <div class="stat-num" id="svcStatChildren">-</div>
+        <div class="stat-lbl">등록 이용자 수</div>
+      </div>
+      <div class="svc-stat-card">
+        <div class="stat-num" id="svcStatSessions">-</div>
+        <div class="stat-lbl">이번 달 세션</div>
+      </div>
+      <div class="svc-stat-card">
+        <div class="stat-num" id="svcStatStaff">-</div>
+        <div class="stat-lbl">소속 선생님 수</div>
+      </div>
+      <div class="svc-stat-card">
+        <div class="stat-num" id="svcStatActiveRate">-</div>
+        <div class="stat-lbl">이용자 활성률</div>
+      </div>
+    </div>
+
+    <!-- 월간 서비스 현황 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📅 월간 서비스 현황</div>
+        <input type="month" id="svcMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderMonthlyService()">
+      </div>
+      <div id="monthlyServiceList">
+        <div class="empty"><div class="empty-icon">📅</div><p>월을 선택하면 현황이 표시됩니다.</p></div>
+      </div>
+    </div>
+
+    <!-- 일간 서비스 현황 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📆 일간 서비스 현황</div>
+        <input type="date" id="svcDate" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderDailyService()">
+      </div>
+      <div id="dailyServiceList">
+        <div class="empty"><div class="empty-icon">📆</div><p>날짜를 선택하면 현황이 표시됩니다.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: 관리자메뉴 (기존 설정) -->
 <div class="tab-panel active" id="panel8">
   <div class="content">
 
@@ -1437,12 +1649,14 @@ function isMyChild(childId) {
 function applyPermissions() {
   if (!currentUser) return;
   // 설정 탭(8)은 관리자만 — 권한 설정 여부 무관하게 선생님은 항상 숨김
-  var settingsBtn = document.getElementById('tabBtn8');
+  var settingsBtn = document.getElementById('tabBtn6');
   if (settingsBtn) settingsBtn.style.display = (currentUser.role === 'admin') ? '' : 'none';
+  var svcBtn = document.getElementById('tabBtn5');
+  if (svcBtn) svcBtn.style.display = (currentUser.role === 'admin') ? '' : 'none';
   if (currentUser.role === 'admin') return;
   if (!canDo('useAI')) {
-    var aiBtn = document.getElementById('tabBtn7');
-    if (aiBtn) aiBtn.style.display = 'none';
+    var aiSubBtn = document.getElementById('ptBtn_ai');
+    if (aiSubBtn) aiSubBtn.style.display = 'none';
   }
 } // 기본값: 라이트(Haiku)
 function getAIModel() { return AI_MODEL_PREF === 'pro' ? MODEL_SONNET : MODEL_HAIKU; }
@@ -2994,26 +3208,75 @@ function getApiKeyOrAlert() {
 }
 
 // ─────── 탭 전환 ───────
+// ─── 새 탭 구조 (7개) ───
+// 0:캘린더관리  1:공지사항  2:이용자관리
+// 3:보고서       4:포트폴리오  5:서비스관리  6:관리자메뉴
+var ALL_PANELS_NEW = ['panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7','panel8',
+                      'panelNotice','panelReport','panelPortfolio','panelService'];
+var TAB_PANEL_MAP  = ['panel2','panelNotice','panel0','panelReport','panelPortfolio','panelService','panel8'];
+
 function switchTab(idx) {
-  for (var i = 0; i < 9; i++) {
-    var p = document.getElementById('panel' + i);
-    var b = document.getElementById('tabBtn' + i);
+  // 모든 패널 숨기기
+  ALL_PANELS_NEW.forEach(function(id) {
+    var p = document.getElementById(id);
     if (p) p.classList.remove('active');
+  });
+  // 모든 서브패널 숨기기
+  ['panel1','panel3','panel4','panel5','panel6','panel7'].forEach(function(id) {
+    var p = document.getElementById(id);
+    if (p) p.classList.remove('sub-active');
+  });
+  // 탭 버튼 초기화
+  for (var i = 0; i < 7; i++) {
+    var b = document.getElementById('tabBtn' + i);
     if (b) b.classList.remove('active');
   }
-  document.getElementById('panel' + idx).classList.add('active');
-  document.getElementById('tabBtn' + idx).classList.add('active');
-  if (idx === 1) { populateChildSelects(); renderSessionList(); renderUnwrittenAlert(); }
-  if (idx === 2) { populateChildSelects(); renderSchedView(); checkUpcomingSessionBriefing(); }
-  if (idx === 3) { populateChildSelects(); renderAssessmentList(); renderAssessFields(); }
-  if (idx === 4) { populateChildSelects(); renderChart(); }
-  if (idx === 5) { populateChildSelects(); }
-  if (idx === 6) { populateChildSelects(); }
-  if (idx === 7) { populateChildSelects(); renderEffectStats(); }
-  if (idx === 8) {
+  // 대상 패널 표시
+  var targetId = TAB_PANEL_MAP[idx];
+  if (!targetId) return;
+  var tp = document.getElementById(targetId);
+  if (tp) tp.classList.add('active');
+  var tb = document.getElementById('tabBtn' + idx);
+  if (tb) tb.classList.add('active');
+
+  // 탭별 후처리
+  if (idx === 0) {
+    // 캘린더관리
+    populateChildSelects();
+    renderSchedView();
+    checkUpcomingSessionBriefing();
+  }
+  if (idx === 1) {
+    // 공지사항
+    loadNotices();
+    var nwc = document.getElementById('noticeWriteCard');
+    if (nwc) nwc.style.display = (currentUser && currentUser.role === 'admin') ? '' : 'none';
+  }
+  if (idx === 2) {
+    // 이용자관리 (기존 아동 탭)
+    populateChildSelects();
+  }
+  if (idx === 3) {
+    // 보고서 — 마지막으로 열었던 서브탭 복원, 없으면 세션
+    populateChildSelects();
+    switchReportTab(currentReportTab || 'session');
+  }
+  if (idx === 4) {
+    // 포트폴리오
+    populateChildSelects();
+    switchPortfolioTab(currentPortfolioTab || 'trend');
+  }
+  if (idx === 5) {
+    // 서비스관리
+    renderServiceStats();
+    renderMonthlyService();
+    renderDailyService();
+  }
+  if (idx === 6) {
+    // 관리자메뉴
     if (!currentUser || currentUser.role !== 'admin') {
-      showToast('⚠️ 설정은 관리자만 접근할 수 있어요');
-      switchTab(0);
+      showToast('⚠️ 관리자메뉴는 관리자만 접근할 수 있어요');
+      switchTab(2);
       return;
     }
     renderStaffCard();
@@ -3024,6 +3287,240 @@ function switchTab(idx) {
     loadCenterInfo();
     loadStaffMgmtList();
   }
+}
+
+// ─── 보고서 서브탭 ───
+var currentReportTab = 'session';
+function switchReportTab(sub) {
+  currentReportTab = sub;
+  ['panel1','panel3','panel5'].forEach(function(id) {
+    var p = document.getElementById(id);
+    if (p) p.classList.remove('sub-active');
+  });
+  ['rtBtn_session','rtBtn_assess','rtBtn_report'].forEach(function(id) {
+    var b = document.getElementById(id);
+    if (b) b.classList.remove('active');
+  });
+  var target = null, btnId = null;
+  if (sub === 'session') {
+    target = 'panel1'; btnId = 'rtBtn_session';
+    populateChildSelects(); renderSessionList(); renderUnwrittenAlert();
+  } else if (sub === 'assess') {
+    target = 'panel3'; btnId = 'rtBtn_assess';
+    populateChildSelects(); renderAssessmentList(); renderAssessFields();
+  } else if (sub === 'report') {
+    target = 'panel5'; btnId = 'rtBtn_report';
+    populateChildSelects();
+  }
+  if (target) { var p = document.getElementById(target); if (p) p.classList.add('sub-active'); }
+  if (btnId)  { var b = document.getElementById(btnId);  if (b) b.classList.add('active'); }
+}
+
+// ─── 포트폴리오 서브탭 ───
+var currentPortfolioTab = 'trend';
+function switchPortfolioTab(sub) {
+  currentPortfolioTab = sub;
+  ['panel4','panel6','panel7'].forEach(function(id) {
+    var p = document.getElementById(id);
+    if (p) p.classList.remove('sub-active');
+  });
+  ['ptBtn_trend','ptBtn_portfolio','ptBtn_ai'].forEach(function(id) {
+    var b = document.getElementById(id);
+    if (b) b.classList.remove('active');
+  });
+  var target = null, btnId = null;
+  if (sub === 'trend') {
+    target = 'panel4'; btnId = 'ptBtn_trend';
+    populateChildSelects(); renderChart();
+  } else if (sub === 'portfolio') {
+    target = 'panel6'; btnId = 'ptBtn_portfolio';
+    populateChildSelects();
+  } else if (sub === 'ai') {
+    target = 'panel7'; btnId = 'ptBtn_ai';
+    populateChildSelects(); renderEffectStats();
+  }
+  if (target) { var p = document.getElementById(target); if (p) p.classList.add('sub-active'); }
+  if (btnId)  { var b = document.getElementById(btnId);  if (b) b.classList.add('active'); }
+}
+
+// ─── 공지사항 ───
+var noticeDB = [];
+async function loadNotices() {
+  var listEl = document.getElementById('noticeList');
+  if (!listEl) return;
+  if (!currentUser) { listEl.innerHTML = '<div class="empty"><p>로그인 후 확인하세요.</p></div>'; return; }
+  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div>';
+  try {
+    var centerId = currentUser.center_id || '';
+    var { data, error } = await supabase
+      .from('madi_notices')
+      .select('*')
+      .eq('center_id', centerId)
+      .order('pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    noticeDB = data || [];
+    renderNoticeList();
+  } catch(e) {
+    listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + (e.message||'') + '</small></p></div>';
+  }
+}
+function renderNoticeList() {
+  var listEl = document.getElementById('noticeList');
+  if (!listEl) return;
+  if (!noticeDB.length) {
+    listEl.innerHTML = '<div class="empty"><div class="empty-icon">📢</div><p>등록된 공지가 없습니다.</p></div>';
+    return;
+  }
+  var html = noticeDB.map(function(n) {
+    var typeClass = n.notice_type === 'imp' ? 'important' : (n.notice_type === 'pin' ? 'pinned' : '');
+    var badgeClass = n.notice_type === 'imp' ? 'imp' : (n.notice_type === 'pin' ? 'pin' : 'info');
+    var badgeText  = n.notice_type === 'imp' ? '🚨 긴급' : (n.notice_type === 'pin' ? '📍 중요' : '📌 일반');
+    var dateStr = n.created_at ? n.created_at.slice(0,10) : '';
+    var delBtn = (currentUser && currentUser.role === 'admin')
+      ? '<button data-nid="' + n.id + '" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button>'
+      : '';
+    return '<div class="notice-card ' + typeClass + '">'
+      + '<span class="notice-badge ' + badgeClass + '">' + badgeText + '</span>'
+      + (delBtn ? '<span style="float:right;">' + delBtn + '</span>' : '')
+      + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">' + (n.title||'') + '</div>'
+      + '<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">' + (n.content||'') + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);margin-top:8px;">' + dateStr + (n.author_name ? ' · ' + n.author_name : '') + '</div>'
+      + '</div>';
+  }).join('');
+  listEl.innerHTML = html;
+}
+async function saveNotice() {
+  if (!currentUser || currentUser.role !== 'admin') return;
+  var title   = (document.getElementById('noticeTitle')   || {value:''}).value.trim();
+  var content = (document.getElementById('noticeContent') || {value:''}).value.trim();
+  var ntype   = (document.getElementById('noticeType')    || {value:'info'}).value;
+  if (!title || !content) { showToast('⚠️ 제목과 내용을 모두 입력해 주세요'); return; }
+  try {
+    var { error } = await supabase.from('madi_notices').insert({
+      center_id: currentUser.center_id,
+      notice_type: ntype,
+      pinned: ntype !== 'info',
+      title: title,
+      content: content,
+      author_name: currentUser.name
+    });
+    if (error) throw error;
+    document.getElementById('noticeTitle').value = '';
+    document.getElementById('noticeContent').value = '';
+    showToast('✅ 공지가 등록됐습니다');
+    loadNotices();
+  } catch(e) {
+    showToast('❌ 저장 실패: ' + (e.message||''));
+  }
+}
+async function deleteNotice(id) {
+  if (!confirm('이 공지를 삭제할까요?')) return;
+  try {
+    var { error } = await supabase.from('madi_notices').delete().eq('id', id);
+    if (error) throw error;
+    showToast('🗑️ 공지가 삭제됐습니다');
+    loadNotices();
+  } catch(e) {
+    showToast('❌ 삭제 실패: ' + (e.message||''));
+  }
+}
+
+// ─── 서비스관리 ───
+function renderServiceStats() {
+  var children = typeof childDB !== 'undefined' ? childDB : [];
+  var sessions  = typeof sessionDB !== 'undefined' ? sessionDB : [];
+  var staff     = typeof staffList !== 'undefined' ? staffList : [];
+
+  var activeChildren = children.filter(function(c){ return c.status === '등록'; });
+  var now = new Date();
+  var ym  = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var monthSessions = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
+  var activeRate = children.length ? Math.round(activeChildren.length / children.length * 100) : 0;
+
+  var el;
+  el = document.getElementById('svcStatChildren'); if(el) el.textContent = activeChildren.length;
+  el = document.getElementById('svcStatSessions'); if(el) el.textContent = monthSessions.length;
+  el = document.getElementById('svcStatStaff');    if(el) el.textContent = staff.length || '-';
+  el = document.getElementById('svcStatActiveRate'); if(el) el.textContent = activeRate + '%';
+
+  // 날짜 기본값 설정
+  var svcMonthEl = document.getElementById('svcMonth');
+  if (svcMonthEl && !svcMonthEl.value) svcMonthEl.value = ym;
+  var svcDateEl = document.getElementById('svcDate');
+  if (svcDateEl && !svcDateEl.value) {
+    svcDateEl.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  }
+}
+function renderMonthlyService() {
+  var listEl = document.getElementById('monthlyServiceList');
+  if (!listEl) return;
+  var svcMonthEl = document.getElementById('svcMonth');
+  var ym = svcMonthEl ? svcMonthEl.value : '';
+  if (!ym) { listEl.innerHTML = '<div class="empty"><p>월을 선택해 주세요.</p></div>'; return; }
+  var sessions = typeof sessionDB !== 'undefined' ? sessionDB : [];
+  var children = typeof childDB   !== 'undefined' ? childDB   : [];
+  var monthSessions = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
+  if (!monthSessions.length) {
+    listEl.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>' + ym + ' 세션 기록이 없습니다.</p></div>';
+    return;
+  }
+  // 아동별 집계
+  var childMap = {};
+  monthSessions.forEach(function(s) {
+    if (!childMap[s.childId]) childMap[s.childId] = { count: 0, teachers: {} };
+    childMap[s.childId].count++;
+    if (s.teacher) childMap[s.childId].teachers[s.teacher] = true;
+  });
+  var rows = Object.keys(childMap).map(function(cid) {
+    var child = children.find(function(c){ return String(c.id) === String(cid); });
+    var name = child ? child.name : ('아동#'+cid);
+    var teachers = Object.keys(childMap[cid].teachers).join(', ') || '-';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">'
+      + '<div><div style="font-size:13px;font-weight:700;">' + name + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);">담당: ' + teachers + '</div></div>'
+      + '<div style="font-size:14px;font-weight:900;color:var(--mint);">' + childMap[cid].count + '회</div>'
+      + '</div>';
+  }).join('');
+  listEl.innerHTML = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">'
+    + '총 <b>' + monthSessions.length + '회</b> 세션 / <b>' + Object.keys(childMap).length + '명</b> 이용자</div>'
+    + rows;
+}
+function renderDailyService() {
+  var listEl = document.getElementById('dailyServiceList');
+  if (!listEl) return;
+  var svcDateEl = document.getElementById('svcDate');
+  var dt = svcDateEl ? svcDateEl.value : '';
+  if (!dt) { listEl.innerHTML = '<div class="empty"><p>날짜를 선택해 주세요.</p></div>'; return; }
+  var sessions = typeof sessionDB !== 'undefined' ? sessionDB : [];
+  var children = typeof childDB   !== 'undefined' ? childDB   : [];
+  var schedules = typeof scheduleDB !== 'undefined' ? scheduleDB : [];
+  var daySessions  = sessions.filter(function(s){ return (s.date||'') === dt; });
+  var daySchedules = schedules.filter(function(s){ return (s.date||'') === dt; });
+  if (!daySessions.length && !daySchedules.length) {
+    listEl.innerHTML = '<div class="empty"><div class="empty-icon">📆</div><p>' + dt + ' 기록이 없습니다.</p></div>';
+    return;
+  }
+  var sessionHtml = daySessions.map(function(s) {
+    var child = children.find(function(c){ return String(c.id) === String(s.childId); });
+    var name = child ? child.name : ('아동#'+s.childId);
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">'
+      + '<div><div style="font-size:13px;font-weight:700;">' + name + ' <span style="font-size:11px;color:var(--mint);background:var(--mint2);padding:2px 6px;border-radius:8px;">세션완료</span></div>'
+      + '<div style="font-size:11px;color:var(--text2);">' + (s.teacher||'담당미지정') + '</div></div>'
+      + '</div>';
+  }).join('');
+  var schedHtml = daySchedules.filter(function(sc){
+    return !daySessions.find(function(ss){ return String(ss.childId)===String(sc.childId); });
+  }).map(function(sc) {
+    var child = children.find(function(c){ return String(c.id) === String(sc.childId); });
+    var name = child ? child.name : ('아동#'+sc.childId);
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">'
+      + '<div><div style="font-size:13px;font-weight:700;">' + name + ' <span style="font-size:11px;color:var(--amber);background:#fef3c7;padding:2px 6px;border-radius:8px;">예정</span></div>'
+      + '<div style="font-size:11px;color:var(--text2);">' + (sc.startTime||'') + (sc.teacher ? ' · '+sc.teacher : '') + '</div></div>'
+      + '</div>';
+  }).join('');
+  listEl.innerHTML = sessionHtml + schedHtml;
 }
 
 // ─────── 입력 모드 ───────
@@ -3490,6 +3987,8 @@ function renderChildGrid() {
   var today = new Date().toISOString().slice(0, 10);
   var totalCount = list.length;
   var visibleList = list.slice(0, _childRenderLimit);
+  // 일괄 처리용: 현재 화면에 렌더되는 아동 ID 캐시
+  _currentVisibleIds = visibleList.map(function(c){ return c.id; });
 
   var html = '';
 
@@ -3543,6 +4042,7 @@ function renderChildGrid() {
         + (child.closedAt ? '<span style="font-size:11px;background:#fef2f2;color:#dc2626;padding:3px 8px;border-radius:8px;font-weight:600;">🔒 종결일 ' + child.closedAt + '</span>' : '')
         + (closedDur     ? '<span style="font-size:11px;background:#f0fdf4;color:#16a34a;padding:3px 8px;border-radius:8px;font-weight:600;">📅 ' + closedDur + '</span>' : '')
         + '<span style="font-size:11px;background:#eff6ff;color:#2563eb;padding:3px 8px;border-radius:8px;font-weight:600;">📝 총 ' + ss.length + '회 세션</span>'
+        + (child.closedReason ? '<span style="font-size:11px;background:#fdf4ff;color:#7c3aed;padding:3px 8px;border-radius:8px;font-weight:600;">💬 ' + escHtml(child.closedReason) + '</span>' : '')
         + '</div>';
     }
     var vUsed    = getVoucherUsed(child.id);
@@ -3572,9 +4072,20 @@ function renderChildGrid() {
       schedHtml += '</div>';
     }
 
-    html += '<div class="child-card" id="cc_' + child.id + '">'
+    var cardSelected = !!_bulkSelected[child.id];
+    var rowOnclick = _bulkMode
+      ? 'bulkToggleSelect(' + child.id + ')'
+      : 'toggleChildCard(' + child.id + ')';
+    var checkboxHtml = _bulkMode
+      ? '<input type="checkbox" class="bulk-checkbox" id="bulkChk_' + child.id + '"'
+        + (cardSelected ? ' checked' : '')
+        + ' onclick="event.stopPropagation();bulkToggleSelect(' + child.id + ')">'
+      : '';
+
+    html += '<div class="child-card' + (cardSelected ? ' bulk-selected' : '') + '" id="cc_' + child.id + '">'
       // 항상 보이는 헤더 (이름 + 기본 정보)
-      + '<div class="child-card-row" onclick="toggleChildCard(' + child.id + ')">'
+      + '<div class="child-card-row" onclick="' + rowOnclick + '">'
+      + checkboxHtml
       + '<div class="child-avatar" style="background:' + child.color + '22">' + (DISORDER_EMOJI[child.type] || '📋') + '</div>'
       + '<div style="flex:1;min-width:0;">'
       + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
@@ -3661,10 +4172,181 @@ function onChildSearchInput() {
 }
 
 var _childStatusFilter = '등록';
+
+// ─────── 아동 일괄 처리 모드 ───────
+var _bulkMode = false;
+var _bulkSelected = {}; // { childId: true }
+var _currentVisibleIds = []; // renderChildGrid에서 채워짐
+
+function toggleBulkMode() {
+  _bulkMode = !_bulkMode;
+  _bulkSelected = {};
+  var btn = document.getElementById('bulkToggleBtn');
+  var bar = document.getElementById('bulkActionBar');
+  if (btn) btn.classList.toggle('active', _bulkMode);
+  if (bar) bar.style.display = _bulkMode ? 'flex' : 'none';
+  document.body.classList.toggle('bulk-mode', _bulkMode);
+  updateBulkCountLabel();
+  renderChildGrid();
+  if (_bulkMode) {
+    showToast('☑️ 일괄 처리 모드 — 카드를 눌러 선택');
+  }
+}
+
+function bulkToggleSelect(id) {
+  if (_bulkSelected[id]) {
+    delete _bulkSelected[id];
+  } else {
+    _bulkSelected[id] = true;
+  }
+  // 카드만 부분 갱신 (전체 렌더 안 함 — 펼침 상태 유지)
+  var card = document.getElementById('cc_' + id);
+  if (card) card.classList.toggle('bulk-selected', !!_bulkSelected[id]);
+  var cb = document.getElementById('bulkChk_' + id);
+  if (cb) cb.checked = !!_bulkSelected[id];
+  updateBulkCountLabel();
+}
+
+// 화면에 보이는 아동 전체 선택 / 전체 해제 (토글)
+function bulkSelectAllVisible() {
+  if (!_currentVisibleIds || _currentVisibleIds.length === 0) {
+    showToast('⚠️ 표시된 아동이 없습니다');
+    return;
+  }
+  // 현재 화면 아동이 모두 선택돼 있으면 → 해제, 아니면 → 모두 선택
+  var allSelected = _currentVisibleIds.every(function(id){ return !!_bulkSelected[id]; });
+  if (allSelected) {
+    _currentVisibleIds.forEach(function(id){ delete _bulkSelected[id]; });
+  } else {
+    _currentVisibleIds.forEach(function(id){ _bulkSelected[id] = true; });
+  }
+  updateBulkCountLabel();
+  renderChildGrid();
+  showToast(allSelected ? '🔲 전체 선택 해제' : '☑️ ' + _currentVisibleIds.length + '명 전체 선택');
+}
+
+function updateBulkCountLabel() {
+  var n = Object.keys(_bulkSelected).length;
+  var lbl = document.getElementById('bulkCountLabel');
+  if (lbl) lbl.textContent = n + '명 선택';
+}
+
+function bulkChangeStatus(newStatus) {
+  var ids = Object.keys(_bulkSelected).map(function(s){ return parseInt(s, 10); });
+  if (ids.length === 0) {
+    showToast('⚠️ 선택된 아동이 없습니다');
+    return;
+  }
+  // 종결은 종결일 입력 모달로 위임
+  if (newStatus === '종결') {
+    openBulkClosedDateModal(ids);
+    return;
+  }
+  if (!confirm(ids.length + '명을 [' + newStatus + ']로 변경할까요?')) return;
+  applyBulkStatus(ids, newStatus, null);
+}
+
+// 실제 일괄 상태 적용 (ids 배열, 새 상태, 종결일 또는 null, 종결 사유)
+function applyBulkStatus(ids, newStatus, closedAt, reason) {
+  var changed = 0;
+  ids.forEach(function(id) {
+    var c = childDB.find(function(c){ return c.id === id; });
+    if (!c) return;
+    c.status = newStatus;
+    if (newStatus === '종결') {
+      c.closedAt = closedAt;
+      c.closedReason = reason || '';
+    } else {
+      delete c.closedAt;
+      delete c.closedReason;
+    }
+    changed++;
+  });
+  saveChildren();
+  _bulkSelected = {};
+  updateBulkCountLabel();
+  renderChildGrid();
+  showToast('✅ ' + changed + '명을 [' + newStatus + ']로 변경 완료');
+}
+
+// ─────── 일괄 종결일 입력 모달 ───────
+function openBulkClosedDateModal(ids) {
+  var today = new Date().toISOString().slice(0,10);
+  var modal = document.getElementById('bulkClosedDateModal');
+  if (!modal) return;
+
+  // 아동 수
+  document.getElementById('bcdCount').textContent = ids.length;
+
+  // 이름 미리보기 생성
+  var preview = document.getElementById('bcdNamePreview');
+  if (preview) {
+    var names = ids.map(function(id) {
+      var c = childDB.find(function(c){ return c.id === id; });
+      return c ? escHtml(c.name) : '?';
+    });
+    var MAX_SHOW = 5;
+    var shown = names.slice(0, MAX_SHOW).join(', ');
+    var extra = names.length > MAX_SHOW ? ' 외 ' + (names.length - MAX_SHOW) + '명' : '';
+    preview.innerHTML = '👶 ' + shown + (extra ? '<strong>' + extra + '</strong>' : '');
+  }
+
+  // 날짜 초기화
+  document.getElementById('bcdDateInput').value = today;
+
+  // 종결 사유 초기화
+  var sel = document.getElementById('bcdReasonSelect');
+  if (sel) sel.selectedIndex = 0;
+  var etc = document.getElementById('bcdReasonEtc');
+  if (etc) { etc.value = ''; etc.style.display = 'none'; }
+
+  modal.dataset.ids = JSON.stringify(ids);
+  modal.style.display = 'flex';
+}
+
+function toggleBcdReasonEtc() {
+  var sel = document.getElementById('bcdReasonSelect');
+  var etc = document.getElementById('bcdReasonEtc');
+  if (!sel || !etc) return;
+  etc.style.display = sel.value === '기타' ? 'block' : 'none';
+  if (sel.value === '기타') setTimeout(function(){ etc.focus(); }, 100);
+}
+
+function closeBulkClosedDateModal() {
+  var modal = document.getElementById('bulkClosedDateModal');
+  if (modal) { modal.style.display = 'none'; modal.dataset.ids = ''; }
+}
+
+function confirmBulkClosedDate() {
+  var modal = document.getElementById('bulkClosedDateModal');
+  if (!modal) return;
+  var ids = [];
+  try { ids = JSON.parse(modal.dataset.ids || '[]'); } catch(e) {}
+  if (!ids.length) { closeBulkClosedDateModal(); return; }
+
+  var date = (document.getElementById('bcdDateInput') || {}).value || '';
+  if (!date) { showToast('⚠️ 종결일을 선택해주세요'); return; }
+
+  // 종결 사유 조합
+  var sel = document.getElementById('bcdReasonSelect');
+  var etc = document.getElementById('bcdReasonEtc');
+  var reason = sel ? sel.value : '';
+  if (reason === '기타') {
+    var etcVal = etc ? etc.value.trim() : '';
+    reason = etcVal || '기타';
+  }
+
+  closeBulkClosedDateModal();
+  applyBulkStatus(ids, '종결', date, reason);
+}
+
 function setChildStatus(status, btn) {
   _childStatusFilter = status;
   document.querySelectorAll('.child-status-tab').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
+  // 상태 탭 변경 시 선택 초기화 (혼동 방지)
+  _bulkSelected = {};
+  updateBulkCountLabel();
   renderChildGrid();
 }
 
@@ -3823,7 +4505,7 @@ function openChildDetail(id) {
 }
 
 function goToSession(id) {
-  switchTab(1);
+  switchTab(3);
   populateChildSelects();
   var sel = document.getElementById('sessionChild');
   if (sel) {
@@ -3886,7 +4568,14 @@ function openEditModal(id) {
     + '</div>'
     + '<div id="editClosedAtWrap" style="' + ((child.status||'등록') === '종결' ? '' : 'display:none;') + '">'
     + '<div class="form-group"><label class="form-label">🔒 종결일</label>'
-    + '<input class="form-input" type="date" id="editClosedAt" value="' + escHtml(child.closedAt || '') + '"></div></div>'
+    + '<input class="form-input" type="date" id="editClosedAt" value="' + escHtml(child.closedAt || '') + '"></div>'
+    + '<div class="form-group"><label class="form-label">💬 종결 사유</label>'
+    + '<select class="form-input" id="editClosedReason" style="font-size:16px;">'
+    + ['치료 완료','자발적 종결','이사','기관 이전','경제적 사유','기타'].map(function(r){
+        return '<option value="' + r + '"' + ((child.closedReason||'치료 완료')===r?' selected':'') + '>' + r + '</option>';
+      }).join('')
+    + '</select></div>'
+    + '</div>'
 
     + '<div class="form-group"><label class="form-label">메모</label>'
     + '<textarea class="form-input" id="editMemo" style="min-height:70px;">' + escHtml(child.memo || '') + '</textarea></div>'
@@ -3934,6 +4623,7 @@ function saveEditModal(id) {
   var goals = document.getElementById('editGoals').value.split(',').map(function(g) { return g.trim(); }).filter(Boolean);
   var startDate    = document.getElementById('editStartDate').value;
   var closedAt     = (document.getElementById('editClosedAt') || {}).value || '';
+  var closedReason = (document.getElementById('editClosedReason') || {}).value || '';
   var voucherLimit = parseInt(document.getElementById('editVoucherLimit').value) || 0;
   var memo  = document.getElementById('editMemo').value.trim();
 
@@ -3946,8 +4636,10 @@ function saveEditModal(id) {
   });
   if (status === '종결' && closedAt) {
     updatedChild.closedAt = closedAt;
+    updatedChild.closedReason = closedReason;
   } else if (status !== '종결') {
     delete updatedChild.closedAt;
+    delete updatedChild.closedReason;
   }
   childDB[idx] = updatedChild;
 
@@ -4770,10 +5462,10 @@ function renderStagnationResult(p, childName, childId) {
 
 function stagnationActionMeta(type, childId) {
   var map = {
-    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(5);setTimeout(function(){var el=document.getElementById("iepChild");if(el){el.value=' + childId + ';renderIEPHistory(' + childId + ');}},300);' },
-    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(5);setTimeout(function(){var el=document.getElementById("reportChild");if(el)el.value=' + childId + ';},300);' },
-    activity: { icon: '🎮', color: '#10b981', btnLabel: '활동 카탈로그', onclick: 'switchTab(7);' },
-    schedule: { icon: '📅', color: '#f59e0b', btnLabel: '일정 확인', onclick: 'switchTab(2);' }
+    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(3);setTimeout(function(){switchReportTab("report");var el=document.getElementById("iepChild");if(el){el.value=' + childId + ';renderIEPHistory(' + childId + ');}},300);' },
+    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(3);setTimeout(function(){switchReportTab("report");var el=document.getElementById("reportChild");if(el)el.value=' + childId + ';},300);' },
+    activity: { icon: '🎮', color: '#10b981', btnLabel: '활동 카탈로그', onclick: 'switchTab(4);setTimeout(function(){switchPortfolioTab("ai");},200);' },
+    schedule: { icon: '📅', color: '#f59e0b', btnLabel: '일정 확인', onclick: 'switchTab(0);' }
   };
   return map[type] || map['activity'];
 }
@@ -5576,7 +6268,7 @@ function showPostSessionBriefing(sessionId) {
     title: '부모 리포트 작성',
     desc: unwrittenCount > 0 ? '미작성 세션 ' + unwrittenCount + '건' : '최신 상태 유지 중',
     btnText: '리포트 탭으로',
-    onclick: 'closePostBriefing();switchTab(5);'
+    onclick: 'closePostBriefing();switchTab(3);switchReportTab("report");'
   });
 
   // 카드 2: 다음 세션 일정
@@ -5586,7 +6278,7 @@ function showPostSessionBriefing(sessionId) {
     title: '다음 세션 일정',
     desc: nextSched ? nextSched.date + ' ' + (nextSched.startTime || '') : '예약 없음 — 일정 추가 필요',
     btnText: nextSched ? '스케줄 확인' : '일정 추가',
-    onclick: 'closePostBriefing();switchTab(2);'
+    onclick: 'closePostBriefing();switchTab(0);'
   });
 
   // 카드 3: 추이 차트
@@ -5596,7 +6288,7 @@ function showPostSessionBriefing(sessionId) {
     title: '발달 추이 확인',
     desc: avgScore !== null ? '오늘 평균 달성도 ' + avgScore + '%' : '달성도 미입력',
     btnText: '추이 차트 보기',
-    onclick: 'closePostBriefing();switchTab(4);'
+    onclick: 'closePostBriefing();switchTab(4);switchPortfolioTab("trend");'
   });
 
   var cardsHtml = actions.map(function(a) {
@@ -5710,10 +6402,10 @@ function showStagnationAlert(childName, stagnatedGoals, childId) {
     + '</div>'
     + '<div style="display:flex;gap:6px;">'
     + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;color:#b45309;border-color:#fed7aa;" '
-    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(4);setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();}},200);">'
+    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(4);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();}},200);">'
     + '📊 추이 차트 보기</button>'
     + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;color:#8b5cf6;border-color:#ddd6fe;" '
-    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(4);setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();detectStagnation();}},200);">'
+    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(4);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();detectStagnation();}},200);">'
     + '🔍 정체 분석 실행</button>'
     + '</div>'
     + '</div>'
@@ -6718,7 +7410,7 @@ function goToSessionFromSched(schedId) {
   if (!s) return;
   var ol = document.getElementById('editSchedOverlay');
   if (ol) ol.remove();
-  switchTab(1);
+  switchTab(3);
   setTimeout(function() {
     var sel = document.getElementById('sessionChild');
     if (sel) {
@@ -8772,7 +9464,7 @@ function actOpenSessionForChild(a) {
   if (!a.childId) return;
   var child = childDB.find(function(c) { return c.id === a.childId; });
   if (!child) { showToast('❌ 아동을 찾을 수 없습니다'); return; }
-  switchTab(1);
+  switchTab(3);
   setTimeout(function() {
     var sel = document.getElementById('sessionChild');
     if (sel) {
@@ -8788,7 +9480,8 @@ function actOpenParentReport(a) {
   if (!a.childId) return;
   var child = childDB.find(function(c) { return c.id === a.childId; });
   if (!child) { showToast('❌ 아동을 찾을 수 없습니다'); return; }
-  switchTab(5);
+  switchTab(3);
+  switchReportTab('report');
   setTimeout(function() {
     var sel = document.getElementById('reportChild');
     if (sel) sel.value = a.childId;
@@ -8798,13 +9491,14 @@ function actOpenParentReport(a) {
 }
 
 function actSwitchTab(a) {
-  if (typeof a.tab !== 'number' || a.tab < 0 || a.tab > 8) return;
+  if (typeof a.tab !== 'number' || a.tab < 0 || a.tab > 6) return;
   switchTab(a.tab);
   if (chatOpen) toggleChat();
 }
 
 function actShowUnwritten() {
-  switchTab(1);
+  switchTab(3);
+  switchReportTab('session');
   setTimeout(function() {
     var alertEl = document.getElementById('unwrittenAlert');
     if (alertEl) alertEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -9029,8 +9723,8 @@ function sendChat() {
     + '   {"type":"openSessionForChild","childId":"<id>"}\n'
     + '3. openParentReport: 부모 리포트 화면 열기\n'
     + '   {"type":"openParentReport","childId":"<id>"}\n'
-    + '4. switchTab: 탭 전환 (0:아동 1:세션 2:스케줄 3:검사 4:추이 5:리포트 6:포트폴리오 7:AI도구 8:설정)\n'
-    + '   {"type":"switchTab","tab":1}\n'
+    + '4. switchTab: 탭 전환 (0:캘린더 1:공지사항 2:이용자관리 3:보고서 4:포트폴리오 5:서비스관리 6:관리자메뉴)\n'
+    + '   {"type":"switchTab","tab":3}\n'
     + '5. showUnwritten: 미작성 세션 강조\n'
     + '   {"type":"showUnwritten"}\n\n'
     + '치료사별 일정 질문 시 위 [치료사 목록]과 [오늘 스케줄]의 (담당: ___) 정보를 활용하세요. '
