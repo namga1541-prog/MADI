@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/6d9616a0-62c1-4a17-969b-f4f037a031bd">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/a0705537-e774-4a82-9ff0-7a6fbfd39d32">
+  <link rel="manifest" id="pwaManifest" href="blob:null/7adab2a2-3c34-4f53-a929-0d0691b394c0">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/0612386c-08f3-47f6-b213-3df3c4102e1b">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -436,7 +436,7 @@
     .chat-window {
       position: fixed; bottom: 92px; right: 20px; z-index: 200;
       width: 340px; max-height: min(520px, calc(100dvh - 110px));
-      background: white; border-radius: 20px;
+      background: var(--card-bg, white); border-radius: 20px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.18);
       display: flex; flex-direction: column;
       transform: scale(0.85) translateY(20px); opacity: 0;
@@ -481,7 +481,7 @@
       max-width: 220px; padding: 9px 12px; border-radius: 16px;
       font-size: 13px; line-height: 1.6; word-break: keep-all;
     }
-    .msg-row.ai   .msg-bubble { background: #f1f5f9; color: var(--text); border-bottom-left-radius: 4px; }
+    .msg-row.ai   .msg-bubble { background: var(--bg, #f1f5f9); color: var(--text); border-bottom-left-radius: 4px; }
     .msg-row.user .msg-bubble { background: var(--mint); color: white; border-bottom-right-radius: 4px; }
     .msg-time { font-size: 10px; color: #94a3b8; margin-top: 2px; text-align: right; }
     .chat-typing {
@@ -503,6 +503,7 @@
       padding: 8px 14px; font-size: 13px; font-family: 'Noto Sans KR', sans-serif;
       resize: none; outline: none; max-height: 80px; min-height: 36px;
       transition: border-color 0.15s; line-height: 1.4;
+      background: var(--input-bg, white); color: var(--text);
     }
     .chat-input:focus { border-color: var(--mint); }
     .chat-send-btn {
@@ -514,7 +515,7 @@
     .chat-send-btn:hover { background: #0c8c88; }
     .chat-send-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
     .chat-mic-btn {
-      width: 36px; height: 36px; background: white; border: 1.5px solid var(--mint);
+      width: 36px; height: 36px; background: var(--card-bg, white); border: 1.5px solid var(--mint);
       border-radius: 50%; cursor: pointer; display: flex; align-items: center;
       justify-content: center; font-size: 15px; flex-shrink: 0;
       transition: all 0.15s; color: var(--mint);
@@ -534,7 +535,7 @@
     .quick-btn {
       font-size: 11px; font-weight: 600; padding: 4px 10px;
       border: 1.5px solid var(--mint); border-radius: 14px;
-      background: white; color: var(--mint); cursor: pointer;
+      background: var(--card-bg, white); color: var(--mint); cursor: pointer;
       font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       white-space: nowrap;
     }
@@ -598,7 +599,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">23:44</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">09:54</div>
       <div id="clockNext" style="font-size:10px;color:rgba(255,255,255,0.65);">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -614,7 +615,7 @@
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" onfocus="onApiKeyFocus()" onblur="onApiKeyBlur()" style="display: none;">
     <button type="button" onclick="toggleApiKeyVisibility()" id="apiKeyEye" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); color: rgb(148, 163, 184); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0; display: none;" title="키 보기/숨기기">👁️</button>
   </div>
-  <span id="apiKeyMasked" style="display: block; font-family: monospace; font-size: 12px; color: rgb(148, 163, 184); flex: 1 1 0%; padding: 7px 12px; background: rgba(255, 255, 255, 0.07); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer;" onclick="editApiKey()" title="클릭해서 수정">sk-ant-a••••••••mgAA</span>
+  <span id="apiKeyMasked" style="display: block; font-family: monospace; font-size: 12px; color: rgb(148, 163, 184); flex: 1 1 0%; padding: 7px 12px; background: rgba(255, 255, 255, 0.07); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer;" onclick="editApiKey()" title="클릭해서 수정">sk-ant-a••••••••QAAA</span>
 </div>
 
 <div class="tabs">
@@ -1112,6 +1113,57 @@
       <div id="staffList"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">배</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">배다솔</div><div style="font-size:11px;color:var(--text2);">@dasol_bae · 👩‍⚕️ 선생님</div></div><button class="btn-del" onclick="deleteStaff('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','배다솔')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">관</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">관리자</div><div style="font-size:11px;color:var(--text2);">@admin · 👑 관리자</div></div><button class="btn-del" onclick="deleteStaff('8dce5d80-40bc-4781-82eb-cd3d12e33011','관리자')">삭제</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#a855f7;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">남</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">남그</div><div style="font-size:11px;color:var(--text2);">@dinosau · 👑 관리자</div></div><span style="font-size:11px;color:var(--mint);">나</span></div></div>
     </div>
 
+    <!-- 관리자 전용: 센터 관리 + 초대 코드 -->
+    <div class="card" id="centerMgmtCard" style="display: block; border: 2px solid var(--purple);">
+      <div class="card-title">
+        <div class="card-title-left" style="color:var(--purple);">🏢 센터 관리</div>
+        <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
+      </div>
+
+      <!-- 현재 센터 정보 -->
+      <div id="centerInfoBox" style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">현재 센터</div>
+        <div id="centerName" style="font-size:15px;font-weight:700;color:var(--navy);">불러오는 중...</div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--text2);margin-bottom:3px;">초대 코드 (선생님에게 공유)</div>
+            <div id="inviteCodeDisplay" style="font-size:16px;font-weight:900;color:var(--mint);letter-spacing:2px;font-family:monospace;">------</div>
+          </div>
+          <button class="btn-ghost" onclick="copyInviteCode()" style="flex-shrink:0;">📋 복사</button>
+        </div>
+        <button class="btn-ghost" onclick="regenInviteCode()" style="width:100%;margin-top:8px;font-size:12px;color:var(--amber);border-color:var(--amber);">
+          🔄 초대 코드 재발급
+        </button>
+      </div>
+
+      <!-- 선생님 계정 추가 -->
+      <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">👤 선생님 계정 추가</div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <div style="flex:1;"><label class="form-label">이름</label>
+          <input class="form-input" id="newStaffName" placeholder="예: 김치료사"></div>
+        <div style="flex:1;"><label class="form-label">아이디</label>
+          <input class="form-input" id="newStaffUsername" placeholder="예: kim01"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <div style="flex:1;"><label class="form-label">비밀번호</label>
+          <input class="form-input" type="password" id="newStaffPw" placeholder="초기 비밀번호"></div>
+        <div style="flex:1;"><label class="form-label">권한</label>
+          <select class="form-input" id="newStaffRole">
+            <option value="teacher">선생님</option>
+            <option value="admin">관리자</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:0;width:100%;" onclick="addStaffAccount()">
+        ➕ 계정 추가
+      </button>
+      <div id="staffAddResult" style="font-size:12px;margin-top:8px;"></div>
+
+      <!-- 선생님 목록 -->
+      <div style="font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;">👥 현재 선생님 목록</div>
+      <div id="staffMgmtList"><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;"><div><span style="font-size:13px;font-weight:700;">관리자</span><span style="font-size:11px;color:var(--text2);margin-left:6px;">@admin</span><span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:var(--mint2);color:var(--mint);">관리자</span></div><button class="btn-del" onclick="removeStaffAccount(8dce5d80-40bc-4781-82eb-cd3d12e33011,'관리자')" style="font-size:11px;padding:5px 10px;">삭제</button></div><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;"><div><span style="font-size:13px;font-weight:700;">남그</span><span style="font-size:11px;color:var(--text2);margin-left:6px;">@dinosau</span><span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:var(--mint2);color:var(--mint);">관리자</span></div><span style="font-size:11px;color:var(--text2);">나</span></div><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;"><div><span style="font-size:13px;font-weight:700;">배다솔</span><span style="font-size:11px;color:var(--text2);margin-left:6px;">@dasol_bae</span><span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:#f1f5f9;color:var(--text2);">선생님</span></div><button class="btn-del" onclick="removeStaffAccount(4b6a9675-ff06-4f5b-a850-ba4e9508c91d,'배다솔')" style="font-size:11px;padding:5px 10px;">삭제</button></div></div>
+    </div>
+
     <!-- 관리자 전용: 센터 API 키 관리 -->
     <div class="card" id="centerApiKeyCard" style="display: block; border: 2px solid var(--mint);">
       <div class="card-title">
@@ -1134,7 +1186,7 @@
           🔄 불러오기
         </button>
       </div>
-      <div id="centerKeyStatus" style="font-size:12px;margin-top:8px;"></div>
+      <div id="centerKeyStatus" style="font-size:12px;margin-top:8px;"><span style="color:var(--green);">✅ 현재 저장된 키: sk-ant-a••••••••QAAA</span></div>
     </div>
 
     <!-- UX: 화면 모드 -->
@@ -1201,7 +1253,7 @@
         매일 자동으로 최근 <strong>7일치 데이터</strong>가 기기 안에 저장됩니다.<br>
         실수로 데이터를 잃었을 때 클릭 한 번으로 복원할 수 있습니다.
       </p>
-      <div id="backupList"><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-03</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-03')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-03')">↻ 이 백업으로 복원</button></div><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-02</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-02')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-02')">↻ 이 백업으로 복원</button></div></div>
+      <div id="backupList"><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-04</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-04')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-04')">↻ 이 백업으로 복원</button></div><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-03</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-03')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-03')">↻ 이 백업으로 복원</button></div><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-02</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-02')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-02')">↻ 이 백업으로 복원</button></div></div>
     </div>
 
     <!-- 디버그 정보 (운영 모니터링) -->
@@ -1309,6 +1361,31 @@ function supaFetch(path, method, body) {
 // ─────── 현재 로그인 사용자 ───────
 var currentUser = null;
 
+// 현재 사용자의 center_id 반환 헬퍼
+// SHA-256 해싱 (Web Crypto API — 브라우저 내장)
+function hashPassword(pw) {
+  var enc = new TextEncoder();
+  return crypto.subtle.digest('SHA-256', enc.encode(pw))
+    .then(function(buf) {
+      return Array.from(new Uint8Array(buf))
+        .map(function(b){ return b.toString(16).padStart(2, '0'); })
+        .join('');
+    });
+}
+
+// 현재 센터 ID 반환 — 로그인 안 됐으면 빈 문자열 (데이터 접근 차단)
+function getCenterId() {
+  return (currentUser && currentUser.center_id) ? currentUser.center_id : '';
+}
+
+// center_id 필터 쿼리 파라미터 반환
+function centerFilter() {
+  if (currentUser && currentUser.role === 'admin') return 'center_id=not.is.null'; // 관리자는 전체 센터 조회
+  var cid = getCenterId();
+  if (!cid) return 'center_id=eq.INVALID'; // 로그인 전 데이터 접근 차단
+  return 'center_id=eq.' + cid;
+}
+
 // ─────── 로그인 화면 ───────
 function showLoginScreen() {
   document.getElementById('loginScreen').style.display = 'flex';
@@ -1366,8 +1443,21 @@ function doLogin() {
   if (!_selectedUser) return;
   var pw = document.getElementById('loginPwInput').value;
   if (!pw) { document.getElementById('loginError').textContent = '비밀번호를 입력해주세요.'; return; }
-  supaFetch('madi_users?username=eq.' + encodeURIComponent(_selectedUser.username) + '&password=eq.' + encodeURIComponent(pw) + '&select=id,username,name,role,color')
-    .then(function(rows) {
+
+  // SHA-256 해싱 후 비교 (평문 전송 방지)
+  hashPassword(pw).then(function(hashed) {
+    // 해싱된 비밀번호로 조회 시도 → 실패 시 평문으로 재시도 (기존 계정 하위 호환)
+    return supaFetch('madi_users?username=eq.' + encodeURIComponent(_selectedUser.username)
+      + '&password=eq.' + encodeURIComponent(hashed)
+      + '&select=id,username,name,role,color,center_id')
+      .then(function(rows) {
+        if (Array.isArray(rows) && rows.length > 0) return rows;
+        // 평문 비밀번호 하위 호환 (기존 계정)
+        return supaFetch('madi_users?username=eq.' + encodeURIComponent(_selectedUser.username)
+          + '&password=eq.' + encodeURIComponent(pw)
+          + '&select=id,username,name,role,color,center_id');
+      });
+  }).then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) {
         document.getElementById('loginError').textContent = '비밀번호가 틀렸습니다.';
         return;
@@ -1376,8 +1466,8 @@ function doLogin() {
       localStorage.setItem('madi_user', JSON.stringify(currentUser));
       hideLoginScreen();
       applyUserUI();
-      applyRoleUI();          // role에 따라 API 키 입력란 표시/숨김
-      loadCenterApiKey();     // Supabase에서 센터 공용 키 자동 로드
+      applyRoleUI();
+      loadCenterApiKey();
       loadDBFromSupabase();
       initRealtime();
     }).catch(function() {
@@ -1419,10 +1509,10 @@ function loadDBFromSupabase(silent) {
   if (!silent) showToast('📡 데이터 불러오는 중...');
   _optionsCacheKey = null;  // 성능: 외부 데이터 로드 시 캐시 무효화
   Promise.all([
-    supaFetch('madi_children?select=id,data&order=id.asc'),
-    supaFetch('madi_sessions?select=id,data&order=id.asc'),
-    supaFetch('madi_schedules?select=id,data&order=id.asc'),
-    supaFetch('madi_assessments?select=id,data&order=id.asc')
+    supaFetch('madi_children?'    + centerFilter() + '&select=id,data&order=id.asc'),
+    supaFetch('madi_sessions?'    + centerFilter() + '&select=id,data&order=id.asc'),
+    supaFetch('madi_schedules?'   + centerFilter() + '&select=id,data&order=id.asc'),
+    supaFetch('madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc')
   ]).then(function(results) {
     function safeMap(arr) {
       if (!Array.isArray(arr)) return [];
@@ -1473,11 +1563,11 @@ function loadDBFromSupabase(silent) {
 
 function saveChildren() {
   markMyChange();
-  _optionsCacheKey = null;  // 성능: 캐시 무효화 (이름/생일 변경 즉시 반영)
+  _optionsCacheKey = null;
   localStorage.setItem('cn3_children', JSON.stringify(childDB));
   if (childDB.length === 0) return;
-  var rows = childDB.map(function(c){ return { id: c.id, data: c }; });
-  // 50개씩 나눠서 저장 (대용량 요청 실패 방지)
+  var cid = getCenterId();
+  var rows = childDB.map(function(c){ return { id: c.id, center_id: cid, data: c }; });
   var batches = [];
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
@@ -1493,7 +1583,8 @@ function saveSessions() {
   markMyChange();
   localStorage.setItem('cn3_sessions', JSON.stringify(sessionDB));
   if (sessionDB.length === 0) return;
-  var rows = sessionDB.map(function(s){ return { id: s.id, data: s }; });
+  var cid = getCenterId();
+  var rows = sessionDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; });
   var batches = [];
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
@@ -1504,7 +1595,8 @@ function saveSchedule() {
   markMyChange();
   localStorage.setItem('cn3_schedule', JSON.stringify(scheduleDB));
   if (scheduleDB.length === 0) return;
-  var rows = scheduleDB.map(function(s){ return { id: s.id, data: s }; });
+  var cid = getCenterId();
+  var rows = scheduleDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; });
   var batches = [];
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
@@ -1515,7 +1607,8 @@ function saveAssess() {
   markMyChange();
   localStorage.setItem('cn3_assess', JSON.stringify(assessmentDB));
   if (assessmentDB.length === 0) return;
-  var rows = assessmentDB.map(function(a){ return { id: a.id, data: a }; });
+  var cid = getCenterId();
+  var rows = assessmentDB.map(function(a){ return { id: a.id, center_id: cid, data: a }; });
   var batches = [];
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
@@ -1536,13 +1629,14 @@ function loadDB() {
 
 function saveIEP() {
   localStorage.setItem('cn3_iep', JSON.stringify(iepDB));
-  var rows = iepDB.map(function(r){ return { id: r.id, data: r }; });
+  var cid = getCenterId();
+  var rows = iepDB.map(function(r){ return { id: r.id, center_id: cid, data: r }; });
   if (rows.length === 0) return;
   supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).catch(function(){});
 }
 
 function loadIEPFromSupa() {
-  supaFetch('madi_iep_history?select=id,data&order=id.desc', 'GET')
+  supaFetch('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
       var parsed = rows.filter(function(r){ return r && r.data; })
@@ -1558,11 +1652,13 @@ function loadIEPFromSupa() {
 
 function saveActivities() {
   localStorage.setItem('cn3_activities', JSON.stringify(activityDB));
-  supaFetch('madi_activities', 'POST', activityDB).catch(function(){});
+  var cid = getCenterId();
+  var rows = activityDB.map(function(a){ return Object.assign({}, a, { center_id: cid }); });
+  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(){});
 }
 
 function loadActivitiesFromSupa() {
-  supaFetch('madi_activities?order=id.asc', 'GET')
+  supaFetch('madi_activities?' + centerFilter() + '&order=id.asc', 'GET')
     .then(function(rows) {
       if (Array.isArray(rows) && rows.length > 0) {
         activityDB = rows;
@@ -1850,10 +1946,11 @@ function recordApiUsage(model, inputTokens, outputTokens) {
 }
 
 function estimateCost() {
-  // Anthropic 가격 (USD per 1M tokens) — 2026.01 기준
+  // Anthropic 가격 (USD per 1M tokens) — 2026.05 기준, 변경 시 수정 필요
+  // 최신 가격: https://www.anthropic.com/pricing
   var prices = {
-    'claude-sonnet-4-6': { input: 3.00, output: 15.00 },
-    'claude-haiku-4-5-20251001': { input: 0.80, output: 4.00 }
+    'claude-sonnet-4-6':           { input: 3.00,  output: 15.00 },
+    'claude-haiku-4-5-20251001':   { input: 0.80,  output: 4.00  }
   };
   var totalUSD = 0;
   Object.keys(apiUsage.byModel || {}).forEach(function(m) {
@@ -1901,7 +1998,7 @@ function renderDebugInfo() {
   var logs = getErrorLog();
   var totalTokens = (apiUsage.inputTokens || 0) + (apiUsage.outputTokens || 0);
   var costUSD = estimateCost();
-  var costKRW = Math.round(costUSD * 1380); // 환율 대략 1380
+  var costKRW = Math.round(costUSD * 1380); // 환율 1380원/달러 (2026.05 기준)
 
   var statCard = function(val, label, color) {
     return '<div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;">'
@@ -2407,14 +2504,122 @@ function toggleCenterKeyVisibility() {
   }
 }
 
+// ─────── 센터 관리 ───────
+function loadCenterInfo() {
+  var cid = getCenterId();
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid) + '&select=*', 'GET')
+    .then(function(rows) {
+      if (!rows || rows.length === 0) return;
+      var center = rows[0];
+      var nameEl = document.getElementById('centerName');
+      var codeEl = document.getElementById('inviteCodeDisplay');
+      if (nameEl) nameEl.textContent = center.name || cid;
+      if (codeEl) codeEl.textContent = center.invite_code || '없음';
+    }).catch(function(){});
+}
+
+function copyInviteCode() {
+  var code = (document.getElementById('inviteCodeDisplay') || {}).textContent || '';
+  if (!code || code === '------') { showToast('초대 코드가 없습니다.'); return; }
+  navigator.clipboard.writeText(code).then(function() {
+    showToast('📋 초대 코드 복사됨: ' + code);
+  }).catch(function() {
+    showToast('코드: ' + code);
+  });
+}
+
+function regenInviteCode() {
+  if (!confirm('초대 코드를 재발급할까요? 기존 코드는 사용 불가가 됩니다.')) return;
+  var cid = getCenterId();
+  var newCode = cid.toUpperCase() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid), 'PATCH', { invite_code: newCode })
+    .then(function() {
+      var codeEl = document.getElementById('inviteCodeDisplay');
+      if (codeEl) codeEl.textContent = newCode;
+      showToast('✅ 초대 코드 재발급: ' + newCode);
+    }).catch(function(err) {
+      showToast('❌ 재발급 실패: ' + escHtml(err.message || '오류'));
+    });
+}
+
+function addStaffAccount() {
+  var name     = (document.getElementById('newStaffName') || {}).value.trim();
+  var username = (document.getElementById('newStaffUsername') || {}).value.trim();
+  var pw       = (document.getElementById('newStaffPw') || {}).value.trim();
+  var role     = (document.getElementById('newStaffRole') || {}).value;
+  var resultEl = document.getElementById('staffAddResult');
+  if (!name || !username || !pw) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>';
+    return;
+  }
+  if (resultEl) resultEl.innerHTML = '<span style="color:var(--text2);">추가 중...</span>';
+
+  hashPassword(pw).then(function(hashed) {
+    return supaFetch('madi_users', 'POST', [{
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      username: username,
+      name: name,
+      password: hashed,
+      role: role,
+      center_id: getCenterId(),
+      color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')
+    }]);
+  }).then(function() {
+    if (resultEl) resultEl.innerHTML = '<span style="color:var(--green);">✅ ' + escHtml(name) + ' 선생님 계정 추가됨</span>';
+    document.getElementById('newStaffName').value = '';
+    document.getElementById('newStaffUsername').value = '';
+    document.getElementById('newStaffPw').value = '';
+    loadStaffMgmtList();
+  }).catch(function(err) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
+  });
+}
+
+function loadStaffMgmtList() {
+  var el = document.getElementById('staffMgmtList');
+  if (!el) return;
+  var cid = getCenterId();
+  supaFetch('madi_users?' + centerFilter() + '&select=id,name,username,role&order=name.asc', 'GET')
+    .then(function(rows) {
+      if (!rows || rows.length === 0) {
+        el.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">등록된 선생님이 없습니다.</div>';
+        return;
+      }
+      el.innerHTML = rows.map(function(u) {
+        var isSelf = currentUser && currentUser.id === u.id;
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;">'
+          + '<div>'
+          + '<span style="font-size:13px;font-weight:700;">' + escHtml(u.name) + '</span>'
+          + '<span style="font-size:11px;color:var(--text2);margin-left:6px;">@' + escHtml(u.username) + '</span>'
+          + '<span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:' + (u.role==='admin'?'var(--mint2)':'#f1f5f9') + ';color:' + (u.role==='admin'?'var(--mint)':'var(--text2)') + ';">' + (u.role==='admin'?'관리자':'선생님') + '</span>'
+          + '</div>'
+          + (!isSelf ? '<button class="btn-del" onclick="removeStaffAccount(' + u.id + ',\'' + escHtml(u.name) + '\')" style="font-size:11px;padding:5px 10px;">삭제</button>' : '<span style="font-size:11px;color:var(--text2);">나</span>')
+          + '</div>';
+      }).join('');
+    }).catch(function(err) {
+      el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: ' + escHtml(err.message || '') + '</div>';
+    });
+}
+
+function removeStaffAccount(id, name) {
+  if (!confirm(name + ' 선생님 계정을 삭제할까요?')) return;
+  supaFetch('madi_users?id=eq.' + id, 'DELETE')
+    .then(function() {
+      showToast('🗑️ ' + name + ' 계정 삭제됨');
+      loadStaffMgmtList();
+    }).catch(function(err) {
+      showToast('❌ 삭제 실패: ' + escHtml(err.message || '오류'));
+    });
+}
+
 function applyRoleUI() {
-  // 관리자: 헤더 키 입력란 + 설정탭 키 카드 표시
-  // 선생님: 둘 다 숨김 (Supabase에서 자동 로드됨)
   var isAdmin = currentUser && currentUser.role === 'admin';
-  var apikeyBar = document.getElementById('apikeyBar');
+  var apikeyBar  = document.getElementById('apikeyBar');
   var centerCard = document.getElementById('centerApiKeyCard');
-  if (apikeyBar) apikeyBar.style.display = isAdmin ? 'flex' : 'none';
+  var mgmtCard   = document.getElementById('centerMgmtCard');
+  if (apikeyBar)  apikeyBar.style.display  = isAdmin ? 'flex'  : 'none';
   if (centerCard) centerCard.style.display = isAdmin ? 'block' : 'none';
+  if (mgmtCard)   mgmtCard.style.display  = isAdmin ? 'block' : 'none';
 }
 
 function getApiKeyOrAlert() {
@@ -2446,7 +2651,9 @@ function switchTab(idx) {
     renderBackupList();
     renderDebugInfo();
     if (currentUser && currentUser.role === 'admin') {
-      loadCenterApiKey(false); // 조용히 로드해서 상태 표시
+      loadCenterApiKey(false);
+      loadCenterInfo();
+      loadStaffMgmtList();
     }
   }
 }
