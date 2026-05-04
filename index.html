@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/de8f8f59-6056-4dd4-8e08-619ff79d470e">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/1b779f70-88ed-4f55-9077-c4b62b846506">
+  <link rel="manifest" id="pwaManifest" href="blob:null/7974b8db-42aa-4348-8dbd-58965afd1862">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/9b6d6b7a-f6f7-4176-83b0-4365d6b62de5">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -147,10 +147,11 @@
     .svc-status-sel.makeup { background: #ede9fe; color: var(--purple); border-color: var(--purple); }
     .svc-status-sel.carried { background: #f1f5f9; color: var(--text2); border-color: var(--border); }
     /* 공지 배너 */
-    #noticeBanner { background:linear-gradient(90deg,#fef3c7 0%,#fffbeb 100%); border-bottom:2px solid #fde68a; overflow:hidden; box-shadow:0 2px 6px rgba(245,158,11,0.15); }
+    #noticeBanner { background:linear-gradient(90deg,#fffbeb 0%,#fef3c7 100%); border-bottom:2px solid #fde68a; overflow:hidden; box-shadow:0 2px 6px rgba(245,158,11,0.2); }
     .notice-banner-track { display:flex; align-items:center; gap:8px; padding:8px 14px; min-height:36px; }
     .notice-banner-icon { font-size:13px; flex-shrink:0; }
-    .notice-banner-text { flex:1; font-size:12px; font-weight:700; color:#92400e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:1; transition:opacity 0.4s ease; }
+    .notice-banner-text { flex:1; font-size:12px; font-weight:700; color:#78350f; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:1; transition:opacity 0.4s ease; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+    .notice-banner-text:hover { color:#92400e; }
     .notice-banner-text.fade { opacity:0; }
     .notice-banner-dots { display:flex; gap:4px; flex-shrink:0; }
     .notice-banner-dot { width:5px; height:5px; border-radius:50%; background:#fcd34d; transition:background 0.3s; }
@@ -713,9 +714,9 @@
       </div>
       <h1>마디</h1>
     </div>
-    <div id="loginUserList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
-    <div id="loginPwForm" style="display:none;">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel"></div>
+    <div id="loginUserList" style="display: none;"><div style="font-size:12px;color:var(--text2);margin-bottom:10px;text-align:center;">계정을 선택하세요</div><button class="login-user-btn" onclick="selectUser('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','dasol_bae','배다솔','teacher','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">배</div><div><div style="font-size:15px;">배다솔</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👩‍⚕️ 선생님</div></div></button><button class="login-user-btn" onclick="selectUser('8dce5d80-40bc-4781-82eb-cd3d12e33011','admin','관리자','admin','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">관</div><div><div style="font-size:15px;">관리자</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button><button class="login-user-btn" onclick="selectUser('33b39ef4-5bfa-4c57-9538-fd8def867a82','dinosau','남그','admin','#a855f7')"><div class="login-user-avatar" style="background:#a855f7;">남</div><div><div style="font-size:15px;">남그</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button></div>
+    <div id="loginPwForm" style="display: block;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel">남그님, 비밀번호를 입력하세요</div>
       <input class="form-input" type="password" id="loginPwInput" placeholder="비밀번호 입력" style="margin-bottom:10px;">
       <button class="btn btn-primary" style="margin-top:0;" onclick="doLogin()">🔐 로그인</button>
       <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToUserList()">← 뒤로</button>
@@ -796,7 +797,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">16:47</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">16:58</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -818,18 +819,18 @@
 <div class="tabs">
   <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico">📅</span><span class="tab-lbl">캘린더</span></button>
   <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
-  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📢</span><span class="tab-lbl">공지사항</span></button>
-  <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
-  <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
+  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
+  <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
+  <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)"><span class="tab-ico">📢</span><span class="tab-lbl">공지사항</span></button>
   <button class="tab-btn" id="tabBtn5" onclick="switchTab(5)"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
   <button class="tab-btn active" id="tabBtn6" onclick="switchTab(6)"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
 </div>
 
 <!-- 공지 배너 (탭바 아래 슬라이딩) -->
-<div id="noticeBanner" style="display:none;">
+<div id="noticeBanner" style="display: none;">
   <div class="notice-banner-track">
     <div class="notice-banner-icon">📢</div>
-    <div class="notice-banner-text" id="noticeBannerText"></div>
+    <div class="notice-banner-text" id="noticeBannerText" onclick="switchTab(4)"></div>
     <div class="notice-banner-dots" id="noticeBannerDots"></div>
     <button class="notice-banner-close" onclick="closeNoticeBanner()" title="닫기">✕</button>
   </div>
@@ -1167,7 +1168,7 @@
 
     <div class="card" id="chartCard">
       <div class="card-title"><div class="card-title-left" id="chartTitle">발달 추이 차트</div></div>
-      <div class="chart-wrap"><canvas id="devChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="devChart_init"></canvas></div>
     </div>
 
     <div class="card" id="scoreCard">
@@ -1189,7 +1190,7 @@
         <button class="btn-ghost" id="posMed" onclick="setPhonemePos('medial')" style="font-size:11px;padding:8px 12px;">어중</button>
         <button class="btn-ghost" id="posFin" onclick="setPhonemePos('final')" style="font-size:11px;padding:8px 12px;">어말</button>
       </div>
-      <div class="chart-wrap"><canvas id="phonemeChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="phonemeChart_init"></canvas></div>
       <!-- 최신 매트릭스 테이블 -->
       <div id="phonemeMatrixTable" style="margin-top:12px;overflow-x:auto;"></div>
     </div>
@@ -1338,7 +1339,7 @@
 <div class="tab-panel" id="panelNotice">
   <div class="content">
     <!-- 관리자 전용: 공지 작성 -->
-    <div class="card" id="noticeWriteCard" style="display:none;border:2px solid var(--amber);">
+    <div class="card" id="noticeWriteCard" style="border: 2px solid var(--amber);">
       <div class="card-title">
         <div class="card-title-left" style="color:#b45309;">📢 공지 작성</div>
         <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
@@ -1370,9 +1371,7 @@
         <div class="card-title-left">📢 센터 공지사항</div>
         <button class="btn-ghost" onclick="loadNotices()">새로고침</button>
       </div>
-      <div id="noticeList">
-        <div class="empty"><div class="empty-icon">📢</div><p>등록된 공지가 없습니다.</p></div>
-      </div>
+      <div id="noticeList"><div class="notice-card "><span class="notice-badge info">📌 일반</span><span style="float:right;"><button data-nid="9089af9d-1758-41bf-ac4c-754fdd997c5b" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button></span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">내 아들은 드록바가 아닙니다</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">모하메드 살라입니다..</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 남그</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><span style="float:right;"><button data-nid="d40091ea-cad7-4f2f-aaba-2fc0a1db2e8a" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button></span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">나는 세계 최고 서규민머리다.</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">나는 세계 최고 서규민머리다.</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 관리자</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><span style="float:right;"><button data-nid="58bd1f04-b712-442f-9c50-84b4c92050c6" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button></span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">ㄱㄱㄱ</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">ㄱㄱㄱ</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 남그</div></div></div>
     </div>
   </div>
 </div>
@@ -1539,15 +1538,15 @@
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">👤 선생님 계정 추가</div>
       <div class="form-row" style="margin-bottom:8px;">
         <div style="flex:1;"><label class="form-label">이름</label>
-          <input class="form-input" id="newStaffName" placeholder="예: 김치료사"></div>
+          <input class="form-input" id="fixedStaffName" placeholder="예: 김치료사"></div>
         <div style="flex:1;"><label class="form-label">아이디</label>
           <input class="form-input" id="newStaffUsername" placeholder="예: kim01"></div>
       </div>
       <div class="form-row" style="margin-bottom:8px;">
         <div style="flex:1;"><label class="form-label">비밀번호</label>
-          <input class="form-input" type="password" id="newStaffPw" placeholder="초기 비밀번호"></div>
+          <input class="form-input" type="password" id="fixedStaffPw" placeholder="초기 비밀번호"></div>
         <div style="flex:1;"><label class="form-label">권한</label>
-          <select class="form-input" id="newStaffRole">
+          <select class="form-input" id="fixedStaffRole">
             <option value="teacher">선생님</option>
             <option value="admin">관리자</option>
           </select>
@@ -2334,7 +2333,7 @@ function showToast(msg, opts) {
   }
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { el.classList.remove('show'); }, opts.undo ? 5000 : 2400);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, opts.undo ? 5000 : 1800);
 }
 
 // ─────── UX: 진동 피드백 (모바일) ───────
@@ -3227,10 +3226,10 @@ function regenInviteCode() {
 }
 
 function addStaffAccount() {
-  var name     = (document.getElementById('newStaffName') || {}).value.trim();
+  var name     = (document.getElementById('fixedStaffName') || {}).value.trim();
   var username = (document.getElementById('newStaffUsername') || {}).value.trim();
-  var pw       = (document.getElementById('newStaffPw') || {}).value.trim();
-  var role     = (document.getElementById('newStaffRole') || {}).value;
+  var pw       = (document.getElementById('fixedStaffPw') || {}).value.trim();
+  var role     = (document.getElementById('fixedStaffRole') || {}).value;
   var resultEl = document.getElementById('staffAddResult');
   if (!name || !username || !pw) {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>';
@@ -3250,9 +3249,9 @@ function addStaffAccount() {
     }]);
   }).then(function() {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--green);">✅ ' + escHtml(name) + ' 선생님 계정 추가됨</span>';
-    document.getElementById('newStaffName').value = '';
+    document.getElementById('fixedStaffName').value = '';
     document.getElementById('newStaffUsername').value = '';
-    document.getElementById('newStaffPw').value = '';
+    document.getElementById('fixedStaffPw').value = '';
     loadStaffMgmtList();
   }).catch(function(err) {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
@@ -3318,7 +3317,7 @@ function getApiKeyOrAlert() {
 // 3:보고서       4:포트폴리오  5:서비스관리  6:관리자메뉴
 var ALL_PANELS_NEW = ['panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7','panel8',
                       'panelNotice','panelReport','panelPortfolio','panelService'];
-var TAB_PANEL_MAP  = ['panel2','panel0','panelNotice','panelReport','panelPortfolio','panelService','panel8'];
+var TAB_PANEL_MAP  = ['panel2','panel0','panelReport','panelPortfolio','panelNotice','panelService','panel8'];
 
 function switchTab(idx) {
   // 모든 패널 숨기기
@@ -3362,20 +3361,20 @@ function switchTab(idx) {
     populateChildSelects();
   }
   if (idx === 2) {
+    // 보고서
+    populateChildSelects();
+    switchReportTab(currentReportTab || 'session');
+  }
+  if (idx === 3) {
+    // 포트폴리오
+    populateChildSelects();
+    switchPortfolioTab(currentPortfolioTab || 'trend');
+  }
+  if (idx === 4) {
     // 공지사항
     loadNotices();
     var nwc = document.getElementById('noticeWriteCard');
     if (nwc) nwc.style.display = (currentUser && currentUser.role === 'admin') ? '' : 'none';
-  }
-  if (idx === 3) {
-    // 보고서 — 마지막으로 열었던 서브탭 복원, 없으면 세션
-    populateChildSelects();
-    switchReportTab(currentReportTab || 'session');
-  }
-  if (idx === 4) {
-    // 포트폴리오
-    populateChildSelects();
-    switchPortfolioTab(currentPortfolioTab || 'trend');
   }
   if (idx === 5) {
     // 서비스관리
@@ -3911,8 +3910,8 @@ function renderDailyService() {
     if (r.status === 'done') {
       var hasSess = daySessions.find(function(ss){ return String(ss.childId)===String(childId); });
       sessBtn = hasSess
-        ? '<button onclick="switchTab(3);setTimeout(function(){switchReportTab(\'session\');},200);" style="font-size:11px;padding:4px 8px;background:var(--mint2);color:var(--mint);border:none;border-radius:6px;cursor:pointer;">기록보기</button>'
-        : '<button onclick="switchTab(3);setTimeout(function(){switchReportTab(\'session\');},200);" style="font-size:11px;padding:4px 8px;background:var(--amber);color:#fff;border:none;border-radius:6px;cursor:pointer;">기록등록</button>';
+        ? '<button onclick="switchTab(2);setTimeout(function(){switchReportTab(\'session\');},200);" style="font-size:11px;padding:4px 8px;background:var(--mint2);color:var(--mint);border:none;border-radius:6px;cursor:pointer;">기록보기</button>'
+        : '<button onclick="switchTab(2);setTimeout(function(){switchReportTab(\'session\');},200);" style="font-size:11px;padding:4px 8px;background:var(--amber);color:#fff;border:none;border-radius:6px;cursor:pointer;">기록등록</button>';
     }
 
     return '<div class="svc-row">'
@@ -5200,7 +5199,7 @@ function openChildDetail(id) {
 }
 
 function goToSession(id) {
-  switchTab(3);
+  switchTab(2);
   populateChildSelects();
   var sel = document.getElementById('sessionChild');
   if (sel) {
@@ -6278,9 +6277,9 @@ function renderStagnationResult(p, childName, childId) {
 
 function stagnationActionMeta(type, childId) {
   var map = {
-    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(3);setTimeout(function(){switchReportTab("report");var el=document.getElementById("iepChild");if(el){el.value=' + childId + ';renderIEPHistory(' + childId + ');}},300);' },
-    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(3);setTimeout(function(){switchReportTab("report");var el=document.getElementById("reportChild");if(el)el.value=' + childId + ';},300);' },
-    activity: { icon: '🎮', color: '#10b981', btnLabel: '활동 카탈로그', onclick: 'switchTab(4);setTimeout(function(){switchPortfolioTab("ai");},200);' },
+    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("iepChild");if(el){el.value=' + childId + ';renderIEPHistory(' + childId + ');}},300);' },
+    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("reportChild");if(el)el.value=' + childId + ';},300);' },
+    activity: { icon: '🎮', color: '#10b981', btnLabel: '활동 카탈로그', onclick: 'switchTab(3);setTimeout(function(){switchPortfolioTab("ai");},200);' },
     schedule: { icon: '📅', color: '#f59e0b', btnLabel: '일정 확인', onclick: 'switchTab(0);' }
   };
   return map[type] || map['activity'];
@@ -7084,7 +7083,7 @@ function showPostSessionBriefing(sessionId) {
     title: '부모 리포트 작성',
     desc: unwrittenCount > 0 ? '미작성 세션 ' + unwrittenCount + '건' : '최신 상태 유지 중',
     btnText: '리포트 탭으로',
-    onclick: 'closePostBriefing();switchTab(3);switchReportTab("report");'
+    onclick: 'closePostBriefing();switchTab(2);switchReportTab("report");'
   });
 
   // 카드 2: 다음 세션 일정
@@ -7104,7 +7103,7 @@ function showPostSessionBriefing(sessionId) {
     title: '발달 추이 확인',
     desc: avgScore !== null ? '오늘 평균 달성도 ' + avgScore + '%' : '달성도 미입력',
     btnText: '추이 차트 보기',
-    onclick: 'closePostBriefing();switchTab(4);switchPortfolioTab("trend");'
+    onclick: 'closePostBriefing();switchTab(3);switchPortfolioTab("trend");'
   });
 
   var cardsHtml = actions.map(function(a) {
@@ -7218,10 +7217,10 @@ function showStagnationAlert(childName, stagnatedGoals, childId) {
     + '</div>'
     + '<div style="display:flex;gap:6px;">'
     + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;color:#b45309;border-color:#fed7aa;" '
-    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(4);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();}},200);">'
+    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(3);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();}},200);">'
     + '📊 추이 차트 보기</button>'
     + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;color:#8b5cf6;border-color:#ddd6fe;" '
-    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(4);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();detectStagnation();}},200);">'
+    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(3);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=' + childId + ';renderChart();detectStagnation();}},200);">'
     + '🔍 정체 분석 실행</button>'
     + '</div>'
     + '</div>'
@@ -8226,7 +8225,7 @@ function goToSessionFromSched(schedId) {
   if (!s) return;
   var ol = document.getElementById('editSchedOverlay');
   if (ol) ol.remove();
-  switchTab(3);
+  switchTab(2);
   setTimeout(function() {
     var sel = document.getElementById('sessionChild');
     if (sel) {
@@ -9329,24 +9328,32 @@ function openAddStaffModal() {
 }
 
 function saveNewStaff(btn) {
-  var name     = document.getElementById('newStaffName').value.trim();
-  var username = document.getElementById('newStaffId').value.trim();
-  var password = document.getElementById('newStaffPw').value.trim();
-  var role     = document.getElementById('newStaffRole').value;
-  var errEl    = document.getElementById('addStaffError');
-  if (!name || !username || !password) { errEl.textContent = '모든 항목을 입력해주세요.'; return; }
+  var modal    = btn.closest('.sched-modal-overlay');
+  var name     = modal.querySelector('#newStaffName').value.trim();
+  var username = modal.querySelector('#newStaffId').value.trim();
+  var password = modal.querySelector('#newStaffPw').value.trim();
+  var role     = modal.querySelector('#newStaffRole').value;
+  var errEl    = modal.querySelector('#addStaffError');
+  if (!name || !username || !password) { if(errEl) errEl.textContent = '모든 항목을 입력해주세요.'; return; }
   var color = TEACHER_COLORS[Math.floor(Math.random() * TEACHER_COLORS.length)];
-  supaFetch('madi_users', 'POST', [{ username:username, password:password, name:name, role:role, color:color }])
-    .then(function(r) {
-      if (r && r[0] && r[0].id) {
-        _teacherList = []; // 캐시 초기화
-        btn.closest('.sched-modal-overlay').remove();
-        renderStaffCard();
-        showToast('✅ ' + name + ' 계정 추가 완료!');
-      } else {
-        errEl.textContent = '추가 실패 (아이디 중복일 수 있음)';
-      }
-    }).catch(function(){ errEl.textContent = '서버 오류'; });
+  if (errEl) errEl.textContent = '';
+  hashPassword(password).then(function(hashed) {
+    return supaFetch('madi_users', 'POST', [{
+      id: Date.now() + Math.floor(Math.random()*1000),
+      username: username, password: hashed, name: name,
+      role: role, color: color, center_id: getCenterId()
+    }]);
+  }).then(function(r) {
+    if (r && r[0] && r[0].id) {
+      _teacherList = [];
+      modal.remove();
+      renderStaffCard();
+      loadStaffMgmtList();
+      showToast('✅ ' + escHtml(name) + ' 계정 추가 완료!');
+    } else {
+      if (errEl) errEl.textContent = '추가 실패 (아이디 중복일 수 있음)';
+    }
+  }).catch(function(e){ if(errEl) errEl.textContent = '서버 오류: ' + (e.message||''); });
 }
 
 function deleteStaff(id, name) {
@@ -10280,7 +10287,7 @@ function actOpenSessionForChild(a) {
   if (!a.childId) return;
   var child = childDB.find(function(c) { return c.id === a.childId; });
   if (!child) { showToast('❌ 아동을 찾을 수 없습니다'); return; }
-  switchTab(3);
+  switchTab(2);
   setTimeout(function() {
     var sel = document.getElementById('sessionChild');
     if (sel) {
@@ -10296,7 +10303,7 @@ function actOpenParentReport(a) {
   if (!a.childId) return;
   var child = childDB.find(function(c) { return c.id === a.childId; });
   if (!child) { showToast('❌ 아동을 찾을 수 없습니다'); return; }
-  switchTab(3);
+  switchTab(2);
   switchReportTab('report');
   setTimeout(function() {
     var sel = document.getElementById('reportChild');
@@ -10313,7 +10320,7 @@ function actSwitchTab(a) {
 }
 
 function actShowUnwritten() {
-  switchTab(3);
+  switchTab(2);
   switchReportTab('session');
   setTimeout(function() {
     var alertEl = document.getElementById('unwrittenAlert');
@@ -10539,7 +10546,7 @@ function sendChat() {
     + '   {"type":"openSessionForChild","childId":"<id>"}\n'
     + '3. openParentReport: 부모 리포트 화면 열기\n'
     + '   {"type":"openParentReport","childId":"<id>"}\n'
-    + '4. switchTab: 탭 전환 (0:캘린더 1:아동관리 2:공지사항 3:보고서 4:포트폴리오 5:서비스관리 6:관리자메뉴)\n'
+    + '4. switchTab: 탭 전환 (0:캘린더 1:아동관리 2:보고서 3:포트폴리오 4:공지사항 5:서비스관리 6:관리자메뉴)\n'
     + '   {"type":"switchTab","tab":3}\n'
     + '5. showUnwritten: 미작성 세션 강조\n'
     + '   {"type":"showUnwritten"}\n\n'
