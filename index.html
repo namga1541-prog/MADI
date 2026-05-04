@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/242d6a4e-657f-430f-9978-3c009cbb5961">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/df083f96-1af2-493f-95bd-d42388491dfd">
+  <link rel="manifest" id="pwaManifest" href="blob:null/eaf2286f-bb73-4f45-81ae-cd3ac824fcd9">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/8ef3e676-6a04-4ea0-b28b-bfa4a0ddf221">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -787,7 +787,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">15:43</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">15:50</div>
       <div id="clockNext" style="font-size:10px;color:rgba(255,255,255,0.65);">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -797,7 +797,7 @@
   </div>
 </div>
 
-<div class="apikey-bar" id="apikeyBar" style="display: flex;">
+<div class="apikey-bar" id="apikeyBar" style="display:none;">
   <label>🔑 API Key</label>
   <div style="flex:1;display:flex;align-items:center;gap:6px;position:relative;">
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" onfocus="onApiKeyFocus()" onblur="onApiKeyBlur()" style="display: none;">
@@ -3283,7 +3283,7 @@ function applyRoleUI() {
   var apikeyBar  = document.getElementById('apikeyBar');
   var centerCard = document.getElementById('centerApiKeyCard');
   var mgmtCard   = document.getElementById('centerMgmtCard');
-  if (apikeyBar)  apikeyBar.style.display  = isAdmin ? 'flex'  : 'none';
+  if (apikeyBar)  apikeyBar.style.display  = 'none'; // 관리자 메뉴로 이동
   if (centerCard) centerCard.style.display = isAdmin ? 'block' : 'none';
   if (mgmtCard)   mgmtCard.style.display  = isAdmin ? 'block' : 'none';
 }
