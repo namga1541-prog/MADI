@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/a0c9251d-4a39-4c88-80a7-f1d403b93bc4">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/9c7ce80e-e5d1-407d-92fc-279f41c1fea3">
+  <link rel="manifest" id="pwaManifest" href="blob:null/e9f0d1bc-1c23-429e-b78e-0bf3b68c313b">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/57f8e6f7-05fe-4580-b3ff-3c9b48a7425c">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -704,9 +704,9 @@
       <h1>마디</h1>
       <p>언어치료 AI 비서</p>
     </div>
-    <div id="loginUserList" style="display: none;"><div style="font-size:12px;color:var(--text2);margin-bottom:10px;text-align:center;">계정을 선택하세요</div><button class="login-user-btn" onclick="selectUser('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','dasol_bae','배다솔','teacher','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">배</div><div><div style="font-size:15px;">배다솔</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👩‍⚕️ 선생님</div></div></button><button class="login-user-btn" onclick="selectUser('8dce5d80-40bc-4781-82eb-cd3d12e33011','admin','관리자','admin','#0ea5a0')"><div class="login-user-avatar" style="background:#0ea5a0;">관</div><div><div style="font-size:15px;">관리자</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button><button class="login-user-btn" onclick="selectUser('33b39ef4-5bfa-4c57-9538-fd8def867a82','dinosau','남그','admin','#a855f7')"><div class="login-user-avatar" style="background:#a855f7;">남</div><div><div style="font-size:15px;">남그</div><div style="font-size:11px;color:var(--text2);font-weight:400;">👑 관리자</div></div></button></div>
-    <div id="loginPwForm" style="display: block;">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel">남그님, 비밀번호를 입력하세요</div>
+    <div id="loginUserList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
+    <div id="loginPwForm" style="display:none;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;text-align:center;" id="loginPwLabel"></div>
       <input class="form-input" type="password" id="loginPwInput" placeholder="비밀번호 입력" style="margin-bottom:10px;">
       <button class="btn btn-primary" style="margin-top:0;" onclick="doLogin()">🔐 로그인</button>
       <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToUserList()">← 뒤로</button>
@@ -787,7 +787,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">16:06</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">16:16</div>
       <div id="clockNext" style="font-size:10px;color:rgba(255,255,255,0.65);">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -807,8 +807,8 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)" style="position: relative;"><span class="tab-ico">📅</span><span class="tab-lbl">아동</span><span class="tab-alert" style="position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; background: rgb(239, 68, 68); border-radius: 50%;"></span></button>
-  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
+  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico">📅</span><span class="tab-lbl">캘린더</span></button>
+  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)" style="position: relative;"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span><span class="tab-alert" style="position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; background: rgb(239, 68, 68); border-radius: 50%;"></span></button>
   <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📢</span><span class="tab-lbl">공지사항</span></button>
   <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
   <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
@@ -4552,22 +4552,22 @@ function renderChildGrid() {
   updateHeaderClock(); // 헤더 시계+다음 세션 동시 갱신
   var unwritten = getUnwrittenSessions();
   // 아동 탭 미작성 뱃지 (탭 구조 안 깨지게 별도 처리)
-  var tabBtn0 = document.getElementById('tabBtn0');
-  if (tabBtn0) {
-    var lbl0 = tabBtn0.querySelector('.tab-lbl');
-    if (lbl0) {
-      lbl0.textContent = '아동';
+  var tabBtn1 = document.getElementById('tabBtn1');
+  if (tabBtn1) {
+    var lbl1 = tabBtn1.querySelector('.tab-lbl');
+    if (lbl1) {
+      lbl1.textContent = '아동';
       if (unwritten.length > 0) {
-        var dot = tabBtn0.querySelector('.tab-alert');
+        var dot = tabBtn1.querySelector('.tab-alert');
         if (!dot) {
           dot = document.createElement('span');
           dot.className = 'tab-alert';
           dot.style.cssText = 'position:absolute;top:4px;right:6px;width:7px;height:7px;background:#ef4444;border-radius:50%;';
-          tabBtn0.style.position = 'relative';
-          tabBtn0.appendChild(dot);
+          tabBtn1.style.position = 'relative';
+          tabBtn1.appendChild(dot);
         }
       } else {
-        var dot2 = tabBtn0.querySelector('.tab-alert');
+        var dot2 = tabBtn1.querySelector('.tab-alert');
         if (dot2) dot2.remove();
       }
     }
