@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/b90cf7c8-c1f8-44cb-8514-3412f1e2a6a4">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/6a1644f7-49a8-4a25-b9c1-2377514b6d85">
+  <link rel="manifest" id="pwaManifest" href="blob:null/d2466e1b-18ab-4d6a-80ee-7e81b6ecf617">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/216b335f-0d75-407c-bb67-70a58a4ee336">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -850,7 +850,7 @@
 <!-- ════════════════════════════════════
      랜딩 페이지 (비로그인 첫 진입 화면)
 ════════════════════════════════════ -->
-<div id="landingScreen" style="display: none;">
+<div id="landingScreen" style="display:none;">
 
   <!-- 상단 네비게이션 -->
   <nav class="lp-nav">
@@ -902,7 +902,7 @@
 </div>
 
 <!-- 로그인 화면 -->
-<div class="login-screen" id="loginScreen" style="display: none;">
+<div class="login-screen" id="loginScreen" style="display:none;">
   <!-- 배경 장식 -->
   <div class="login-deco-dot" style="width:120px;height:120px;top:15%;left:8%;"></div>
   <div class="login-deco-dot" style="width:60px;height:60px;top:60%;right:12%;"></div>
@@ -928,7 +928,9 @@
     </div>
 
     <!-- 로그인 버튼 -->
-    <button class="btn btn-primary" id="loginSubmitBtn" style="height:50px;font-size:16px;font-weight:700;margin-top:0;" onclick="doLogin()">🔐 로그인</button>
+    <button class="btn btn-primary" id="loginSubmitBtn" style="height:50px;font-size:16px;font-weight:700;margin-top:0;" onclick="doLogin()">
+      🔐 로그인
+    </button>
 
     <!-- 오류 메시지 -->
     <div id="loginError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;min-height:18px;"></div>
@@ -995,7 +997,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">17:55</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">18:25</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -1015,13 +1017,13 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn" id="tabBtnHome" onclick="showDashboard()"><span class="tab-ico">🏠</span><span class="tab-lbl">홈</span></button>
+  <button class="tab-btn active" id="tabBtnHome" onclick="showDashboard()"><span class="tab-ico">🏠</span><span class="tab-lbl">홈</span></button>
   <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico">📅</span><span class="tab-lbl">캘린더</span></button>
   <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
   <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
   <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
-  <button class="tab-btn" id="tabBtn4" onclick="switchTab(4)"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
-  <button class="tab-btn active" id="tabBtn5" onclick="switchTab(5)"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
+  <button class="tab-btn" id="tabBtn4" onclick="goToAdmin()"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
+  <button class="tab-btn" id="tabBtn5" onclick="goToAdmin()"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
 </div>
 
 <!-- 공지 배너 (탭바 아래 슬라이딩) -->
@@ -1034,11 +1036,11 @@
   </div>
 </div>
 <!-- ─── 홈 대시보드 ─── -->
-<div class="tab-panel" id="panelHome">
+<div class="tab-panel active" id="panelHome">
   <div class="dash-content">
     <div class="dash-greeting">
       <div>
-        <div class="dash-greeting-name" id="dashWelcome">안녕하세요, 남그 선생님! 🌿</div>
+        <div class="dash-greeting-name" id="dashWelcome">수고 많으셨어요, 남그 선생님! 🌿</div>
         <div class="dash-greeting-date" id="dashDate">2026.05.05(화)</div>
       </div>
       <div style="font-size:11px;opacity:0.75;" id="dashMiniStat">오늘 일정 0건</div>
@@ -1056,7 +1058,7 @@
         <div class="dash-card-hd"><div class="dash-card-ico dash-ico-amber">📝</div><span class="dash-card-hd-title">미작성 세션</span><span class="dash-arrow">›</span></div>
         <div class="dash-card-body" id="dashUnwritten"><div class="dash-unwr-count">2개 미작성</div><div class="dash-unwr-item"><span>2026-04-30</span><span>서규민</span></div><div class="dash-unwr-item"><span>2026-04-28</span><span>서규민</span></div></div>
       </div>
-      <div class="dash-card" onclick="switchTab(5)">
+      <div class="dash-card" onclick="goToAdmin()">
         <div class="dash-card-hd"><div class="dash-card-ico dash-ico-purple">📢</div><span class="dash-card-hd-title">공지사항</span><span class="dash-arrow">›</span></div>
         <div class="dash-card-body" id="dashNotices"><div class="dash-empty">등록된 공지가 없습니다</div></div>
       </div>
@@ -1066,7 +1068,22 @@
       <button class="dash-q-btn" onclick="switchTab(1)">👤 아동</button>
       <button class="dash-q-btn" onclick="switchTab(2)">📊 보고서</button>
       <button class="dash-q-btn" onclick="switchTab(3)">📁 포트폴리오</button>
-      <button class="dash-q-btn" onclick="switchTab(5)">📢 공지</button>
+      <button class="dash-q-btn" onclick="goToAdmin()">📢 공지</button>
+    </div>
+
+    <!-- 관리자 전용: index.html 배포 카드 -->
+    <div id="homeDeployCard" style="display: block; margin-top: 10px;">
+      <div class="card" style="border:2px solid #24292e;margin-bottom:0;">
+        <div class="card-title">
+          <div class="card-title-left">🚀 앱 배포 (index.html)</div>
+          <span id="homeDeployStatus" style="font-size:11px;color:var(--text2);"></span>
+        </div>
+        <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+          버튼 한 번으로 <strong>index.html + sw.js</strong>를 GitHub에 업로드합니다.
+        </p>
+        <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployToGitHub()" id="homeDeployBtn" disabled="">⏳ 배포 중...</button>
+        <div id="homeDeployResult" style="margin-top:8px;font-size:13px;"><div style="font-size:12px;color:var(--text2);">📄 index.html 업로드 중...</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1572,382 +1589,8 @@
 <div class="tab-panel" id="panelNotice"><!-- 공지사항이 관리자 탭으로 통합됨 --></div>
 
 <!-- TAB 5: 서비스관리 (NEW) -->
-<div class="tab-panel" id="panelService">
-  <div class="content">
-    <!-- 현황 카드 4가지 -->
-    <div class="svc-stat-grid">
-      <div class="svc-stat-card">
-        <div class="stat-num" id="svcStatChildren">-</div>
-        <div class="stat-lbl">등록 이용자 수</div>
-      </div>
-      <div class="svc-stat-card">
-        <div class="stat-num" id="svcStatSessions">-</div>
-        <div class="stat-lbl">이번 달 세션</div>
-      </div>
-      <div class="svc-stat-card">
-        <div class="stat-num" id="svcStatStaff">-</div>
-        <div class="stat-lbl">소속 선생님 수</div>
-      </div>
-      <div class="svc-stat-card">
-        <div class="stat-num" id="svcStatActiveRate">-</div>
-        <div class="stat-lbl">이용자 활성률</div>
-      </div>
-    </div>
-
-    <!-- 월간 서비스 현황 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">📅 월 서비스 관리</div>
-        <input type="month" id="svcMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderMonthlyService()">
-      </div>
-      <!-- 월간 필터 -->
-      <div class="svc-filter-row">
-        <select id="mSvcChild" class="form-input svc-filter-sel" onchange="renderMonthlyService()">
-          <option value="">이용자 전체</option>
-        </select>
-        <select id="mSvcTeacher" class="form-input svc-filter-sel" onchange="renderMonthlyService()">
-          <option value="">선생님 전체</option>
-        </select>
-        <select id="mSvcStatus" class="form-input svc-filter-sel" onchange="renderMonthlyService()">
-          <option value="">상태 전체</option>
-          <option value="done">완료</option>
-          <option value="pending">예정</option>
-          <option value="cancelled">취소</option>
-          <option value="makeup">취소(보강)</option>
-          <option value="carried">취소(이월)</option>
-        </select>
-      </div>
-      <div id="monthlySvcSummary" style="font-size:12px;color:var(--text2);padding:4px 0 8px;"></div>
-      <div id="monthlyServiceList">
-        <div class="empty"><div class="empty-icon">📅</div><p>월을 선택하면 현황이 표시됩니다.</p></div>
-      </div>
-    </div>
-
-    <!-- 일간 서비스 현황 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">📆 일일 서비스 관리</div>
-        <input type="date" id="svcDate" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderDailyService()">
-      </div>
-      <!-- 일간 필터 -->
-      <div class="svc-filter-row">
-        <select id="dSvcChild" class="form-input svc-filter-sel" onchange="renderDailyService()">
-          <option value="">이용자 전체</option>
-        </select>
-        <select id="dSvcTeacher" class="form-input svc-filter-sel" onchange="renderDailyService()">
-          <option value="">선생님 전체</option>
-        </select>
-        <select id="dSvcStatus" class="form-input svc-filter-sel" onchange="renderDailyService()">
-          <option value="">상태 전체</option>
-          <option value="done">완료</option>
-          <option value="pending">예정</option>
-          <option value="cancelled">취소</option>
-          <option value="makeup">취소(보강)</option>
-          <option value="carried">취소(이월)</option>
-        </select>
-      </div>
-      <div id="dailySvcSummary" style="font-size:12px;color:var(--text2);padding:4px 0 8px;"></div>
-      <div id="dailyServiceList">
-        <div class="empty"><div class="empty-icon">📆</div><p>날짜를 선택하면 현황이 표시됩니다.</p></div>
-      </div>
-    </div>
-
-    <!-- 선생님별 통계 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">👩‍🏫 선생님별 통계</div>
-        <select id="svcStaffMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderStaffStats()">
-        </select>
-      </div>
-      <div id="staffStatsList">
-        <div class="empty"><div class="empty-icon">👩‍🏫</div><p>데이터를 불러오는 중입니다.</p></div>
-      </div>
-      <div id="staffChartWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;" id="staffChartTitle"></div>
-        <canvas id="staffTrendChart" height="180"></canvas>
-      </div>
-    </div>
-
-    <!-- 정산 요약 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">🧾 월별 정산 요약</div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <input type="month" id="settlMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderSettlement()">
-          <button class="btn-ghost" onclick="exportSettlementExcel()" style="font-size:12px;padding:6px 12px;white-space:nowrap;">📥 엑셀</button>
-        </div>
-      </div>
-      <div id="settlSummary" style="font-size:12px;color:var(--text2);padding:4px 0 8px;"></div>
-      <div id="settlList">
-        <div class="empty"><div class="empty-icon">🧾</div><p>월을 선택하면 정산 내역이 표시됩니다.</p></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="tab-panel active" id="panel8">
-  <div class="content">
-
-    <!-- GitHub 자동 배포 (관리자 전용) — 맨 위 고정 -->
-    <div class="card" id="deployCard" style="display: block; border: 2px solid rgb(36, 41, 46);">
-      <div class="card-title">
-        <div class="card-title-left">🚀 GitHub 자동 배포</div>
-        <span id="deployStatus" style="font-size:11px;color:var(--text2);"></span>
-      </div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">버튼 한 번으로 <strong>index.html + sw.js</strong> 두 파일을 GitHub에 자동 업로드합니다. 1~2분 후 반영되며 <strong>PWA 오프라인 캐싱</strong>도 완전히 활성화됩니다.</p>
-      <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployToGitHub()" id="deployBtn" disabled="">⏳ 배포 중...</button>
-      <div id="deployResult" style="margin-top:8px;font-size:13px;"><div style="font-size:12px;color:var(--text2);">📄 index.html 업로드 중...</div></div>
-    </div>
-
-    <!-- 공지사항 관리 (관리자 탭으로 통합) -->
-    <div class="card" id="noticeWriteCard" style="display: block; border: 2px solid var(--amber);">
-      <div class="card-title">
-        <div class="card-title-left" style="color:#b45309;">📢 공지 작성</div>
-        <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
-      </div>
-      <div class="form-row" style="margin-bottom:8px;">
-        <div style="flex:1;">
-          <label class="form-label">유형</label>
-          <select class="form-input" id="noticeType">
-            <option value="info">📌 일반</option>
-            <option value="pin">📍 중요</option>
-            <option value="imp">🚨 긴급</option>
-          </select>
-        </div>
-        <div style="flex:2;">
-          <label class="form-label">제목</label>
-          <input class="form-input" type="text" id="noticeTitle" placeholder="공지 제목">
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">내용</label>
-        <textarea class="form-input" id="noticeContent" placeholder="공지 내용을 입력하세요" style="min-height:80px;"></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="saveNotice()">📢 공지 저장</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">📢 센터 공지사항</div>
-        <button class="btn-ghost" onclick="loadNotices()">새로고침</button>
-      </div>
-      <div id="noticeList"><div class="notice-card important"><span class="notice-badge imp">🚨 긴급</span><span style="float:right;"><button data-nid="b0ac520b-c57c-4aea-912a-90e8a536ed64" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button></span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">늘무 없는 기겅이 개추요</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">ㅎㅎ;;;</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 안창인</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><span style="float:right;"><button data-nid="9089af9d-1758-41bf-ac4c-754fdd997c5b" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button></span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">내 아들은 드록바가 아닙니다</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">모하메드 살라입니다..</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 남그</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><span style="float:right;"><button data-nid="d40091ea-cad7-4f2f-aaba-2fc0a1db2e8a" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button></span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">나는 세계 최고 서규민머리다.</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">나는 세계 최고 서규민머리다.</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 관리자</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><span style="float:right;"><button data-nid="58bd1f04-b712-442f-9c50-84b4c92050c6" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button></span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">ㄱㄱㄱ</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">ㄱㄱㄱ</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 남그</div></div></div>
-    </div>
-
-    <!-- 관리자 전용: 선생님 계정 관리 -->
-    <div class="card" id="staffCard" style="display: block; border: 2px solid rgb(245, 158, 11);">
-      <div class="card-title">
-        <div class="card-title-left">👑 선생님 계정 관리</div>
-        <button class="btn-ghost" onclick="openAddStaffModal()">+ 추가</button>
-      </div>
-      <div id="staffList"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">배</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">배다솔</div><div style="font-size:11px;color:var(--text2);">@dasol_bae · 👩‍⚕️ 선생님</div></div><div style="display:flex;gap:6px;"><button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','배다솔','teacher')">권한</button><button class="btn-del" onclick="deleteStaff('4b6a9675-ff06-4f5b-a850-ba4e9508c91d','배다솔')">삭제</button></div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#0ea5a0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">관</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">관리자</div><div style="font-size:11px;color:var(--text2);">@admin · 👑 관리자</div></div><div style="display:flex;gap:6px;"><button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal('8dce5d80-40bc-4781-82eb-cd3d12e33011','관리자','admin')">권한</button><button class="btn-del" onclick="deleteStaff('8dce5d80-40bc-4781-82eb-cd3d12e33011','관리자')">삭제</button></div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#a855f7;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">남</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">남그</div><div style="font-size:11px;color:var(--text2);">@dinosau · 👑 관리자</div></div><span style="font-size:11px;color:var(--mint);">나</span></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;"><div style="width:34px;height:34px;border-radius:50%;background:#ec4899;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">안</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">안창인</div><div style="font-size:11px;color:var(--text2);">@meossg · 👑 관리자</div></div><div style="display:flex;gap:6px;"><button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal('f967d0e4-5234-4155-b3f4-b8c66a12da2a','안창인','admin')">권한</button><button class="btn-del" onclick="deleteStaff('f967d0e4-5234-4155-b3f4-b8c66a12da2a','안창인')">삭제</button></div></div></div>
-    </div>
-
-    <!-- 관리자 전용: 센터 관리 + 초대 코드 -->
-    <div class="card" id="centerMgmtCard" style="display: block; border: 2px solid var(--purple);">
-      <div class="card-title">
-        <div class="card-title-left" style="color:var(--purple);">🏢 센터 관리</div>
-        <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
-      </div>
-
-      <!-- 현재 센터 정보 -->
-      <div id="centerInfoBox" style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px;">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">현재 센터</div>
-        <div id="centerName" style="font-size:15px;font-weight:700;color:var(--navy);">두목님 언어치료센터</div>
-        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
-          <div style="flex:1;">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:3px;">초대 코드 (선생님에게 공유)</div>
-            <div id="inviteCodeDisplay" style="font-size:16px;font-weight:900;color:var(--mint);letter-spacing:2px;font-family:monospace;">DOKMOK-2026</div>
-            <div id="inviteExpiryDisplay" style="font-size:11px;color:var(--text2);margin-top:3px;font-weight:600;">♾️ 무기한</div>
-          </div>
-          <button class="btn-ghost" onclick="copyInviteCode()" style="flex-shrink:0;">📋 복사</button>
-        </div>
-        <div style="margin-top:10px;display:flex;gap:6px;align-items:center;">
-          <label style="font-size:11px;color:var(--text2);flex-shrink:0;">유효 기간</label>
-          <select id="inviteExpiryDays" class="form-input" style="flex:1;font-size:13px;padding:7px 10px;">
-            <option value="7">7일</option>
-            <option value="30" selected="">30일</option>
-            <option value="90">90일</option>
-            <option value="0">무기한</option>
-          </select>
-          <button class="btn-ghost" onclick="regenInviteCode()" style="flex-shrink:0;font-size:12px;color:var(--amber);border-color:var(--amber);">
-            🔄 재발급
-          </button>
-        </div>
-      </div>
-
-      <!-- 선생님 계정 추가 -->
-      <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">👤 선생님 계정 추가</div>
-      <div class="form-row" style="margin-bottom:8px;">
-        <div style="flex:1;"><label class="form-label">이름</label>
-          <input class="form-input" id="fixedStaffName" placeholder="예: 김치료사"></div>
-        <div style="flex:1;"><label class="form-label">아이디</label>
-          <input class="form-input" id="newStaffUsername" placeholder="예: kim01"></div>
-      </div>
-      <div class="form-row" style="margin-bottom:8px;">
-        <div style="flex:1;"><label class="form-label">비밀번호</label>
-          <input class="form-input" type="password" id="fixedStaffPw" placeholder="초기 비밀번호"></div>
-        <div style="flex:1;"><label class="form-label">권한</label>
-          <select class="form-input" id="fixedStaffRole">
-            <option value="teacher">선생님</option>
-            <option value="admin">관리자</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn btn-primary" style="margin-top:0;width:100%;" onclick="addStaffAccount()">
-        ➕ 계정 추가
-      </button>
-      <div id="staffAddResult" style="font-size:12px;margin-top:8px;"></div>
-
-      <!-- 선생님 목록 -->
-      <div style="font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;">👥 현재 선생님 목록</div>
-      <div id="staffMgmtList"><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;"><div><span style="font-size:13px;font-weight:700;">관리자</span><span style="font-size:11px;color:var(--text2);margin-left:6px;">@admin</span><span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:var(--mint2);color:var(--mint);">관리자</span></div><button class="btn-del" onclick="removeStaffAccount(8dce5d80-40bc-4781-82eb-cd3d12e33011,'관리자')" style="font-size:11px;padding:5px 10px;">삭제</button></div><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;"><div><span style="font-size:13px;font-weight:700;">남그</span><span style="font-size:11px;color:var(--text2);margin-left:6px;">@dinosau</span><span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:var(--mint2);color:var(--mint);">관리자</span></div><span style="font-size:11px;color:var(--text2);">나</span></div><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;"><div><span style="font-size:13px;font-weight:700;">배다솔</span><span style="font-size:11px;color:var(--text2);margin-left:6px;">@dasol_bae</span><span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:#f1f5f9;color:var(--text2);">선생님</span></div><button class="btn-del" onclick="removeStaffAccount(4b6a9675-ff06-4f5b-a850-ba4e9508c91d,'배다솔')" style="font-size:11px;padding:5px 10px;">삭제</button></div><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;"><div><span style="font-size:13px;font-weight:700;">안창인</span><span style="font-size:11px;color:var(--text2);margin-left:6px;">@meossg</span><span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:var(--mint2);color:var(--mint);">관리자</span></div><button class="btn-del" onclick="removeStaffAccount(f967d0e4-5234-4155-b3f4-b8c66a12da2a,'안창인')" style="font-size:11px;padding:5px 10px;">삭제</button></div></div>
-    </div>
-
-    <!-- 관리자 전용: 센터 API 키 관리 -->
-    <div class="card" id="centerApiKeyCard" style="display: block; border: 2px solid var(--mint);">
-      <div class="card-title">
-        <div class="card-title-left" style="color:var(--mint);">🔑 센터 AI 키 관리</div>
-        <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
-      </div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
-        여기에 키를 저장하면 <strong>모든 선생님이 별도 입력 없이</strong> AI 기능을 바로 사용할 수 있습니다.<br>
-        비용은 이 키의 소유자(관리자) 계정으로 청구됩니다.
-      </p>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-        <input type="password" class="form-input" id="centerApiKeyInput" placeholder="sk-ant-api03-..." style="flex:1;font-family:monospace;font-size:14px;" autocomplete="off">
-        <button type="button" class="btn-ghost" onclick="toggleCenterKeyVisibility()" id="centerKeyEye" style="flex-shrink:0;padding:10px 14px;">👁️</button>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveCenterApiKey()">
-          💾 Supabase에 저장
-        </button>
-        <button class="btn-outline" style="flex:0.5;" onclick="loadCenterApiKey(true)">
-          🔄 불러오기
-        </button>
-      </div>
-      <div id="centerKeyStatus" style="font-size:12px;margin-top:8px;"><span style="color:var(--green);">✅ 현재 저장된 키: sk-ant-a••••••••QAAA</span></div>
-    </div>
-
-    <!-- AI 모델 선택 -->
-    <div class="card" style="border:2px solid var(--mint);">
-      <div class="card-title">
-        <div class="card-title-left" style="color:var(--mint);">🤖 AI 분석 모드</div>
-        <span id="aiModelBadge" style="font-size:11px;padding:2px 10px;border-radius:10px;background:var(--mint);color:white;font-weight:700;">✨ 라이트 (Haiku)</span>
-      </div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">장단기계획(IEP) 생성, 포트폴리오, 부모 리포트 등 AI 분석 기능에 사용할 모델을 선택하세요.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <button id="btnLite" onclick="setAIModel('lite');updateModelBtns()" style="padding:14px 8px;border-radius:12px;border:2px solid var(--mint);background:var(--mint);color:white;font-size:13px;font-weight:700;cursor:pointer;">
-          ✨ 라이트<br><span style="font-size:11px;font-weight:400;opacity:0.9;">Haiku · 빠르고 저렴</span>
-        </button>
-        <button id="btnPro" onclick="setAIModel('pro');updateModelBtns()" style="padding:14px 8px;border-radius:12px;border:2px solid #8b5cf6;background:white;color:#8b5cf6;font-size:13px;font-weight:700;cursor:pointer;">
-          ⚡ PRO<br><span style="font-size:11px;font-weight:400;">Sonnet · 더 정교한 분석</span>
-        </button>
-      </div>
-      <div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;">
-        💡 <b>라이트</b>: 치료사 검증 결과 품질 충분. 빠르고 비용 절약.<br>
-        💡 <b>PRO</b>: 더 상세한 임상 표현이 필요할 때 선택.
-      </div>
-    </div>
-
-    <!-- UX: 화면 모드 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">🎨 화면 모드</div>
-      </div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">야간 사용이나 어두운 환경에서는 다크 모드가 눈이 편합니다.</p>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-outline" onclick="toggleDarkMode()" style="flex:1;">🌙 다크 모드 전환</button>
-      </div>
-    </div>
-
-    <!-- W8: 정체 감지 기준 설정 -->
-    <div class="card" style="border:2px solid var(--amber);">
-      <div class="card-title">
-        <div class="card-title-left" style="color:#b45309;">⚙️ 정체 감지 기준</div>
-      </div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">세션 저장 시 자동으로 정체를 감지하는 기준값입니다. 현장 상황에 맞게 조정하세요.</p>
-      <div class="form-row">
-        <div style="flex:1;">
-          <label class="form-label">연속 횟수 기준</label>
-          <select class="form-input" id="stagCountSel" onchange="saveStagnationSettings()">
-            <option value="2">2회 연속</option>
-            <option value="3" selected="">3회 연속 (기본)</option>
-            <option value="4">4회 연속</option>
-            <option value="5">5회 연속</option>
-          </select>
-        </div>
-        <div style="flex:1;">
-          <label class="form-label">점수 임계값</label>
-          <select class="form-input" id="stagScoreSel" onchange="saveStagnationSettings()">
-            <option value="30">30% 미만</option>
-            <option value="40" selected="">40% 미만 (기본)</option>
-            <option value="50">50% 미만</option>
-            <option value="60">60% 미만</option>
-          </select>
-        </div>
-      </div>
-      <div id="stagSettingDesc" style="font-size:12px;color:#b45309;background:#fffbeb;border-radius:8px;padding:8px 12px;margin-top:4px;">현재: 3회 연속 40% 미만이면 정체로 감지합니다.</div>
-    </div>
-
-    <!-- 데이터 백업/복원 -->
-    <div class="card" style="border:2px solid var(--mint);">
-      <div class="card-title">
-        <div class="card-title-left">💾 데이터 백업 · 복원</div>
-      </div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">기기 변경·URL 이동 시 데이터를 유지하려면 백업 파일을 저장하세요.</p>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="exportBackup()">⬇️ 전체 백업</button>
-        <button class="btn-outline" style="flex:1;" onclick="document.getElementById('restoreFileInput').click()">⬆️ 백업 복원</button>
-      </div>
-      <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
-      <div id="restoreResult" style="margin-top:8px;font-size:13px;"></div>
-    </div>
-
-    <!-- 자동 백업 (IndexedDB 기반) -->
-    <div class="card" style="border:2px solid var(--purple);">
-      <div class="card-title">
-        <div class="card-title-left" style="color:var(--purple);">🛡️ 자동 백업 관리</div>
-        <button class="btn-ghost" onclick="manualBackupNow()">지금 백업</button>
-      </div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
-        매일 자동으로 최근 <strong>7일치 데이터</strong>가 기기 안에 저장됩니다.<br>
-        실수로 데이터를 잃었을 때 클릭 한 번으로 복원할 수 있습니다.
-      </p>
-      <div id="backupList"><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-05</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 1 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-05')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-05')">↻ 이 백업으로 복원</button></div><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-04</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-04')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-04')">↻ 이 백업으로 복원</button></div><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-03</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-03')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-03')">↻ 이 백업으로 복원</button></div><div style="padding:10px 12px;background:#f8fafc;border-radius:9px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--navy);">📅 2026-05-02</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">아동 467 · 세션 2 · 162KB</div></div><button class="btn-del" onclick="deleteBackupConfirm('2026-05-02')">삭제</button></div><button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" onclick="restoreFromBackup('2026-05-02')">↻ 이 백업으로 복원</button></div></div>
-    </div>
-
-    <!-- 디버그 정보 (운영 모니터링) -->
-    <div class="card" style="border:2px solid #6366f1;">
-      <div class="card-title">
-        <div class="card-title-left" style="color:#6366f1;">📊 디버그 정보</div>
-        <button class="btn-ghost" onclick="renderDebugInfo()">새로고침</button>
-      </div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
-        AI 사용량과 오류 기록을 확인할 수 있습니다. 문제 발생 시 <strong>전체 로그 복사</strong>해서 알려주세요.
-      </p>
-      <div id="debugInfoBody"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">📡 API 사용량</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;"><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--mint);">0회</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">총 호출</div></div><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--purple);">0</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">총 토큰</div></div><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--green);">$0.00</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">예상 비용</div></div><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--green);">₩0</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">원화 환산</div></div></div><div style="display:flex;gap:6px;margin-bottom:14px;"><button class="btn-ghost" style="flex:1;font-size:12px;" onclick="resetApiUsage()">🔄 사용량 초기화</button></div><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;">🐞 에러 로그 (최근 0건)</div><div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">기록된 에러가 없습니다.</div></div>
-    </div>
-
-    <!-- 데이터 이전 카드 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">📥 기존 앱에서 데이터 가져오기</div>
-        <button class="btn-ghost" onclick="toggleImportCard()" id="importToggleBtn">펼치기</button>
-      </div>
-      <div id="importCard" style="display:none;">
-        <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:14px;">케어플센터 등 다른 앱에서 내보낸 <strong>엑셀 파일(.xlsx/.xls/.csv)</strong>을 올리면 AI가 자동으로 분석하여 마디 형식으로 변환합니다.</p>
-        <div class="import-zone" id="importZone" onclick="document.getElementById('importFileInput').click()" ondragover="onImportDragOver(event)" ondrop="onImportDrop(event)" ondragleave="onImportDragLeave(event)">
-          <div class="import-zone-icon">📂</div>
-          <div class="import-zone-text">파일을 여기에 끌어다 놓거나 탭하여 선택</div>
-          <div class="import-zone-sub">.xlsx · .xls · .csv 지원</div>
-        </div>
-        <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleImportFile(event)">
-        <div id="importResult" style="margin-top:12px;"></div>
-      </div>
-    </div>
-
-  </div>
-</div>
+<div class="tab-panel" id="panelService"><!-- admin.html로 이동됨 (TASK-008) --></div>
+<div class="tab-panel" id="panel8"><!-- admin.html로 이동됨 (TASK-008) --></div>
 
 <div class="toast" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
 
@@ -3601,14 +3244,25 @@ function removeStaffAccount(id, name) {
     });
 }
 
+// ── 관리자 페이지 이동 (TASK-008: admin.html 분리) ──
+function goToAdmin() {
+  if (!currentUser || currentUser.role !== 'admin') {
+    showToast('⚠️ 관리자만 접근할 수 있어요');
+    return;
+  }
+  window.location.href = 'admin.html';
+}
+
 function applyRoleUI() {
   var isAdmin = currentUser && currentUser.role === 'admin';
-  var apikeyBar  = document.getElementById('apikeyBar');
-  var centerCard = document.getElementById('centerApiKeyCard');
-  var mgmtCard   = document.getElementById('centerMgmtCard');
-  if (apikeyBar)  apikeyBar.style.display  = 'none'; // 관리자 메뉴로 이동
+  var apikeyBar    = document.getElementById('apikeyBar');
+  var centerCard   = document.getElementById('centerApiKeyCard');
+  var mgmtCard     = document.getElementById('centerMgmtCard');
+  var deployCard   = document.getElementById('homeDeployCard');
+  if (apikeyBar)  apikeyBar.style.display  = 'none';
   if (centerCard) centerCard.style.display = isAdmin ? 'block' : 'none';
-  if (mgmtCard)   mgmtCard.style.display  = isAdmin ? 'block' : 'none';
+  if (mgmtCard)   mgmtCard.style.display   = isAdmin ? 'block' : 'none';
+  if (deployCard) deployCard.style.display  = isAdmin ? 'block' : 'none';
 }
 
 function getApiKeyOrAlert() {
@@ -3754,38 +3408,10 @@ function switchTab(idx) {
     populateChildSelects();
     switchPortfolioTab(currentPortfolioTab || 'trend');
   }
-  if (idx === 4) {
-    // 서비스관리
-    renderServiceStats();
-    renderMonthlyService();
-    renderDailyService();
-    initSvcStaffMonth();
-    renderStaffStats();
-    // 정산 월 기본값
-    var settlEl = document.getElementById('settlMonth');
-    if (settlEl && !settlEl.value) {
-      var now2 = new Date();
-      settlEl.value = now2.getFullYear() + '-' + String(now2.getMonth()+1).padStart(2,'0');
-    }
-    renderSettlement();
-  }
-  if (idx === 5) {
-    // 관리자메뉴 (공지사항 포함)
-    if (!currentUser || currentUser.role !== 'admin') {
-      showToast('⚠️ 관리자메뉴는 관리자만 접근할 수 있어요');
-      switchTab(1);
-      return;
-    }
-    loadNotices();
-    var nwc = document.getElementById('noticeWriteCard');
-    if (nwc) nwc.style.display = 'block';
-    renderStaffCard();
-    loadStagnationSettings();
-    renderBackupList();
-    renderDebugInfo();
-    loadCenterApiKey(false);
-    loadCenterInfo();
-    loadStaffMgmtList();
+  if (idx === 4 || idx === 5) {
+    // 서비스관리·관리자메뉴 → admin.html로 이동
+    goToAdmin();
+    return;
   }
 }
 
@@ -9936,9 +9562,11 @@ function deployToGitHub() {
     token = t.trim();
   }
 
-  var btn    = document.getElementById('deployBtn');
-  var result = document.getElementById('deployResult');
-  var status = document.getElementById('deployStatus');
+  // 홈 카드 또는 기존 panel8 카드 중 표시된 것 사용
+  var btn    = document.getElementById('homeDeployBtn')    || document.getElementById('deployBtn');
+  var result = document.getElementById('homeDeployResult') || document.getElementById('deployResult');
+  var status = document.getElementById('homeDeployStatus') || document.getElementById('deployStatus');
+  if (!btn || !result) return;
   btn.disabled = true;
   btn.textContent = '⏳ 배포 중...';
   result.innerHTML = '<div style="font-size:12px;color:var(--text2);">📄 index.html 업로드 중...</div>';
@@ -9963,7 +9591,7 @@ function deployToGitHub() {
         + '1~2분 후 <b>namga1541-prog.github.io/MADI</b> 에 반영됩니다.<br>'
         + 'PWA 오프라인 캐싱도 완전히 활성화됩니다.'
         + '</span></div>';
-      status.textContent = '최근 배포: ' + new Date().toLocaleTimeString('ko-KR');
+      if (status) status.textContent = '최근 배포: ' + new Date().toLocaleTimeString('ko-KR');
       showToast('🚀 GitHub 배포 완료! (index.html + sw.js)', {duration: 8000, lock: true});
       localStorage.setItem('madi_last_deploy', new Date().toISOString());
     })
