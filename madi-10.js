@@ -116,7 +116,7 @@ function moveSchedPeriod(dir) {
   if (schedView === 'month') {
     schedCurrentDate = new Date(schedCurrentDate.getFullYear(), schedCurrentDate.getMonth() + dir, 1);
   } else {
-    schedCurrentDate = new Date(schedCurrentDate.getTime() + dir * 7 * 86400000);
+    schedCurrentDate = new Date(schedCurrentDate.getTime() + dir * 86400000);
   }
   renderSchedView();
 }
@@ -153,6 +153,12 @@ function setTeacherFilter(teacher) {
   _schedTeacherFilter = teacher;
   renderTeacherFilter();
   renderSchedView();
+}
+
+// ─────── 월간에서 날짜 클릭 시 일일 뷰로 이동 ───────
+function switchToDay(dateStr) {
+  schedCurrentDate = new Date(dateStr + 'T00:00:00');
+  setSchedView('week');
 }
 
 // ─────── 날짜 클릭 팝업 (아이디어 4) ───────
@@ -267,10 +273,8 @@ function renderMonthGrid() {
     var dayScheds = _schedTeacherFilter === '전체' ? allScheds
       : allScheds.filter(function(s){ return s.teacher === _schedTeacherFilter; });
     var isToday = cell.date === today;
-    // 날짜 클릭 → 팝업, 단 빈 날짜 클릭 → 일정 추가
-    var clickFn = allScheds.length > 0
-      ? 'openDayPopup(\'' + cell.date + '\')'
-      : 'openSchedModal(\'' + cell.date + '\',null)';
+    // 날짜 클릭 → 일일 뷰로 이동
+    var clickFn = 'switchToDay(\'' + cell.date + '\')';
     html += '<div class="month-cell' + (isToday?' today':'') + (cell.other?' other-month':'') + '"'
       + ' onclick="' + clickFn + '">'
       + '<span class="month-date-num">' + parseInt(cell.date.slice(8)) + '</span>';
@@ -295,41 +299,51 @@ function renderMonthGrid() {
 }
 
 function renderWeekGrid() {
-  var ws = getWeekStart(schedCurrentDate);
-  var days = ['월','화','수','목','금','토','일'];
   var today = new Date().toISOString().slice(0, 10);
-  var weekDates = [];
-  for (var i = 0; i < 7; i++) {
-    var d = new Date(ws); d.setDate(d.getDate() + i);
-    weekDates.push(d.toISOString().slice(0, 10));
-  }
+  var dateStr = schedCurrentDate.toISOString().slice(0, 10);
+  var d = schedCurrentDate;
+  var dayNames = ['일','월','화','수','목','금','토'];
+  var dayName = dayNames[d.getDay()];
+
   document.getElementById('schedNavLabel').textContent =
-    weekDates[0].slice(5).replace('-','/') + ' ~ ' + weekDates[6].slice(5).replace('-','/');
-  var html = '';
-  weekDates.forEach(function(date, i) {
-    var isToday = date === today;
-    var dayScheds = scheduleDB.filter(function(s) { return s.date === date; })
-      .sort(function(a, b) { return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
-    html += '<div class="day-col"><div class="day-header' + (isToday?' today':'') + '">'
-      + '<span class="day-name">' + days[i] + '</span>'
-      + '<span class="day-num">' + date.slice(8) + '</span>'
-      + '</div><div class="day-slots">';
-    dayScheds.forEach(function(s) {
-      var child  = childDB.find(function(c) { return c.id === s.childId; });
-      var color  = s.teacher ? getTeacherColor(s.teacher) : (child ? child.color : '#94a3b8');
-      html += '<div class="sched-block" style="background:' + color + '22;border-left:3px solid ' + color + ';">'
-        + (s.startTime ? '<div style="font-size:10px;opacity:0.8;">' + s.startTime.slice(0,5) + (s.endTime ? '~'+s.endTime.slice(0,5) : '') + '</div>' : '')
-        + '<div style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</div>'
-        + (s.teacher ? '<div style="font-size:10px;opacity:0.85;">👤 ' + escHtml(s.teacher) + '</div>' : '')
-        + '<div style="display:flex;gap:3px;margin-top:3px;">'
-        + '<button style="font-size:9px;padding:1px 5px;border:none;background:rgba(255,255,255,0.7);border-radius:4px;cursor:pointer;font-family:inherit;touch-action:manipulation;" onclick="event.stopPropagation();openEditSchedModal(' + s.id + ')">✏️</button>'
-        + '<button style="font-size:9px;padding:1px 5px;border:none;background:rgba(255,100,100,0.15);color:#dc2626;border-radius:4px;cursor:pointer;font-family:inherit;touch-action:manipulation;" onclick="event.stopPropagation();deleteSchedConfirm(' + s.id + ')">🗑️</button>'
-        + '</div></div>';
-    });
-    html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + date + '\',null)">+</button></div></div>';
+    (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dayName + ')';
+
+  // 선생님 필터 렌더링
+  renderTeacherFilter();
+
+  var allScheds = scheduleDB.filter(function(s) { return s.date === dateStr; })
+    .sort(function(a, b) { return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
+
+  var dayScheds = _schedTeacherFilter === '전체' ? allScheds
+    : allScheds.filter(function(s){ return s.teacher === _schedTeacherFilter; });
+
+  var html = '<div class="day-col" style="width:100%;min-width:0;">'
+    + '<div class="day-header' + (dateStr===today?' today':'') + '">'
+    + '<span class="day-name">' + dayName + '</span>'
+    + '<span class="day-num">' + dateStr.slice(8) + '</span>'
+    + '</div><div class="day-slots">';
+
+  dayScheds.forEach(function(s) {
+    var child  = childDB.find(function(c) { return c.id === s.childId; });
+    var color  = s.teacher ? getTeacherColor(s.teacher) : (child ? child.color : '#94a3b8');
+    html += '<div class="sched-block" style="background:' + color + '22;border-left:3px solid ' + color + ';">'
+      + (s.startTime ? '<div style="font-size:10px;opacity:0.8;">' + s.startTime.slice(0,5) + (s.endTime ? '~'+s.endTime.slice(0,5) : '') + '</div>' : '')
+      + '<div style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</div>'
+      + (s.teacher ? '<div style="font-size:10px;opacity:0.85;">👤 ' + escHtml(s.teacher) + '</div>' : '')
+      + '<div style="display:flex;gap:3px;margin-top:3px;">'
+      + '<button style="font-size:9px;padding:1px 5px;border:none;background:rgba(255,255,255,0.7);border-radius:4px;cursor:pointer;font-family:inherit;touch-action:manipulation;" onclick="event.stopPropagation();openEditSchedModal(' + s.id + ')">✏️</button>'
+      + '<button style="font-size:9px;padding:1px 5px;border:none;background:rgba(255,100,100,0.15);color:#dc2626;border-radius:4px;cursor:pointer;font-family:inherit;touch-action:manipulation;" onclick="event.stopPropagation();deleteSchedConfirm(' + s.id + ')">🗑️</button>'
+      + '</div></div>';
   });
+
+  if (dayScheds.length === 0) {
+    html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:30px 0;">일정이 없습니다.</div>';
+  }
+
+  html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)">+</button></div></div>';
+
   document.getElementById('weekGrid').innerHTML = html;
-  renderSessionListForPeriod(weekDates);
+  renderSessionListForPeriod([dateStr]);
 }
 
 function renderSessionListForPeriod(dates) {
@@ -512,11 +526,6 @@ function saveSchedFromModal() {
   closeSchedModal();
   renderSchedView();
   renderUnwrittenAlert();
-  var dayNames = ['일','월','화','수','목','금','토'];
-  var selDaysFinal = [];
-  if (repeat === 'weekly') {
-    document.querySelectorAll && []; // 모달 이미 닫힘, 메시지만
-  }
   showToast('✅ ' + entries.length + '개 일정 추가!');
 }
 
