@@ -1,4 +1,4 @@
-var CACHE_NAME = "madi-v4-20260505-0231";
+var CACHE_NAME = "madi-v4-20260505-0245";
 var SKIP_URLS = ["api.anthropic.com","supabase.co","googleapis.com","cdnjs","jsdelivr","fonts.g"];
 self.addEventListener("install", function(e) { self.skipWaiting(); });
 self.addEventListener("activate", function(e) {
@@ -13,14 +13,13 @@ self.addEventListener("fetch", function(e) {
   if (SKIP_URLS.some(function(s){ return url.includes(s); })) return;
   if (e.request.method !== "GET") return;
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      if (cached) return cached;
-      return fetch(e.request).then(function(res) {
-        if (!res || res.status !== 200 || res.type === "opaque") return res;
-        var clone = res.clone();
-        caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
-        return res;
-      });
+    fetch(e.request).then(function(res) {
+      if (!res || res.status !== 200 || res.type === "opaque") return res;
+      var clone = res.clone();
+      caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
+      return res;
+    }).catch(function() {
+      return caches.match(e.request);
     })
   );
 });
