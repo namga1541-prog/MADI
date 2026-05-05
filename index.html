@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/78cf2b19-36bc-43d3-81ab-27d97098b9e6">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/ff6c105a-4fcc-4563-b5ad-df17396d2bb2">
+  <link rel="manifest" id="pwaManifest" href="blob:null/845a432f-9d18-4b46-9fc7-ad467f6c0ccb">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/1a6f1b8e-aed6-4f77-b9ac-b5321ffbecb5">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -308,8 +308,8 @@
     .loading p { font-size:14px; color:var(--text2); line-height:1.7; }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes slideDown { from { opacity:0; transform:translateX(-50%) translateY(-16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
-    .toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(80px); background:#1e293b; color:white; padding:12px 22px; border-radius:24px; font-size:13px; font-weight:600; transition:transform 0.3s ease; z-index:1000; white-space:nowrap; pointer-events:none; max-width:90%; text-align:center; }
-    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(80px); background:#1e293b; color:white; padding:12px 22px; border-radius:24px; font-size:13px; font-weight:600; transition:transform 0.3s ease, opacity 0.3s ease, visibility 0.3s; z-index:1000; white-space:nowrap; pointer-events:none; max-width:90%; text-align:center; opacity:0; visibility:hidden; }
+    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; visibility:visible; }
 
     .input-mode-toggle { display:flex; gap:0; margin-bottom:12px; border-radius:10px; overflow:hidden; border:1.5px solid var(--border); }
     .mode-btn { flex:1; padding:10px; font-size:12.5px; font-weight:700; border:none; background:white; color:var(--text2); cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; }
@@ -997,7 +997,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">14:42</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">14:50</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
