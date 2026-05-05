@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/a12c9d97-77a7-48ca-971b-2698e22f6a24">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/db329ecd-168e-4b06-bcfd-8bed57a71c3a">
+  <link rel="manifest" id="pwaManifest" href="blob:null/b7d827fe-2cc0-43ea-bad1-41f0003c4a17">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/1dafb04d-f7e0-41a9-89c2-32d2e31781a9">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -1002,7 +1002,7 @@
     <!-- 관리자 전용 배포 버튼 -->
     <button id="headerDeployBtn" onclick="deployToGitHub()" style="background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.3); color: rgb(255, 255, 255); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; min-height: 32px; touch-action: manipulation;" title="index.html 배포" disabled="">⏳ 배포 중...</button>
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">18:46</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">19:36</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -1578,7 +1578,7 @@
 <div class="tab-panel" id="panelService"><!-- admin.html로 이동됨 (TASK-008) --></div>
 <div class="tab-panel" id="panel8"><!-- admin.html로 이동됨 (TASK-008) --></div>
 
-<div class="toast" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
+<div class="toast show" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
 
 <script>
 // ─────── 상수 ───────
@@ -10157,7 +10157,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- ─── 플로팅 AI 비서 ─── -->
-<button class="float-btn" id="floatBtn" title="마로">
+<button class="float-btn" id="floatBtn" title="마로" style="inset: 318px 0px auto auto; transform: none;">
   <span class="float-ico">🤖</span>
   <span class="float-name">마로</span>
   <span class="float-sub">AI 길잡이</span>
