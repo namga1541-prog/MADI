@@ -147,8 +147,8 @@ function renderStaffCard() {
           + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(u.username) + ' · ' + (u.role==='admin'?'👑 관리자':'👩‍⚕️ 선생님') + '</div></div>'
           + (u.id !== currentUser.id
             ? '<div style="display:flex;gap:6px;">'
-              + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + u.id + '\',\'' + escHtml(u.name) + '\',\'' + u.role + '\')">권한</button>'
-              + '<button class="btn-del" onclick="deleteStaff(\'' + u.id + '\',\'' + escHtml(u.name) + '\')">삭제</button>'
+              + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + u.id + '\',\'' + escHtml(u.name) + '\',\'' + u.role + '\')">\uad8c\ud55c</button>'
+              + '<button class="btn-del" onclick="deleteStaff(\'' + u.id + '\',\'' + escHtml(u.name) + '\')">\uc0ad\uc81c</button>'
               + '</div>'
             : '<span style="font-size:11px;color:var(--mint);">나</span>')
           + '</div>';
@@ -251,12 +251,10 @@ function subscribeRealtime() {
 }
 
 function onRemoteChange(payload) {
-  // 내가 방금 저장한 변경은 무시 (중복 리로드 방지)
   if (_myChangeTs && Date.now() < _myChangeTs + 2000) return;
-  // 0.8초 디바운스 (연속 변경 시 한 번만 리로드)
   clearTimeout(_reloadTimer);
   _reloadTimer = setTimeout(function() {
-    loadDBFromSupabase(true); // silent=true (토스트 없이 조용히)
+    loadDBFromSupabase(true);
   }, 800);
 }
 
@@ -276,8 +274,6 @@ var GITHUB_REPO  = 'MADI';
 var GITHUB_FILE  = 'index.html';
 var GITHUB_SW    = 'sw.js';
 
-// 배포용 서비스워커 코드 (initPWA와 공유)
-// CACHE_NAME에 빌드 타임스탬프 자동 포함 → 매 배포마다 캐시 자동 갱신
 var _swNow = new Date();
 var SW_BUILD = 'madi-v4-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')
              + '-' + String(_swNow.getHours()).padStart(2,'0')
@@ -298,14 +294,13 @@ var SW_LINES = [
   '  if (SKIP_URLS.some(function(s){ return url.includes(s); })) return;',
   '  if (e.request.method !== "GET") return;',
   '  e.respondWith(',
-  '    caches.match(e.request).then(function(cached) {',
-  '      if (cached) return cached;',
-  '      return fetch(e.request).then(function(res) {',
-  '        if (!res || res.status !== 200 || res.type === "opaque") return res;',
-  '        var clone = res.clone();',
-  '        caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });',
-  '        return res;',
-  '      });',
+  '    fetch(e.request).then(function(res) {',
+  '      if (!res || res.status !== 200 || res.type === "opaque") return res;',
+  '      var clone = res.clone();',
+  '      caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });',
+  '      return res;',
+  '    }).catch(function() {',
+  '      return caches.match(e.request);',
   '    })',
   '  );',
   '});'
@@ -316,7 +311,6 @@ function getGithubToken() {
   return localStorage.getItem('madi_gh_token') || '';
 }
 
-// 단일 파일을 GitHub에 업로드하는 헬퍼 (파일 없으면 생성, 있으면 갱신)
 function deployFileToGitHub(token, filename, textContent, commitMsg) {
   var apiBase = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + filename;
   var headers  = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
@@ -326,7 +320,7 @@ function deployFileToGitHub(token, filename, textContent, commitMsg) {
     .then(function(r) { return r.json(); })
     .then(function(info) {
       var body = { message: commitMsg, content: b64 };
-      if (info.sha) body.sha = info.sha; // 기존 파일이면 SHA 필수
+      if (info.sha) body.sha = info.sha;
       return fetch(apiBase, { method: 'PUT', headers: headers, body: JSON.stringify(body) });
     })
     .then(function(r) { return r.json(); })
@@ -354,12 +348,10 @@ function deployToGitHub() {
   var rawBase    = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/main/';
   var isLocal    = window.location.protocol === 'file:';
 
-  // 파일 내용 가져오기 — 로컬이면 fetch('../admin.html'), URL이면 GitHub raw
   function getFileContent(filename) {
     if (isLocal) {
       return fetch(filename).then(function(r) { return r.text(); }).catch(function() { return null; });
     } else {
-      // GitHub raw에서 최신 파일 읽기 (캐시 방지)
       return fetch(rawBase + filename + '?t=' + Date.now())
         .then(function(r) { return r.ok ? r.text() : null; })
         .catch(function() { return null; });
@@ -368,7 +360,6 @@ function deployToGitHub() {
 
   showToast('📡 배포 준비 중...');
 
-  // index.html 내용: 로컬이면 outerHTML, URL이면 GitHub raw에서 읽기
   var indexPromise = isLocal
     ? Promise.resolve(document.documentElement.outerHTML)
     : getFileContent('index.html');
@@ -378,6 +369,14 @@ function deployToGitHub() {
       var indexContent = results[0];
       var adminContent = results[1];
       if (!indexContent) throw new Error('index.html 읽기 실패');
+
+      // 로칼에서 outerHTML 사용 시 배포 버튼 상태 자동 정정
+      if (isLocal) {
+        indexContent = indexContent
+          .replace(/disabled="">[^<]*배포 중[^<]*<\/button>/, '>🚀 배포<\/button>')
+          .replace(/disabled>\s*⏳[^<]*<\/button>/, '>🚀 배포<\/button>')
+          .replace(/(📡|⏳)[^<]*배포[^<]*<\/button>/, '🚀 배포<\/button>');
+      }
 
       showToast('📡 index.html 업로드 중... (1/3)');
       return deployFileToGitHub(token, GITHUB_FILE, indexContent, '마디 앱 업데이트 — ' + commitTime)
@@ -463,16 +462,14 @@ function processImportFile(file) {
         return;
       }
 
-      resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>데이터 변환 중... (총 ' + allRows.length + '행)</p></div>';
+      resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>데이터 변환 중... (애 ' + allRows.length + '행)</p></div>';
 
-      // JS 직접 파싱 시도 (제한 없음)
       var children = parseRowsToChildren(allRows);
 
       if (children.length > 0) {
         renderImportPreview({ children: children, sessions: [], unmapped: [], summary: children.length + '명 변환 완료' }, resultEl);
       } else {
-        // 컬럼 인식 실패 시 AI로 fallback (샘플 30행만)
-        resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>컬럼 형식을 AI가 분석 중입니다...</p></div>';
+        resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>컨럼 형식을 AI가 분석 중입니다...</p></div>';
         var wb2  = XLSX.read(data, { type: 'array' });
         var csv  = XLSX.utils.sheet_to_csv(wb2.Sheets[wb2.SheetNames[0]], { blankrows: false });
         var sample = csv.split('\n').slice(0, 30).join('\n');
@@ -512,12 +509,12 @@ function parseRowsToChildren(rows) {
   }
 
   var colName   = findCol(['이용자','아동명','이름','성명']);
-  if (!colName) return []; // 이름 컬럼 없으면 AI fallback
+  if (!colName) return [];
 
   var colBirth  = findCol(['생년월일','birth','생일']);
   var colAge    = findCol(['개월수','연령','나이','age']);
   var colType   = findCol(['장애유형','장애','진단명','진단']);
-  var colPhone  = findCol(['연락처','전화번호','보호자연락처','보호자 연락처']);
+  var colPhone  = findCol(['연락연락캘당자','연락처','전화번호','보호자연락첸','보호자 연락첸']);
   var colStatus = findCol(['상태','status']);
   var colMemo   = findCol(['메모','비고','특이사항']);
 
@@ -526,7 +523,6 @@ function parseRowsToChildren(rows) {
     var name = String(row[colName] || '').trim();
     if (!name) return;
 
-    // 생년월일 정규화 (Date객체 / 문자열 / 숫자 모두 처리)
     var birth = '';
     if (colBirth && row[colBirth]) {
       var bRaw = row[colBirth];
@@ -545,8 +541,7 @@ function parseRowsToChildren(rows) {
     var memo   = colMemo   ? String(row[colMemo]   || '') : '';
     var rawStatus = colStatus ? String(row[colStatus] || '').trim() : '';
 
-    // 상태 정규화
-    var childStatus = '등록'; // 기본값
+    var childStatus = '등록';
     if (rawStatus.indexOf('종결') > -1 || rawStatus.indexOf('퇴원') > -1 || rawStatus.indexOf('종료') > -1) {
       childStatus = '종결';
     } else if (rawStatus.indexOf('대기') > -1 || rawStatus.indexOf('접수') > -1 || rawStatus.indexOf('신규') > -1) {
@@ -571,20 +566,20 @@ function parseRowsToChildren(rows) {
 
 function analyzeImportData(apiKey, csvText, resultEl) {
   var SYSTEM = '당신은 언어치료 데이터 마이그레이션 전문가입니다. '
-    + '케어플센터 또는 다른 언어치료 앱에서 내보낸 엑셀/CSV 데이터를 분석하여 아동 정보와 세션 기록을 추출하세요.\n\n'
-    + '【케어플센터 이용자 파일 컬럼 매핑 규칙】\n'
-    + '- "이용자" 컬럼 → name (아동명)\n'
-    + '- "생년월일" 컬럼 → birth (YYYY-MM-DD 형식으로 변환. 예: 2022-06-14)\n'
-    + '- "개월수" 컬럼 → age (예: "3세 10개월" 그대로 사용. birth가 있으면 age는 비워도 됨)\n'
-    + '- "장애유형" 컬럼 → type. "미응답"이면 "기타"로 변환\n'
-    + '- "연락처" 컬럼 → phone (보호자 연락처)\n'
-    + '- "메모" 컬럼 → memo\n'
+    + '케어플센터 또는 다른 언어치료 앱에서 내보렬 엑셀/CSV 데이터를 분석하여 아동 정보와 세션 기록을 추출하세요.\n\n'
+    + '【케어플센터 이용자 파일 컨럼 매핑 규칙】\n'
+    + '- "이용자" 컨럼 → name (아동명)\n'
+    + '- "생년월일" 컨럼 → birth (YYYY-MM-DD 형식으로 변환. 예: 2022-06-14)\n'
+    + '- "개월수" 컨럼 → age (예: "3세 10개월" 그대로 사용. birth가 있으면 age는 비워도 됨)\n'
+    + '- "장애유형" 컨럼 → type. "미응답"이면 "기타"로 변환\n'
+    + '- "연락첸" 컨럼 → phone (보호자 연락첸)\n'
+    + '- "메모" 컨럼 → memo\n'
     + '- "상태"가 "퇴원" 또는 "종결"이면 memo에 "(종결)" 추가\n'
     + '- "이메일", "주소", "학교", "회원번호" 등 나머지 개인정보 → 무시\n\n'
     + '【장애유형 변환 규칙】\n'
     + '"조음"이 포함 → "조음음운장애" / "언어발달"이 포함 → "언어발달장애" / "유창성"이 포함 → "유창성장애" '
     + '/ "자폐" 포함 → "자폐스펙트럼" / "지적" 포함 → "지적장애" / "청각" 포함 → "청각장애" / 나머지 → "기타"\n\n'
-    + '【세션 기록 파일 컬럼 매핑 규칙】(회기 데이터가 있을 경우)\n'
+    + '【세션 기록 파일 컨럼 매핑 규칙】(회기 데이터가 있을 경우)\n'
     + '- "이용자" 또는 "아동명" → childName\n'
     + '- "날짜" 또는 "회기일" → date (YYYY-MM-DD)\n'
     + '- "목표" 또는 "치료목표" → goals (문자열 배열)\n'
@@ -606,7 +601,7 @@ function analyzeImportData(apiKey, csvText, resultEl) {
     .catch(function(err) {
       var msg = err.message;
       if (msg.includes('JSON') || msg.includes('position')) {
-        msg = '아동 수가 너무 많아 응답이 잘렸습니다. 파일을 절반씩 나눠서 두 번 올려주세요.';
+        msg = '아동 수가 너무 많아 응답이 잊혀졌습니다. 파일을 절반씩 나눠서 두 번 올려주세요.';
       }
       resultEl.innerHTML = '<div class="import-warning">⚠️ AI 분석 실패: ' + msg + '</div>';
     });
@@ -623,9 +618,7 @@ function renderImportPreview(data, resultEl) {
     return;
   }
 
-  // 현재 앱에 이미 있는 이름 체크
   var existingNames = childDB.map(function(c) { return c.name; });
-
   var html = '';
 
   if (data.summary) {
@@ -659,7 +652,6 @@ function renderImportPreview(data, resultEl) {
       + (unmapped.length > 3 ? ' 외 ' + (unmapped.length - 3) + '개' : '') + '</div>';
   }
 
-  // 데이터를 전역 임시 저장
   window._importPreview = data;
 
   html += '<div style="display:flex;gap:8px;margin-top:14px;">'
@@ -674,14 +666,12 @@ function confirmImport() {
   var data = window._importPreview;
   if (!data) return;
 
-  // 대용량 import 중 Realtime 리로드 방지 (10초 잠금)
   _myChangeTs = Date.now() + 8000;
 
   var children = data.children || [];
   var sessions  = data.sessions || [];
   var addedCount = 0, skippedCount = 0, sessionCount = 0;
 
-  // 아동 등록 (중복 스킵)
   var nameToId = {};
   children.forEach(function(c) {
     var exists = childDB.find(function(existing) { return existing.name === c.name; });
@@ -690,7 +680,6 @@ function confirmImport() {
       skippedCount++;
     } else {
       var newId = Date.now() + Math.floor(Math.random() * 10000);
-      // birth가 있으면 생활연령 자동 계산, 없으면 age 필드 사용
       var birthVal = c.birth || '';
       var ageVal   = birthVal ? (calcAgeFromBirth(birthVal) || c.age || '미상') : (c.age || '미상');
       childDB.push({
@@ -713,7 +702,6 @@ function confirmImport() {
   });
   saveChildren();
 
-  // 세션 등록
   sessions.forEach(function(s) {
     var childId = nameToId[s.childName];
     if (!childId) return;
@@ -743,7 +731,6 @@ function confirmImport() {
     + '</div></div>';
 
   showToast('✅ ' + addedCount + '명 추가! 서버 저장 중...(잠시 기다려주세요)');
-  // 전체 저장 완료 후 최종 확인
   setTimeout(function() {
     showToast('☁️ 서버 저장 완료! 아동 ' + childDB.length + '명');
   }, addedCount * 100 + 3000);
@@ -757,14 +744,14 @@ function cancelImport() {
 
 // ─────── 초기화 ───────
 function init() {
-  loadDarkMode();         // UX: 다크 모드 자동 적용
-  setTimeout(updateModelBtns, 300); // AI 모델 버튼 초기 상태
-  setTimeout(applyPermissions, 400); // 권한 적용
-  startHeaderClock();     // UX: 헤더 시계 시작
-  setupNetworkMonitor();  // 견고함: 오프라인 감지
-  setupGlobalErrorHandler(); // 견고함: 글로벌 에러 캐치
-  maybeAutoBackup();      // 견고함: 24h 경과 시 자동 백업
-  loadApiUsage();         // 운영: API 사용량 누적치 로드
+  loadDarkMode();
+  setTimeout(updateModelBtns, 300);
+  setTimeout(applyPermissions, 400);
+  startHeaderClock();
+  setupNetworkMonitor();
+  setupGlobalErrorHandler();
+  maybeAutoBackup();
+  loadApiUsage();
   var today = new Date().toISOString().slice(0, 10);
   document.getElementById('sessionDate').value     = today;
   document.getElementById('portfolioMonth').value  = today.slice(0, 7);
@@ -774,19 +761,18 @@ function init() {
   var saved = localStorage.getItem('cn3_apikey');
   if (saved) {
     document.getElementById('apiKey').value = saved;
-    showMaskedApiKey();  // 보안: 저장된 키는 마스킹 표시
+    showMaskedApiKey();
   }
   document.getElementById('apiKey').addEventListener('input', function() {
     if (this.value.startsWith('sk-ant')) localStorage.setItem('cn3_apikey', this.value);
   });
 
-  // 저장된 로그인 세션 확인 (토큰도 같이 있어야 자동 로그인)
   var savedUser  = localStorage.getItem('madi_user');
   var savedToken = localStorage.getItem('madi_token');
   if (savedUser && savedToken) {
     try {
       currentUser = JSON.parse(savedUser);
-      _madiToken  = savedToken; // 메모리에 토큰 복원
+      _madiToken  = savedToken;
       applyUserUI();
       applyRoleUI();
       loadCenterApiKey();
@@ -799,7 +785,6 @@ function init() {
       showLanding();
     }
   } else {
-    // 토큰 없으면 이전 세션 무효화 후 처음 화면으로
     clearToken();
     localStorage.removeItem('madi_user');
     loadDB();
@@ -811,7 +796,6 @@ function init() {
     showLanding();
   }
 
-  // PWA 초기화 (로그인 상태와 무관하게 항상 실행)
   initPWA();
 }
 
@@ -821,7 +805,6 @@ var _pwaPrompt = null;
 function initPWA() {
   var NL = String.fromCharCode(10);
 
-  // ── 아이콘 SVG 생성 — 4B 음성 파형 ──
   var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130">'
     + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
     + '<rect x="28" y="54" width="10" height="22" rx="4" fill="white"/>'
@@ -833,11 +816,9 @@ function initPWA() {
   var iconBlob = new Blob([iconSvg], { type: 'image/svg+xml' });
   var iconUrl  = URL.createObjectURL(iconBlob);
 
-  // apple-touch-icon 링크에 적용
   var iconLink = document.getElementById('pwaIcon');
   if (iconLink) iconLink.href = iconUrl;
 
-  // ── Manifest 생성 ──
   var manifest = {
     name: '마디 — 언어치료 AI 비서',
     short_name: '마디',
@@ -860,13 +841,17 @@ function initPWA() {
 
   // ── Service Worker 등록: ./sw.js 우선, 실패 시 Blob URL 폴백 ──
   if ('serviceWorker' in navigator) {
+    // SW 업데이트 감지 시 자동 새로고침
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      window.location.reload();
+    });
     // 1차 시도: 배포된 ./sw.js (GitHub Pages 환경)
     navigator.serviceWorker.register('./sw.js')
       .then(function(reg) {
         console.log('[마디 PWA] sw.js 등록 성공 — 오프라인 캐싱 활성화:', reg.scope);
       })
       .catch(function() {
-        // 2차 시도: Blob URL (로컬 개발 / sw.js 미배포 환경)
+        // 2차 시도: Blob URL (로컈 개발 / sw.js 미배포 환경)
         var swBlob = new Blob([SW_CODE], { type: 'text/javascript' });
         var swUrl  = URL.createObjectURL(swBlob);
         navigator.serviceWorker.register(swUrl)
@@ -875,21 +860,18 @@ function initPWA() {
       });
   }
 
-  // ── Android: beforeinstallprompt 이벤트 ──
   window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
     _pwaPrompt = e;
     showPWABanner('android');
   });
 
-  // ── 설치 완료 감지 ──
   window.addEventListener('appinstalled', function() {
     _pwaPrompt = null;
     hidePWABanner();
     showToast('✅ 마디 앱 설치 완료!');
   });
 
-  // ── iOS: 홈 화면 추가 안내 (standalone 아닐 때만) ──
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
   var isStandalone = window.navigator.standalone === true
     || window.matchMedia('(display-mode: standalone)').matches;
@@ -909,12 +891,11 @@ function showPWABanner(type) {
     banner.innerHTML = '<div class="pwa-banner-icon">🗒️</div>'
       + '<div class="pwa-banner-text">'
       + '<div class="pwa-banner-title">마디 앱 설치</div>'
-      + '<div class="pwa-banner-desc">홈 화면에 추가하여 앱처럼 빠르게 실행하세요</div>'
+      + '<div class="pwa-banner-desc">홈 화면에 추가하여 앱잘맼 빠르게 실행하세요</div>'
       + '</div>'
       + '<button class="pwa-install-btn" onclick="triggerPWAInstall()">설치</button>'
       + '<button class="pwa-close-btn" onclick="hidePWABanner()">✕</button>';
   } else {
-    // iOS Safari 안내
     banner.innerHTML = '<div class="pwa-banner-icon">🗒️</div>'
       + '<div class="pwa-banner-text">'
       + '<div class="pwa-banner-title">홈 화면에 추가하기</div>'
@@ -926,7 +907,6 @@ function showPWABanner(type) {
   document.body.appendChild(banner);
   document.body.classList.add('pwa-banner-open');
 
-  // 배너 표시 시 토스트 위치 위로 올림
   var toast = document.getElementById('toast');
   if (toast) toast.style.bottom = '90px';
 }
@@ -935,7 +915,6 @@ function hidePWABanner() {
   var b = document.getElementById('pwaBanner');
   if (b) b.remove();
   document.body.classList.remove('pwa-banner-open');
-  // 토스트 원위치
   var toast = document.getElementById('toast');
   if (toast) toast.style.bottom = '';
 }
@@ -966,7 +945,6 @@ function toggleChat() {
   document.getElementById('chatWindow').classList[chatOpen ? 'add' : 'remove']('open');
   document.getElementById('unreadDot').classList.remove('show');
 
-  // 마로 버튼 텍스트 상태 변경
   var floatBtn = document.getElementById('floatBtn');
   if (floatBtn) floatBtn.classList[chatOpen ? 'add' : 'remove']('chat-is-open');
   var ico  = document.querySelector('#floatBtn .float-ico');
@@ -996,7 +974,6 @@ function initFloatBtnDrag() {
   var _moved    = false;
   var _startX, _startY, _startTop, _startRight;
 
-  // localStorage에서 저장된 위치 복원
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch(e) {}
   if (saved) {
@@ -1013,7 +990,6 @@ function initFloatBtnDrag() {
   }
 
   function onStart(e) {
-    // 입력 요소 클릭은 제외
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
     _dragging = true;
     _moved    = false;
@@ -1052,31 +1028,26 @@ function initFloatBtnDrag() {
     btn.classList.remove('dragging');
 
     if (_moved) {
-      // 위치 저장
       try {
         localStorage.setItem('madi_maro_pos', JSON.stringify({
           top:   parseInt(btn.style.top),
           right: parseInt(btn.style.right)
         }));
       } catch(err) {}
-      // 클릭 이벤트 1회 차단 (드래그 끝나면 click 이벤트 발생 방지)
       btn.dataset.dragged = '1';
       setTimeout(function() { delete btn.dataset.dragged; }, 100);
     }
   }
 
-  // 마우스 이벤트
   btn.addEventListener('mousedown',  onStart, { passive: false });
   document.addEventListener('mousemove', onMove,  { passive: false });
   document.addEventListener('mouseup',   onEnd);
 
-  // 터치 이벤트
   btn.addEventListener('touchstart', onStart, { passive: false });
   document.addEventListener('touchmove',  onMove,  { passive: false });
   document.addEventListener('touchend',   onEnd);
 
-  // 드래그 중에는 toggleChat 차단
-  btn.removeAttribute('onclick'); // 먼저 인라인 onclick 제거
+  btn.removeAttribute('onclick');
   btn.addEventListener('click', function(e) {
     if (btn.dataset.dragged) return;
     toggleChat();
@@ -1091,11 +1062,11 @@ function getChatGreeting() {
   var msg  = time + '! 👋 저는 마디의 AI 길잡이 마로예요.\n현재 등록된 아동 ' + cnt + '명의 데이터를 알고 있어요.';
   if (uw > 0) msg += '\n\n⚠️ 미작성 세션이 ' + uw + '개 있어요. 확인해볼까요?';
   else        msg += '\n\n아동·세션·치료 계획 무엇이든 물어보세요!';
-  msg += '\n\n아래 버튼으로 바로 시작할 수 있어요 👇\n• 오늘 요약 — 오늘 치료 현황 한눈에\n• 미작성 확인 — 빠뜨린 세션 체크\n• 바우처 현황 — 이달 바우처 사용량\n• 정체 확인 — 진전이 멈춘 아동\n\n💬 직접 입력도 돼요. 예) "서규민 마지막 세션 어때?"';
+  msg += '\n\n아래 버튼으로 바로 시작할 수 있어요 👇\n• 오늘 요약 — 오늘 치료 현황 한눈에\n• 미작성 확인 — 빠뜨린 세션 체크\n• 바우쳐 현황 — 이달 바우쳐 사용량\n• 정체 확인 — 진전이 멈춰 아동\n\n💬 직접 입력도 돼요. 예) "서규민 마지막 세션 어때?"';
   return msg;
 }
 
-var CHAT_HISTORY_MAX = 100; // 누적 방지 한도
+var CHAT_HISTORY_MAX = 100;
 
 function trimChatHistory() {
   if (chatHistory.length > CHAT_HISTORY_MAX) {
@@ -1212,12 +1183,10 @@ function actAddSchedule(a) {
     var totalMin = parseInt(parts[0]) * 60 + parseInt(parts[1]) + dur;
     endTime = String(Math.floor(totalMin / 60)).padStart(2, '0') + ':' + String(totalMin % 60).padStart(2, '0');
   } catch(e) { endTime = a.startTime; }
-  // 치료사 결정: AI가 명시한 teacher 우선 → 없으면 현재 로그인 사용자
   var teacherName = '';
   var teacherColor = '';
   if (a.teacher && typeof a.teacher === 'string' && a.teacher.trim()) {
     teacherName = a.teacher.trim();
-    // 기존 scheduleDB에서 같은 이름의 색상 찾기 (일관성)
     var existing = scheduleDB.find(function(s) { return s.teacher === teacherName && s.teacherColor; });
     teacherColor = existing ? existing.teacherColor : (typeof getTeacherColor === 'function' ? getTeacherColor(teacherName) : '');
   } else if (currentUser) {
@@ -1364,7 +1333,6 @@ function macroWeeklyStatus() {
 }
 
 function macroTopProgress() {
-  // 최근 4주간 세션이 2개 이상인 아동 중 평균 점수 상승률 Top 3
   var fourWeeksAgo = new Date(); fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
   var cutoffStr = fourWeeksAgo.toISOString().slice(0, 10);
   var ranked = [];
@@ -1383,7 +1351,7 @@ function macroTopProgress() {
   });
   ranked.sort(function(a, b) { return b.delta - a.delta; });
 
-  if (ranked.length === 0) return '🌱 아직 비교할 데이터가 부족해요. 세션이 더 쌓이면 분석해드릴게요!';
+  if (ranked.length === 0) return '🌱 아직 비교할 데이터가 부족해요. 세션이 더 쓰이면 분석해드릴게요!';
 
   var top = ranked.slice(0, 3);
   var medals = ['🥇', '🥈', '🥉'];
@@ -1467,7 +1435,6 @@ function sendChat() {
   var text  = input.value.trim();
   if (!text) return;
 
-  // 매크로 우선 처리 (슬래시 명령)
   if (tryMacro(text)) {
     input.value = '';
     input.style.height = 'auto';
@@ -1499,7 +1466,7 @@ function sendChat() {
     + '- 데이터 기반으로 정확하게, 치료 전문 조언 가능\n'
     + '- 이모지 적절히 활용\n\n'
     + '【액션 사용 규칙 — 매우 중요】\n'
-    + '- "마지막 세션 어때?", "~알려줘", "~있어?", "~몇 명?", "~요약해줘" 등 정보 조회 질문은\n'
+    + '- "마지막 세션 어때?", "~알려줘", "~있어?", "~벇 명?", "~요약해줘" 등 정보 조회 질문은\n'
     + '  절대로 액션 블록을 추가하지 말고 텍스트 답변만 하세요.\n'
     + '- 액션은 오직 "~해줘(실제 작업)", "~추가해줘", "~열어줘" 처럼 명시적 작업 요청일 때만 사용\n\n'
     + '【행동 명령 (Action) — 작업 요청 시만 사용】\n'
@@ -1507,7 +1474,7 @@ function sendChat() {
     + '```action\n{"type":"액션명","...":""}\n```\n\n'
     + '지원 액션:\n'
     + '1. addSchedule: 일정 추가 (위 데이터의 [id:xxx] 사용. teacher는 위 [치료사 목록]의 정확한 이름 또는 생략 시 현재 로그인 사용자)\n'
-    + '   {"type":"addSchedule","childId":"<id>","date":"YYYY-MM-DD","startTime":"HH:MM","duration":40,"teacher":"<선생님 이름>"}\n'
+    + '   {"type":"addSchedule","childId":"<id>","date":"YYYY-MM-DD","startTime":"HH:MM","duration":40,"teacher":"<\uc120\uc0dd\ub2d8 \uc774\ub984>"}\n'
     + '2. openSessionForChild: 세션 기록 화면 열기 (명시적으로 "열어줘", "이동해줘" 요청 시만)\n'
     + '   {"type":"openSessionForChild","childId":"<id>"}\n'
     + '3. openParentReport: 부모 리포트 화면 열기\n'
@@ -1539,7 +1506,6 @@ function sendChat() {
     return res.json();
   })
   .then(function(data) {
-    // 토큰 사용량 추적
     if (data.usage) {
       var usedModel = (data.model || MODEL_HAIKU);
       recordApiUsage(usedModel, data.usage.input_tokens || 0, data.usage.output_tokens || 0);
@@ -1547,7 +1513,7 @@ function sendChat() {
     var reply = (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
     hideTypingIndicator();
     var parsed = parseAction(reply);
-    addAiMsg(parsed.displayText || '죄송해요, 다시 한번 물어봐 주세요.');
+    addAiMsg(parsed.displayText || '죄송해요, 다시 한번 물어보줘주세요.');
     if (parsed.action) {
       setTimeout(function() { executeAction(parsed.action); }, 600);
     }
@@ -1567,14 +1533,12 @@ function buildChatContext() {
   var today = new Date().toISOString().slice(0, 10);
   var lines = ['📅 오늘: ' + today];
 
-  // 현재 로그인 사용자
   if (currentUser) {
     var roleTxt = (currentUser.role === 'admin' || currentUser.role === 'superadmin') ? '관리자' : '선생님';
     lines.push('🔑 현재 로그인: ' + currentUser.name + ' (' + roleTxt + ')');
   }
   lines.push('👶 등록 아동: ' + childDB.length + '명');
 
-  // 치료사 목록 + 일정 통계 (scheduleDB에서 unique 추출 → 사용자 추가 시 자동 반영)
   var weekStart = new Date();
   var dayOfWeek = weekStart.getDay();
   weekStart.setDate(weekStart.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
@@ -1603,7 +1567,7 @@ function buildChatContext() {
     var vUsed = getVoucherUsed(c.id);
     var line  = '  - ' + c.name + ' [id:' + c.id + '] (' + c.age + ', ' + c.type + ') | 세션 ' + ss.length + '회';
     if (last)              line += ' | 최근 ' + last.date;
-    if (c.voucherLimit > 0) line += ' | 바우처 ' + vUsed + '/' + c.voucherLimit;
+    if (c.voucherLimit > 0) line += ' | 바우쳐 ' + vUsed + '/' + c.voucherLimit;
     if (last && last.goals && last.goals.length > 0) {
       var g = last.goals.filter(function(g) { return g.score !== null; })
         .map(function(g) { return g.name + ' ' + g.score + '%'; }).join(', ');
