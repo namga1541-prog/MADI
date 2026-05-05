@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/d4817a62-90f6-4a0f-b537-68e5b6293c8d">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/edea8d2e-1546-4282-8f98-47510e449162">
+  <link rel="manifest" id="pwaManifest" href="blob:null/52ed8eb1-9713-4a53-b4b3-9facb31bfefd">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/e3526c4f-6783-4622-898f-e91123e93318">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -1002,7 +1002,7 @@
     <!-- 관리자 전용 배포 버튼 (로컬 파일에서만 표시) -->
     <button id="headerDeployBtn" onclick="deployToGitHub()" style="background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.3); color: rgb(255, 255, 255); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; min-height: 32px; touch-action: manipulation;" title="index.html 배포" disabled="">⏳ 배포 중...</button>
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">21:21</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">21:27</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -1027,8 +1027,8 @@
   <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
   <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
   <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
-  <button class="tab-btn" id="tabBtn4" onclick="goToAdmin()"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
-  <button class="tab-btn" id="tabBtn5" onclick="goToAdmin()"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
+  <button class="tab-btn" id="tabBtn4" onclick="goToAdmin('service')"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
+  <button class="tab-btn" id="tabBtn5" onclick="goToAdmin('settings')"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
 </div>
 
 <!-- 공지 배너 (탭바 아래 슬라이딩) -->
@@ -1607,7 +1607,7 @@
       <button class="btn btn-primary" onclick="saveNotice()" style="margin-bottom:14px;">📢 공지 저장</button>
       <!-- 목록 -->
       <div style="border-top:1px solid var(--border);padding-top:12px;">
-        <div id="noticeList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
+        <div id="noticeList"><div class="notice-card important"><span class="notice-badge imp">🚨 긴급</span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">늘무 없는 기겅이 개추요</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">ㅎㅎ;;;</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 안창인</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">내 아들은 드록바가 아닙니다</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">모하메드 살라입니다..</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 남그</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">나는 세계 최고 서규민머리다.</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">나는 세계 최고 서규민머리다.</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 관리자</div></div><div class="notice-card "><span class="notice-badge info">📌 일반</span><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">ㄱㄱㄱ</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">ㄱㄱㄱ</div><div style="font-size:11px;color:var(--text2);margin-top:8px;">2026-05-04 · 남그</div></div></div>
       </div>
     </div>
 
@@ -3340,16 +3340,14 @@ function removeStaffAccount(id, name) {
 }
 
 // ── 관리자 페이지 이동 (TASK-008: admin.html 분리) ──
-function goToAdmin() {
+function goToAdmin(tab) {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
     showToast('⚠️ 관리자만 접근할 수 있어요');
     return;
   }
   if (currentUser.role === 'superadmin') {
-    // 대장님 전용 → admin.html
-    window.location.href = 'admin.html';
+    window.location.href = 'admin.html?tab=' + (tab || 'service');
   } else {
-    // 센터장 → index.html 내 관리자 패널
     switchTabDirect(5);
   }
 }
@@ -3526,10 +3524,8 @@ function switchTab(idx) {
     populateChildSelects();
     switchPortfolioTab(currentPortfolioTab || 'trend');
   }
-  if (idx === 4 || idx === 5) {
-    goToAdmin();
-    return;
-  }
+  if (idx === 4) { goToAdmin('service');  return; }
+  if (idx === 5) { goToAdmin('settings'); return; }
 }
 
 // ─── 보고서 서브탭 ───
