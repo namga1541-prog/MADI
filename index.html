@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/d2466e1b-18ab-4d6a-80ee-7e81b6ecf617">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/216b335f-0d75-407c-bb67-70a58a4ee336">
+  <link rel="manifest" id="pwaManifest" href="blob:null/8860ff78-f9b7-4b1e-8bc8-baa9663f6db0">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/d8d18743-6793-407b-bf59-b839519dcc81">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -997,7 +997,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">18:25</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">18:30</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -1069,21 +1069,6 @@
       <button class="dash-q-btn" onclick="switchTab(2)">📊 보고서</button>
       <button class="dash-q-btn" onclick="switchTab(3)">📁 포트폴리오</button>
       <button class="dash-q-btn" onclick="goToAdmin()">📢 공지</button>
-    </div>
-
-    <!-- 관리자 전용: index.html 배포 카드 -->
-    <div id="homeDeployCard" style="display: block; margin-top: 10px;">
-      <div class="card" style="border:2px solid #24292e;margin-bottom:0;">
-        <div class="card-title">
-          <div class="card-title-left">🚀 앱 배포 (index.html)</div>
-          <span id="homeDeployStatus" style="font-size:11px;color:var(--text2);"></span>
-        </div>
-        <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
-          버튼 한 번으로 <strong>index.html + sw.js</strong>를 GitHub에 업로드합니다.
-        </p>
-        <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployToGitHub()" id="homeDeployBtn" disabled="">⏳ 배포 중...</button>
-        <div id="homeDeployResult" style="margin-top:8px;font-size:13px;"><div style="font-size:12px;color:var(--text2);">📄 index.html 업로드 중...</div></div>
-      </div>
     </div>
   </div>
 </div>
@@ -1592,7 +1577,7 @@
 <div class="tab-panel" id="panelService"><!-- admin.html로 이동됨 (TASK-008) --></div>
 <div class="tab-panel" id="panel8"><!-- admin.html로 이동됨 (TASK-008) --></div>
 
-<div class="toast" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
+<div class="toast show" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
 
 <script>
 // ─────── 상수 ───────
@@ -3250,19 +3235,24 @@ function goToAdmin() {
     showToast('⚠️ 관리자만 접근할 수 있어요');
     return;
   }
+  // index.html 최신 내용을 localStorage에 저장 → admin.html에서 배포에 사용
+  try {
+    localStorage.setItem('madi_index_snapshot', document.documentElement.outerHTML);
+    if (typeof SW_CODE !== 'undefined') {
+      localStorage.setItem('madi_sw_snapshot', SW_CODE);
+    }
+  } catch(e) { /* 용량 초과 시 무시 */ }
   window.location.href = 'admin.html';
 }
 
 function applyRoleUI() {
   var isAdmin = currentUser && currentUser.role === 'admin';
-  var apikeyBar    = document.getElementById('apikeyBar');
-  var centerCard   = document.getElementById('centerApiKeyCard');
-  var mgmtCard     = document.getElementById('centerMgmtCard');
-  var deployCard   = document.getElementById('homeDeployCard');
+  var apikeyBar  = document.getElementById('apikeyBar');
+  var centerCard = document.getElementById('centerApiKeyCard');
+  var mgmtCard   = document.getElementById('centerMgmtCard');
   if (apikeyBar)  apikeyBar.style.display  = 'none';
   if (centerCard) centerCard.style.display = isAdmin ? 'block' : 'none';
   if (mgmtCard)   mgmtCard.style.display   = isAdmin ? 'block' : 'none';
-  if (deployCard) deployCard.style.display  = isAdmin ? 'block' : 'none';
 }
 
 function getApiKeyOrAlert() {
@@ -9562,10 +9552,9 @@ function deployToGitHub() {
     token = t.trim();
   }
 
-  // 홈 카드 또는 기존 panel8 카드 중 표시된 것 사용
-  var btn    = document.getElementById('homeDeployBtn')    || document.getElementById('deployBtn');
-  var result = document.getElementById('homeDeployResult') || document.getElementById('deployResult');
-  var status = document.getElementById('homeDeployStatus') || document.getElementById('deployStatus');
+  var btn    = document.getElementById('deployBtn');
+  var result = document.getElementById('deployResult');
+  var status = document.getElementById('deployStatus');
   if (!btn || !result) return;
   btn.disabled = true;
   btn.textContent = '⏳ 배포 중...';
@@ -9574,11 +9563,9 @@ function deployToGitHub() {
   var commitTime = new Date().toLocaleString('ko-KR');
   var htmlContent = document.documentElement.outerHTML;
 
-  // index.html 먼저 배포
   deployFileToGitHub(token, GITHUB_FILE, htmlContent, '마디 앱 업데이트 — ' + commitTime)
     .then(function() {
       result.innerHTML = '<div style="font-size:12px;color:var(--text2);">📄 index.html ✅<br>⚙️ sw.js 업로드 중...</div>';
-      // sw.js 이어서 배포
       return deployFileToGitHub(token, GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
     })
     .then(function() {
@@ -9588,11 +9575,10 @@ function deployToGitHub() {
         + '✅ 배포 완료!<br>'
         + '<span style="font-size:11px;color:var(--text2);font-weight:400;">'
         + '📄 index.html + ⚙️ sw.js 모두 업로드됨<br>'
-        + '1~2분 후 <b>namga1541-prog.github.io/MADI</b> 에 반영됩니다.<br>'
-        + 'PWA 오프라인 캐싱도 완전히 활성화됩니다.'
+        + '1~2분 후 <b>namga1541-prog.github.io/MADI</b> 에 반영됩니다.'
         + '</span></div>';
       if (status) status.textContent = '최근 배포: ' + new Date().toLocaleTimeString('ko-KR');
-      showToast('🚀 GitHub 배포 완료! (index.html + sw.js)', {duration: 8000, lock: true});
+      showToast('🚀 배포 완료! (index.html + sw.js)', {duration: 8000, lock: true});
       localStorage.setItem('madi_last_deploy', new Date().toISOString());
     })
     .catch(function(e) {
@@ -9600,7 +9586,7 @@ function deployToGitHub() {
       btn.textContent = '🚀 GitHub에 지금 배포';
       if (e.message && e.message.includes('Bad credentials')) {
         localStorage.removeItem('madi_gh_token');
-        result.innerHTML = '<div style="color:#ef4444;">❌ Token 오류 — 다시 배포 버튼을 눌러 Token을 재입력해주세요.</div>';
+        result.innerHTML = '<div style="color:#ef4444;">❌ Token 오류 — 다시 눌러 Token을 재입력해주세요.</div>';
       } else {
         result.innerHTML = '<div style="color:#ef4444;">❌ 배포 실패: ' + escHtml(e.message || '알 수 없는 오류') + '</div>';
       }
