@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/6b1e2296-7edf-462b-bcb9-29587d9314a9">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/ead1b034-e1ae-4b9f-97f0-37b49613b499">
+  <link rel="manifest" id="pwaManifest" href="blob:null/917a544e-47e6-4a23-82ce-88e23cd20958">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/06870e8a-1846-4bb2-aee4-b9e340cf329d">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -992,7 +992,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">14:21</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">14:24</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -1946,7 +1946,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
+<div class="toast show" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
 
 <script>
 // ─────── 상수 ───────
@@ -2556,7 +2556,8 @@ function loadActivitiesFromSupa() {
 }
 
 // ─────── Toast ───────
-var toastTimer = null;
+var toastTimer  = null;
+var toastLocked = false; // lock 중 다른 toast 차단 (배포완료 등 중요 메시지 보호)
 // ─────── 성능 최적화: debounce + 페이징 + 옵션 캐시 ───────
 function debounce(fn, delay) {
   var timer = null;
@@ -2576,8 +2577,10 @@ var _optionsCacheKey = null;
 var _optionsCacheHtml = '';
 
 function showToast(msg, opts) {
-  var el = document.getElementById('toast');
   opts = opts || {};
+  // lock 중이면 새 toast 무시 (중요 메시지가 덮어써지는 것 방지)
+  if (toastLocked && !opts.force) return;
+  var el = document.getElementById('toast');
   if (opts.undo && typeof opts.undo === 'function') {
     el.innerHTML = '<span>' + msg + '</span> <span style="display:inline-block;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.18);border-radius:14px;color:#5eead4;font-size:12px;cursor:pointer;pointer-events:auto;" id="toastUndoBtn">↩️ 실행취소</span>';
     el.style.pointerEvents = 'auto';
@@ -2587,6 +2590,7 @@ function showToast(msg, opts) {
         e.stopPropagation();
         opts.undo();
         el.classList.remove('show');
+        toastLocked = false;
       };
     }, 0);
   } else {
@@ -2594,10 +2598,12 @@ function showToast(msg, opts) {
     el.style.pointerEvents = 'auto';
   }
   // 클릭하면 즉시 닫기
-  el.onclick = function() { el.classList.remove('show'); clearTimeout(toastTimer); };
+  el.onclick = function() { el.classList.remove('show'); clearTimeout(toastTimer); toastLocked = false; };
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { el.classList.remove('show'); }, opts.undo ? 5000 : 2500);
+  var duration = opts.duration || (opts.undo ? 5000 : 2500);
+  if (opts.lock) toastLocked = true;
+  toastTimer = setTimeout(function() { el.classList.remove('show'); toastLocked = false; }, duration);
 }
 // 탭 전환 후 돌아올 때 잔류 토스트 강제 숨김
 document.addEventListener('visibilitychange', function() {
@@ -9885,7 +9891,7 @@ function deployToGitHub() {
         + 'PWA 오프라인 캐싱도 완전히 활성화됩니다.'
         + '</span></div>';
       status.textContent = '최근 배포: ' + new Date().toLocaleTimeString('ko-KR');
-      showToast('🚀 GitHub 배포 완료! (index.html + sw.js)');
+      showToast('🚀 GitHub 배포 완료! (index.html + sw.js)', {duration: 8000, lock: true});
       localStorage.setItem('madi_last_deploy', new Date().toISOString());
     })
     .catch(function(e) {
