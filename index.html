@@ -443,8 +443,8 @@
       /* 콘텐츠 패딩 축소 */
       .content { padding:10px 12px; }
       /* 달력 셀 높이 축소 — 모바일 스크롤 과다 방지 */
-      .month-cell { min-height:72px; font-size:11px; }
-      .month-date-num { width:20px; height:20px; font-size:12px; line-height:20px; }
+      .month-cell { min-height:60px; font-size:11px; }
+      .month-date-num { width:18px; height:18px; font-size:10px; line-height:18px; }
       /* 주간뷰 가로 스크롤 허용 */
       #weekViewWrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
       .week-grid { min-width:480px; }
@@ -480,15 +480,19 @@
     .view-toggle-btn { flex:1; padding:9px; font-size:13px; font-weight:700; border:none; background:white; color:var(--text2); cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; }
     .view-toggle-btn.active { background:var(--mint); color:white; }
     .month-header { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:2px; }
-    .month-day-label { text-align:center; font-size:13px; font-weight:700; padding:8px 0; color:var(--text2); }
+    /* ★ 수정 1: month-day-label 폰트·패딩 축소 */
+    .month-day-label { text-align:center; font-size:11px; font-weight:700; padding:4px 0; color:var(--text2); }
     .month-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-    .month-cell { min-height:140px; background:white; border-radius:6px; padding:4px; border:1px solid #f1f5f9; cursor:pointer; overflow:hidden; transition:background 0.1s; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
+    /* ★ 수정 2: month-cell 높이 140→82px, padding 4→3px */
+    .month-cell { min-height:82px; background:white; border-radius:6px; padding:3px; border:1px solid #f1f5f9; cursor:pointer; overflow:hidden; transition:background 0.1s; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
     .month-cell:hover { background:#f0fdf4; }
     .month-cell.today { border:2px solid var(--mint); }
     .month-cell.other-month { background:#fafafa; opacity:0.5; }
-    .month-date-num { font-size:13px; font-weight:700; display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border-radius:50%; margin-bottom:3px; }
+    /* ★ 수정 3: month-date-num 크기 22→19px */
+    .month-date-num { font-size:11px; font-weight:700; display:inline-block; width:19px; height:19px; line-height:19px; text-align:center; border-radius:50%; margin-bottom:1px; }
     .month-cell.today .month-date-num { background:var(--mint); color:white; }
-    .sched-tag { font-size:11px; font-weight:700; padding:3px 5px; border-radius:4px; margin-bottom:3px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.5; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
+    /* ★ 수정 4: sched-tag 폰트·패딩 축소 */
+    .sched-tag { font-size:10px; font-weight:700; padding:2px 4px; border-radius:4px; margin-bottom:2px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.4; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
     .sched-more { font-size:11px; color:var(--text2); font-weight:600; display:block; padding-left:2px; }
     .week-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
     .week-nav-btn { background:white; border:1.5px solid var(--border); border-radius:8px; padding:7px 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
@@ -692,7 +696,7 @@
         flex-direction: column; gap: 8px;
         font-size: 0;
         box-shadow: -4px 0 24px rgba(14,165,160,0.35);
-        cursor: grab;
+        cursor: pointer;
       }
       .float-btn:hover { box-shadow: -8px 0 28px rgba(14,165,160,0.5); }
       .float-btn.chat-is-open { background: linear-gradient(135deg, #334155, #1e293b); box-shadow: -4px 0 24px rgba(0,0,0,0.25); }
