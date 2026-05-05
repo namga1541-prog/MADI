@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/5d7e99e9-3fcc-4711-acb3-ce89cacc39f5">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/c09b7d07-2127-4bf8-8f34-34ca3c41ec6e">
+  <link rel="manifest" id="pwaManifest" href="blob:null/320a6639-202c-4a16-825d-015f38b7fa4f">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/18a3f466-9a2b-40e8-acc7-2ab9efff1e07">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -953,7 +953,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">13:40</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">13:43</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -973,7 +973,7 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn" id="tabBtnHome" onclick="showDashboard()"><span class="tab-ico">🏠</span><span class="tab-lbl">Home</span></button>
+  <button class="tab-btn" id="tabBtnHome" onclick="showDashboard()"><span class="tab-ico">🏠</span><span class="tab-lbl">홈</span></button>
   <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico">📅</span><span class="tab-lbl">캘린더</span></button>
   <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
   <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
@@ -1647,6 +1647,17 @@
 <div class="tab-panel active" id="panel8">
   <div class="content">
 
+    <!-- GitHub 자동 배포 (관리자 전용) — 맨 위 고정 -->
+    <div class="card" id="deployCard" style="display: block; border: 2px solid rgb(36, 41, 46);">
+      <div class="card-title">
+        <div class="card-title-left">🚀 GitHub 자동 배포</div>
+        <span id="deployStatus" style="font-size:11px;color:var(--text2);"></span>
+      </div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">버튼 한 번으로 <strong>index.html + sw.js</strong> 두 파일을 GitHub에 자동 업로드합니다. 1~2분 후 반영되며 <strong>PWA 오프라인 캐싱</strong>도 완전히 활성화됩니다.</p>
+      <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployToGitHub()" id="deployBtn" disabled="">⏳ 배포 중...</button>
+      <div id="deployResult" style="margin-top:8px;font-size:13px;"><div style="font-size:12px;color:var(--text2);">📄 index.html 업로드 중...</div></div>
+    </div>
+
     <!-- 공지사항 관리 (관리자 탭으로 통합) -->
     <div class="card" id="noticeWriteCard" style="display: block; border: 2px solid var(--amber);">
       <div class="card-title">
@@ -1877,17 +1888,6 @@
       <div id="debugInfoBody"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">📡 API 사용량</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;"><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--mint);">1회</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">총 호출</div></div><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--purple);">18,049</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">총 토큰</div></div><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--green);">$0.02</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">예상 비용</div></div><div style="flex:1;min-width:80px;background:#f8fafc;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--green);">₩21</div><div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:2px;">원화 환산</div></div></div><div style="margin-bottom:12px;"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8fafc;border-radius:7px;margin-bottom:4px;font-size:12px;"><span style="font-weight:700;">Haiku</span><span style="color:var(--text2);">1회 · 입력 17,873 / 출력 176</span></div></div><div style="display:flex;gap:6px;margin-bottom:14px;"><button class="btn-ghost" style="flex:1;font-size:12px;" onclick="resetApiUsage()">🔄 사용량 초기화</button></div><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;">🐞 에러 로그 (최근 0건)</div><div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">기록된 에러가 없습니다.</div></div>
     </div>
 
-    <!-- GitHub 자동 배포 (관리자 전용) -->
-    <div class="card" id="deployCard" style="display: block; border: 2px solid rgb(36, 41, 46);">
-      <div class="card-title">
-        <div class="card-title-left">🚀 GitHub 자동 배포</div>
-        <span id="deployStatus" style="font-size:11px;color:var(--text2);"></span>
-      </div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">버튼 한 번으로 <strong>index.html + sw.js</strong> 두 파일을 GitHub에 자동 업로드합니다. 1~2분 후 반영되며 <strong>PWA 오프라인 캐싱</strong>도 완전히 활성화됩니다.</p>
-      <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployToGitHub()" id="deployBtn" disabled="">⏳ 배포 중...</button>
-      <div id="deployResult" style="margin-top:8px;font-size:13px;"><div style="font-size:12px;color:var(--text2);">📄 index.html 업로드 중...</div></div>
-    </div>
-
     <!-- 데이터 이전 카드 -->
     <div class="card">
       <div class="card-title">
@@ -1909,7 +1909,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
+<div class="toast show" id="toast" style="pointer-events: auto;">✅ 데이터 로드 완료 (아동 467명)</div>
 
 <script>
 // ─────── 상수 ───────
