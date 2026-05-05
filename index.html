@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/6c596bb3-1e49-4c30-a4dc-c7fa16c9d4a2">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/a483e5fe-2380-4d85-ac8d-171281aa11ff">
+  <link rel="manifest" id="pwaManifest" href="blob:null/3476346e-9b9d-4fe2-b033-4844b951c534">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/d9f4d914-3bb1-4237-b9a4-9ede0cb4373b">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -56,7 +56,7 @@
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
     body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100%; }
 
-    .header { background:linear-gradient(135deg,#4f46e5 0%,#0ea5a0 100%); padding:calc(16px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-right, 0px)) 12px calc(20px + env(safe-area-inset-left, 0px)); display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 16px rgba(79,70,229,0.3); }
+    .header { background:linear-gradient(135deg,#3b82f6 0%,#0ea5a0 100%); padding:calc(16px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-right, 0px)) 12px calc(20px + env(safe-area-inset-left, 0px)); display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 16px rgba(59,130,246,0.3); }
     .logo { display:flex; align-items:center; gap:10px; }
     .logo-icon { width:38px; height:38px; background:rgba(255,255,255,0.2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:19px; border:1.5px solid rgba(255,255,255,0.3); backdrop-filter:blur(4px); }
     .logo-text { color:white; }
@@ -92,10 +92,10 @@
       .sidebar.collapsed .sidebar-item:hover::after {
         content: attr(data-tooltip);
         position:absolute; left:calc(100% + 8px); top:50%; transform:translateY(-50%);
-        background:#4f46e5; color:white; font-size:12px; font-weight:500;
+        background:#2563eb; color:white; font-size:12px; font-weight:500;
         padding:5px 10px; border-radius:7px; white-space:nowrap;
         pointer-events:none; z-index:999;
-        box-shadow:0 2px 10px rgba(79,70,229,0.3);
+        box-shadow:0 2px 10px rgba(37,99,235,0.3);
       }
       .sidebar-nav { display:flex; flex-direction:column; gap:2px; padding:12px 8px; flex:1; }
       .sidebar-item {
@@ -107,8 +107,8 @@
         border:none; background:none; text-align:left; width:100%;
       }
       .sidebar-item:hover { background:var(--bg); color:var(--text); }
-      .sidebar-item.active { background:#ede9fe; color:#4f46e5; }
-      body.dark-mode .sidebar-item.active { background:rgba(79,70,229,0.2); color:#a5b4fc; }
+      .sidebar-item.active { background:#dbeafe; color:#2563eb; }
+      body.dark-mode .sidebar-item.active { background:rgba(59,130,246,0.2); color:#93c5fd; }
       .sidebar-item .s-ico { font-size:16px; width:22px; text-align:center; flex-shrink:0; }
       .sidebar-item .s-lbl { font-size:13px; transition:opacity 0.15s; }
       .sidebar-divider { height:1px; background:var(--border); margin:6px 12px; }
@@ -1079,7 +1079,7 @@
     <!-- 관리자 전용 배포 버튼 (로컬 파일에서만 표시) -->
     <button id="headerDeployBtn" onclick="deployToGitHub()" style="background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.3); color: rgb(255, 255, 255); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; min-height: 32px; touch-action: manipulation;" title="index.html 배포" disabled="">⏳ 배포 중...</button>
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">22:20</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">22:26</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" style="display: flex;">
