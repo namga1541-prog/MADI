@@ -299,9 +299,10 @@ function renderMonthGrid() {
 }
 
 function renderWeekGrid() {
-  var today = new Date().toISOString().slice(0, 10);
-  var dateStr = schedCurrentDate.toISOString().slice(0, 10);
+  var todayD = new Date();
+  var today = todayD.getFullYear() + '-' + String(todayD.getMonth()+1).padStart(2,'0') + '-' + String(todayD.getDate()).padStart(2,'0');
   var d = schedCurrentDate;
+  var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   var dayNames = ['일','월','화','수','목','금','토'];
   var dayName = dayNames[d.getDay()];
 
@@ -320,7 +321,7 @@ function renderWeekGrid() {
   var html = '<div class="day-col" style="width:100%;min-width:0;">'
     + '<div class="day-header' + (dateStr===today?' today':'') + '">'
     + '<span class="day-name">' + dayName + '</span>'
-    + '<span class="day-num">' + dateStr.slice(8) + '</span>'
+    + '<span class="day-num">' + d.getDate() + '</span>'
     + '</div><div class="day-slots">';
 
   dayScheds.forEach(function(s) {
