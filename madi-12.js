@@ -1076,13 +1076,11 @@ function initFloatBtnDrag() {
   document.addEventListener('touchend',   onEnd);
 
   // 드래그 중에는 toggleChat 차단
-  var origOnClick = btn.onclick;
-  btn.onclick = function(e) {
+  btn.removeAttribute('onclick'); // 먼저 인라인 onclick 제거
+  btn.addEventListener('click', function(e) {
     if (btn.dataset.dragged) return;
-    if (origOnClick) origOnClick.call(btn, e);
-    else toggleChat();
-  };
-  btn.removeAttribute('onclick'); // 인라인 onclick 제거 후 addEventListener로만 처리
+    toggleChat();
+  });
 }
 
 function getChatGreeting() {
