@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="마디">
-  <link rel="manifest" id="pwaManifest" href="blob:null/845a432f-9d18-4b46-9fc7-ad467f6c0ccb">
-  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/1a6f1b8e-aed6-4f77-b9ac-b5321ffbecb5">
+  <link rel="manifest" id="pwaManifest" href="blob:null/4f725cca-fe37-4b45-9238-3f7263bb3b4a">
+  <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/304f78b8-dfe6-4189-b9d1-837cd45c1ac3">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -997,7 +997,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">14:50</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">14:57</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
     </div>
     <div class="header-user" id="headerUser" onclick="showLogoutMenu()" style="display: flex;">
@@ -5274,9 +5274,6 @@ function getPageNumbers(current, total) {
 function goToChildPage(page) {
   _childCurrentPage = page;
   renderChildGrid();
-  // 페이지 변경 시 아동 목록 상단으로 스크롤
-  var anchor = document.getElementById('childGrid') || document.getElementById('panel0');
-  if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // 검색 입력: 즉시 페이지 1로 리셋 후 debounce로 렌더
@@ -5450,6 +5447,14 @@ function confirmBulkClosedDate() {
     var etcVal = etc ? etc.value.trim() : '';
     reason = etcVal || '기타';
   }
+
+  // 최종 확인창
+  var names = ids.map(function(id) {
+    var c = childDB.find(function(c){ return c.id === id; });
+    return c ? c.name : '?';
+  });
+  var preview = names.slice(0, 3).join(', ') + (names.length > 3 ? ' 외 ' + (names.length - 3) + '명' : '');
+  if (!confirm(ids.length + '명을 종결 처리합니다.\n\n' + preview + '\n\n종결일: ' + date + '\n사유: ' + reason + '\n\n되돌릴 수 없습니다. 계속하시겠습니까?')) return;
 
   closeBulkClosedDateModal();
   applyBulkStatus(ids, '종결', date, reason);
