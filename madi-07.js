@@ -149,7 +149,7 @@ function renderSessionList() {
     selChildName = selChildObj ? selChildObj.name : '';
   }
   var filtered = selChild
-    ? sessionDB.filter(function(s){ return s.childId === selChild; })
+    ? sessionDB.filter(function(s){ return String(s.childId) === String(selChild); })
     : sessionDB;
   var recent = filtered.slice().reverse().slice(0, 20);
 
