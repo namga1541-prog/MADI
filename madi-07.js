@@ -141,33 +141,12 @@ function suggestHomeActivities(sessionId) {
 // ─────── 세션 목록 ───────
 function renderSessionList() {
   var c = document.getElementById('sessionList');
-  var selChildEl = document.getElementById('sessionChild');
-  var selChild = parseInt(selChildEl && selChildEl.value) || 0;
-  var selChildName = '';
-  if (selChild) {
-    var selChildObj = childDB.find(function(ch){ return ch.id === selChild; });
-    selChildName = selChildObj ? selChildObj.name : '';
-  }
-  var filtered = selChild
-    ? sessionDB.filter(function(s){ return String(s.childId) === String(selChild); })
-    : sessionDB;
-  var recent = filtered.slice().reverse().slice(0, 20);
-
-  // 상단 헤더: 선택 아동명 + 전체보기 버튼
-  var headerHtml = '';
-  if (selChild && selChildName) {
-    headerHtml = '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;margin-bottom:10px;background:var(--mint2,#f0fdfa);border-radius:10px;border:1px solid var(--mint,#0ea5a0);">'
-      + '<span style="font-size:14px;font-weight:700;color:var(--mint,#0ea5a0);">👤 ' + escHtml(selChildName) + ' 세션 기록</span>'
-      + '<button onclick="if(document.getElementById(\'sessionChild\')){document.getElementById(\'sessionChild\').value=\'\';}renderSessionList();renderUnwrittenAlert();" '
-      + 'style="font-size:11px;padding:5px 12px;background:white;border:1px solid var(--mint,#0ea5a0);color:var(--mint,#0ea5a0);border-radius:6px;cursor:pointer;">전체 보기</button>'
-      + '</div>';
-  }
-
+  var recent = sessionDB.slice().reverse().slice(0, 20);
   if (recent.length === 0) {
-    c.innerHTML = headerHtml + '<div class="empty"><div class="empty-icon">📋</div><p>아직 기록된 세션이 없습니다.</p></div>';
+    c.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>아직 기록된 세션이 없습니다.</p></div>';
     return;
   }
-  var html = headerHtml;
+  var html = '';
   recent.forEach(function(s) {
     var ch = childDB.find(function(c) { return c.id === s.childId; });
     var cName = ch ? ch.name : '알수없음';
@@ -616,6 +595,9 @@ function detectStagnation() {
     + 'actions는 정체가 있을 때만 최대 3개, 없으면 빈 배열. urgency는 정체 심각도에 따라 설정.';
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n\n세션별 달성도:\n' + sessionLog;
 
+  var stagnBtn = document.querySelector('[onclick*="detectStagnation"]');
+  if (stagnBtn) { if (stagnBtn.dataset.busy === '1') return; stagnBtn.dataset.busy = '1'; stagnBtn.disabled = true; }
+
   callClaude(apiKey, SYSTEM, USER, 1800, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
@@ -623,6 +605,9 @@ function detectStagnation() {
     })
     .catch(function(err) {
       resultEl.innerHTML = '<div class="stagnation-card"><div class="stagnation-text">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
+    })
+    .finally(function() {
+      if (stagnBtn) { stagnBtn.dataset.busy = ''; stagnBtn.disabled = false; }
     });
 }
 
