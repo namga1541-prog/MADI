@@ -241,20 +241,30 @@ function openChildDetail(id) {
 }
 
 function goToSession(id) {
-  switchTab(2); // 내부에서 populateChildSelects 호출됨
-  // sel.value 설정은 모든 동기 렌더링 완료 후 실행 보장
+  // sessionChild 값을 탭 전환 전에 먼저 설정 (renderSessionList 필터 적용을 위해)
+  var sel = document.getElementById('sessionChild');
+  if (sel) {
+    sel.value = id;
+    if (sel._ssInp) {
+      var ch0 = childDB.find(function(c){ return c.id === id; });
+      sel._ssInp.value = ch0 ? ch0.name + ' (' + ch0.age + ')' : '';
+    }
+  }
+  switchTab(2);
   setTimeout(function() {
-    var sel = document.getElementById('sessionChild');
-    if (sel) {
-      sel.value = id;
-      // makeSearchable 래퍼 input도 업데이트
-      if (sel._ssInp) {
+    var sel2 = document.getElementById('sessionChild');
+    if (sel2) {
+      sel2.value = id;
+      if (sel2._ssInp) {
         var ch = childDB.find(function(c){ return c.id === id; });
-        sel._ssInp.value = ch ? ch.name + ' (' + ch.age + ')' : '';
+        sel2._ssInp.value = ch ? ch.name + ' (' + ch.age + ')' : '';
       }
       loadGoalRows(id);
     }
-  }, 0);
+    // 아동 선택 후 세션 목록 + 미작성 알림 재렌더링
+    if (typeof renderSessionList === 'function') renderSessionList();
+    if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert();
+  }, 100);
 }
 
 // ─────── 아동 편집 모달 ───────
