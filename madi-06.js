@@ -241,18 +241,20 @@ function openChildDetail(id) {
 }
 
 function goToSession(id) {
-  switchTab(2);
-  populateChildSelects();
-  var sel = document.getElementById('sessionChild');
-  if (sel) {
-    sel.value = id;
-    // makeSearchable 래퍼 input도 업데이트
-    if (sel._ssInp) {
-      var ch = childDB.find(function(c){ return c.id === id; });
-      sel._ssInp.value = ch ? ch.name + ' (' + ch.age + ')' : '';
+  switchTab(2); // 내부에서 populateChildSelects 호출됨
+  // sel.value 설정은 모든 동기 렌더링 완료 후 실행 보장
+  setTimeout(function() {
+    var sel = document.getElementById('sessionChild');
+    if (sel) {
+      sel.value = id;
+      // makeSearchable 래퍼 input도 업데이트
+      if (sel._ssInp) {
+        var ch = childDB.find(function(c){ return c.id === id; });
+        sel._ssInp.value = ch ? ch.name + ' (' + ch.age + ')' : '';
+      }
+      loadGoalRows(id);
     }
-    loadGoalRows(id);
-  }
+  }, 0);
 }
 
 // ─────── 아동 편집 모달 ───────
@@ -541,8 +543,12 @@ function updateSSDrop(sel) {
 function makeSearchable(id) {
   var sel = document.getElementById(id);
   if (!sel) return;
-  // 이미 wrap이 DOM에 연결된 경우 → 중복 생성 차단, 내용만 갱신
-  if (sel._ssWrap && sel._ssWrap.isConnected) {
+
+  // select가 현재 ss-wrap 안에 있는지 확인
+  var inWrap = sel.parentNode && sel.parentNode.classList && sel.parentNode.classList.contains('ss-wrap');
+
+  // 정상 상태: JS 참조가 있고 실제 DOM의 wrap과 일치 → 내용만 갱신
+  if (sel._ssWrap && sel._ssWrap.isConnected && inWrap && sel.parentNode === sel._ssWrap) {
     updateSSDrop(sel);
     var cur = sel.options[sel.selectedIndex];
     if (cur && cur.value && sel._ssInp) sel._ssInp.value = cur.textContent.trim();
@@ -550,11 +556,31 @@ function makeSearchable(id) {
     if (id === 'sessionChild' && sel._ssInp) sel._ssInp.placeholder = '아동 검색...';
     return;
   }
-  // 이미 wrap이 있지만 DOM에서 분리된(stale) 경우 → 제거 후 재생성
-  if (sel._ssWrap && !sel._ssWrap.isConnected) {
+
+  // JS 참조 정리
+  if (sel._ssWrap) {
+    if (sel._ssWrap.isConnected && sel._ssWrap.parentNode) {
+      sel._ssWrap.parentNode.removeChild(sel._ssWrap);
+    }
     sel._ssWrap = null; sel._ssInp = null;
     sel._ssDrop = null; sel._ssArrow = null;
   }
+
+  // select를 모든 ss-wrap 계층 밖으로 꺼내기 (중첩된 경우 반복 처리)
+  while (sel.parentNode && sel.parentNode.classList && sel.parentNode.classList.contains('ss-wrap')) {
+    var oldWrap = sel.parentNode;
+    oldWrap.parentNode.insertBefore(sel, oldWrap);
+    oldWrap.parentNode.removeChild(oldWrap);
+  }
+
+  // 형제로 남아있는 고아 ss-wrap도 제거
+  if (sel.parentNode) {
+    var orphans = sel.parentNode.querySelectorAll('.ss-wrap');
+    Array.prototype.forEach.call(orphans, function(ow) {
+      ow.parentNode && ow.parentNode.removeChild(ow);
+    });
+  }
+
   if (!sel._ssWrap) {
     var wrap = document.createElement('div');
     wrap.className = 'ss-wrap';
@@ -635,8 +661,8 @@ function populateChildSelects() {
       ? '<option value="">아동을 먼저 등록해주세요</option>'
       : (needsEmpty.indexOf(id) > -1 ? '<option value="">아동 검색...</option>' : '')
         + _optionsCacheHtml;
-    // needsEmpty 목록은 항상 빈값 유지 (이전 선택값 복원 안 함)
-    if (cur && needsEmpty.indexOf(id) === -1) el.value = cur;
+    // 이전 선택값 복원
+    if (cur) el.value = cur;
   });
   var sc = document.getElementById('sessionChild');
   if (sc) {

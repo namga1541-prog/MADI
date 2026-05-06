@@ -347,16 +347,23 @@ function deleteChild(id) {
   if (!c) return;
   if (!confirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?')) return;
   // Supabase 삭제
-  supaFetch('madi_children?id=eq.' + id, 'DELETE');
+  supaFetch('madi_children?id=eq.' + id, 'DELETE').catch(function(){});
   var sessIds = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
-  if (sessIds.length > 0) supaFetch('madi_sessions?id=in.(' + sessIds.join(',') + ')', 'DELETE');
+  if (sessIds.length > 0) supaFetch('madi_sessions?id=in.(' + sessIds.join(',') + ')', 'DELETE').catch(function(){});
   var schedIds = scheduleDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
-  if (schedIds.length > 0) supaFetch('madi_schedules?id=in.(' + schedIds.join(',') + ')', 'DELETE');
+  if (schedIds.length > 0) supaFetch('madi_schedules?id=in.(' + schedIds.join(',') + ')', 'DELETE').catch(function(){});
+  var iepIds = (typeof iepDB !== 'undefined' ? iepDB : []).filter(function(r){ return r.childId === id; }).map(function(r){ return r.id; });
+  if (iepIds.length > 0) supaFetch('madi_iep_history?id=in.(' + iepIds.join(',') + ')', 'DELETE').catch(function(){});
+  var assIds = assessmentDB.filter(function(a){ return a.childId === id; }).map(function(a){ return a.id; });
+  if (assIds.length > 0) supaFetch('madi_assessments?id=in.(' + assIds.join(',') + ')', 'DELETE').catch(function(){});
   // 로컬 삭제
-  childDB    = childDB.filter(function(c) { return c.id !== id; });
-  sessionDB  = sessionDB.filter(function(s) { return s.childId !== id; });
-  scheduleDB = scheduleDB.filter(function(s) { return s.childId !== id; });
-  saveChildren(); saveSessions(); saveSchedule();
+  childDB      = childDB.filter(function(c) { return c.id !== id; });
+  sessionDB    = sessionDB.filter(function(s) { return s.childId !== id; });
+  scheduleDB   = scheduleDB.filter(function(s) { return s.childId !== id; });
+  assessmentDB = assessmentDB.filter(function(a) { return a.childId !== id; });
+  if (typeof iepDB !== 'undefined') iepDB = iepDB.filter(function(r){ return r.childId !== id; });
+  saveChildren(); saveSessions(); saveSchedule(); saveAssess();
+  if (typeof saveIEP === 'function') saveIEP();
   renderChildGrid();
   showToast('🗑️ 삭제 완료 (세션·일정 포함)');
 }

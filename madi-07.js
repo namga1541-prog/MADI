@@ -28,6 +28,7 @@ function saveSession(aiNote) {
 }
 
 function saveSessionAI() {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   var apiKey = getApiKeyOrAlert();
   if (!apiKey) return;
   var childId = parseInt(document.getElementById('sessionChild').value);
@@ -216,6 +217,9 @@ function editSessionDate(id) {
     if (newDate !== null) showToast('❌ 날짜 형식을 확인해주세요 (예: 2026-04-29)');
     return;
   }
+  if (isNaN(new Date(newDate).getTime())) {
+    showToast('❌ 유효하지 않은 날짜입니다'); return;
+  }
   s.date = newDate;
   saveSessions();
   renderSessionList();
@@ -266,7 +270,7 @@ function deleteSession(id) {
     '삭제된 세션은 복구할 수 없습니다.\n' + (backup.date || '') + ' 세션 기록이 삭제됩니다.',
     '세션삭제확인',
     function() {
-      supaFetch('madi_sessions?id=eq.' + id, 'DELETE');
+      supaFetch('madi_sessions?id=eq.' + id, 'DELETE').catch(function(){});
       sessionDB = sessionDB.filter(function(s) { return s.id !== id; });
       saveSessions();
       renderSessionList();

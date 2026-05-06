@@ -627,7 +627,7 @@ function renderAssessmentList() {
 
 function deleteAssessment(id) {
   if (!confirm('이 검사 결과를 삭제할까요?')) return;
-  supaFetch('madi_assessments?id=eq.' + id, 'DELETE');
+  supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(){});
   assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
   saveAssess();
   renderAssessmentList();
@@ -635,6 +635,7 @@ function deleteAssessment(id) {
 }
 
 function generateAssessReport() {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   var apiKey  = getApiKeyOrAlert();
   if (!apiKey) return;
   var childId = parseInt(document.getElementById('assessChild').value);
@@ -747,6 +748,7 @@ function generateAssessReport() {
 
 // ─────── 부모 교육 자료 ───────
 function generateParentEdu() {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   var apiKey  = getApiKeyOrAlert();
   if (!apiKey) return;
   var childId = parseInt(document.getElementById('eduChild').value);

@@ -107,6 +107,9 @@ function setSchedView(v) {
   schedView = v;
   document.getElementById('viewBtnMonth').classList[v==='month'?'add':'remove']('active');
   document.getElementById('viewBtnWeek').classList[v==='week'?'add':'remove']('active');
+  // 탭 버튼 텍스트 고정
+  var wBtn = document.getElementById('viewBtnWeek');
+  if (wBtn && wBtn.textContent.indexOf('일일') < 0) wBtn.textContent = '일일';
   document.getElementById('monthViewWrap').style.display = v==='month' ? 'block' : 'none';
   document.getElementById('weekViewWrap').style.display  = v==='week'  ? 'block' : 'none';
   renderSchedView();
@@ -184,7 +187,7 @@ function openDayPopup(dateStr) {
     dayScheds.forEach(function(s) {
       var child = childDB.find(function(c){ return c.id === s.childId; });
       var color = s.teacher ? getTeacherColor(s.teacher) : (child ? child.color : '#94a3b8');
-      var time  = s.startTime ? s.startTime.slice(0,5) + (s.endTime ? ' ~ ' + s.endTime.slice(0,5) : '') : '시간 미정';
+      var time  = (s.startTime||s.time) ? (s.startTime||s.time).slice(0,5) + (s.endTime ? ' ~ ' + s.endTime.slice(0,5) : '') : '시간 미정';
       listHtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;cursor:pointer;" onclick="openEditSchedModal(' + s.id + ')">'
         + '<div style="width:4px;height:44px;background:' + color + ';border-radius:4px;flex-shrink:0;"></div>'
         + '<div style="flex:1;">'
@@ -232,6 +235,8 @@ function loadTeacherList(callback) {
 }
 
 function renderSchedView() {
+  var wBtn = document.getElementById('viewBtnWeek');
+  if (wBtn) wBtn.textContent = '일일';
   if (schedView === 'month') renderMonthGrid();
   else renderWeekGrid();
 }
@@ -251,17 +256,20 @@ function renderMonthGrid() {
   var firstDay = new Date(year, month, 1).getDay();
   var lastDate = new Date(year, month + 1, 0).getDate();
   var cells = [];
+  function toLocal(dt) {
+    return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+  }
   for (var i = 0; i < firstDay; i++) {
     var pd = new Date(year, month, -(firstDay - i - 1));
-    cells.push({ date: pd.toISOString().slice(0,10), other: true });
+    cells.push({ date: toLocal(pd), other: true });
   }
   for (var d = 1; d <= lastDate; d++) {
     var dt = new Date(year, month, d);
-    cells.push({ date: dt.toISOString().slice(0,10), other: false });
+    cells.push({ date: toLocal(dt), other: false });
   }
   while (cells.length % 7 !== 0) {
     var nd = new Date(year, month + 1, cells.length - firstDay - lastDate + 1);
-    cells.push({ date: nd.toISOString().slice(0,10), other: true });
+    cells.push({ date: toLocal(nd), other: true });
   }
   // 선생님 필터 렌더링
   renderTeacherFilter();
@@ -284,11 +292,13 @@ function renderMonthGrid() {
     var hiddenByFilter = allScheds.length - dayScheds.length;
     shown.forEach(function(s) {
       var child = childDB.find(function(c) { return c.id === s.childId; });
-      var color = s.teacher ? getTeacherColor(s.teacher) : (child ? child.color : '#64748b');
-      var lbl   = (s.startTime ? s.startTime.slice(0,5)+' ' : '') + (child ? child.name : '?');
-      if (s.teacher) lbl += ' (' + s.teacher + ')';
-      html += '<span class="sched-tag" style="background:' + color + '22;color:' + color + ';border-left:3px solid ' + color + ';"'
-        + ' onclick="event.stopPropagation();openEditSchedModal(' + s.id + ')">' + escHtml(lbl) + '</span>';
+      var therapist = s.therapist || s.teacher || '';
+      var color = therapist ? getTeacherColor(therapist) : (child ? child.color : '#64748b');
+      var lbl = ((s.startTime||s.time) ? (s.startTime||s.time).slice(0,5)+' ' : '');
+      if (therapist) lbl += therapist;
+      if (child) lbl += '(' + child.name + ')';
+      html += '<span class="sched-tag" style="background:' + color + '33;color:' + color + ';border-left:3px solid ' + color + ';font-weight:600;"'
+        + ' onclick="event.stopPropagation();switchToDay(\'' + cell.date + '\')">' + escHtml(lbl) + '</span>';
     });
     if (extra > 0) html += '<span class="sched-more">+' + extra + '개 더</span>';
     if (hiddenByFilter > 0) html += '<span class="sched-more" style="color:#94a3b8;">외 ' + hiddenByFilter + '건 숨김</span>';
@@ -309,39 +319,106 @@ function renderWeekGrid() {
   document.getElementById('schedNavLabel').textContent =
     (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dayName + ')';
 
-  // 선생님 필터 렌더링
   renderTeacherFilter();
 
   var allScheds = scheduleDB.filter(function(s) { return s.date === dateStr; })
-    .sort(function(a, b) { return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
+    .sort(function(a, b) {
+      var ta = a.startTime || a.time || '';
+      var tb = b.startTime || b.time || '';
+      return ta < tb ? -1 : ta > tb ? 1 : 0;
+    });
 
   var dayScheds = _schedTeacherFilter === '전체' ? allScheds
-    : allScheds.filter(function(s){ return s.teacher === _schedTeacherFilter; });
+    : allScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
 
-  var html = '<div class="day-col" style="width:100%;min-width:0;">'
-    + '<div class="day-header' + (dateStr===today?' today':'') + '">'
-    + '<span class="day-name">' + dayName + '</span>'
-    + '<span class="day-num">' + d.getDate() + '</span>'
-    + '</div><div class="day-slots">';
-
-  dayScheds.forEach(function(s) {
-    var child  = childDB.find(function(c) { return c.id === s.childId; });
-    var color  = s.teacher ? getTeacherColor(s.teacher) : (child ? child.color : '#94a3b8');
-    html += '<div class="sched-block" style="background:' + color + '22;border-left:3px solid ' + color + ';">'
-      + (s.startTime ? '<div style="font-size:10px;opacity:0.8;">' + s.startTime.slice(0,5) + (s.endTime ? '~'+s.endTime.slice(0,5) : '') + '</div>' : '')
-      + '<div style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</div>'
-      + (s.teacher ? '<div style="font-size:10px;opacity:0.85;">👤 ' + escHtml(s.teacher) + '</div>' : '')
-      + '<div style="display:flex;gap:3px;margin-top:3px;">'
-      + '<button style="font-size:9px;padding:1px 5px;border:none;background:rgba(255,255,255,0.7);border-radius:4px;cursor:pointer;font-family:inherit;touch-action:manipulation;" onclick="event.stopPropagation();openEditSchedModal(' + s.id + ')">✏️</button>'
-      + '<button style="font-size:9px;padding:1px 5px;border:none;background:rgba(255,100,100,0.15);color:#dc2626;border-radius:4px;cursor:pointer;font-family:inherit;touch-action:manipulation;" onclick="event.stopPropagation();deleteSchedConfirm(' + s.id + ')">🗑️</button>'
-      + '</div></div>';
-  });
-
-  if (dayScheds.length === 0) {
-    html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:30px 0;">일정이 없습니다.</div>';
+  // weekGrid의 grid 레이아웃 해제 (테이블이 전체폭 차지하도록)
+  var wgEl = document.getElementById('weekGrid');
+  if (wgEl) {
+    wgEl.style.display = 'block';
+    wgEl.style.width = '100%';
   }
 
-  html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)">+</button></div></div>';
+  var therapists = [];
+  dayScheds.forEach(function(s) {
+    var t = s.therapist || s.teacher || '';
+    if (t && therapists.indexOf(t) < 0) therapists.push(t);
+  });
+
+  // 시간대 목록 추출
+  var groups = {};
+  var groupOrder = [];
+  dayScheds.forEach(function(s) {
+    var t = (s.startTime || s.time || '시간미정').slice(0,5);
+    if (!groups[t]) { groups[t] = []; groupOrder.push(t); }
+    groups[t].push(s);
+  });
+
+  // 설정된 세션 단위로 표준 시간대 생성 (09:00~18:40)
+  var interval = (typeof CENTER_SESSION_INTERVAL !== 'undefined') ? CENTER_SESSION_INTERVAL : 40;
+  var stdTimes = [];
+  for (var mm = 9*60; mm <= 18*60+40; mm += interval) {
+    var hh = Math.floor(mm/60);
+    var mi = mm % 60;
+    stdTimes.push(String(hh).padStart(2,'0') + ':' + String(mi).padStart(2,'0'));
+  }
+  stdTimes.forEach(function(t) {
+    if (groupOrder.indexOf(t) < 0) {
+      groupOrder.push(t);
+      groups[t] = [];
+    }
+  });
+  groupOrder.sort();
+
+  var html = '<div style="width:100%;">';
+
+  if (dayScheds.length === 0) {
+    html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">일정이 없습니다.</div>';
+  } else {
+    var tableW = Math.min(therapists.length * 140 + 50, window.innerWidth - 32);
+    html += '<table style="width:' + tableW + 'px;border-collapse:collapse;font-size:11px;table-layout:fixed;margin:0 auto;">';
+    // 컬럼 너비 균등 분배
+    var colW = Math.floor(100 / (therapists.length + 1));
+    html += '<colgroup><col style="width:44px;">';
+    therapists.forEach(function(){ html += '<col>'; });
+    html += '</colgroup>';
+    // 헤더: 시간 + 치료사 컬럼
+    html += '<thead><tr>'
+      + '<th style="padding:5px 6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:44px;min-width:44px;">시간</th>';
+    therapists.forEach(function(t) {
+      var color = getTeacherColor(t);
+      html += '<th style="padding:5px 6px;background:' + color + '18;border:1px solid #e2e8f0;color:' + color + ';font-weight:700;white-space:nowrap;">' + escHtml(t) + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    // 행: 시간대별
+    groupOrder.forEach(function(timeKey, ri) {
+      var rowBg = ri % 2 === 0 ? '#ffffff' : '#f8fafc';
+      html += '<tr>';
+      html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:10px;background:#f8fafc;white-space:nowrap;vertical-align:top;">' + escHtml(timeKey) + '</td>';
+      therapists.forEach(function(t) {
+        var cell = groups[timeKey].filter(function(s){ return (s.therapist||s.teacher||'') === t; });
+        if (cell.length === 0) {
+          html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + rowBg + ';height:48px;"></td>';
+        } else {
+          var color = getTeacherColor(t);
+          var items = cell.map(function(s) {
+            var child = childDB.find(function(c){ return c.id === s.childId; });
+            var cname = child ? escHtml(child.name) : '?';
+            var type = escHtml(s.type || '');
+            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(' + s.id + ')">'
+              + '<span style="font-weight:700;">' + cname + '</span>'
+              + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '')
+              + '</div>';
+          }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
+          html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+
+  html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)" style="margin-top:10px;">+</button></div>';
 
   document.getElementById('weekGrid').innerHTML = html;
   renderSessionListForPeriod([dateStr]);
@@ -552,7 +629,7 @@ function openEditSchedModal(id) {
     + '<input class="form-input" type="date" id="editSchedDate" value="' + escHtml(s.date||'') + '"></div>'
     + '<div class="form-row">'
     + '<div style="flex:1;"><label class="form-label">시작 시간</label>'
-    + '<input class="form-input" type="time" id="editSchedStart" step="300" value="' + escHtml(s.startTime||'') + '" onclick="try{this.showPicker();}catch(e){}"></div>'
+    + '<input class="form-input" type="time" id="editSchedStart" step="300" value="' + escHtml((s.startTime||s.time)||'') + '" onclick="try{this.showPicker();}catch(e){}"></div>'
     + '<div style="flex:1;"><label class="form-label">치료 시간(분)</label>'
     + '<input class="form-input" type="number" id="editSchedDur" value="' + (s.duration||'') + '" min="5" max="180" placeholder="예: 40"></div>'
     + '</div>'

@@ -73,6 +73,18 @@ function getTeacherColor(name) {
 
 // ─────── Supabase 설정 ───────
 var SUPA_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co';
+var CENTER_SESSION_INTERVAL = 40; // 기본값 40분
+
+function loadCenterSessionInterval() {
+  var cid = getCenterId();
+  if (!cid) return;
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid) + '&select=session_interval', 'GET')
+    .then(function(rows) {
+      if (rows && rows[0] && rows[0].session_interval) {
+        CENTER_SESSION_INTERVAL = parseInt(rows[0].session_interval) || 40;
+      }
+    }).catch(function(){});
+}
 var EDGE_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';
 var _madiToken = null; // JWT 토큰 (메모리 캐시)
 // Realtime 전용 anon key (REST API는 Edge Function 사용 — 이 키로 DB 직접 접근 불가)
@@ -374,6 +386,8 @@ function doLogin() {
     loadCenterApiKey();
     loadDBFromSupabase();
     initRealtime();
+    // 세션 시간 단위 로드
+    loadCenterSessionInterval();
   }).catch(function() {
     if (btn) { btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
@@ -468,7 +482,15 @@ function loadDBFromSupabase(silent) {
     var localCh = [];
     try { localCh = JSON.parse(localStorage.getItem('cn3_children') || '[]'); } catch(e){}
 
-    if (supaCh.length === 0 && localCh.length > 0) {
+    // 부분동기화 감지: 서버 데이터가 로컬의 70% 미만이면 차단
+    if (supaCh.length > 0 && localCh.length > 0 && supaCh.length < localCh.length * 0.7) {
+      console.warn('[loadDB] 부분동기화 차단 — 서버:', supaCh.length, '/ 로컬:', localCh.length);
+      showToast('⚠️ 서버 데이터 불일치 감지 — 로컬 데이터 유지');
+      childDB      = localCh;
+      try { sessionDB    = JSON.parse(localStorage.getItem('cn3_sessions') || '[]'); } catch(e){ sessionDB=[]; }
+      try { scheduleDB   = JSON.parse(localStorage.getItem('cn3_schedule') || '[]'); } catch(e){ scheduleDB=[]; }
+      try { assessmentDB = JSON.parse(localStorage.getItem('cn3_assess')   || '[]'); } catch(e){ assessmentDB=[]; }
+    } else if (supaCh.length === 0 && localCh.length > 0) {
       childDB = localCh;
       try { sessionDB    = JSON.parse(localStorage.getItem('cn3_sessions') || '[]'); } catch(e){ sessionDB=[]; }
       try { scheduleDB   = JSON.parse(localStorage.getItem('cn3_schedule') || '[]'); } catch(e){ scheduleDB=[]; }
