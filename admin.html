@@ -223,6 +223,30 @@
 <div class="panel active" id="panelAdminSettings">
   <div class="content">
 
+    <!-- 세션 시간 단위 설정 -->
+    <div class="card" style="border:2px solid #f59e0b;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#d97706;">⏱️ 세션 시간 단위</div>
+        <span style="font-size:11px;color:var(--text2);">관리자 설정</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+        캘린더 일일 뷰의 시간 격자 단위를 설정합니다.<br>기관의 기본 세션 시간에 맞게 변경하세요.
+      </p>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:600;">
+          <input type="radio" name="sessionInterval" value="40" id="interval40"> 40분
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:600;">
+          <input type="radio" name="sessionInterval" value="50" id="interval50"> 50분
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:600;">
+          <input type="radio" name="sessionInterval" value="60" id="interval60"> 60분
+        </label>
+      </div>
+      <button class="btn btn-primary" style="margin-top:0;background:#d97706;border-color:#d97706;" onclick="saveSessionInterval()">💾 저장</button>
+      <div id="intervalStatus" style="font-size:12px;margin-top:8px;"></div>
+    </div>
+
     <!-- GitHub 배포 -->
     <div class="card" style="border:2px solid #24292e;">
       <div class="card-title">
@@ -847,6 +871,30 @@ function showStaffTrend(teacher) {
 
 // ══════════════════════════════
 // 6. 관리자설정 함수
+function loadSessionInterval() {
+  var cid = getCenterId();
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid) + '&select=session_interval', 'GET')
+    .then(function(rows) {
+      var val = (rows && rows[0] && rows[0].session_interval) ? rows[0].session_interval : 40;
+      var radio = document.querySelector('input[name="sessionInterval"][value="' + val + '"]');
+      if (radio) radio.checked = true;
+    }).catch(function(){});
+}
+function saveSessionInterval() {
+  var selected = document.querySelector('input[name="sessionInterval"]:checked');
+  if (!selected) { showToast('⚠️ 시간 단위를 선택해주세요'); return; }
+  var val = parseInt(selected.value);
+  var cid = getCenterId();
+  var statusEl = document.getElementById('intervalStatus');
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--text2);">저장 중...</span>';
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid), 'PATCH', { session_interval: val })
+    .then(function() {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--mint);">✅ 저장 완료 (' + val + '분 단위)</span>';
+      showToast('✅ 세션 시간 단위 ' + val + '분으로 저장됨');
+    }).catch(function(e) {
+      if (statusEl) statusEl.innerHTML = '<span style="color:#ef4444;">❌ 저장 실패</span>';
+    });
+}
 // ══════════════════════════════
 
 // ── 공지사항 ──
@@ -1153,6 +1201,8 @@ window.addEventListener('DOMContentLoaded', function() {
   updateModelBtns();
   // 데이터 로드 후 서비스 탭 렌더
   loadAdminData();
+  // 세션 시간 단위 로드
+  loadSessionInterval();
   // URL 파라미터로 초기 탭 결정 (service / settings)
   var urlTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
   showAdminTab(urlTab);
