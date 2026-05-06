@@ -141,12 +141,33 @@ function suggestHomeActivities(sessionId) {
 // ─────── 세션 목록 ───────
 function renderSessionList() {
   var c = document.getElementById('sessionList');
-  var recent = sessionDB.slice().reverse().slice(0, 20);
+  var selChildEl = document.getElementById('sessionChild');
+  var selChild = parseInt(selChildEl && selChildEl.value) || 0;
+  var selChildName = '';
+  if (selChild) {
+    var selChildObj = childDB.find(function(ch){ return ch.id === selChild; });
+    selChildName = selChildObj ? selChildObj.name : '';
+  }
+  var filtered = selChild
+    ? sessionDB.filter(function(s){ return s.childId === selChild; })
+    : sessionDB;
+  var recent = filtered.slice().reverse().slice(0, 20);
+
+  // 상단 헤더: 선택 아동명 + 전체보기 버튼
+  var headerHtml = '';
+  if (selChild && selChildName) {
+    headerHtml = '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;margin-bottom:10px;background:var(--mint2,#f0fdfa);border-radius:10px;border:1px solid var(--mint,#0ea5a0);">'
+      + '<span style="font-size:14px;font-weight:700;color:var(--mint,#0ea5a0);">👤 ' + escHtml(selChildName) + ' 세션 기록</span>'
+      + '<button onclick="if(document.getElementById(\'sessionChild\')){document.getElementById(\'sessionChild\').value=\'\';}renderSessionList();renderUnwrittenAlert();" '
+      + 'style="font-size:11px;padding:5px 12px;background:white;border:1px solid var(--mint,#0ea5a0);color:var(--mint,#0ea5a0);border-radius:6px;cursor:pointer;">전체 보기</button>'
+      + '</div>';
+  }
+
   if (recent.length === 0) {
-    c.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>아직 기록된 세션이 없습니다.</p></div>';
+    c.innerHTML = headerHtml + '<div class="empty"><div class="empty-icon">📋</div><p>아직 기록된 세션이 없습니다.</p></div>';
     return;
   }
-  var html = '';
+  var html = headerHtml;
   recent.forEach(function(s) {
     var ch = childDB.find(function(c) { return c.id === s.childId; });
     var cName = ch ? ch.name : '알수없음';
