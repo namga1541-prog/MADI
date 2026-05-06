@@ -309,8 +309,8 @@ function renderDailyService() {
     if (r.status === 'done') {
       var hasSess = daySessions.find(function(ss){ return String(ss.childId)===String(childId); });
       sessBtn = hasSess
-        ? '<button onclick="switchTab(2);setTimeout(function(){switchReportTab(\'session\');},200);" style="font-size:11px;padding:4px 8px;background:var(--mint2);color:var(--mint);border:none;border-radius:6px;cursor:pointer;">기록보기</button>'
-        : '<button onclick="switchTab(2);setTimeout(function(){switchReportTab(\'session\');},200);" style="font-size:11px;padding:4px 8px;background:var(--amber);color:#fff;border:none;border-radius:6px;cursor:pointer;">기록등록</button>';
+        ? '<button onclick="switchTab(2);setTimeout(function(){switchReportTab(\'session\');var el=document.getElementById(\'sessionChild\');if(el){el.value=\''+childId+'\';if(typeof loadGoalRows===\'function\')loadGoalRows('+childId+');}},200);" style="font-size:11px;padding:4px 8px;background:var(--mint2);color:var(--mint);border:none;border-radius:6px;cursor:pointer;">기록보기</button>'
+        : '<button onclick="switchTab(2);setTimeout(function(){switchReportTab(\'session\');var el=document.getElementById(\'sessionChild\');if(el){el.value=\''+childId+'\';if(typeof loadGoalRows===\'function\')loadGoalRows('+childId+');}},200);" style="font-size:11px;padding:4px 8px;background:var(--amber);color:#fff;border:none;border-radius:6px;cursor:pointer;">기록등록</button>';
     }
 
     return '<div class="svc-row">'
