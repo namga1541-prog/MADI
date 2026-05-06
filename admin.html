@@ -138,7 +138,7 @@
 
 <!-- ── 탭 바 ── -->
 <div class="admin-tab-bar">
-  <button class="admin-tab-btn" id="adminTabService" onclick="showAdminTab('service')" style="display: none;">🛠 서비스관리</button>
+  <button class="admin-tab-btn" id="adminTabService" onclick="showAdminTab('service')">🛠 서비스관리</button>
   <button class="admin-tab-btn active" id="adminTabSettings" onclick="showAdminTab('settings')">⚙️ 관리자설정</button>
 </div>
 
@@ -147,10 +147,46 @@
   <div class="content">
     <!-- 현황 카드 4가지 -->
     <div class="svc-stat-grid">
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatChildren">98</div><div class="stat-lbl">등록 이용자 수</div></div>
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatSessions">0</div><div class="stat-lbl">이번 달 세션</div></div>
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatStaff">-</div><div class="stat-lbl">소속 선생님 수</div></div>
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatActiveRate">20%</div><div class="stat-lbl">이용자 활성률</div></div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatChildren">2</div><div class="stat-lbl">등록 이용자 수</div></div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatSessions">1</div><div class="stat-lbl">이번 달 세션</div></div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatStaff">1</div><div class="stat-lbl">소속 선생님 수</div></div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatActiveRate">0%</div><div class="stat-lbl">이용자 활성률</div></div>
+    </div>
+
+    <!-- 프로그램 관리 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📋 프로그램 목록</div>
+        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="loadPrograms()">🔄 새로고침</button>
+      </div>
+      <div id="programList"><div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">로딩 중...</div></div>
+    </div>
+
+    <!-- 선생님 담당 프로그램 설정 -->
+    <div class="card" style="border:2px solid #8b5cf6;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#8b5cf6;">👩‍🏫 선생님 담당 프로그램 설정</div>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">선생님을 선택하고 역할 버튼으로 일괄 배정하거나 개별 선택하세요.</p>
+      <div class="form-group">
+        <label class="form-label">선생님 선택</label>
+        <select class="form-input" id="progTeacherSel" onchange="loadTeacherPrograms()">
+          <option value="">선생님을 선택하세요</option>
+        </select>
+      </div>
+      <div id="progAssignWrap" style="display:none;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <button onclick="bulkAssign('언어')" style="padding:6px 14px;border-radius:20px;border:2px solid #3b82f6;background:#eff6ff;color:#3b82f6;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🗣 언어 전체</button>
+          <button onclick="bulkAssign('감통')" style="padding:6px 14px;border-radius:20px;border:2px solid #10b981;background:#ecfdf5;color:#10b981;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🤸 감통 전체</button>
+          <button onclick="bulkAssign('놀이')" style="padding:6px 14px;border-radius:20px;border:2px solid #f59e0b;background:#fffbeb;color:#d97706;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🎮 놀이 전체</button>
+          <button onclick="bulkAssign('공통')" style="padding:6px 14px;border-radius:20px;border:2px solid #94a3b8;background:#f8fafc;color:#64748b;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">📌 공통 전체</button>
+          <button onclick="bulkAssign('전체')" style="padding:6px 14px;border-radius:20px;border:2px solid #8b5cf6;background:#f5f3ff;color:#8b5cf6;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">✅ 전체 선택</button>
+          <button onclick="bulkAssign('초기화')" style="padding:6px 14px;border-radius:20px;border:2px solid #ef4444;background:#fef2f2;color:#ef4444;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🗑 초기화</button>
+        </div>
+        <div id="progCheckList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:10px;"></div>
+        <button class="btn btn-primary" style="margin-top:12px;background:#8b5cf6;border-color:#8b5cf6;" onclick="saveTeacherPrograms()">💾 선생님 담당 프로그램 저장</button>
+        <div id="progSaveStatus" style="font-size:12px;margin-top:6px;"></div>
+      </div>
     </div>
 
     <!-- 월간 서비스 현황 -->
@@ -160,8 +196,8 @@
         <input type="month" id="svcMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderMonthlyService()">
       </div>
       <div class="svc-filter-row">
-        <select id="mSvcChild" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">이용자 전체</option><option value="1777000013000">강남</option><option value="1777000345000">강다인</option><option value="1777000012000">강산</option><option value="1777000205000">강서우</option><option value="1777000200000">고다인</option><option value="1777000127000">권용우</option><option value="1777000002000">권주안</option><option value="1777000197000">길재학</option><option value="1777000468000">김가람</option><option value="1777000202000">김경아</option><option value="1777000114000">김도건</option><option value="1777000115000">김도현</option><option value="1777000204000">김도현</option><option value="1777000479000">김동건</option><option value="1777000011000">김루의</option><option value="1777000363000">김빛나</option><option value="1777000209000">김빛나2</option><option value="1777000201000">김세령</option><option value="1777000207000">김세형</option><option value="1777000364000">김솔</option><option value="1777000350000">김승재</option><option value="1777000351000">김승재</option><option value="1777000477000">김승현</option><option value="1777000113000">김아영</option><option value="1777000003000">김유준</option><option value="1777000126000">김윤하</option><option value="1777000348000">김은우</option><option value="1777000119000">김이현</option><option value="1777000359000">김정현</option><option value="1777000193000">김지우</option><option value="1777000132000">김지후</option><option value="1777000017000">김하랑</option><option value="1777000353000">김해환</option><option value="1777000361000">김효직</option><option value="1777000343000">류은호</option><option value="1777000357000">림서윤</option><option value="1777000210000">민경호</option><option value="1777000355000">박이든</option><option value="1777000356000">박이솔</option><option value="1777000125000">박이수</option><option value="1777000489000">박주현</option><option value="1777000195000">박지울</option><option value="1777000018000">박해준</option><option value="1777000006000">박희준</option><option value="1777000128000">배덕근</option><option value="1777000130000">백도경</option><option value="1777000129000">백도현</option><option value="1777000016000">부별</option><option value="1777000360000">서준우</option><option value="1777000352000">성윤도</option><option value="1777000368000">소지원</option><option value="1777000464000">손다민</option><option value="1777000131000">손예준</option><option value="1777000014000">손재호</option><option value="1777000000000">송민호</option><option value="1777000196000">안도율</option><option value="1777000004000">안설</option><option value="1777000015000">안재인</option><option value="1777000478000">안지안</option><option value="1777000365000">오서유</option><option value="1777000010000">오성연</option><option value="1777000005000">우선호</option><option value="1777000008000">원이준</option><option value="1777000007000">원지안</option><option value="1777000199000">유시현</option><option value="1777000366000">윤이랑</option><option value="1777000133000">이로운2</option><option value="1777000122000">이승현</option><option value="1777000198000">이시현</option><option value="1777000215000">이시훈</option><option value="1777000194000">이예서</option><option value="1777000216000">이예성</option><option value="1777000346000">이예성</option><option value="1777000344000">이정재</option><option value="1777000206000">이지한</option><option value="1777000117000">이탄희</option><option value="1777000349000">이하랑</option><option value="1777000213000">임윤호</option><option value="1777000208000">임정윤</option><option value="1777000009000">임지환</option><option value="1777000211000">임하윤</option><option value="1777000354000">장서연</option><option value="1777000362000">장하민</option><option value="1777000212000">전예원</option><option value="1777000462000">정연준</option><option value="1777000214000">정유준</option><option value="1777000112000">정유찬</option><option value="1777000120000">정준</option><option value="1777000123000">정하윤</option><option value="1777000347000">조용준</option><option value="1777000358000">조이준</option><option value="1777000217000">조하서</option><option value="1777000121000">진연두</option><option value="1777000218000">차우성</option><option value="1777000001000">최율</option><option value="1777000116000">한가온</option><option value="1777000118000">한선우</option><option value="1777000367000">홍태연</option></select>
-        <select id="mSvcTeacher" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">선생님 전체</option></select>
+        <select id="mSvcChild" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">이용자 전체</option><option value="1777436219954">남재현룡왕의가더</option><option value="1777348761852">서규민</option></select>
+        <select id="mSvcTeacher" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">선생님 전체</option><option value="한기성">한기성</option></select>
         <select id="mSvcStatus" class="form-input svc-filter-sel" onchange="renderMonthlyService()">
           <option value="">상태 전체</option>
           <option value="done">완료</option><option value="pending">예정</option>
@@ -179,8 +215,8 @@
         <input type="date" id="svcDate" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderDailyService()">
       </div>
       <div class="svc-filter-row">
-        <select id="dSvcChild" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">이용자 전체</option><option value="1777000013000">강남</option><option value="1777000345000">강다인</option><option value="1777000012000">강산</option><option value="1777000205000">강서우</option><option value="1777000200000">고다인</option><option value="1777000127000">권용우</option><option value="1777000002000">권주안</option><option value="1777000197000">길재학</option><option value="1777000468000">김가람</option><option value="1777000202000">김경아</option><option value="1777000114000">김도건</option><option value="1777000115000">김도현</option><option value="1777000204000">김도현</option><option value="1777000479000">김동건</option><option value="1777000011000">김루의</option><option value="1777000363000">김빛나</option><option value="1777000209000">김빛나2</option><option value="1777000201000">김세령</option><option value="1777000207000">김세형</option><option value="1777000364000">김솔</option><option value="1777000350000">김승재</option><option value="1777000351000">김승재</option><option value="1777000477000">김승현</option><option value="1777000113000">김아영</option><option value="1777000003000">김유준</option><option value="1777000126000">김윤하</option><option value="1777000348000">김은우</option><option value="1777000119000">김이현</option><option value="1777000359000">김정현</option><option value="1777000193000">김지우</option><option value="1777000132000">김지후</option><option value="1777000017000">김하랑</option><option value="1777000353000">김해환</option><option value="1777000361000">김효직</option><option value="1777000343000">류은호</option><option value="1777000357000">림서윤</option><option value="1777000210000">민경호</option><option value="1777000355000">박이든</option><option value="1777000356000">박이솔</option><option value="1777000125000">박이수</option><option value="1777000489000">박주현</option><option value="1777000195000">박지울</option><option value="1777000018000">박해준</option><option value="1777000006000">박희준</option><option value="1777000128000">배덕근</option><option value="1777000130000">백도경</option><option value="1777000129000">백도현</option><option value="1777000016000">부별</option><option value="1777000360000">서준우</option><option value="1777000352000">성윤도</option><option value="1777000368000">소지원</option><option value="1777000464000">손다민</option><option value="1777000131000">손예준</option><option value="1777000014000">손재호</option><option value="1777000000000">송민호</option><option value="1777000196000">안도율</option><option value="1777000004000">안설</option><option value="1777000015000">안재인</option><option value="1777000478000">안지안</option><option value="1777000365000">오서유</option><option value="1777000010000">오성연</option><option value="1777000005000">우선호</option><option value="1777000008000">원이준</option><option value="1777000007000">원지안</option><option value="1777000199000">유시현</option><option value="1777000366000">윤이랑</option><option value="1777000133000">이로운2</option><option value="1777000122000">이승현</option><option value="1777000198000">이시현</option><option value="1777000215000">이시훈</option><option value="1777000194000">이예서</option><option value="1777000216000">이예성</option><option value="1777000346000">이예성</option><option value="1777000344000">이정재</option><option value="1777000206000">이지한</option><option value="1777000117000">이탄희</option><option value="1777000349000">이하랑</option><option value="1777000213000">임윤호</option><option value="1777000208000">임정윤</option><option value="1777000009000">임지환</option><option value="1777000211000">임하윤</option><option value="1777000354000">장서연</option><option value="1777000362000">장하민</option><option value="1777000212000">전예원</option><option value="1777000462000">정연준</option><option value="1777000214000">정유준</option><option value="1777000112000">정유찬</option><option value="1777000120000">정준</option><option value="1777000123000">정하윤</option><option value="1777000347000">조용준</option><option value="1777000358000">조이준</option><option value="1777000217000">조하서</option><option value="1777000121000">진연두</option><option value="1777000218000">차우성</option><option value="1777000001000">최율</option><option value="1777000116000">한가온</option><option value="1777000118000">한선우</option><option value="1777000367000">홍태연</option></select>
-        <select id="dSvcTeacher" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">선생님 전체</option></select>
+        <select id="dSvcChild" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">이용자 전체</option><option value="1777436219954">남재현룡왕의가더</option><option value="1777348761852">서규민</option></select>
+        <select id="dSvcTeacher" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">선생님 전체</option><option value="한기성">한기성</option></select>
         <select id="dSvcStatus" class="form-input svc-filter-sel" onchange="renderDailyService()">
           <option value="">상태 전체</option>
           <option value="done">완료</option><option value="pending">예정</option>
@@ -197,7 +233,7 @@
         <div class="card-title-left">👩‍🏫 선생님별 통계</div>
         <select id="svcStaffMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderStaffStats()"><option value="2026-05" selected="">2026년 5월</option><option value="2026-04">2026년 4월</option><option value="2026-03">2026년 3월</option><option value="2026-02">2026년 2월</option><option value="2026-01">2026년 1월</option><option value="2025-12">2025년 12월</option></select>
       </div>
-      <div id="staffStatsList"><div class="empty"><div class="empty-icon">👩‍🏫</div><p>등록된 선생님 데이터가 없습니다.</p></div></div>
+      <div id="staffStatsList"><div style="font-size:11px;color:var(--text2);margin-bottom:8px;">선생님 카드를 누르면 월별 추이를 볼 수 있습니다.</div><div onclick="showStaffTrend('한기성') " style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;background:var(--bg);border-radius:10px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);"><div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text);">한기성</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">담당 이용자 0명</div></div><div style="display:flex;gap:12px;align-items:center;text-align:center;"><div><div style="font-size:18px;font-weight:900;color:var(--mint);">0</div><div style="font-size:10px;color:var(--text2);">세션</div></div><div><div style="font-size:18px;font-weight:900;color:var(--red);">0%</div><div style="font-size:10px;color:var(--text2);">완료율</div></div><div style="font-size:11px;color:var(--text2);">▶</div></div></div></div>
       <div id="staffChartWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;" id="staffChartTitle"></div>
         <canvas id="staffTrendChart" height="180"></canvas>
@@ -871,6 +907,128 @@ function showStaffTrend(teacher) {
 
 // ══════════════════════════════
 // 6. 관리자설정 함수
+// ── 프로그램 관리 ──
+var _programsCache = [];
+var _staffCache = [];
+var _teacherPrograms = []; // 현재 선택된 선생님의 담당 프로그램 id 배열
+
+function loadPrograms() {
+  var cid = getCenterId();
+  supaFetch('madi_programs?center_id=eq.' + encodeURIComponent(cid) + '&order=category.asc,name.asc', 'GET')
+    .then(function(rows) {
+      _programsCache = rows || [];
+      renderProgramList();
+      renderProgCheckList();
+    }).catch(function(e) {
+      document.getElementById('programList').innerHTML = '<div style="color:#ef4444;font-size:12px;">로드 실패</div>';
+    });
+}
+
+function renderProgramList() {
+  var el = document.getElementById('programList');
+  if (!el) return;
+  if (!_programsCache.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">등록된 프로그램이 없습니다.</div>'; return; }
+  var cats = {};
+  _programsCache.forEach(function(p) {
+    if (!cats[p.category]) cats[p.category] = [];
+    cats[p.category].push(p);
+  });
+  var html = '';
+  Object.keys(cats).forEach(function(cat) {
+    html += '<div style="font-size:12px;font-weight:700;color:var(--text2);margin:8px 0 4px;">' + escHtml(cat) + '</div>';
+    cats[cat].forEach(function(p) {
+      var typeColor = {언어:'#3b82f6',감통:'#10b981',놀이:'#f59e0b',공통:'#94a3b8'}[p.prog_type] || '#94a3b8';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border-radius:8px;margin-bottom:4px;border:1px solid var(--border);">'
+        + '<div style="display:flex;align-items:center;gap:8px;">'
+        + '<span style="background:' + typeColor + '20;color:' + typeColor + ';border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;">' + escHtml(p.prog_type||'') + '</span>'
+        + '<span style="font-size:13px;">' + escHtml(p.name) + '</span>'
+        + (p.method ? '<span style="font-size:11px;color:var(--text2);">' + escHtml(p.method) + '</span>' : '')
+        + '</div>'
+        + '<span style="font-size:12px;font-weight:700;color:var(--mint);">' + (p.price ? (p.price/10000).toFixed(0) + '만원' : '무료') + '</span>'
+        + '</div>';
+    });
+  });
+  el.innerHTML = html;
+}
+
+function loadTeacherList() {
+  supaFetch('madi_users?select=id,name,role,prog_types&order=name.asc', 'GET')
+    .then(function(rows) {
+      _staffCache = (rows || []).filter(function(u){ return u.name; });
+      var sel = document.getElementById('progTeacherSel');
+      if (!sel) return;
+      var cid = getCenterId();
+      sel.innerHTML = '<option value="">선생님을 선택하세요</option>';
+      _staffCache.forEach(function(u) {
+        sel.innerHTML += '<option value="' + escHtml(u.id) + '">' + escHtml(u.name) + '</option>';
+      });
+    }).catch(function(){});
+}
+
+function loadTeacherPrograms() {
+  var sel = document.getElementById('progTeacherSel');
+  var uid = sel ? sel.value : '';
+  var wrap = document.getElementById('progAssignWrap');
+  if (!uid) { if (wrap) wrap.style.display = 'none'; return; }
+  var staff = _staffCache.find(function(u){ return String(u.id) === uid; });
+  _teacherPrograms = (staff && Array.isArray(staff.prog_types)) ? staff.prog_types.slice() : [];
+  if (wrap) wrap.style.display = 'block';
+  renderProgCheckList();
+}
+
+function renderProgCheckList() {
+  var el = document.getElementById('progCheckList');
+  if (!el || !_programsCache.length) return;
+  var html = '';
+  _programsCache.forEach(function(p) {
+    var checked = _teacherPrograms.indexOf(p.id) > -1;
+    var typeColor = {언어:'#3b82f6',감통:'#10b981',놀이:'#f59e0b',공통:'#94a3b8'}[p.prog_type] || '#94a3b8';
+    html += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0;">'
+      + '<input type="checkbox" value="' + p.id + '" ' + (checked?'checked':'') + ' onchange="onProgCheck(this)" style="width:16px;height:16px;cursor:pointer;">'
+      + '<span style="background:' + typeColor + '20;color:' + typeColor + ';border-radius:8px;padding:1px 6px;font-size:10px;font-weight:700;">' + escHtml(p.prog_type||'') + '</span>'
+      + '<span style="font-size:13px;">' + escHtml(p.name) + '</span>'
+      + '</label>';
+  });
+  el.innerHTML = html;
+}
+
+function onProgCheck(cb) {
+  var id = parseInt(cb.value);
+  if (cb.checked) {
+    if (_teacherPrograms.indexOf(id) < 0) _teacherPrograms.push(id);
+  } else {
+    _teacherPrograms = _teacherPrograms.filter(function(x){ return x !== id; });
+  }
+}
+
+function bulkAssign(type) {
+  if (type === '초기화') { _teacherPrograms = []; }
+  else if (type === '전체') { _teacherPrograms = _programsCache.map(function(p){ return p.id; }); }
+  else {
+    var typeIds = _programsCache.filter(function(p){ return p.prog_type === type; }).map(function(p){ return p.id; });
+    typeIds.forEach(function(id) {
+      if (_teacherPrograms.indexOf(id) < 0) _teacherPrograms.push(id);
+    });
+  }
+  renderProgCheckList();
+}
+
+function saveTeacherPrograms() {
+  var sel = document.getElementById('progTeacherSel');
+  var uid = sel ? sel.value : '';
+  if (!uid) return;
+  var statusEl = document.getElementById('progSaveStatus');
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--text2);">저장 중...</span>';
+  supaFetch('madi_users?id=eq.' + encodeURIComponent(uid), 'PATCH', { prog_types: _teacherPrograms })
+    .then(function() {
+      var staff = _staffCache.find(function(u){ return String(u.id) === uid; });
+      if (staff) staff.prog_types = _teacherPrograms.slice();
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--mint);">✅ 저장 완료 (' + _teacherPrograms.length + '개 프로그램)</span>';
+      showToast('✅ 담당 프로그램 저장 완료');
+    }).catch(function() {
+      if (statusEl) statusEl.innerHTML = '<span style="color:#ef4444;">❌ 저장 실패</span>';
+    });
+}
 function loadSessionInterval() {
   var cid = getCenterId();
   supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid) + '&select=session_interval', 'GET')
@@ -1201,6 +1359,9 @@ window.addEventListener('DOMContentLoaded', function() {
   updateModelBtns();
   // 데이터 로드 후 서비스 탭 렌더
   loadAdminData();
+  // 프로그램 목록 + 선생님 목록 로드
+  loadPrograms();
+  loadTeacherList();
   // 세션 시간 단위 로드
   loadSessionInterval();
   // URL 파라미터로 초기 탭 결정 (service / settings)
