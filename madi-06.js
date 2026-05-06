@@ -247,7 +247,7 @@ function goToSession(id) {
     sel.value = id;
     if (sel._ssInp) {
       var ch0 = childDB.find(function(c){ return c.id === id; });
-      sel._ssInp.value = ch0 ? ch0.name + ' (' + ch0.age + ')' : '';
+      sel._ssInp.value = ch0 ? ch0.name + ' (' + (ch0.birth||'') + ' / ' + (ch0.age||'') + ')' : '';
     }
   }
   switchTab(2);
@@ -257,7 +257,7 @@ function goToSession(id) {
       sel2.value = id;
       if (sel2._ssInp) {
         var ch = childDB.find(function(c){ return c.id === id; });
-        sel2._ssInp.value = ch ? ch.name + ' (' + ch.age + ')' : '';
+        sel2._ssInp.value = ch ? ch.name + ' (' + (ch.birth||'') + ' / ' + (ch.age||'') + ')' : '';
       }
       loadGoalRows(id);
     }
