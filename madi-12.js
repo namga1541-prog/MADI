@@ -274,6 +274,54 @@ function stopRealtime() {
   }
 }
 
+// ─────── 마디 폴더 핸들 관리 (IndexedDB) ───────
+function _openMadiDB() {
+  return new Promise(function(resolve, reject) {
+    var req = indexedDB.open('madi_deploy', 1);
+    req.onupgradeneeded = function(e) { e.target.result.createObjectStore('handles'); };
+    req.onsuccess = function(e) { resolve(e.target.result); };
+    req.onerror = function() { reject(req.error); };
+  });
+}
+function _saveFolderHandle(handle) {
+  return _openMadiDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(handle, 'madiFolder');
+      tx.oncomplete = resolve;
+      tx.onerror = function() { reject(tx.error); };
+    });
+  });
+}
+function _loadFolderHandle() {
+  return _openMadiDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction('handles', 'readonly');
+      var req = tx.objectStore('handles').get('madiFolder');
+      req.onsuccess = function() { resolve(req.result || null); };
+      req.onerror = function() { resolve(null); };
+    });
+  });
+}
+function getMadiFolderHandle() {
+  return _loadFolderHandle().then(function(handle) {
+    if (!handle) {
+      showToast('📁 마디 폴더를 선택해주세요');
+      return window.showDirectoryPicker({ mode: 'read' })
+        .then(function(h) { return _saveFolderHandle(h).then(function() { return h; }); });
+    }
+    return handle.queryPermission({ mode: 'read' }).then(function(perm) {
+      if (perm === 'granted') return handle;
+      return handle.requestPermission({ mode: 'read' }).then(function(p) {
+        if (p === 'granted') return handle;
+        showToast('📁 폴더 접근 권한이 필요합니다. 다시 선택해주세요');
+        return window.showDirectoryPicker({ mode: 'read' })
+          .then(function(h) { return _saveFolderHandle(h).then(function() { return h; }); });
+      });
+    });
+  });
+}
+
 // ─────── GitHub 자동 배포 ───────
 var GITHUB_OWNER = 'namga1541-prog';
 var GITHUB_REPO  = 'MADI';
@@ -351,63 +399,38 @@ function deployToGitHub() {
   btn.textContent = '⏳ 배포 중...';
 
   var commitTime = new Date().toLocaleString('ko-KR');
-  var rawBase    = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/main/';
-  var isLocal    = window.location.protocol === 'file:';
 
-  function getFileContent(filename) {
-    if (isLocal) {
-      return fetch(filename).then(function(r) { return r.text(); }).catch(function() { return null; });
-    } else {
-      return fetch(rawBase + filename + '?t=' + Date.now())
-        .then(function(r) { return r.ok ? r.text() : null; })
-        .catch(function() { return null; });
-    }
+  if (!window.showDirectoryPicker) {
+    btn.disabled = false; btn.textContent = '🚀 배포';
+    showToast('❌ Chrome 또는 Edge에서만 사용 가능합니다.');
+    return;
   }
-
-  showToast('📡 배포 준비 중...');
-
-  var indexPromise = isLocal
-    ? Promise.resolve(function() {
-        // 캡처 전 버튼 정상 상태로 복원
-        btn.disabled = false; btn.textContent = '🚀 배포';
-        // 캡처 전 ss-wrap 전체 해체 (select를 원래 위치로 복원)
-        document.querySelectorAll('.ss-wrap').forEach(function(wrap) {
-          var sel = wrap.querySelector('select');
-          if (sel && wrap.parentNode) {
-            wrap.parentNode.insertBefore(sel, wrap);
-            sel.style.display = '';
-          }
-          if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
-        });
-        var html = document.documentElement.outerHTML;
-        btn.disabled = true; btn.textContent = '⏳ 배포 중...';
-        return html;
-      }())
-    : getFileContent('index.html');
 
   var JS_FILES = [
     'madi-01.js','madi-02.js','madi-03.js','madi-04.js','madi-05.js','madi-06.js',
     'madi-07.js','madi-08.js','madi-09.js','madi-10.js','madi-11.js','madi-12.js',
     'madi.css'
   ];
-  var TOTAL_FILES = 2 + JS_FILES.length + 1; // index + admin + JS 13개 + sw = 16
+  var ALL_FILES = ['index.html', 'admin.html'].concat(JS_FILES);
+  var TOTAL_FILES = ALL_FILES.length + 1; // + sw.js
 
-  var jsPromises = JS_FILES.map(function(f) { return getFileContent(f); });
+  showToast('📡 배포 준비 중...');
 
-  Promise.all([indexPromise, getFileContent('admin.html')].concat(jsPromises))
+  getMadiFolderHandle()
+    .then(function(folderHandle) {
+      function getFileContent(filename) {
+        return folderHandle.getFileHandle(filename)
+          .then(function(fh) { return fh.getFile(); })
+          .then(function(f) { return f.text(); })
+          .catch(function() { return null; });
+      }
+      return Promise.all(ALL_FILES.map(function(f) { return getFileContent(f); }));
+    })
     .then(function(results) {
       var indexContent = results[0];
       var adminContent = results[1];
       var jsContents   = results.slice(2);
       if (!indexContent) throw new Error('index.html 읽기 실패');
-
-      // 로칼에서 outerHTML 사용 시 배포 버튼 상태 자동 정정
-      if (isLocal) {
-        indexContent = indexContent
-          .replace(/disabled="">[^<]*배포 중[^<]*<\/button>/, '>🚀 배포<\/button>')
-          .replace(/disabled>\s*⏳[^<]*<\/button>/, '>🚀 배포<\/button>')
-          .replace(/(📡|⏳)[^<]*배포[^<]*<\/button>/, '🚀 배포<\/button>');
-      }
 
       showToast('📡 index.html 업로드 중... (1/' + TOTAL_FILES + ')');
       return deployFileToGitHub(token, GITHUB_FILE, indexContent, '마디 앱 업데이트 — ' + commitTime)
