@@ -426,6 +426,8 @@ function autoCalcAssessScores() {
   });
   if (missingFields.length > 0 && apiKey) {
     var btn = document.getElementById('autoCalcBtn');
+    if (btn.dataset.busy === '1') return;
+    btn.dataset.busy = '1';
     btn.disabled = true; btn.textContent = '⏳ AI 보완 중...';
     var testName = typeVal === 'OTHER' ? (document.getElementById('assessCustomNameInput').value||'직접입력') : typeVal;
     var rawInputs = rawKeys.map(function(f) { var el=document.getElementById('af_'+f.key); return f.label+': '+(el&&el.value?el.value:'미입력'); }).join(', ');
@@ -446,7 +448,7 @@ function autoCalcAssessScores() {
         }
       })
       .catch(function(){})
-      .finally(function(){ var btn=document.getElementById('autoCalcBtn');if(btn){btn.disabled=false;btn.textContent='🤖 원점수 → 등가연령·백분위 자동 계산';} });
+      .finally(function(){ var btn=document.getElementById('autoCalcBtn');if(btn){btn.dataset.busy='';btn.disabled=false;btn.textContent='🤖 원점수 → 등가연령·백분위 자동 계산';} });
   } else {
     var b2 = document.getElementById('autoCalcBtn');
     if (b2) { b2.disabled = false; b2.textContent = '🤖 원점수 → 등가연령·백분위 자동 계산'; }
@@ -648,6 +650,8 @@ function generateAssessReport() {
 
   var btn    = document.getElementById('assessReportBtn');
   var result = document.getElementById('assessReportResult');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true; btn.textContent = '⏳ 보고서 생성 중...';
   result.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI가 검사 결과를 분석 중입니다...</p></div>';
 
@@ -743,7 +747,7 @@ function generateAssessReport() {
     .catch(function(err) {
       result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
     })
-    .finally(function() { btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; });
+    .finally(function() { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; });
 }
 
 // ─────── 부모 교육 자료 ───────
@@ -760,6 +764,8 @@ function generateParentEdu() {
 
   var btn    = document.getElementById('eduBtn');
   var result = document.getElementById('eduResult');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true; btn.textContent = '⏳ 생성 중...';
   result.innerHTML = '<div class="loading"><div class="spinner"></div><p>부모 교육 자료를 생성 중입니다...</p></div>';
 
@@ -785,7 +791,7 @@ function generateParentEdu() {
     .catch(function(err) {
       result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
     })
-    .finally(function() { btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성'; });
+    .finally(function() { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성'; });
 }
 
 function printParentEdu(childName) {
