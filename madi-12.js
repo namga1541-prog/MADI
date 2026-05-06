@@ -104,6 +104,8 @@ function openPermModal(userId, userName, role) {
       + (isAdmin ? '<button class="btn-ghost" onclick="this.closest(\'.sched-modal-overlay\').remove()" style="width:100%;margin-top:16px;">닫기</button>' : '')
       + '</div>';
     document.body.appendChild(overlay);
+  }).catch(function() {
+    showToast('⚠️ 권한 정보를 불러오지 못했습니다.');
   });
 }
 
@@ -154,6 +156,8 @@ function renderStaffCard() {
           + '</div>';
       });
       document.getElementById('staffList').innerHTML = html || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">등록된 계정 없음</div>';
+    }).catch(function() {
+      showToast('⚠️ 직원 목록을 불러오지 못했습니다.');
     });
 }
 
@@ -212,6 +216,8 @@ function deleteStaff(id, name) {
         _teacherList = [];
         renderStaffCard();
         showToast('🗑️ ' + name + ' 계정 삭제됨');
+      }).catch(function() {
+        showToast('❌ 계정 삭제에 실패했습니다. 다시 시도해주세요.');
       });
     }
   );
@@ -361,7 +367,22 @@ function deployToGitHub() {
   showToast('📡 배포 준비 중...');
 
   var indexPromise = isLocal
-    ? Promise.resolve(document.documentElement.outerHTML)
+    ? Promise.resolve(function() {
+        // 캡처 전 버튼 정상 상태로 복원
+        btn.disabled = false; btn.textContent = '🚀 배포';
+        // 캡처 전 ss-wrap 전체 해체 (select를 원래 위치로 복원)
+        document.querySelectorAll('.ss-wrap').forEach(function(wrap) {
+          var sel = wrap.querySelector('select');
+          if (sel && wrap.parentNode) {
+            wrap.parentNode.insertBefore(sel, wrap);
+            sel.style.display = '';
+          }
+          if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        });
+        var html = document.documentElement.outerHTML;
+        btn.disabled = true; btn.textContent = '⏳ 배포 중...';
+        return html;
+      }())
     : getFileContent('index.html');
 
   Promise.all([indexPromise, getFileContent('admin.html')])
@@ -744,6 +765,9 @@ function cancelImport() {
 
 // ─────── 초기화 ───────
 function init() {
+  // 배포 버튼이 "배포 중..." 상태로 저장된 경우 강제 정상화
+  var _db = document.getElementById('headerDeployBtn');
+  if (_db) { _db.disabled = false; _db.textContent = '🚀 배포'; }
   loadDarkMode();
   setTimeout(updateModelBtns, 300);
   setTimeout(applyPermissions, 400);
