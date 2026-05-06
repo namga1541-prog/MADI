@@ -385,10 +385,20 @@ function deployToGitHub() {
       }())
     : getFileContent('index.html');
 
-  Promise.all([indexPromise, getFileContent('admin.html')])
+  var JS_FILES = [
+    'madi-01.js','madi-02.js','madi-03.js','madi-04.js','madi-05.js','madi-06.js',
+    'madi-07.js','madi-08.js','madi-09.js','madi-10.js','madi-11.js','madi-12.js',
+    'madi.css'
+  ];
+  var TOTAL_FILES = 2 + JS_FILES.length + 1; // index + admin + JS 13개 + sw = 16
+
+  var jsPromises = JS_FILES.map(function(f) { return getFileContent(f); });
+
+  Promise.all([indexPromise, getFileContent('admin.html')].concat(jsPromises))
     .then(function(results) {
       var indexContent = results[0];
       var adminContent = results[1];
+      var jsContents   = results.slice(2);
       if (!indexContent) throw new Error('index.html 읽기 실패');
 
       // 로칼에서 outerHTML 사용 시 배포 버튼 상태 자동 정정
@@ -399,19 +409,31 @@ function deployToGitHub() {
           .replace(/(📡|⏳)[^<]*배포[^<]*<\/button>/, '🚀 배포<\/button>');
       }
 
-      showToast('📡 index.html 업로드 중... (1/3)');
+      showToast('📡 index.html 업로드 중... (1/' + TOTAL_FILES + ')');
       return deployFileToGitHub(token, GITHUB_FILE, indexContent, '마디 앱 업데이트 — ' + commitTime)
-        .then(function() { return adminContent; });
+        .then(function() { return { adminContent: adminContent, jsContents: jsContents }; });
     })
-    .then(function(adminContent) {
-      if (adminContent) {
-        showToast('📡 admin.html 업로드 중... (2/3)');
-        return deployFileToGitHub(token, 'admin.html', adminContent, '마디 관리자 업데이트 — ' + commitTime);
+    .then(function(data) {
+      if (data.adminContent) {
+        showToast('📡 admin.html 업로드 중... (2/' + TOTAL_FILES + ')');
+        return deployFileToGitHub(token, 'admin.html', data.adminContent, '마디 관리자 업데이트 — ' + commitTime)
+          .then(function() { return data.jsContents; });
       }
-      return Promise.resolve();
+      return Promise.resolve(data.jsContents);
+    })
+    .then(function(jsContents) {
+      var step = 3;
+      return jsContents.reduce(function(chain, content, i) {
+        return chain.then(function() {
+          if (!content) { step++; return Promise.resolve(); }
+          showToast('📡 ' + JS_FILES[i] + ' 업로드 중... (' + step + '/' + TOTAL_FILES + ')');
+          step++;
+          return deployFileToGitHub(token, JS_FILES[i], content, '마디 JS 업데이트 — ' + commitTime);
+        });
+      }, Promise.resolve());
     })
     .then(function() {
-      showToast('📡 sw.js 업로드 중... (3/3)');
+      showToast('📡 sw.js 업로드 중... (' + TOTAL_FILES + '/' + TOTAL_FILES + ')');
       return deployFileToGitHub(token, GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
     })
     .then(function() {
