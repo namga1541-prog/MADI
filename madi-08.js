@@ -13,6 +13,8 @@ function generateReport() {
   if (target.length === 0) { showToast('세션 기록이 없습니다.'); return; }
 
   var btn = document.getElementById('reportBtn');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 생성 중...';
 
@@ -37,6 +39,7 @@ function generateReport() {
       resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
     })
     .finally(function() {
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '🤖 AI 보고서 생성';
     });
@@ -235,6 +238,8 @@ function generateIEP() {
   }
 
   var btn = document.getElementById('iepBtn');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 장단기계획(IEP) 생성 중...';
   document.getElementById('iepResult').innerHTML = '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px;">🤖 AI가 3개월 치료 계획을 작성 중입니다...</div>';
@@ -278,6 +283,7 @@ function generateIEP() {
       document.getElementById('iepResult').innerHTML = '<div style="padding:12px;color:var(--red);font-size:13px;">❌ ' + escHtml(err.message) + '</div>';
     })
     .finally(function() {
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '📋 장단기계획(IEP) 초안 생성 (AI)';
     });
