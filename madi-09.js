@@ -464,6 +464,8 @@ function generatePortfolio() {
   if (sessions.length === 0) { showToast('해당 월에 기록된 세션이 없습니다.'); return; }
 
   var btn = document.getElementById('portfolioBtn');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 포트폴리오 생성 중...';
 
@@ -516,6 +518,7 @@ function generatePortfolio() {
       resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
     })
     .finally(function() {
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '📁 포트폴리오 생성';
     });
@@ -614,6 +617,8 @@ function naturalSearch() {
   if (sessionDB.length === 0) { showToast('세션 기록이 없습니다.'); return; }
 
   var btn = document.getElementById('searchBtn');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 검색 중...';
 
@@ -644,6 +649,7 @@ function naturalSearch() {
       resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
     })
     .finally(function() {
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '🔍 AI에게 물어보기';
     });
@@ -664,6 +670,8 @@ function generateFAQ() {
     .sort(function(a, b) { return a.date < b.date ? -1 : 1; }).slice(-8);
 
   var btn = document.getElementById('faqBtn');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 생성 중...';
 
@@ -693,6 +701,7 @@ function generateFAQ() {
       resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
     })
     .finally(function() {
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '💬 답변 예시 생성';
     });
