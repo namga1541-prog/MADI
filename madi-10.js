@@ -75,7 +75,14 @@ function getUnwrittenSessions() {
 function renderUnwrittenAlert() {
   var el = document.getElementById('unwrittenAlert');
   if (!el) return;
+  var selChildId = parseInt(document.getElementById('sessionChild') && document.getElementById('sessionChild').value) || 0;
   var unwritten = getUnwrittenSessions();
+  if (selChildId) {
+    unwritten = unwritten.filter(function(u) {
+      var ch = childDB.find(function(c){ return c.id === selChildId; });
+      return ch && u.childName === ch.name;
+    });
+  }
   if (unwritten.length === 0) { el.innerHTML = ''; return; }
   var html = '<div class="unwritten-card">'
     + '<div class="unwritten-title">⚠️ 미작성 세션 ' + unwritten.length + '개</div>';
