@@ -770,7 +770,9 @@ function deleteSchedConfirm(id) {
   var s = scheduleDB.find(function(x){ return x.id === id; });
   if (!s) return;
   var snapshot = Object.assign({}, s);
-  supaFetch('madi_schedules?id=eq.' + id, 'DELETE');
+  supaFetch('madi_schedules?id=eq.' + id, 'DELETE').catch(function(e) {
+    showToast('⚠️ 서버 삭제 실패 (새로고침 시 복원될 수 있음)');
+  });
   scheduleDB = scheduleDB.filter(function(x){ return x.id !== id; });
   saveSchedule(); renderSchedView();
   var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
