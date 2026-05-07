@@ -40,6 +40,8 @@ function saveSessionAI() {
 
   var child = childDB.find(function(c) { return c.id === childId; });
   var btn = document.getElementById('aiSaveBtn');
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ AI 정리 중...';
 
@@ -69,6 +71,7 @@ function saveSessionAI() {
     })
     .catch(function(err) { showToast('❌ ' + err.message); })
     .finally(function() {
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '🤖 AI 정리 후 저장';
     });
