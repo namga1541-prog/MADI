@@ -628,6 +628,10 @@ function renderAssessmentList() {
 }
 
 function deleteAssessment(id) {
+  if (typeof canDo === 'function' && !canDo('deleteAssessment')) {
+    showToast('⚠️ 검사 삭제 권한이 없습니다');
+    return;
+  }
   if (!confirm('이 검사 결과를 삭제할까요?')) return;
   supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(){});
   assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
