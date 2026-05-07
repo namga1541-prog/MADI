@@ -1,9 +1,11 @@
-<html lang="ko"><head>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <title>마디 관리자 센터</title>
   <meta name="theme-color" content="#4f46e5">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -131,62 +133,26 @@
   <button class="back-btn" onclick="goBack()">← 앱으로</button>
   <div class="header-title">🛡️ 관리자 센터</div>
   <div class="header-user">
-    <span id="adminUserName">남그</span>
+    <span id="adminUserName"></span>
     <span class="header-user-badge" style="margin-left:6px;">관리자</span>
   </div>
 </div>
 
 <!-- ── 탭 바 ── -->
 <div class="admin-tab-bar">
-  <button class="admin-tab-btn" id="adminTabService" onclick="showAdminTab('service')">🛠 서비스관리</button>
-  <button class="admin-tab-btn active" id="adminTabSettings" onclick="showAdminTab('settings')">⚙️ 관리자설정</button>
+  <button class="admin-tab-btn active" id="adminTabService" onclick="showAdminTab('service')">🛠 서비스관리</button>
+  <button class="admin-tab-btn" id="adminTabSettings" onclick="showAdminTab('settings')">⚙️ 관리자설정</button>
 </div>
 
 <!-- ══════ 서비스관리 패널 ══════ -->
-<div class="panel" id="panelAdminService">
+<div class="panel active" id="panelAdminService">
   <div class="content">
     <!-- 현황 카드 4가지 -->
     <div class="svc-stat-grid">
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatChildren">2</div><div class="stat-lbl">등록 이용자 수</div></div>
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatSessions">1</div><div class="stat-lbl">이번 달 세션</div></div>
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatStaff">1</div><div class="stat-lbl">소속 선생님 수</div></div>
-      <div class="svc-stat-card"><div class="stat-num" id="svcStatActiveRate">0%</div><div class="stat-lbl">이용자 활성률</div></div>
-    </div>
-
-    <!-- 프로그램 관리 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">📋 프로그램 목록</div>
-        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="loadPrograms()">🔄 새로고침</button>
-      </div>
-      <div id="programList"><div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">로딩 중...</div></div>
-    </div>
-
-    <!-- 선생님 담당 프로그램 설정 -->
-    <div class="card" style="border:2px solid #8b5cf6;">
-      <div class="card-title">
-        <div class="card-title-left" style="color:#8b5cf6;">👩‍🏫 선생님 담당 프로그램 설정</div>
-      </div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">선생님을 선택하고 역할 버튼으로 일괄 배정하거나 개별 선택하세요.</p>
-      <div class="form-group">
-        <label class="form-label">선생님 선택</label>
-        <select class="form-input" id="progTeacherSel" onchange="loadTeacherPrograms()">
-          <option value="">선생님을 선택하세요</option>
-        </select>
-      </div>
-      <div id="progAssignWrap" style="display:none;">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-          <button onclick="bulkAssign('언어')" style="padding:6px 14px;border-radius:20px;border:2px solid #3b82f6;background:#eff6ff;color:#3b82f6;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🗣 언어 전체</button>
-          <button onclick="bulkAssign('감통')" style="padding:6px 14px;border-radius:20px;border:2px solid #10b981;background:#ecfdf5;color:#10b981;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🤸 감통 전체</button>
-          <button onclick="bulkAssign('놀이')" style="padding:6px 14px;border-radius:20px;border:2px solid #f59e0b;background:#fffbeb;color:#d97706;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🎮 놀이 전체</button>
-          <button onclick="bulkAssign('공통')" style="padding:6px 14px;border-radius:20px;border:2px solid #94a3b8;background:#f8fafc;color:#64748b;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">📌 공통 전체</button>
-          <button onclick="bulkAssign('전체')" style="padding:6px 14px;border-radius:20px;border:2px solid #8b5cf6;background:#f5f3ff;color:#8b5cf6;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">✅ 전체 선택</button>
-          <button onclick="bulkAssign('초기화')" style="padding:6px 14px;border-radius:20px;border:2px solid #ef4444;background:#fef2f2;color:#ef4444;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">🗑 초기화</button>
-        </div>
-        <div id="progCheckList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:10px;"></div>
-        <button class="btn btn-primary" style="margin-top:12px;background:#8b5cf6;border-color:#8b5cf6;" onclick="saveTeacherPrograms()">💾 선생님 담당 프로그램 저장</button>
-        <div id="progSaveStatus" style="font-size:12px;margin-top:6px;"></div>
-      </div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatChildren">-</div><div class="stat-lbl">등록 이용자 수</div></div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatSessions">-</div><div class="stat-lbl">이번 달 세션</div></div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatStaff">-</div><div class="stat-lbl">소속 선생님 수</div></div>
+      <div class="svc-stat-card"><div class="stat-num" id="svcStatActiveRate">-</div><div class="stat-lbl">이용자 활성률</div></div>
     </div>
 
     <!-- 월간 서비스 현황 -->
@@ -196,8 +162,8 @@
         <input type="month" id="svcMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderMonthlyService()">
       </div>
       <div class="svc-filter-row">
-        <select id="mSvcChild" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">이용자 전체</option><option value="1777436219954">남재현룡왕의가더</option><option value="1777348761852">서규민</option></select>
-        <select id="mSvcTeacher" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">선생님 전체</option><option value="한기성">한기성</option></select>
+        <select id="mSvcChild" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">이용자 전체</option></select>
+        <select id="mSvcTeacher" class="form-input svc-filter-sel" onchange="renderMonthlyService()"><option value="">선생님 전체</option></select>
         <select id="mSvcStatus" class="form-input svc-filter-sel" onchange="renderMonthlyService()">
           <option value="">상태 전체</option>
           <option value="done">완료</option><option value="pending">예정</option>
@@ -215,8 +181,8 @@
         <input type="date" id="svcDate" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderDailyService()">
       </div>
       <div class="svc-filter-row">
-        <select id="dSvcChild" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">이용자 전체</option><option value="1777436219954">남재현룡왕의가더</option><option value="1777348761852">서규민</option></select>
-        <select id="dSvcTeacher" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">선생님 전체</option><option value="한기성">한기성</option></select>
+        <select id="dSvcChild" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">이용자 전체</option></select>
+        <select id="dSvcTeacher" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">선생님 전체</option></select>
         <select id="dSvcStatus" class="form-input svc-filter-sel" onchange="renderDailyService()">
           <option value="">상태 전체</option>
           <option value="done">완료</option><option value="pending">예정</option>
@@ -231,9 +197,9 @@
     <div class="card">
       <div class="card-title">
         <div class="card-title-left">👩‍🏫 선생님별 통계</div>
-        <select id="svcStaffMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderStaffStats()"><option value="2026-05" selected="">2026년 5월</option><option value="2026-04">2026년 4월</option><option value="2026-03">2026년 3월</option><option value="2026-02">2026년 2월</option><option value="2026-01">2026년 1월</option><option value="2025-12">2025년 12월</option></select>
+        <select id="svcStaffMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderStaffStats()"></select>
       </div>
-      <div id="staffStatsList"><div style="font-size:11px;color:var(--text2);margin-bottom:8px;">선생님 카드를 누르면 월별 추이를 볼 수 있습니다.</div><div onclick="showStaffTrend('한기성') " style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;background:var(--bg);border-radius:10px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);"><div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text);">한기성</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">담당 이용자 0명</div></div><div style="display:flex;gap:12px;align-items:center;text-align:center;"><div><div style="font-size:18px;font-weight:900;color:var(--mint);">0</div><div style="font-size:10px;color:var(--text2);">세션</div></div><div><div style="font-size:18px;font-weight:900;color:var(--red);">0%</div><div style="font-size:10px;color:var(--text2);">완료율</div></div><div style="font-size:11px;color:var(--text2);">▶</div></div></div></div>
+      <div id="staffStatsList"><div class="empty"><div class="empty-icon">👩‍🏫</div><p>데이터를 불러오는 중입니다.</p></div></div>
       <div id="staffChartWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;" id="staffChartTitle"></div>
         <canvas id="staffTrendChart" height="180"></canvas>
@@ -256,10 +222,8 @@
 </div>
 
 <!-- ══════ 관리자설정 패널 ══════ -->
-<div class="panel active" id="panelAdminSettings">
+<div class="panel" id="panelAdminSettings">
   <div class="content">
-
-
 
     <!-- GitHub 배포 -->
     <div class="card" style="border:2px solid #24292e;">
@@ -271,8 +235,8 @@
         <strong>admin.html</strong>을 GitHub에 업로드합니다.<br>
         <span style="font-size:12px;color:var(--text2);">index.html 배포는 앱 헤더의 <b>🚀 배포</b> 버튼을 이용하세요.</span>
       </p>
-      <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployAdminToGitHub()" id="deployBtn" disabled="">⏳ 배포 중...</button>
-      <div id="deployResult" style="margin-top:8px;font-size:13px;"><div style="font-size:12px;color:var(--text2);">📄 admin.html 업로드 중...</div></div>
+      <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployAdminToGitHub()" id="deployBtn">🚀 admin.html 배포</button>
+      <div id="deployResult" style="margin-top:8px;font-size:13px;"></div>
     </div>
 
     <!-- 센터 AI 키 관리 -->
@@ -885,129 +849,6 @@ function showStaffTrend(teacher) {
 
 // ══════════════════════════════
 // 6. 관리자설정 함수
-// ── 프로그램 관리 ──
-var _programsCache = [];
-var _staffCache = [];
-var _teacherPrograms = []; // 현재 선택된 선생님의 담당 프로그램 id 배열
-
-function loadPrograms() {
-  var cid = getCenterId();
-  supaFetch('madi_programs?center_id=eq.' + encodeURIComponent(cid) + '&order=category.asc,name.asc', 'GET')
-    .then(function(rows) {
-      _programsCache = rows || [];
-      renderProgramList();
-      renderProgCheckList();
-    }).catch(function(e) {
-      document.getElementById('programList').innerHTML = '<div style="color:#ef4444;font-size:12px;">로드 실패</div>';
-    });
-}
-
-function renderProgramList() {
-  var el = document.getElementById('programList');
-  if (!el) return;
-  if (!_programsCache.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">등록된 프로그램이 없습니다.</div>'; return; }
-  var cats = {};
-  _programsCache.forEach(function(p) {
-    if (!cats[p.category]) cats[p.category] = [];
-    cats[p.category].push(p);
-  });
-  var html = '';
-  Object.keys(cats).forEach(function(cat) {
-    html += '<div style="font-size:12px;font-weight:700;color:var(--text2);margin:8px 0 4px;">' + escHtml(cat) + '</div>';
-    cats[cat].forEach(function(p) {
-      var typeColor = {언어:'#3b82f6',감통:'#10b981',놀이:'#f59e0b',공통:'#94a3b8'}[p.prog_type] || '#94a3b8';
-      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border-radius:8px;margin-bottom:4px;border:1px solid var(--border);">'
-        + '<div style="display:flex;align-items:center;gap:8px;">'
-        + '<span style="background:' + typeColor + '20;color:' + typeColor + ';border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;">' + escHtml(p.prog_type||'') + '</span>'
-        + '<span style="font-size:13px;">' + escHtml(p.name) + '</span>'
-        + (p.method ? '<span style="font-size:11px;color:var(--text2);">' + escHtml(p.method) + '</span>' : '')
-        + '</div>'
-        + '<span style="font-size:12px;font-weight:700;color:var(--mint);">' + (p.price ? (p.price/10000).toFixed(0) + '만원' : '무료') + '</span>'
-        + '</div>';
-    });
-  });
-  el.innerHTML = html;
-}
-
-function loadTeacherList() {
-  supaFetch('madi_users?select=id,name,role,prog_types&order=name.asc', 'GET')
-    .then(function(rows) {
-      _staffCache = (rows || []).filter(function(u){ return u.name; });
-      var sel = document.getElementById('progTeacherSel');
-      if (!sel) return;
-      var cid = getCenterId();
-      sel.innerHTML = '<option value="">선생님을 선택하세요</option>';
-      _staffCache.forEach(function(u) {
-        sel.innerHTML += '<option value="' + escHtml(u.id) + '">' + escHtml(u.name) + '</option>';
-      });
-    }).catch(function(){});
-}
-
-function loadTeacherPrograms() {
-  var sel = document.getElementById('progTeacherSel');
-  var uid = sel ? sel.value : '';
-  var wrap = document.getElementById('progAssignWrap');
-  if (!uid) { if (wrap) wrap.style.display = 'none'; return; }
-  var staff = _staffCache.find(function(u){ return String(u.id) === uid; });
-  _teacherPrograms = (staff && Array.isArray(staff.prog_types)) ? staff.prog_types.slice() : [];
-  if (wrap) wrap.style.display = 'block';
-  renderProgCheckList();
-}
-
-function renderProgCheckList() {
-  var el = document.getElementById('progCheckList');
-  if (!el || !_programsCache.length) return;
-  var html = '';
-  _programsCache.forEach(function(p) {
-    var checked = _teacherPrograms.indexOf(p.id) > -1;
-    var typeColor = {언어:'#3b82f6',감통:'#10b981',놀이:'#f59e0b',공통:'#94a3b8'}[p.prog_type] || '#94a3b8';
-    html += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0;">'
-      + '<input type="checkbox" value="' + p.id + '" ' + (checked?'checked':'') + ' onchange="onProgCheck(this)" style="width:16px;height:16px;cursor:pointer;">'
-      + '<span style="background:' + typeColor + '20;color:' + typeColor + ';border-radius:8px;padding:1px 6px;font-size:10px;font-weight:700;">' + escHtml(p.prog_type||'') + '</span>'
-      + '<span style="font-size:13px;">' + escHtml(p.name) + '</span>'
-      + '</label>';
-  });
-  el.innerHTML = html;
-}
-
-function onProgCheck(cb) {
-  var id = parseInt(cb.value);
-  if (cb.checked) {
-    if (_teacherPrograms.indexOf(id) < 0) _teacherPrograms.push(id);
-  } else {
-    _teacherPrograms = _teacherPrograms.filter(function(x){ return x !== id; });
-  }
-}
-
-function bulkAssign(type) {
-  if (type === '초기화') { _teacherPrograms = []; }
-  else if (type === '전체') { _teacherPrograms = _programsCache.map(function(p){ return p.id; }); }
-  else {
-    var typeIds = _programsCache.filter(function(p){ return p.prog_type === type; }).map(function(p){ return p.id; });
-    typeIds.forEach(function(id) {
-      if (_teacherPrograms.indexOf(id) < 0) _teacherPrograms.push(id);
-    });
-  }
-  renderProgCheckList();
-}
-
-function saveTeacherPrograms() {
-  var sel = document.getElementById('progTeacherSel');
-  var uid = sel ? sel.value : '';
-  if (!uid) return;
-  var statusEl = document.getElementById('progSaveStatus');
-  if (statusEl) statusEl.innerHTML = '<span style="color:var(--text2);">저장 중...</span>';
-  supaFetch('madi_users?id=eq.' + encodeURIComponent(uid), 'PATCH', { prog_types: _teacherPrograms })
-    .then(function() {
-      var staff = _staffCache.find(function(u){ return String(u.id) === uid; });
-      if (staff) staff.prog_types = _teacherPrograms.slice();
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--mint);">✅ 저장 완료 (' + _teacherPrograms.length + '개 프로그램)</span>';
-      showToast('✅ 담당 프로그램 저장 완료');
-    }).catch(function() {
-      if (statusEl) statusEl.innerHTML = '<span style="color:#ef4444;">❌ 저장 실패</span>';
-    });
-}
-
 // ══════════════════════════════
 
 // ── 공지사항 ──
@@ -1312,25 +1153,12 @@ window.addEventListener('DOMContentLoaded', function() {
   if (nameEl && currentUser) nameEl.textContent = currentUser.name;
   // AI 모델 버튼 업데이트
   updateModelBtns();
-  // 데이터 로드 후 서비스 탭 렌더
-  loadAdminData();
-  // 프로그램 목록 + 선생님 목록 로드
-  loadPrograms();
-  loadTeacherList();
-  // 세션 시간 단위 로드
-  // URL 파라미터로 초기 탭 결정 (service / settings)
-  var urlTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
+  // URL 파라미터로 초기 탭 결정 (?tab=service or ?tab=settings)
+  var urlTab = new URLSearchParams(window.location.search).get('tab') || 'service';
   showAdminTab(urlTab);
-  // 진입한 탭만 보이도록 반대 탭 버튼 숨김
-  if (urlTab === 'service') {
-    var el = document.getElementById('adminTabSettings');
-    if (el) el.style.display = 'none';
-  } else {
-    var el = document.getElementById('adminTabService');
-    if (el) el.style.display = 'none';
-  }
+  // 데이터 로드
+  loadAdminData();
 });
 </script>
-
-
-</body></html>
+</body>
+</html>
