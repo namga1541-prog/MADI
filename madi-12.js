@@ -395,12 +395,15 @@ function deployToGitHub() {
 
   var btn = document.getElementById('headerDeployBtn');
   if (!btn) return;
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled    = true;
   btn.textContent = '⏳ 배포 중...';
 
   var commitTime = new Date().toLocaleString('ko-KR');
 
   if (!window.showDirectoryPicker) {
+    btn.dataset.busy = '';
     btn.disabled = false; btn.textContent = '🚀 배포';
     showToast('❌ Chrome 또는 Edge에서만 사용 가능합니다.');
     return;
@@ -460,12 +463,14 @@ function deployToGitHub() {
       return deployFileToGitHub(token, GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
     })
     .then(function() {
+      btn.dataset.busy = '';
       btn.disabled    = false;
       btn.textContent = '🚀 배포';
       showToast('🚀 배포 완료! 1~2분 후 반영됩니다.', { duration: 5000 });
       localStorage.setItem('madi_last_deploy', new Date().toISOString());
     })
     .catch(function(e) {
+      btn.dataset.busy = '';
       btn.disabled    = false;
       btn.textContent = '🚀 배포';
       if (e.message && e.message.includes('Bad credentials')) {
