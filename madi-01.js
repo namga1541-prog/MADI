@@ -270,7 +270,9 @@ function doSignup() {
   if (pw.length < 4) { errEl.textContent = '비밀번호는 4자 이상이어야 합니다.'; return; }
   if (pw !== pwConfirm) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; return; }
 
-  // 진행 중 표시
+  // 진행 중 표시 + 더블클릭 차단
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '확인 중...';
 
@@ -316,6 +318,7 @@ function doSignup() {
     })
     .then(function(result) {
       // 6) 자동 로그인 — currentUser 세팅 + 메인 화면 진입
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '✨ 가입하기';
       // 비밀번호 제외하고 currentUser에 저장
@@ -341,6 +344,7 @@ function doSignup() {
       showToast('🎉 환영합니다, ' + result.user.name + ' 선생님! (' + result.center.name + ')');
     })
     .catch(function(err) {
+      btn.dataset.busy = '';
       btn.disabled = false;
       btn.textContent = '✨ 가입하기';
       errEl.textContent = '❌ ' + (err.message || '가입에 실패했습니다.');
@@ -359,7 +363,12 @@ function doLogin() {
   if (!un) { if (errEl) errEl.textContent = '아이디를 입력해주세요.'; return; }
   if (!pw) { if (errEl) errEl.textContent = '비밀번호를 입력해주세요.'; return; }
 
-  if (btn) { btn.disabled = true; btn.textContent = '로그인 중...'; }
+  if (btn) {
+    if (btn.dataset.busy === '1') return;
+    btn.dataset.busy = '1';
+    btn.disabled = true;
+    btn.textContent = '로그인 중...';
+  }
 
   fetchWithRetry(EDGE_URL + '/login', {
     method: 'POST',
@@ -371,7 +380,7 @@ function doLogin() {
   }, { retries: 1, label: '로그인' })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    if (btn) { btn.disabled = false; btn.textContent = '🔐 로그인'; }
+    if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (data.error) {
       if (errEl) errEl.textContent = data.error;
       return;
@@ -389,7 +398,7 @@ function doLogin() {
     // 세션 시간 단위 로드
     loadCenterSessionInterval();
   }).catch(function() {
-    if (btn) { btn.disabled = false; btn.textContent = '🔐 로그인'; }
+    if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
   });
 }
