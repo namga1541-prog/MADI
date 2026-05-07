@@ -343,6 +343,10 @@ function getVoucherUsed(childId) {
 }
 
 function deleteChild(id) {
+  if (typeof canDo === 'function' && !canDo('deleteChild')) {
+    showToast('⚠️ 아동 삭제 권한이 없습니다');
+    return;
+  }
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) return;
   if (!confirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?')) return;
