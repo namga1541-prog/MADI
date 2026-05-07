@@ -84,15 +84,47 @@ function renderUnwrittenAlert() {
     });
   }
   if (unwritten.length === 0) { el.innerHTML = ''; return; }
-  var html = '<div class="unwritten-card">'
-    + '<div class="unwritten-title">⚠️ 미작성 세션 ' + unwritten.length + '개</div>';
+
+  // 선생님별 그룹화
+  var byTeacher = {};
   unwritten.forEach(function(u) {
-    html += '<div class="unwritten-item">'
-      + '<span>📅 ' + u.date + ' · ' + escHtml(u.childName) + '</span>'
-      + '<button class="btn-ghost" style="font-size:11px;padding:7px 12px;" onclick="quickFillSession(\'' + u.date + '\',' + u.schedId + ')">지금 작성</button>'
-      + '</div>';
+    var t = u.teacher || '미지정';
+    if (!byTeacher[t]) byTeacher[t] = [];
+    byTeacher[t].push(u);
   });
-  html += '</div>';
+
+  var html = '<div class="unwritten-card">'
+    + '<div class="unwritten-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;" '
+    + 'onclick="var b=document.getElementById(\'uwBody\');var a=this.querySelector(\'.uw-arrow\');'
+    + 'if(b.style.display===\'none\'){b.style.display=\'\';a.textContent=\'▲\';}else{b.style.display=\'none\';a.textContent=\'▼\';}">'
+    + '<span>⚠️ 미작성 세션 ' + unwritten.length + '개</span>'
+    + '<span class="uw-arrow" style="font-size:11px;color:var(--text2);">▼</span>'
+    + '</div>'
+    + '<div id="uwBody" style="display:none;">';
+
+  Object.keys(byTeacher).sort().forEach(function(teacher) {
+    var items = byTeacher[teacher];
+    var uid = 'uw_' + teacher.replace(/\s/g, '_');
+    html += '<div style="margin-top:8px;">'
+      + '<div onclick="var b=document.getElementById(\'' + uid + '\');var a=this.querySelector(\'.uw-t-arrow\');'
+      + 'if(b.style.display===\'none\'){b.style.display=\'block\';a.textContent=\'▲\';}else{b.style.display=\'none\';a.textContent=\'▶\';}" '
+      + 'style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--mint2,#f0fdfa);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:var(--mint,#0ea5a0);">'
+      + '<span>👤 ' + escHtml(teacher) + '</span>'
+      + '<span style="display:flex;align-items:center;gap:6px;">'
+      + '<span style="font-size:11px;font-weight:400;color:var(--text2);">' + items.length + '건</span>'
+      + '<span class="uw-t-arrow" style="font-size:11px;">▶</span>'
+      + '</span></div>'
+      + '<div id="' + uid + '" style="display:none;margin-top:2px;">';
+    items.forEach(function(u) {
+      html += '<div class="unwritten-item">'
+        + '<span>📅 ' + u.date + ' · ' + escHtml(u.childName) + '</span>'
+        + '<button class="btn-ghost" style="font-size:11px;padding:7px 12px;" onclick="quickFillSession(\'' + u.date + '\',' + u.schedId + ')">지금 작성</button>'
+        + '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  html += '</div></div>';
   el.innerHTML = html;
 }
 
