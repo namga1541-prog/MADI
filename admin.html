@@ -270,6 +270,38 @@
 <div class="panel active" id="panelAdminSettings">
   <div class="content">
 
+    <!-- 공지사항 관리 -->
+    <div class="card" style="border:2px solid var(--amber);">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#b45309;">📢 공지사항 관리</div>
+        <button class="btn-ghost" onclick="loadNotices()" style="font-size:12px;">새로고침</button>
+      </div>
+      <!-- 작성 폼 -->
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <div style="flex:0 0 120px;">
+          <label class="form-label">유형</label>
+          <select class="form-input" id="noticeType" style="font-size:13px;">
+            <option value="info">📌 일반</option>
+            <option value="pin">📍 중요</option>
+            <option value="imp">🚨 긴급</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px;">
+          <label class="form-label">제목</label>
+          <input class="form-input" type="text" id="noticeTitle" placeholder="공지 제목">
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label class="form-label">내용</label>
+        <textarea class="form-input" id="noticeContent" placeholder="공지 내용을 입력하세요" style="min-height:70px;resize:vertical;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveNotice()" style="margin-bottom:14px;width:100%;">📢 공지 등록</button>
+      <!-- 목록 -->
+      <div style="border-top:1px solid var(--border);padding-top:12px;">
+        <div id="noticeList"><div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div></div>
+      </div>
+    </div>
+
     <!-- 세션 시간 단위 설정 -->
     <div class="card" style="border:2px solid #f59e0b;">
       <div class="card-title">
@@ -510,6 +542,7 @@ function showAdminTab(tab) {
   if (tab === 'settings') {
     loadCenterApiKey(false);
     updateModelBtns();
+    loadNotices();
   }
 }
 
