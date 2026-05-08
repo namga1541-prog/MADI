@@ -295,7 +295,7 @@
     </div>
 
     <!-- GitHub 배포 -->
-    <div class="card" style="border:2px solid #24292e;">
+    <div class="card" id="adminGithubDeployCard" style="border:2px solid #24292e;">
       <div class="card-title">
         <div class="card-title-left">🚀 GitHub 배포</div>
         <span id="deployStatus" style="font-size:11px;color:var(--text2);"></span>
@@ -309,7 +309,7 @@
     </div>
 
     <!-- 센터 AI 키 관리 -->
-    <div class="card" style="border:2px solid var(--mint);">
+    <div class="card" id="adminAiKeyCard" style="border:2px solid var(--mint);">
       <div class="card-title">
         <div class="card-title-left" style="color:var(--mint);">🔑 센터 AI 키 관리</div>
         <span style="font-size:11px;color:var(--text2);">슈퍼관리자 전용</span>
@@ -1548,17 +1548,6 @@ function resetMaroPosition() {
 // 7. 초기화
 // ══════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
-  // embedded 모드: iframe 안에서 열릴 때 헤더/탭바 숨김
-  var params = new URLSearchParams(window.location.search);
-  var isEmbedded = params.get('embedded') === '1';
-  if (isEmbedded) {
-    var hdr = document.querySelector('.header');
-    if (hdr) hdr.style.display = 'none';
-    var tabBar = document.querySelector('.admin-tab-bar');
-    if (tabBar) tabBar.style.display = 'none';
-    // 상단 여백 제거
-    document.body.style.paddingTop = '0';
-  }
   // 다크모드 복원
   if (localStorage.getItem('madi_dark') === '1') {
     document.body.classList.add('dark-mode');
@@ -1568,6 +1557,13 @@ window.addEventListener('DOMContentLoaded', function() {
   // 사용자 이름 표시
   var nameEl = document.getElementById('adminUserName');
   if (nameEl && currentUser) nameEl.textContent = currentUser.name;
+
+  // 슈퍼관리자 전용 카드: 일반 관리자에게는 숨김
+  var isSuperAdmin = currentUser && currentUser.role === 'superadmin';
+  var githubCard = document.getElementById('adminGithubDeployCard');
+  var aiKeyCard  = document.getElementById('adminAiKeyCard');
+  if (githubCard) githubCard.style.display = isSuperAdmin ? '' : 'none';
+  if (aiKeyCard)  aiKeyCard.style.display  = isSuperAdmin ? '' : 'none';
   // AI 모델 버튼 업데이트
   updateModelBtns();
   // 데이터 로드 후 서비스 탭 렌더
@@ -1578,17 +1574,15 @@ window.addEventListener('DOMContentLoaded', function() {
   // 세션 시간 단위 로드
   loadSessionInterval();
   // URL 파라미터로 초기 탭 결정 (service / settings)
-  var urlTab = params.get('tab') || 'settings';
+  var urlTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
   showAdminTab(urlTab);
-  // 진입한 탭만 보이도록 반대 탭 버튼 숨김 (embedded 아닐 때만)
-  if (!isEmbedded) {
-    if (urlTab === 'service') {
-      var el = document.getElementById('adminTabSettings');
-      if (el) el.style.display = 'none';
-    } else {
-      var el = document.getElementById('adminTabService');
-      if (el) el.style.display = 'none';
-    }
+  // 진입한 탭만 보이도록 반대 탭 버튼 숨김
+  if (urlTab === 'service') {
+    var el = document.getElementById('adminTabSettings');
+    if (el) el.style.display = 'none';
+  } else {
+    var el = document.getElementById('adminTabService');
+    if (el) el.style.display = 'none';
   }
 });
 </script>
