@@ -384,6 +384,20 @@ function deployFileToGitHub(token, filename, textContent, commitMsg) {
     });
 }
 
+function deployResetFolder() {
+  _openMadiDB().then(function(db) {
+    var tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').delete('madiFolder');
+    tx.oncomplete = function() {
+      var ov = document.getElementById('deployOverlay');
+      if (ov) ov.parentNode.removeChild(ov);
+      var btn = document.getElementById('headerDeployBtn');
+      if (btn) { btn.dataset.busy=''; btn.disabled=false; btn.textContent='🚀 배포'; }
+      showToast('📁 폴더가 초기화됐습니다. 다시 🚀 배포를 눌러 올바른 폴더를 선택해주세요.');
+    };
+  });
+}
+
 function deployToGitHub() {
   var token = getGithubToken();
   if (!token) {
@@ -423,7 +437,10 @@ function deployToGitHub() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,41,66,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;';
   overlay.innerHTML =
     '<div style="background:#fff;border-radius:16px;padding:28px 32px;min-width:300px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,0.3);">'
-    + '<div style="font-size:16px;font-weight:700;color:#0f2942;margin-bottom:16px;">🚀 마디아이 배포 중...</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+    + '<div style="font-size:16px;font-weight:700;color:#0f2942;">🚀 마디아이 배포 중...</div>'
+    + '<button onclick="deployResetFolder()" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;cursor:pointer;font-family:inherit;">📁 폴더 재선택</button>'
+    + '</div>'
     + '<div id="deployProgressBar" style="height:6px;background:#e2e8f0;border-radius:4px;margin-bottom:14px;overflow:hidden;">'
     + '<div id="deployProgressFill" style="height:100%;background:#0ea5a0;width:0%;transition:width 0.3s;border-radius:4px;"></div></div>'
     + '<div id="deployProgressText" style="font-size:13px;color:#64748b;min-height:20px;">준비 중...</div>'
