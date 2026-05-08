@@ -231,8 +231,12 @@ function goToAdmin(tab) {
     showToast('⚠️ 관리자만 접근할 수 있어요');
     return;
   }
-  // admin, superadmin 모두 admin.html로 이동
-  window.location.href = 'admin.html?tab=' + (tab || 'service');
+  // iframe 방식: 페이지 이동 없이 사이드바 유지
+  if (tab === 'service') {
+    switchTab(4);
+  } else {
+    switchTab(5);
+  }
 }
 // 내부 탭 직접 전환 (goToAdmin 리다이렉트 없이)
 function switchTabDirect(idx) {
@@ -335,12 +339,12 @@ function renderDashboard() {
   }).join('');}}
 }
 var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7','panel8',
-                      'panelNotice','panelReport','panelPortfolio','panelService'];
-var TAB_PANEL_MAP  = ['panel2','panel0','panelReport','panelPortfolio','panelService','panel8'];
+                      'panelNotice','panelReport','panelPortfolio','panelService','panelUserSettings'];
+var TAB_PANEL_MAP  = ['panel2','panel0','panelReport','panelPortfolio','panelService','panel8','panelUserSettings'];
 
 // ─── 사이드바 active 동기화 ───
 function syncSidebarActive(idx) {
-  var ids = ['sbHome','sbTab0','sbTab1','sbTab2','sbTab3','sbTab4','sbTab5'];
+  var ids = ['sbHome','sbTab0','sbTab1','sbTab2','sbTab3','sbTab4','sbTab5','sbTab6'];
   ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('active'); });
   if (idx === -1) { var h=document.getElementById('sbHome'); if(h) h.classList.add('active'); }
   else { var t=document.getElementById('sbTab'+idx); if(t) t.classList.add('active'); }
@@ -363,7 +367,7 @@ function restoreSidebarState() {
   } catch(e) {}
 }
 // ─── Breadcrumb 업데이트 ───
-var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':'관리자 설정' };
+var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':'관리자 설정', '6':'설정' };
 function updateBreadcrumb(idx) {
   var sep = document.getElementById('bcSep');
   var cur = document.getElementById('bcCurrent');
@@ -399,7 +403,7 @@ function switchTab(idx) {
     if (p) p.classList.remove('sub-active');
   });
   // 탭 버튼 초기화 (홈 버튼 포함)
-  for (var i = 0; i < 6; i++) {
+  for (var i = 0; i < 7; i++) {
     var b = document.getElementById('tabBtn' + i);
     if (b) b.classList.remove('active');
   }
@@ -455,8 +459,15 @@ function switchTab(idx) {
     populateChildSelects();
     switchPortfolioTab(currentPortfolioTab || 'trend');
   }
-  if (idx === 4) { goToAdmin('service');  return; }
-  if (idx === 5) { goToAdmin('settings'); return; }
+  if (idx === 4) {
+    var f4 = document.getElementById('adminServiceFrame');
+    if (f4 && !f4.src.includes('admin.html')) f4.src = 'admin.html?tab=service&embedded=1';
+  }
+  if (idx === 5) {
+    var f5 = document.getElementById('adminSettingsFrame');
+    if (f5 && !f5.src.includes('admin.html')) f5.src = 'admin.html?tab=settings&embedded=1';
+  }
+  if (idx === 6) { initUserSettings(); }
 }
 
 // ─── 보고서 서브탭 ───
@@ -655,3 +666,167 @@ async function deleteNotice(id) {
 }
 
 // ─── 서비스관리 ───
+// ════════════════════════════════════════
+// 사용자 설정 탭 기능
+// ════════════════════════════════════════
+var _wakeLock = null;
+var _pwaInstallPrompt = null;
+
+// 설정 탭 진입 초기화
+function initUserSettings() {
+  updateSettingsUI();
+}
+
+// 설정 UI 전체 동기화
+function updateSettingsUI() {
+  // 다크모드 토글
+  var dm = document.getElementById('settingDarkMode');
+  if (dm) {
+    var isDark = document.body.classList.contains('dark-mode');
+    dm.className = 'toggle-pill' + (isDark ? ' on' : '');
+    dm.textContent = isDark ? '켜짐' : '꺼짐';
+  }
+  // 글자 크기 세그먼트
+  var size = localStorage.getItem('madi_font_size') || 'medium';
+  ['small','medium','large'].forEach(function(s) {
+    var btn = document.getElementById('fs_' + s);
+    if (btn) btn.className = 'seg-btn' + (size === s ? ' active' : '');
+  });
+  // Wake Lock 토글
+  var wl = document.getElementById('settingWakeLock');
+  if (wl) {
+    var wlOn = _wakeLock !== null;
+    wl.className = 'toggle-pill' + (wlOn ? ' on' : '');
+    wl.textContent = wlOn ? '켜짐' : '꺼짐';
+  }
+  // Wake Lock 미지원 기기 행 숨김
+  var wlRow = document.getElementById('wakeLockRow');
+  if (wlRow) wlRow.style.display = ('wakeLock' in navigator) ? '' : 'none';
+  // 진동 토글
+  var ht = document.getElementById('settingHaptic');
+  if (ht) {
+    var hapticOn = localStorage.getItem('madi_haptic') !== '0';
+    ht.className = 'toggle-pill' + (hapticOn ? ' on' : '');
+    ht.textContent = hapticOn ? '켜짐' : '꺼짐';
+  }
+  // 진동 미지원 기기 행 숨김
+  var htRow = document.getElementById('hapticRow');
+  if (htRow) htRow.style.display = ('vibrate' in navigator) ? '' : 'none';
+  // 시작 탭
+  var st = document.getElementById('startTabSelect');
+  if (st) st.value = localStorage.getItem('madi_start_tab') || '0';
+}
+
+// ── 글자 크기 ──
+function setFontSize(size) {
+  localStorage.setItem('madi_font_size', size);
+  document.body.classList.remove('font-small','font-large');
+  if (size === 'small') document.body.classList.add('font-small');
+  if (size === 'large') document.body.classList.add('font-large');
+  updateSettingsUI();
+  var labels = { small:'작게', medium:'기본', large:'크게' };
+  showToast('🔤 글자 크기: ' + (labels[size] || '기본'));
+}
+function loadFontSize() {
+  var size = localStorage.getItem('madi_font_size') || 'medium';
+  document.body.classList.remove('font-small','font-large');
+  if (size === 'small') document.body.classList.add('font-small');
+  if (size === 'large') document.body.classList.add('font-large');
+}
+
+// ── 화면 항상 켜짐 ──
+function toggleWakeLock() {
+  if (!('wakeLock' in navigator)) {
+    showToast('❌ 이 기기에서는 지원되지 않아요');
+    return;
+  }
+  if (_wakeLock) {
+    _wakeLock.release().catch(function(){});
+    _wakeLock = null;
+    showToast('💡 화면 자동 꺼짐 복원됐어요');
+    updateSettingsUI();
+  } else {
+    navigator.wakeLock.request('screen').then(function(lock) {
+      _wakeLock = lock;
+      lock.addEventListener('release', function() { _wakeLock = null; updateSettingsUI(); });
+      showToast('💡 화면이 꺼지지 않아요');
+      updateSettingsUI();
+    }).catch(function(e) {
+      showToast('❌ 설정 실패: ' + (e.message || '오류'));
+    });
+  }
+}
+
+// ── 진동 피드백 ──
+function toggleHaptic() {
+  var current = localStorage.getItem('madi_haptic') !== '0';
+  var next = !current;
+  localStorage.setItem('madi_haptic', next ? '1' : '0');
+  if (next && navigator.vibrate) navigator.vibrate([20, 40, 20]);
+  showToast(next ? '📳 진동 피드백 켜짐' : '📳 진동 피드백 꺼짐');
+  updateSettingsUI();
+}
+function triggerHaptic() {
+  if (localStorage.getItem('madi_haptic') === '0') return;
+  if (navigator.vibrate) navigator.vibrate(10);
+}
+
+// ── 시작 탭 ──
+function setStartTab(val) {
+  localStorage.setItem('madi_start_tab', val);
+  var names = ['캘린더','아동 관리','보고서','성장기록'];
+  showToast('🏁 시작 탭: ' + (names[parseInt(val,10)] || '캘린더'));
+}
+
+// ── PWA 홈 화면 추가 ──
+function showPWAInstall() {
+  if (_pwaInstallPrompt) {
+    _pwaInstallPrompt.prompt();
+    _pwaInstallPrompt.userChoice.then(function(r) {
+      if (r.outcome === 'accepted') { showToast('✅ 앱 설치됐어요!'); _pwaInstallPrompt = null; }
+    });
+    return;
+  }
+  var modal = document.getElementById('pwaGuideModal');
+  if (modal) modal.style.display = 'flex';
+}
+function closePWAGuide() {
+  var modal = document.getElementById('pwaGuideModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// ── 비밀번호 변경 ──
+function changeMyPassword() {
+  var oldPw  = (document.getElementById('oldPassword')  || {}).value || '';
+  var newPw  = (document.getElementById('newPassword')  || {}).value || '';
+  var newPw2 = (document.getElementById('newPassword2') || {}).value || '';
+  var result = document.getElementById('pwChangeResult');
+  function setResult(html) { if (result) result.innerHTML = html; }
+
+  if (!oldPw || !newPw || !newPw2) { setResult('<span style="color:var(--red);">❌ 모든 항목을 입력해주세요.</span>'); return; }
+  if (newPw !== newPw2)            { setResult('<span style="color:var(--red);">❌ 새 비밀번호가 일치하지 않아요.</span>'); return; }
+  if (newPw.length < 4)            { setResult('<span style="color:var(--red);">❌ 비밀번호는 4자 이상이어야 해요.</span>'); return; }
+
+  setResult('<span style="color:var(--text2);">변경 중...</span>');
+
+  hashPassword(oldPw)
+    .then(function(oldHash) {
+      return supaFetch('madi_users?id=eq.' + encodeURIComponent(currentUser.id) + '&password=eq.' + encodeURIComponent(oldHash) + '&select=id', 'GET');
+    })
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) throw new Error('현재 비밀번호가 올바르지 않아요.');
+      return hashPassword(newPw);
+    })
+    .then(function(newHash) {
+      return supaFetch('madi_users?id=eq.' + encodeURIComponent(currentUser.id), 'PATCH', { password: newHash });
+    })
+    .then(function() {
+      setResult('<span style="color:var(--green);">✅ 비밀번호가 변경됐어요!</span>');
+      document.getElementById('oldPassword').value  = '';
+      document.getElementById('newPassword').value  = '';
+      document.getElementById('newPassword2').value = '';
+    })
+    .catch(function(err) {
+      setResult('<span style="color:var(--red);">❌ ' + escHtml(err.message || '변경 실패') + '</span>');
+    });
+}

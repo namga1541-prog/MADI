@@ -34,6 +34,9 @@ function applyPermissions() {
   if (settingsBtn) settingsBtn.style.display = isAdminOrSuper ? '' : 'none';
   var svcBtn = document.getElementById('tabBtn4');
   if (svcBtn) svcBtn.style.display = isAdminOrSuper ? '' : 'none';
+  // 설정 탭(tabBtn6)은 모든 사용자에게 표시
+  var userSettingBtn = document.getElementById('tabBtn6');
+  if (userSettingBtn) userSettingBtn.style.display = '';
   if (isAdminOrSuper) return;
   if (!canDo('useAI')) {
     var aiSubBtn = document.getElementById('ptBtn_ai');
@@ -397,6 +400,9 @@ function doLogin() {
     initRealtime();
     // 세션 시간 단위 로드
     loadCenterSessionInterval();
+    // 저장된 시작 탭으로 이동
+    var startTab = parseInt(localStorage.getItem('madi_start_tab') || '0', 10);
+    if (startTab > 0 && typeof switchTab === 'function') setTimeout(function(){ switchTab(startTab); }, 300);
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
@@ -420,6 +426,13 @@ function getMadiLogoSVG(w, h) {
 document.addEventListener('DOMContentLoaded', function() {
   // 사이드바 접힘 상태 복원
   restoreSidebarState();
+  // 글자 크기 복원
+  loadFontSize();
+  // PWA 설치 프롬프트 캡처 (Android Chrome)
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    if (typeof _pwaInstallPrompt !== 'undefined') _pwaInstallPrompt = e;
+  });
 
   // SVG 로고 4곳 자동 주입
   var lpNav = document.querySelector('.lp-nav-logo-icon');
