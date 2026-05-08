@@ -276,7 +276,6 @@
         <div class="card-title-left" style="color:var(--purple);">🏢 센터 관리</div>
         <span style="font-size:11px;color:var(--text2);">관리자 전용</span>
       </div>
-      <!-- 초대 코드 -->
       <div id="centerInfoBox" style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px;">
         <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">현재 센터</div>
         <div id="centerName" style="font-size:15px;font-weight:700;color:var(--navy);">불러오는 중...</div>
@@ -299,7 +298,6 @@
           <button class="btn-ghost" onclick="regenInviteCode()" style="flex-shrink:0;font-size:12px;color:var(--amber);border-color:var(--amber);">🔄 재발급</button>
         </div>
       </div>
-      <!-- 선생님 계정 추가 -->
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">👤 선생님 계정 추가</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
         <div style="flex:1;min-width:120px;"><label class="form-label">이름</label><input class="form-input" id="fixedStaffName" placeholder="예: 김치료사"></div>
@@ -316,7 +314,6 @@
       </div>
       <button class="btn btn-primary" style="margin-top:0;width:100%;" onclick="addStaffAccount()">➕ 계정 추가</button>
       <div id="staffAddResult" style="font-size:12px;margin-top:8px;"></div>
-      <!-- 선생님 목록 -->
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;">👥 현재 선생님 목록</div>
       <div id="staffMgmtList"><div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">불러오는 중...</div></div>
     </div>
@@ -1430,7 +1427,8 @@ function addStaffAccount() {
   if (!name||!username||!pw) { if(resultEl) resultEl.innerHTML='<span style="color:var(--red);">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>'; return; }
   if (resultEl) resultEl.innerHTML='<span style="color:var(--text2);">추가 중...</span>';
   hashPassword(pw).then(function(hashed){
-    return supaFetch('madi_users','POST',[{ id:Date.now()+Math.floor(Math.random()*1000), username:username, name:name, password:hashed, role:role, center_id:getCenterId(), color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0') }]);
+    var newId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){ var r=Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); });
+    return supaFetch('madi_users','POST',[{ id:newId, username:username, name:name, password:hashed, role:role, center_id:getCenterId(), color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0') }]);
   }).then(function(){
     if (resultEl) resultEl.innerHTML='<span style="color:var(--green);">✅ '+escHtml(name)+' 선생님 계정 추가됨</span>';
     document.getElementById('fixedStaffName').value='';
