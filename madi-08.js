@@ -655,3 +655,108 @@ function renderEffectStats() {
 }
 
 // ─────── W5+W8: 활동 자료 카탈로그 (검색/필터 추가) ───────
+// ─────── 세션 기록 PDF/프린트 ───────
+function openPrintSessionModal() {
+  if (!sessionDB || sessionDB.length === 0) {
+    showToast('출력할 세션 기록이 없습니다.');
+    return;
+  }
+
+  var today   = new Date().toLocaleDateString('ko-KR');
+  var centerName = (currentUser && currentUser.center_name) ? currentUser.center_name : '마디 언어치료센터';
+  var userName   = currentUser ? currentUser.name : '';
+
+  // 최근 세션 최대 50개 (최신순)
+  var sessions = sessionDB.slice().reverse().slice(0, 50);
+
+  var rows = sessions.map(function(s) {
+    var ch     = childDB.find(function(c){ return c.id === s.childId; });
+    var cName  = ch ? ch.name  : '알 수 없음';
+    var cColor = ch ? ch.color : '#64748b';
+
+    // 목표 달성도
+    var goalsHtml = '';
+    if (s.goals && s.goals.length > 0) {
+      var valid = s.goals.filter(function(g){ return g.name; });
+      if (valid.length > 0) {
+        goalsHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0;">';
+        valid.forEach(function(g) {
+          var sc = (g.score !== null && g.score !== undefined && g.score !== '') ? g.score : null;
+          var bg = sc === null ? '#f1f5f9' : sc >= 70 ? '#dcfce7' : sc >= 40 ? '#fef9c3' : '#fee2e2';
+          var tc = sc === null ? '#64748b' : sc >= 70 ? '#15803d' : sc >= 40 ? '#b45309' : '#dc2626';
+          goalsHtml += '<span style="background:' + bg + ';color:' + tc + ';padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid rgba(0,0,0,0.06);">'
+            + escHtml(g.name) + (sc !== null ? ' <b>' + sc + '%</b>' : '') + '</span>';
+        });
+        goalsHtml += '</div>';
+      }
+    }
+
+    // 음소 데이터
+    var phonemeHtml = '';
+    if (s.phonemes && Object.keys(s.phonemes).length > 0) {
+      var parts = Object.keys(s.phonemes).map(function(p) {
+        var d = s.phonemes[p];
+        var vals = [];
+        if (d.initial !== null && d.initial !== undefined) vals.push('초:' + d.initial + '%');
+        if (d.medial  !== null && d.medial  !== undefined) vals.push('중:' + d.medial  + '%');
+        if (d.final   !== null && d.final   !== undefined) vals.push('말:' + d.final   + '%');
+        return vals.length ? '🎯 ' + escHtml(p) + ' ' + vals.join('/') : null;
+      }).filter(Boolean);
+      if (parts.length > 0) {
+        phonemeHtml = '<div style="font-size:11px;color:#7c3aed;margin-top:4px;">' + parts.join(' &nbsp; ') + '</div>';
+      }
+    }
+
+    return '<div style="border-left:4px solid ' + cColor + ';padding:12px 14px;margin-bottom:12px;border-radius:0 10px 10px 0;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.06);page-break-inside:avoid;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
+      + '<span style="font-size:15px;font-weight:700;color:' + cColor + ';">' + escHtml(cName) + '</span>'
+      + '<span style="font-size:12px;color:#64748b;">📅 ' + escHtml(s.date || '') + '</span>'
+      + '</div>'
+      + goalsHtml
+      + phonemeHtml
+      + (s.memo   ? '<div style="font-size:12px;color:#334155;margin-top:6px;padding:8px 10px;background:#f8fafc;border-radius:6px;line-height:1.7;white-space:pre-wrap;">' + escHtml(s.memo) + '</div>' : '')
+      + (s.aiNote ? '<div style="font-size:11px;color:#7c3aed;margin-top:6px;padding:6px 10px;background:#f5f3ff;border-radius:6px;line-height:1.6;">🤖 ' + escHtml(s.aiNote) + '</div>' : '')
+      + '</div>';
+  }).join('');
+
+  var win = window.open('', '_blank');
+  if (!win) { showToast('❌ 팝업이 차단됐습니다. 브라우저 팝업 허용 후 다시 시도해주세요.'); return; }
+
+  win.document.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">'
+    + '<title>세션 기록 — ' + escHtml(today) + '</title>'
+    + '<style>'
+    + '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap");'
+    + '*{box-sizing:border-box;margin:0;padding:0;}'
+    + 'body{font-family:"Noto Sans KR",sans-serif;padding:32px 40px;color:#1e293b;background:#f8fafc;}'
+    + '.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid #0ea5a0;}'
+    + '.header-title{font-size:22px;font-weight:700;color:#0f2942;}'
+    + '.header-meta{font-size:12px;color:#64748b;text-align:right;line-height:1.8;}'
+    + '.session-count{font-size:12px;color:#64748b;margin-bottom:14px;}'
+    + '.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center;}'
+    + '@media print{'
+    + '  body{background:white;padding:20px 28px;}'
+    + '  .no-print{display:none;}'
+    + '  @page{margin:15mm;}'
+    + '}'
+    + '</style></head><body>'
+    + '<div class="header">'
+    + '<div>'
+    + '<div style="font-size:12px;color:#0ea5a0;font-weight:700;margin-bottom:4px;">📋 세션 기록</div>'
+    + '<div class="header-title">' + escHtml(centerName) + '</div>'
+    + '</div>'
+    + '<div class="header-meta">'
+    + (userName ? '작성자: ' + escHtml(userName) + '<br>' : '')
+    + '출력일: ' + today
+    + '</div>'
+    + '</div>'
+    + '<div class="session-count">총 ' + sessions.length + '건의 세션 기록 (최신순)</div>'
+    + rows
+    + '<div class="footer">마디(Madi) — 언어치료 AI 비서 &nbsp;|&nbsp; 인쇄일: ' + today + '</div>'
+    + '<div class="no-print" style="margin-top:20px;text-align:center;">'
+    + '<button onclick="window.print()" style="padding:10px 28px;background:#0ea5a0;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ 인쇄 / PDF 저장</button>'
+    + '</div>'
+    + '</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 700);
+  showToast('📄 세션 기록 출력 창이 열렸습니다.');
+}
