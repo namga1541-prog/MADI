@@ -231,11 +231,8 @@ function goToAdmin(tab) {
     showToast('⚠️ 관리자만 접근할 수 있어요');
     return;
   }
-  if (currentUser.role === 'superadmin') {
-    window.location.href = 'admin.html?tab=' + (tab || 'service');
-  } else {
-    switchTabDirect(5);
-  }
+  // admin, superadmin 모두 admin.html로 이동
+  window.location.href = 'admin.html?tab=' + (tab || 'service');
 }
 // 내부 탭 직접 전환 (goToAdmin 리다이렉트 없이)
 function switchTabDirect(idx) {
