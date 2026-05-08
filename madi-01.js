@@ -34,9 +34,6 @@ function applyPermissions() {
   if (settingsBtn) settingsBtn.style.display = isAdminOrSuper ? '' : 'none';
   var svcBtn = document.getElementById('tabBtn4');
   if (svcBtn) svcBtn.style.display = isAdminOrSuper ? '' : 'none';
-  // 설정 탭(tabBtn6)은 모든 사용자에게 표시
-  var userSettingBtn = document.getElementById('tabBtn6');
-  if (userSettingBtn) userSettingBtn.style.display = '';
   if (isAdminOrSuper) return;
   if (!canDo('useAI')) {
     var aiSubBtn = document.getElementById('ptBtn_ai');
@@ -400,9 +397,6 @@ function doLogin() {
     initRealtime();
     // 세션 시간 단위 로드
     loadCenterSessionInterval();
-    // 저장된 시작 탭으로 이동
-    var startTab = parseInt(localStorage.getItem('madi_start_tab') || '0', 10);
-    if (startTab > 0 && typeof switchTab === 'function') setTimeout(function(){ switchTab(startTab); }, 300);
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
@@ -415,24 +409,19 @@ function doLogin() {
 function getMadiLogoSVG(w, h) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="' + w + '" height="' + h + '">'
     + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
-    + '<rect x="28" y="54" width="10" height="22" rx="4" fill="white"/>'
-    + '<rect x="44" y="40" width="10" height="50" rx="4" fill="white"/>'
-    + '<rect x="60" y="30" width="10" height="70" rx="4" fill="white"/>'
-    + '<rect x="76" y="45" width="10" height="40" rx="4" fill="white"/>'
-    + '<rect x="92" y="56" width="10" height="18" rx="4" fill="white"/>'
+    + '<rect x="18" y="14" width="82" height="62" rx="14" fill="white"/>'
+    + '<polygon points="28,76 14,98 46,76" fill="white"/>'
+    + '<rect x="30" y="28" width="9" height="34" rx="4.5" fill="#0ea5a0"/>'
+    + '<rect x="46" y="20" width="9" height="42" rx="4.5" fill="#0ea5a0"/>'
+    + '<rect x="62" y="30" width="9" height="30" rx="4.5" fill="#0ea5a0"/>'
+    + '<rect x="78" y="22" width="9" height="38" rx="4.5" fill="#0ea5a0"/>'
+    + '<rect x="94" y="34" width="9" height="24" rx="4.5" fill="#0ea5a0"/>'
     + '</svg>';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   // 사이드바 접힘 상태 복원
   restoreSidebarState();
-  // 글자 크기 복원
-  loadFontSize();
-  // PWA 설치 프롬프트 캡처 (Android Chrome)
-  window.addEventListener('beforeinstallprompt', function(e) {
-    e.preventDefault();
-    if (typeof _pwaInstallPrompt !== 'undefined') _pwaInstallPrompt = e;
-  });
 
   // SVG 로고 4곳 자동 주입
   var lpNav = document.querySelector('.lp-nav-logo-icon');
