@@ -655,21 +655,157 @@ function renderEffectStats() {
 }
 
 // ─────── W5+W8: 활동 자료 카탈로그 (검색/필터 추가) ───────
-// ─────── 세션 기록 PDF/프린트 ───────
+// ─────── 세션 기록 PDF/프린트 (필터 모달) ───────
 function openPrintSessionModal() {
   if (!sessionDB || sessionDB.length === 0) {
     showToast('출력할 세션 기록이 없습니다.');
     return;
   }
 
-  var today   = new Date().toLocaleDateString('ko-KR');
+  // 선생님 목록: sessionDB + scheduleDB에서 수집
+  var teacherSet = {};
+  sessionDB.forEach(function(s)  { if (s.teacher) teacherSet[s.teacher] = true; });
+  if (typeof scheduleDB !== 'undefined') {
+    scheduleDB.forEach(function(s) { if (s.teacher) teacherSet[s.teacher] = true; });
+  }
+  var teachers = Object.keys(teacherSet).sort();
+
+  // 아동 목록
+  var children = childDB.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+
+  // 모달 HTML 생성
+  var childOptions = '<option value="">-- 아동 선택 --</option>'
+    + children.map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + '</option>'; }).join('');
+  var teacherOptions = '<option value="">-- 선생님 선택 --</option>'
+    + teachers.map(function(t){ return '<option value="' + escHtml(t) + '">' + escHtml(t) + '</option>'; }).join('');
+
+  // 기존 모달 제거
+  var existing = document.getElementById('printSessionModal');
+  if (existing) existing.remove();
+
+  var today = new Date().toISOString().slice(0,10);
+  var monthAgo = new Date(Date.now() - 90*24*60*60*1000).toISOString().slice(0,10);
+
+  var overlay = document.createElement('div');
+  overlay.id = 'printSessionModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;display:flex;align-items:flex-end;justify-content:center;';
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+
+  overlay.innerHTML = '<div style="background:var(--white,#fff);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">'
+    + '<div style="font-size:16px;font-weight:700;color:var(--navy,#0f2942);">📄 세션 기록 출력 설정</div>'
+    + '<button onclick="psmClose()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:4px;">✕</button>'
+    + '</div>'
+
+    // 필터 유형 선택
+    + '<div style="display:flex;gap:8px;margin-bottom:16px;">'
+    + '<button id="psmTabChild" onclick="psmSwitchTab(&apos;child&apos;)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--mint,#0ea5a0);background:var(--mint,#0ea5a0);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">👤 아동별</button>'
+    + '<button id="psmTabTeacher" onclick="psmSwitchTab(&apos;teacher&apos;)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border,#e2e8f0);background:var(--bg,#f4f8fb);color:var(--text2,#64748b);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">👩‍⚕️ 선생님별</button>'
+    + '</div>'
+
+    // 아동 선택
+    + '<div id="psmChildWrap" style="margin-bottom:12px;">'
+    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">아동 선택</label>'
+    + '<select id="psmChild" class="form-input" style="width:100%;">' + childOptions + '</select>'
+    + '</div>'
+
+    // 선생님 선택 (숨김)
+    + '<div id="psmTeacherWrap" style="margin-bottom:12px;display:none;">'
+    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">선생님 선택</label>'
+    + '<select id="psmTeacher" class="form-input" style="width:100%;">' + teacherOptions + '</select>'
+    + '</div>'
+
+    // 기간 선택
+    + '<div style="margin-bottom:18px;">'
+    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">기간 선택</label>'
+    + '<div style="display:flex;gap:8px;align-items:center;">'
+    + '<input type="date" id="psmFrom" class="form-input" style="flex:1;" value="' + monthAgo + '">'
+    + '<span style="color:var(--text2);font-size:13px;">~</span>'
+    + '<input type="date" id="psmTo"   class="form-input" style="flex:1;" value="' + today + '">'
+    + '</div>'
+    + '<button onclick="psmClearDate()" style="margin-top:6px;background:none;border:none;color:var(--text2);font-size:11px;cursor:pointer;padding:0;font-family:inherit;">전체 기간 보기</button>'
+    + '</div>'
+
+    // 출력 버튼 2개
+    + '<div style="display:flex;gap:8px;">'
+    + '<button onclick="generateFilteredSessionPDF(0)" class="btn-outline" style="flex:1;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ 인쇄</button>'
+    + '<button onclick="generateFilteredSessionPDF(1)" class="btn btn-primary" style="flex:1;margin-top:0;font-size:13px;">📥 PDF 저장</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+}
+
+function psmClose() { var m=document.getElementById('printSessionModal'); if(m) m.remove(); }
+function psmSwitchTab(tab) {
+  var isChild = tab === 'child';
+  document.getElementById('psmChildWrap').style.display   = isChild ? '' : 'none';
+  document.getElementById('psmTeacherWrap').style.display = isChild ? 'none' : '';
+  var mint = 'var(--mint,#0ea5a0)';
+  var gray = 'var(--border,#e2e8f0)';
+  var btnC = document.getElementById('psmTabChild');
+  var btnT = document.getElementById('psmTabTeacher');
+  btnC.style.background   = isChild ? mint : 'var(--bg,#f4f8fb)';
+  btnC.style.borderColor  = isChild ? mint : gray;
+  btnC.style.color        = isChild ? 'white' : 'var(--text2,#64748b)';
+  btnT.style.background   = isChild ? 'var(--bg,#f4f8fb)' : mint;
+  btnT.style.borderColor  = isChild ? gray : mint;
+  btnT.style.color        = isChild ? 'var(--text2,#64748b)' : 'white';
+}
+
+function psmClearDate() {
+  document.getElementById('psmFrom').value = '';
+  document.getElementById('psmTo').value   = '';
+}
+
+function generateFilteredSessionPDF(mode) {  // mode: 0=인쇄, 1=PDF저장
+  var isChildTab  = document.getElementById('psmChildWrap').style.display !== 'none';
+  var childId     = isChildTab  ? parseInt(document.getElementById('psmChild').value)   || 0  : 0;
+  var teacherName = !isChildTab ? (document.getElementById('psmTeacher').value || '')        : '';
+  var fromDate    = document.getElementById('psmFrom').value || '';
+  var toDate      = document.getElementById('psmTo').value   || '';
+
+  if (isChildTab  && !childId)     { showToast('아동을 선택해주세요.'); return; }
+  if (!isChildTab && !teacherName) { showToast('선생님을 선택해주세요.'); return; }
+
+  // 필터링
+  var filtered = sessionDB.filter(function(s) {
+    if (isChildTab  && s.childId !== childId)          return false;
+    if (!isChildTab && s.teacher !== teacherName) {
+      // scheduleDB에서 해당 세션의 teacher 찾기 시도
+      if (typeof scheduleDB !== 'undefined') {
+        var linked = scheduleDB.find(function(sc){ return sc.teacher === teacherName && sc.date === s.date && sc.childId === s.childId; });
+        if (!linked) return false;
+      } else return false;
+    }
+    if (fromDate && (s.date || '') < fromDate) return false;
+    if (toDate   && (s.date || '') > toDate)   return false;
+    return true;
+  }).sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+
+  if (filtered.length === 0) {
+    showToast('해당 조건의 세션 기록이 없습니다.');
+    return;
+  }
+
+  // 제목
+  var label = '';
+  if (isChildTab) {
+    var ch = childDB.find(function(c){ return c.id === childId; });
+    label = ch ? ch.name + ' 아동' : '선택 아동';
+  } else {
+    label = teacherName + ' 선생님';
+  }
+  var periodStr = fromDate || toDate
+    ? ' (' + (fromDate||'전체') + ' ~ ' + (toDate||'전체') + ')'
+    : '';
+
+  var today      = new Date().toLocaleDateString('ko-KR');
   var centerName = (currentUser && currentUser.center_name) ? currentUser.center_name : '마디 언어치료센터';
   var userName   = currentUser ? currentUser.name : '';
 
-  // 최근 세션 최대 50개 (최신순)
-  var sessions = sessionDB.slice().reverse().slice(0, 50);
-
-  var rows = sessions.map(function(s) {
+  // 세션 카드 HTML 생성
+  var rows = filtered.map(function(s) {
     var ch     = childDB.find(function(c){ return c.id === s.childId; });
     var cName  = ch ? ch.name  : '알 수 없음';
     var cColor = ch ? ch.color : '#64748b';
@@ -684,79 +820,114 @@ function openPrintSessionModal() {
           var sc = (g.score !== null && g.score !== undefined && g.score !== '') ? g.score : null;
           var bg = sc === null ? '#f1f5f9' : sc >= 70 ? '#dcfce7' : sc >= 40 ? '#fef9c3' : '#fee2e2';
           var tc = sc === null ? '#64748b' : sc >= 70 ? '#15803d' : sc >= 40 ? '#b45309' : '#dc2626';
-          goalsHtml += '<span style="background:' + bg + ';color:' + tc + ';padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid rgba(0,0,0,0.06);">'
+          goalsHtml += '<span style="background:' + bg + ';color:' + tc + ';padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;">'
             + escHtml(g.name) + (sc !== null ? ' <b>' + sc + '%</b>' : '') + '</span>';
         });
         goalsHtml += '</div>';
       }
     }
-
-    // 음소 데이터
+    // 음소
     var phonemeHtml = '';
     if (s.phonemes && Object.keys(s.phonemes).length > 0) {
-      var parts = Object.keys(s.phonemes).map(function(p) {
-        var d = s.phonemes[p];
-        var vals = [];
+      var pParts = Object.keys(s.phonemes).map(function(p) {
+        var d = s.phonemes[p]; var vals = [];
         if (d.initial !== null && d.initial !== undefined) vals.push('초:' + d.initial + '%');
         if (d.medial  !== null && d.medial  !== undefined) vals.push('중:' + d.medial  + '%');
         if (d.final   !== null && d.final   !== undefined) vals.push('말:' + d.final   + '%');
         return vals.length ? '🎯 ' + escHtml(p) + ' ' + vals.join('/') : null;
       }).filter(Boolean);
-      if (parts.length > 0) {
-        phonemeHtml = '<div style="font-size:11px;color:#7c3aed;margin-top:4px;">' + parts.join(' &nbsp; ') + '</div>';
-      }
+      if (pParts.length) phonemeHtml = '<div style="font-size:11px;color:#7c3aed;margin-top:4px;">' + pParts.join('  ') + '</div>';
     }
+    // 선생님 표시 (아동별 조회일 때만)
+    var teacherBadge = isChildTab && s.teacher
+      ? '<span style="font-size:11px;color:#64748b;">👩‍⚕️ ' + escHtml(s.teacher) + '</span>'
+      : '';
 
     return '<div style="border-left:4px solid ' + cColor + ';padding:12px 14px;margin-bottom:12px;border-radius:0 10px 10px 0;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.06);page-break-inside:avoid;">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
       + '<span style="font-size:15px;font-weight:700;color:' + cColor + ';">' + escHtml(cName) + '</span>'
-      + '<span style="font-size:12px;color:#64748b;">📅 ' + escHtml(s.date || '') + '</span>'
-      + '</div>'
-      + goalsHtml
-      + phonemeHtml
+      + '<div style="display:flex;gap:10px;align-items:center;">'
+      + teacherBadge
+      + '<span style="font-size:12px;color:#64748b;">📅 ' + escHtml(s.date||'') + '</span>'
+      + '</div></div>'
+      + goalsHtml + phonemeHtml
       + (s.memo   ? '<div style="font-size:12px;color:#334155;margin-top:6px;padding:8px 10px;background:#f8fafc;border-radius:6px;line-height:1.7;white-space:pre-wrap;">' + escHtml(s.memo) + '</div>' : '')
       + (s.aiNote ? '<div style="font-size:11px;color:#7c3aed;margin-top:6px;padding:6px 10px;background:#f5f3ff;border-radius:6px;line-height:1.6;">🤖 ' + escHtml(s.aiNote) + '</div>' : '')
       + '</div>';
   }).join('');
 
   var win = window.open('', '_blank');
-  if (!win) { showToast('❌ 팝업이 차단됐습니다. 브라우저 팝업 허용 후 다시 시도해주세요.'); return; }
-
-  win.document.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">'
-    + '<title>세션 기록 — ' + escHtml(today) + '</title>'
-    + '<style>'
-    + '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap");'
-    + '*{box-sizing:border-box;margin:0;padding:0;}'
-    + 'body{font-family:"Noto Sans KR",sans-serif;padding:32px 40px;color:#1e293b;background:#f8fafc;}'
-    + '.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid #0ea5a0;}'
-    + '.header-title{font-size:22px;font-weight:700;color:#0f2942;}'
-    + '.header-meta{font-size:12px;color:#64748b;text-align:right;line-height:1.8;}'
-    + '.session-count{font-size:12px;color:#64748b;margin-bottom:14px;}'
-    + '.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center;}'
-    + '@media print{'
-    + '  body{background:white;padding:20px 28px;}'
-    + '  .no-print{display:none;}'
-    + '  @page{margin:15mm;}'
-    + '}'
-    + '</style></head><body>'
-    + '<div class="header">'
+  // 공통 HTML 콘텐츠
+  var bodyContent = '<div id="pdfContent" style="font-family:\'Noto Sans KR\',sans-serif;padding:24px 32px;color:#1e293b;background:white;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #0ea5a0;">'
     + '<div>'
-    + '<div style="font-size:12px;color:#0ea5a0;font-weight:700;margin-bottom:4px;">📋 세션 기록</div>'
-    + '<div class="header-title">' + escHtml(centerName) + '</div>'
+    + '<div style="font-size:11px;color:#0ea5a0;font-weight:700;margin-bottom:3px;">📋 세션 기록</div>'
+    + '<div style="font-size:20px;font-weight:700;color:#0f2942;">' + escHtml(centerName) + '</div>'
+    + '<div style="font-size:13px;color:#64748b;margin-top:3px;">대상: <b>' + escHtml(label) + '</b>' + escHtml(periodStr) + '</div>'
     + '</div>'
-    + '<div class="header-meta">'
+    + '<div style="font-size:11px;color:#64748b;text-align:right;line-height:1.8;">'
     + (userName ? '작성자: ' + escHtml(userName) + '<br>' : '')
-    + '출력일: ' + today
-    + '</div>'
-    + '</div>'
-    + '<div class="session-count">총 ' + sessions.length + '건의 세션 기록 (최신순)</div>'
+    + '총 ' + filtered.length + '건<br>출력일: ' + today
+    + '</div></div>'
     + rows
-    + '<div class="footer">마디(Madi) — 언어치료 AI 비서 &nbsp;|&nbsp; 인쇄일: ' + today + '</div>'
-    + '<div class="no-print" style="margin-top:20px;text-align:center;">'
-    + '<button onclick="window.print()" style="padding:10px 28px;background:#0ea5a0;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ 인쇄 / PDF 저장</button>'
-    + '</div>'
-    + '</body></html>');
-  win.document.close();
-  setTimeout(function(){ win.print(); }, 700);
-  showToast('📄 세션 기록 출력 창이 열렸습니다.');
+    + '<div style="margin-top:28px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center;">마디(Madi) — 언어치료 AI 비서</div>'
+    + '</div>';
+
+  var filename = '세션기록_' + label + '_' + today.replace(/\./g,'').replace(/ /g,'') + '.pdf';
+
+  document.getElementById('printSessionModal').remove();
+
+  if (mode === 1) {
+    // ── PDF 저장 (html2pdf.js 사용) ──
+    showToast('📄 PDF 생성 중... 잠시만 기다려주세요');
+
+    function doHtml2Pdf() {
+      var container = document.createElement('div');
+      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;z-index:-1;';
+      container.innerHTML = bodyContent;
+      document.body.appendChild(container);
+
+      html2pdf().set({
+        margin:      [12, 12, 12, 12],
+        filename:    filename,
+        image:       { type: 'jpeg', quality: 0.97 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' },
+        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:   { mode: ['css', 'legacy'] }
+      }).from(container).save().then(function() {
+        document.body.removeChild(container);
+        showToast('✅ PDF 저장 완료!');
+      }).catch(function(err) {
+        document.body.removeChild(container);
+        showToast('❌ PDF 오류: ' + (err.message || '다시 시도해주세요'));
+      });
+    }
+
+    if (typeof html2pdf === 'undefined') {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+      s.onload  = doHtml2Pdf;
+      s.onerror = function() { showToast('❌ PDF 라이브러리 로드 실패. 인쇄 기능을 대신 사용해주세요.'); };
+      document.head.appendChild(s);
+    } else {
+      doHtml2Pdf();
+    }
+
+  } else {
+    // ── 인쇄 (새 창 → window.print()) ──
+    var win = window.open('', '_blank');
+    if (!win) { showToast('❌ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
+    win.document.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">'
+      + '<title>세션 기록 — ' + escHtml(label) + '</title>'
+      + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">'
+      + '<style>*{box-sizing:border-box;} @media print{.no-print{display:none;} @page{margin:12mm;}}</style>'
+      + '</head><body>'
+      + bodyContent
+      + '<div class="no-print" style="margin-top:20px;text-align:center;">'
+      + '<button onclick="window.print()" style="padding:10px 28px;background:#0ea5a0;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ 인쇄</button>'
+      + '</div></body></html>');
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 700);
+    showToast('📄 ' + label + ' 세션 기록 인쇄 창 열림');
+  }
 }
