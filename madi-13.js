@@ -14,12 +14,22 @@ var SI_TESTS = [
   { key: 'OTHER', label: '기타' }
 ];
 
-// DDST / K-DST 발달 영역
-var SI_DOMAINS = [
+// DDST 발달 영역 (덴버 발달 선별검사)
+var DDST_DOMAINS = [
   { key: 'personal',  label: '개인-사회성 발달' },
+  { key: 'finemotor', label: '미세운동-적응 발달' },
   { key: 'language',  label: '언어 발달' },
-  { key: 'gross',     label: '대근육 운동 발달' },
-  { key: 'fine',      label: '소근육 운동 발달' }
+  { key: 'gross',     label: '대근육 운동 발달' }
+];
+
+// K-DST 발달 영역 (한국 영유아 발달 선별검사)
+var KDST_DOMAINS = [
+  { key: 'gross',     label: '대근육 운동' },
+  { key: 'fine',      label: '소근육 운동' },
+  { key: 'cognition', label: '인지' },
+  { key: 'language',  label: '언어' },
+  { key: 'social',    label: '사회성' },
+  { key: 'selfcare',  label: '자조' }
 ];
 
 // SP2 감각 섹션 (6개) + 행동 섹션 (5개)
@@ -48,8 +58,8 @@ var SP2_PATTERNS = [
   { key: 'typical',      label: '일반 처리 (Typical Sensory Processing)', desc: '모든 패턴이 일반 범주 내에 속함' }
 ];
 
-// SP2 해석 레벨
-var SP2_LEVELS = ['일반적인 범주 내', '차이를 보임', '유의한 차이를 보임'];
+// SP2 해석 레벨 (5단계)
+var SP2_LEVELS = ['또래보다 매우 적음', '또래보다 적음', '또래와 유사', '또래보다 많음', '또래보다 매우 많음'];
 
 function renderSIReport() {
   var el = document.getElementById('siReportPanel');
@@ -65,19 +75,23 @@ function renderSIReport() {
       + t.label + '</label>';
   }).join('');
 
-  // DDST/K-DST 영역별 결과 입력
-  var domainRows = SI_DOMAINS.map(function(d) {
-    return '<tr>'
-      + '<td style="padding:8px;font-size:13px;font-weight:600;">' + d.label + '</td>'
-      + '<td style="padding:4px 8px;"><input class="form-input" id="si_' + d.key + '_result" placeholder="예: 주의2개/지연3개" style="font-size:12px;padding:6px 8px;"></td>'
-      + '<td style="padding:4px 8px;">'
-      + '<select class="form-input" id="si_' + d.key + '_level" style="font-size:12px;padding:6px 8px;">'
-      + '<option value="">발달 수준 선택</option>'
-      + '<option>정상 발달</option><option>의심스러운 발달</option><option>비정상 발달</option>'
-      + '</select></td>'
-      + '<td style="padding:4px 8px;"><input class="form-input" id="si_' + d.key + '_note" placeholder="특이 수행 항목" style="font-size:12px;padding:6px 8px;"></td>'
-      + '</tr>';
-  }).join('');
+  // DDST 영역별 결과 입력
+  function makeDevRows(domains, prefix) {
+    return domains.map(function(d) {
+      return '<tr>'
+        + '<td style="padding:8px;font-size:13px;font-weight:600;">' + d.label + '</td>'
+        + '<td style="padding:4px 8px;"><input class="form-input" id="si_' + prefix + '_' + d.key + '_result" placeholder="예: 주의2개/지연3개" style="font-size:12px;padding:6px 8px;"></td>'
+        + '<td style="padding:4px 8px;">'
+        + '<select class="form-input" id="si_' + prefix + '_' + d.key + '_level" style="font-size:12px;padding:6px 8px;">'
+        + '<option value="">발달 수준 선택</option>'
+        + '<option>정상 발달</option><option>의심스러운 발달</option><option>비정상 발달</option>'
+        + '</select></td>'
+        + '<td style="padding:4px 8px;"><input class="form-input" id="si_' + prefix + '_' + d.key + '_note" placeholder="특이 수행 항목" style="font-size:12px;padding:6px 8px;"></td>'
+        + '</tr>';
+    }).join('');
+  }
+  var ddstRows = makeDevRows(DDST_DOMAINS, 'ddst');
+  var kdstRows = makeDevRows(KDST_DOMAINS, 'kdst');
 
   // SP2 감각 처리 영역별 결과 입력 (섹션 구분)
   var sp2Rows = '';
@@ -152,20 +166,31 @@ function renderSIReport() {
     + '<div style="display:flex;flex-wrap:wrap;gap:4px 16px;padding:10px;background:var(--bg2,#f8fafc);border-radius:8px;">'
     + testsHtml + '</div></div>'
 
-    // 5. 검사 결과 — DDST/K-DST
+    // 5. 검사 결과 — DDST
     + '<div class="form-group" style="margin-bottom:12px;">'
-    + '<label class="form-label">IV-A. 발달 검사 결과 (DDST / K-DST)</label>'
+    + '<label class="form-label">IV-A. 덴버 발달 선별검사 (DDST) 결과</label>'
     + '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
     + '<thead><tr style="background:var(--mint2,#f0fdfa);">'
     + '<th style="padding:8px;text-align:left;white-space:nowrap;">영역</th>'
     + '<th style="padding:8px;text-align:left;">결과 (주의/지연 개수)</th>'
     + '<th style="padding:8px;text-align:left;">발달 수준</th>'
     + '<th style="padding:8px;text-align:left;">특이 수행 항목</th>'
-    + '</tr></thead><tbody>' + domainRows + '</tbody></table></div></div>'
+    + '</tr></thead><tbody>' + ddstRows + '</tbody></table></div></div>'
 
-    // 5b. 검사 결과 — SP2 영역별
+    // 5b. 검사 결과 — K-DST
     + '<div class="form-group" style="margin-bottom:12px;">'
-    + '<label class="form-label">IV-B. 감각프로파일2 (SP2) — 영역별 결과</label>'
+    + '<label class="form-label">IV-B. 한국 영유아 발달 선별검사 (K-DST) 결과</label>'
+    + '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    + '<thead><tr style="background:#ede9fe;">'
+    + '<th style="padding:8px;text-align:left;white-space:nowrap;color:#5b21b6;">영역</th>'
+    + '<th style="padding:8px;text-align:left;color:#5b21b6;">결과 (주의/지연 개수)</th>'
+    + '<th style="padding:8px;text-align:left;color:#5b21b6;">발달 수준</th>'
+    + '<th style="padding:8px;text-align:left;color:#5b21b6;">특이 수행 항목</th>'
+    + '</tr></thead><tbody>' + kdstRows + '</tbody></table></div></div>'
+
+    // 5c. 검사 결과 — SP2 영역별
+    + '<div class="form-group" style="margin-bottom:12px;">'
+    + '<label class="form-label">IV-C. 감각프로파일2 (SP2) — 영역별 결과</label>'
     + '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
     + '<thead><tr style="background:var(--mint2,#f0fdfa);">'
     + '<th style="padding:8px;text-align:left;white-space:nowrap;">영역</th>'
@@ -173,9 +198,9 @@ function renderSIReport() {
     + '<th style="padding:8px;text-align:left;">특이 사항</th>'
     + '</tr></thead><tbody>' + sp2Rows + '</tbody></table></div></div>'
 
-    // 5c. SP2 감각 패턴 (4사분면)
+    // 5d. SP2 감각 패턴
     + '<div class="form-group" style="margin-bottom:14px;">'
-    + '<label class="form-label">IV-C. 감각프로파일2 (SP2) — 감각 처리 패턴</label>'
+    + '<label class="form-label">IV-D. 감각프로파일2 (SP2) — 감각 처리 패턴</label>'
     + '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
     + '<thead><tr style="background:#fef3c7;">'
     + '<th style="padding:8px;text-align:left;white-space:nowrap;color:#92400e;">감각 패턴</th>'
@@ -223,13 +248,23 @@ function collectSIData() {
     if (t) tests.push(t.label);
   });
 
-  // DDST/K-DST 영역별 결과
-  var domainResults = SI_DOMAINS.map(function(d) {
+  // DDST 영역별 결과
+  var ddstResults = DDST_DOMAINS.map(function(d) {
     return {
       domain: d.label,
-      result: (document.getElementById('si_' + d.key + '_result') || {}).value || '',
-      level:  (document.getElementById('si_' + d.key + '_level') || {}).value || '',
-      note:   (document.getElementById('si_' + d.key + '_note') || {}).value || ''
+      result: (document.getElementById('si_ddst_' + d.key + '_result') || {}).value || '',
+      level:  (document.getElementById('si_ddst_' + d.key + '_level') || {}).value || '',
+      note:   (document.getElementById('si_ddst_' + d.key + '_note')   || {}).value || ''
+    };
+  }).filter(function(r){ return r.result || r.level || r.note; });
+
+  // K-DST 영역별 결과
+  var kdstResults = KDST_DOMAINS.map(function(d) {
+    return {
+      domain: d.label,
+      result: (document.getElementById('si_kdst_' + d.key + '_result') || {}).value || '',
+      level:  (document.getElementById('si_kdst_' + d.key + '_level') || {}).value || '',
+      note:   (document.getElementById('si_kdst_' + d.key + '_note')   || {}).value || ''
     };
   }).filter(function(r){ return r.result || r.level || r.note; });
 
@@ -259,7 +294,8 @@ function collectSIData() {
     bg:        (document.getElementById('siBg') || {}).value || '',
     attitude:  (document.getElementById('siAttitude') || {}).value || '',
     tests:     tests,
-    domains:   domainResults,
+    ddst:      ddstResults,
+    kdst:      kdstResults,
     sp2:       sp2Results,
     sp2Patterns: sp2Patterns,
     extra:     (document.getElementById('siExtra') || {}).value || ''
@@ -286,11 +322,11 @@ function generateSIReport() {
   result.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);">AI가 보고서를 작성하고 있습니다...</div>';
 
   var NL = '\n';
-  var domainText = d.domains.length > 0
-    ? d.domains.map(function(r){
-        return '· ' + r.domain + ': ' + (r.result||'-') + ' / ' + (r.level||'-') + (r.note ? ' / 특이항목: ' + r.note : '');
-      }).join(NL)
-    : '입력 없음';
+  function fmtDevRow(r) {
+    return '· ' + r.domain + ': ' + (r.result||'-') + ' / ' + (r.level||'-') + (r.note ? ' / 특이항목: ' + r.note : '');
+  }
+  var ddstText  = d.ddst && d.ddst.length > 0  ? d.ddst.map(fmtDevRow).join(NL)  : '입력 없음';
+  var kdstText  = d.kdst && d.kdst.length > 0  ? d.kdst.map(fmtDevRow).join(NL)  : '입력 없음';
 
   var sp2Text = d.sp2.length > 0
     ? d.sp2.map(function(r){
@@ -312,9 +348,10 @@ function generateSIReport() {
     + '[I. 배경 정보]' + NL + d.bg + NL + NL
     + '[II. 검사 태도]' + NL + d.attitude + NL + NL
     + '[III. 실시한 검사]' + NL + d.tests.map(function(t){ return '· ' + t; }).join(NL) + NL + NL
-    + '[IV-A. 발달 검사 결과 (DDST/K-DST)]' + NL + domainText + NL + NL
-    + '[IV-B. SP2 감각 처리 영역별 결과]' + NL + sp2Text + NL + NL
-    + '[IV-C. SP2 감각 처리 패턴]' + NL + patternText
+    + '[IV-A. DDST 발달 검사 결과]' + NL + ddstText + NL + NL
+    + '[IV-B. K-DST 발달 검사 결과]' + NL + kdstText + NL + NL
+    + '[IV-C. SP2 감각 처리 영역별 결과]' + NL + sp2Text + NL + NL
+    + '[IV-D. SP2 감각 처리 패턴]' + NL + patternText
     + (d.extra ? NL + NL + '[추가 의견]' + NL + d.extra : '') + NL + NL
     + '위 정보를 바탕으로 다음 두 섹션을 전문적으로 작성해주세요:' + NL
     + 'V. 종합 소견: 주요 발달 특성, 감각 처리 패턴, 기능적 영향을 3~5문단으로 서술' + NL
