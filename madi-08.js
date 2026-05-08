@@ -684,7 +684,7 @@ function openPrintSessionModal() {
   if (existing) existing.remove();
 
   var today = new Date().toISOString().slice(0,10);
-  var monthAgo = new Date(Date.now() - 90*24*60*60*1000).toISOString().slice(0,10);
+  var monthAgo = '2020-01-01';
 
   var overlay = document.createElement('div');
   overlay.id = 'printSessionModal';
