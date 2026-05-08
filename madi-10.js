@@ -383,15 +383,6 @@ function renderWeekGrid() {
     if (t && therapists.indexOf(t) < 0) therapists.push(t);
   });
 
-  // 시간대 목록 추출
-  var groups = {};
-  var groupOrder = [];
-  dayScheds.forEach(function(s) {
-    var t = (s.startTime || s.time || '시간미정').slice(0,5);
-    if (!groups[t]) { groups[t] = []; groupOrder.push(t); }
-    groups[t].push(s);
-  });
-
   // 설정된 세션 단위로 표준 시간대 생성 (09:00~18:40)
   var interval = (typeof CENTER_SESSION_INTERVAL !== 'undefined') ? CENTER_SESSION_INTERVAL : 40;
   var stdTimes = [];
@@ -400,13 +391,28 @@ function renderWeekGrid() {
     var mi = mm % 60;
     stdTimes.push(String(hh).padStart(2,'0') + ':' + String(mi).padStart(2,'0'));
   }
-  stdTimes.forEach(function(t) {
-    if (groupOrder.indexOf(t) < 0) {
-      groupOrder.push(t);
-      groups[t] = [];
+
+  // groupOrder는 stdTimes 기반으로만 구성 (비표준 시간 행 생성 방지)
+  var groups = {};
+  var groupOrder = stdTimes.slice();
+  groupOrder.forEach(function(t){ groups[t] = []; });
+
+  // 각 스케줄을 가장 가까운 stdTime에 배치
+  dayScheds.forEach(function(s) {
+    var rawTime = (s.startTime || s.time || '').slice(0, 5);
+    if (!rawTime || rawTime.length < 5) {
+      if (!groups['시간미정']) { groups['시간미정'] = []; groupOrder.push('시간미정'); }
+      groups['시간미정'].push(s); return;
     }
+    var rawMm = parseInt(rawTime.slice(0,2)) * 60 + parseInt(rawTime.slice(3,5));
+    // 가장 가까운 stdTime 찾기 (동률이면 이른 시간)
+    var closestTime = stdTimes.reduce(function(best, t) {
+      var tMm   = parseInt(t.slice(0,2)) * 60 + parseInt(t.slice(3,5));
+      var bestMm = parseInt(best.slice(0,2)) * 60 + parseInt(best.slice(3,5));
+      return Math.abs(tMm - rawMm) < Math.abs(bestMm - rawMm) ? t : best;
+    }, stdTimes[0]);
+    groups[closestTime].push(s);
   });
-  groupOrder.sort();
 
   var html = '<div style="width:100%;">';
 

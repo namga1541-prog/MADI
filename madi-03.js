@@ -466,11 +466,11 @@ function switchTab(idx) {
 var currentReportTab = 'session';
 function switchReportTab(sub) {
   currentReportTab = sub;
-  ['panel1','panel3','panel5','panel4','panel6','panel7'].forEach(function(id) {
+  ['panel1','panel3','panel5','panel4','panel6','panel7','panelSI'].forEach(function(id) {
     var p = document.getElementById(id);
     if (p) p.classList.remove('sub-active');
   });
-  ['rtBtn_session','rtBtn_assess','rtBtn_report'].forEach(function(id) {
+  ['rtBtn_session','rtBtn_assess','rtBtn_report','rtBtn_si'].forEach(function(id) {
     var b = document.getElementById(id);
     if (b) b.classList.remove('active');
   });
@@ -484,6 +484,9 @@ function switchReportTab(sub) {
   } else if (sub === 'report') {
     target = 'panel5'; btnId = 'rtBtn_report';
     populateChildSelects();
+  } else if (sub === 'si') {
+    target = 'panelSI'; btnId = 'rtBtn_si';
+    if (typeof renderSIReport === 'function') renderSIReport();
   }
   if (target) { var p = document.getElementById(target); if (p) p.classList.add('sub-active'); }
   if (btnId)  { var b = document.getElementById(btnId);  if (b) b.classList.add('active'); }
