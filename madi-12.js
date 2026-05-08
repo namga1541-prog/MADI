@@ -370,11 +370,12 @@ function deployFileToGitHub(token, filename, textContent, commitMsg) {
   var headers  = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
   var b64      = btoa(unescape(encodeURIComponent(textContent)));
 
-  return fetch(apiBase, { headers: headers })
-    .then(function(r) { return r.json(); })
+  // SHA 조회 시 캐시 방지 + branch 명시
+  return fetch(apiBase + '?ref=main&_=' + Date.now(), { headers: headers })
+    .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(info) {
-      var body = { message: commitMsg, content: b64 };
-      if (info.sha) body.sha = info.sha;
+      var body = { message: commitMsg, content: b64, branch: 'main' };
+      if (info && info.sha) body.sha = info.sha;
       return fetch(apiBase, { method: 'PUT', headers: headers, body: JSON.stringify(body) });
     })
     .then(function(r) { return r.json(); })
