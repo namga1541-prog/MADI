@@ -412,12 +412,55 @@ function deployToGitHub() {
   var JS_FILES = [
     'madi-01.js','madi-02.js','madi-03.js','madi-04.js','madi-05.js','madi-06.js',
     'madi-07.js','madi-08.js','madi-09.js','madi-10.js','madi-11.js','madi-12.js',
-    'madi.css'
+    'madi-13.js','madi.css'
   ];
   var ALL_FILES = ['index.html', 'admin.html'].concat(JS_FILES);
   var TOTAL_FILES = ALL_FILES.length + 1; // + sw.js
 
-  showToast('📡 배포 준비 중...');
+  // ── 배포 진행 오버레이 (토스트 대신 화면 고정) ──
+  var overlay = document.createElement('div');
+  overlay.id = 'deployOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,41,66,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:28px 32px;min-width:300px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,0.3);">'
+    + '<div style="font-size:16px;font-weight:700;color:#0f2942;margin-bottom:16px;">🚀 마디아이 배포 중...</div>'
+    + '<div id="deployProgressBar" style="height:6px;background:#e2e8f0;border-radius:4px;margin-bottom:14px;overflow:hidden;">'
+    + '<div id="deployProgressFill" style="height:100%;background:#0ea5a0;width:0%;transition:width 0.3s;border-radius:4px;"></div></div>'
+    + '<div id="deployProgressText" style="font-size:13px;color:#64748b;min-height:20px;">준비 중...</div>'
+    + '<div id="deployFileList" style="margin-top:12px;max-height:180px;overflow-y:auto;font-size:12px;"></div>'
+    + '</div>';
+  document.body.appendChild(overlay);
+
+  var logEl   = document.getElementById('deployFileList');
+  var textEl  = document.getElementById('deployProgressText');
+  var fillEl  = document.getElementById('deployProgressFill');
+  var doneCount = 0;
+
+  function deployLog(icon, msg) {
+    textEl.textContent = msg;
+    fillEl.style.width = Math.round((doneCount / TOTAL_FILES) * 100) + '%';
+    var row = document.createElement('div');
+    row.style.cssText = 'padding:3px 0;border-bottom:1px solid #f1f5f9;color:' + (icon==='❌'?'#ef4444':icon==='⚠️'?'#f59e0b':'#334155') + ';';
+    row.textContent = icon + ' ' + msg;
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function closeOverlay(success) {
+    btn.dataset.busy = '';
+    btn.disabled = false;
+    btn.textContent = '🚀 배포';
+    var overlay = document.getElementById('deployOverlay');
+    if (!overlay) return;
+    if (success) {
+      textEl.textContent = '✅ 배포 완료! 1~2분 후 URL에 반영됩니다.';
+      fillEl.style.width = '100%';
+      fillEl.style.background = '#10b981';
+      setTimeout(function(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 3000);
+    } else {
+      setTimeout(function(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 5000);
+    }
+  }
 
   getMadiFolderHandle()
     .then(function(folderHandle) {
@@ -427,58 +470,74 @@ function deployToGitHub() {
           .then(function(f) { return f.text(); })
           .catch(function() { return null; });
       }
+      deployLog('📁', '폴더에서 파일 읽는 중...');
       return Promise.all(ALL_FILES.map(function(f) { return getFileContent(f); }));
     })
     .then(function(results) {
       var indexContent = results[0];
       var adminContent = results[1];
       var jsContents   = results.slice(2);
-      if (!indexContent) throw new Error('index.html 읽기 실패');
+      if (!indexContent) throw new Error('index.html 읽기 실패 — 올바른 마디아이 폴더를 선택했는지 확인하세요');
 
-      showToast('📡 index.html 업로드 중... (1/' + TOTAL_FILES + ')');
-      return deployFileToGitHub(token, GITHUB_FILE, indexContent, '마디 앱 업데이트 — ' + commitTime)
-        .then(function() { return { adminContent: adminContent, jsContents: jsContents }; });
+      doneCount = 1;
+      deployLog('📤', 'index.html 업로드 중... (1/' + TOTAL_FILES + ')');
+      return deployFileToGitHub(token, GITHUB_FILE, indexContent, '마디아이 앱 업데이트 — ' + commitTime)
+        .then(function() {
+          deployLog('✅', 'index.html 완료 (1/' + TOTAL_FILES + ')');
+          doneCount++;
+          return { adminContent: adminContent, jsContents: jsContents };
+        });
     })
     .then(function(data) {
       if (data.adminContent) {
-        showToast('📡 admin.html 업로드 중... (2/' + TOTAL_FILES + ')');
-        return deployFileToGitHub(token, 'admin.html', data.adminContent, '마디 관리자 업데이트 — ' + commitTime)
-          .then(function() { return data.jsContents; });
+        deployLog('📤', 'admin.html 업로드 중... (2/' + TOTAL_FILES + ')');
+        return deployFileToGitHub(token, 'admin.html', data.adminContent, '마디아이 관리자 업데이트 — ' + commitTime)
+          .then(function() {
+            deployLog('✅', 'admin.html 완료 (2/' + TOTAL_FILES + ')');
+            doneCount++;
+            return data.jsContents;
+          });
       }
+      deployLog('⚠️', 'admin.html 없음 — 건너뜀');
+      doneCount++;
       return Promise.resolve(data.jsContents);
     })
     .then(function(jsContents) {
       var step = 3;
       return jsContents.reduce(function(chain, content, i) {
         return chain.then(function() {
-          if (!content) { step++; return Promise.resolve(); }
-          showToast('📡 ' + JS_FILES[i] + ' 업로드 중... (' + step + '/' + TOTAL_FILES + ')');
+          if (!content) {
+            deployLog('⚠️', JS_FILES[i] + ' 폴더에 없음 — 건너뜀 (' + step + '/' + TOTAL_FILES + ')');
+            step++; doneCount++;
+            return Promise.resolve();
+          }
+          deployLog('📤', JS_FILES[i] + ' 업로드 중... (' + step + '/' + TOTAL_FILES + ')');
           step++;
-          return deployFileToGitHub(token, JS_FILES[i], content, '마디 JS 업데이트 — ' + commitTime);
+          return deployFileToGitHub(token, JS_FILES[i], content, '마디아이 JS 업데이트 — ' + commitTime)
+            .then(function() {
+              deployLog('✅', JS_FILES[i] + ' 완료');
+              doneCount++;
+            });
         });
       }, Promise.resolve());
     })
     .then(function() {
-      showToast('📡 sw.js 업로드 중... (' + TOTAL_FILES + '/' + TOTAL_FILES + ')');
-      return deployFileToGitHub(token, GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
-    })
-    .then(function() {
-      btn.dataset.busy = '';
-      btn.disabled    = false;
-      btn.textContent = '🚀 배포';
-      showToast('🚀 배포 완료! 1~2분 후 반영됩니다.', { duration: 5000 });
-      localStorage.setItem('madi_last_deploy', new Date().toISOString());
+      deployLog('📤', 'sw.js 업로드 중... (' + TOTAL_FILES + '/' + TOTAL_FILES + ')');
+      return deployFileToGitHub(token, GITHUB_SW, SW_CODE, '마디아이 SW 업데이트 — ' + commitTime)
+        .then(function() {
+          deployLog('✅', 'sw.js 완료 (' + TOTAL_FILES + '/' + TOTAL_FILES + ')');
+          doneCount++;
+          localStorage.setItem('madi_last_deploy', new Date().toISOString());
+          closeOverlay(true);
+        });
     })
     .catch(function(e) {
-      btn.dataset.busy = '';
-      btn.disabled    = false;
-      btn.textContent = '🚀 배포';
+      deployLog('❌', '배포 실패: ' + (e.message || '오류'));
       if (e.message && e.message.includes('Bad credentials')) {
         localStorage.removeItem('madi_gh_token');
-        showToast('❌ Token 오류 — 다시 눌러 재입력해주세요.');
-      } else {
-        showToast('❌ 배포 실패: ' + (e.message || '오류'));
+        deployLog('🔑', 'Token 오류 — 오버레이 닫고 다시 시도하세요');
       }
+      closeOverlay(false);
     });
 }
 
