@@ -656,16 +656,28 @@ function renderEffectStats() {
 
 // ─────── W5+W8: 활동 자료 카탈로그 (검색/필터 추가) ───────
 // ─────── 세션 기록 PDF/프린트 (AND 복합 필터) ───────
-function openPrintSessionModal() {
+async function openPrintSessionModal() {
   if (!sessionDB || sessionDB.length === 0) {
     showToast('출력할 세션 기록이 없습니다.'); return;
   }
 
-  // 선생님 목록 수집
-  var teacherSet = {};
-  sessionDB.forEach(function(s){ if(s.teacher) teacherSet[s.teacher]=true; });
-  if (typeof scheduleDB!=='undefined') scheduleDB.forEach(function(s){ if(s.teacher) teacherSet[s.teacher]=true; });
-  var teachers = Object.keys(teacherSet).sort();
+  // 선생님 목록: Supabase madi_users에서 로드 (fallback: scheduleDB)
+  var teachers = [];
+  try {
+    var userRows = await supaFetch('madi_users?' + centerFilter() + '&select=name,role&order=name.asc', 'GET');
+    teachers = (userRows || [])
+      .filter(function(u){ return u.role === 'teacher' || u.role === 'admin'; })
+      .map(function(u){ return u.name; })
+      .filter(Boolean);
+  } catch(e) {
+    // fallback: scheduleDB + sessionDB에서 수집
+    var teacherSet = {};
+    sessionDB.forEach(function(s){ if(s.teacher) teacherSet[s.teacher]=true; });
+    if (typeof scheduleDB !== 'undefined') {
+      scheduleDB.forEach(function(s){ if(s.teacher) teacherSet[s.teacher]=true; });
+    }
+    teachers = Object.keys(teacherSet).sort();
+  }
 
   // 아동 목록
   var children = childDB.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
