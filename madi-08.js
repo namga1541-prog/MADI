@@ -655,78 +655,85 @@ function renderEffectStats() {
 }
 
 // ─────── W5+W8: 활동 자료 카탈로그 (검색/필터 추가) ───────
-// ─────── 세션 기록 PDF/프린트 (필터 모달) ───────
+// ─────── 세션 기록 PDF/프린트 (AND 복합 필터) ───────
 function openPrintSessionModal() {
   if (!sessionDB || sessionDB.length === 0) {
-    showToast('출력할 세션 기록이 없습니다.');
-    return;
+    showToast('출력할 세션 기록이 없습니다.'); return;
   }
 
-  // 선생님 목록: sessionDB + scheduleDB에서 수집
+  // 선생님 목록 수집
   var teacherSet = {};
-  sessionDB.forEach(function(s)  { if (s.teacher) teacherSet[s.teacher] = true; });
-  if (typeof scheduleDB !== 'undefined') {
-    scheduleDB.forEach(function(s) { if (s.teacher) teacherSet[s.teacher] = true; });
-  }
+  sessionDB.forEach(function(s){ if(s.teacher) teacherSet[s.teacher]=true; });
+  if (typeof scheduleDB!=='undefined') scheduleDB.forEach(function(s){ if(s.teacher) teacherSet[s.teacher]=true; });
   var teachers = Object.keys(teacherSet).sort();
 
   // 아동 목록
   var children = childDB.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
 
-  // 모달 HTML 생성
-  var childOptions = '<option value="">-- 아동 선택 --</option>'
-    + children.map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + '</option>'; }).join('');
-  var teacherOptions = '<option value="">-- 선생님 선택 --</option>'
-    + teachers.map(function(t){ return '<option value="' + escHtml(t) + '">' + escHtml(t) + '</option>'; }).join('');
+  // 프로그램(목표항목) 목록 수집
+  var progSet = {};
+  sessionDB.forEach(function(s){
+    (s.goals||[]).forEach(function(g){ if(g.name) progSet[g.name]=true; });
+  });
+  var programs = Object.keys(progSet).sort();
 
-  // 기존 모달 제거
   var existing = document.getElementById('printSessionModal');
   if (existing) existing.remove();
 
   var today = new Date().toISOString().slice(0,10);
-  var monthAgo = '2020-01-01';
+
+  var childOpts   = '<option value="">전체 아동</option>'
+    + children.map(function(c){ return '<option value="'+c.id+'">'+escHtml(c.name)+'</option>'; }).join('');
+  var teacherOpts = '<option value="">전체 선생님</option>'
+    + teachers.map(function(t){ return '<option value="'+escHtml(t)+'">'+escHtml(t)+'</option>'; }).join('');
+  var progOpts    = '<option value="">전체 프로그램</option>'
+    + programs.map(function(p){ return '<option value="'+escHtml(p)+'">'+escHtml(p)+'</option>'; }).join('');
 
   var overlay = document.createElement('div');
   overlay.id = 'printSessionModal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;display:flex;align-items:flex-end;justify-content:center;';
   overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
 
-  overlay.innerHTML = '<div style="background:var(--white,#fff);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;">'
+  overlay.innerHTML = '<div style="background:var(--white,#fff);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">'
     + '<div style="font-size:16px;font-weight:700;color:var(--navy,#0f2942);">📄 세션 기록 출력 설정</div>'
     + '<button onclick="psmClose()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:4px;">✕</button>'
     + '</div>'
 
-    // 필터 유형 선택
-    + '<div style="display:flex;gap:8px;margin-bottom:16px;">'
-    + '<button id="psmTabChild" onclick="psmSwitchTab(&apos;child&apos;)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--mint,#0ea5a0);background:var(--mint,#0ea5a0);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">👤 아동별</button>'
-    + '<button id="psmTabTeacher" onclick="psmSwitchTab(&apos;teacher&apos;)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border,#e2e8f0);background:var(--bg,#f4f8fb);color:var(--text2,#64748b);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">👩‍⚕️ 선생님별</button>'
+    // AND 조건 안내
+    + '<div style="font-size:11px;color:var(--text2);background:var(--bg,#f4f8fb);border-radius:8px;padding:8px 12px;margin-bottom:14px;">'
+    + '💡 선택한 조건을 모두 만족하는 세션만 출력됩니다. (AND 조건)<br>선택 안 하면 해당 조건은 전체 포함.'
     + '</div>'
 
     // 아동 선택
-    + '<div id="psmChildWrap" style="margin-bottom:12px;">'
-    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">아동 선택</label>'
-    + '<select id="psmChild" class="form-input" style="width:100%;">' + childOptions + '</select>'
+    + '<div style="margin-bottom:12px;">'
+    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">👤 아동</label>'
+    + '<select id="psmChild" class="form-input" style="width:100%;">'+childOpts+'</select>'
     + '</div>'
 
-    // 선생님 선택 (숨김)
-    + '<div id="psmTeacherWrap" style="margin-bottom:12px;display:none;">'
-    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">선생님 선택</label>'
-    + '<select id="psmTeacher" class="form-input" style="width:100%;">' + teacherOptions + '</select>'
+    // 선생님 선택
+    + '<div style="margin-bottom:12px;">'
+    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">👩‍⚕️ 선생님</label>'
+    + '<select id="psmTeacher" class="form-input" style="width:100%;">'+teacherOpts+'</select>'
+    + '</div>'
+
+    // 프로그램 선택
+    + '<div style="margin-bottom:12px;">'
+    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">🎯 프로그램 (목표 항목)</label>'
+    + '<select id="psmProgram" class="form-input" style="width:100%;">'+progOpts+'</select>'
     + '</div>'
 
     // 기간 선택
     + '<div style="margin-bottom:18px;">'
-    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">기간 선택</label>'
+    + '<label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px;">📅 기간</label>'
     + '<div style="display:flex;gap:8px;align-items:center;">'
-    + '<input type="date" id="psmFrom" class="form-input" style="flex:1;" value="' + monthAgo + '">'
+    + '<input type="date" id="psmFrom" class="form-input" style="flex:1;" value="2020-01-01">'
     + '<span style="color:var(--text2);font-size:13px;">~</span>'
-    + '<input type="date" id="psmTo"   class="form-input" style="flex:1;" value="' + today + '">'
+    + '<input type="date" id="psmTo" class="form-input" style="flex:1;" value="'+today+'">'
     + '</div>'
-    + '<button onclick="psmClearDate()" style="margin-top:6px;background:none;border:none;color:var(--text2);font-size:11px;cursor:pointer;padding:0;font-family:inherit;">전체 기간 보기</button>'
     + '</div>'
 
-    // 출력 버튼 2개
+    // 버튼 2개
     + '<div style="display:flex;gap:8px;">'
     + '<button onclick="generateFilteredSessionPDF(0)" class="btn-outline" style="flex:1;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ 인쇄</button>'
     + '<button onclick="generateFilteredSessionPDF(1)" class="btn btn-primary" style="flex:1;margin-top:0;font-size:13px;">📥 PDF 저장</button>'
@@ -737,49 +744,36 @@ function openPrintSessionModal() {
 }
 
 function psmClose() { var m=document.getElementById('printSessionModal'); if(m) m.remove(); }
-function psmSwitchTab(tab) {
-  var isChild = tab === 'child';
-  document.getElementById('psmChildWrap').style.display   = isChild ? '' : 'none';
-  document.getElementById('psmTeacherWrap').style.display = isChild ? 'none' : '';
-  var mint = 'var(--mint,#0ea5a0)';
-  var gray = 'var(--border,#e2e8f0)';
-  var btnC = document.getElementById('psmTabChild');
-  var btnT = document.getElementById('psmTabTeacher');
-  btnC.style.background   = isChild ? mint : 'var(--bg,#f4f8fb)';
-  btnC.style.borderColor  = isChild ? mint : gray;
-  btnC.style.color        = isChild ? 'white' : 'var(--text2,#64748b)';
-  btnT.style.background   = isChild ? 'var(--bg,#f4f8fb)' : mint;
-  btnT.style.borderColor  = isChild ? gray : mint;
-  btnT.style.color        = isChild ? 'var(--text2,#64748b)' : 'white';
-}
-
-function psmClearDate() {
-  document.getElementById('psmFrom').value = '';
-  document.getElementById('psmTo').value   = '';
-}
 
 function generateFilteredSessionPDF(mode) {  // mode: 0=인쇄, 1=PDF저장
-  var isChildTab  = document.getElementById('psmChildWrap').style.display !== 'none';
-  var childId     = isChildTab  ? parseInt(document.getElementById('psmChild').value)   || 0  : 0;
-  var teacherName = !isChildTab ? (document.getElementById('psmTeacher').value || '')        : '';
+  var childId     = parseInt(document.getElementById('psmChild').value)   || 0;
+  var teacherName = (document.getElementById('psmTeacher').value  || '').trim();
+  var programName = (document.getElementById('psmProgram').value  || '').trim();
   var fromDate    = document.getElementById('psmFrom').value || '';
   var toDate      = document.getElementById('psmTo').value   || '';
 
-  if (isChildTab  && !childId)     { showToast('아동을 선택해주세요.'); return; }
-  if (!isChildTab && !teacherName) { showToast('선생님을 선택해주세요.'); return; }
-
-  // 필터링
+  // AND 조건 필터링
   var filtered = sessionDB.filter(function(s) {
-    if (isChildTab  && s.childId !== childId)          return false;
-    if (!isChildTab && s.teacher !== teacherName) {
-      // scheduleDB에서 해당 세션의 teacher 찾기 시도
-      if (typeof scheduleDB !== 'undefined') {
-        var linked = scheduleDB.find(function(sc){ return sc.teacher === teacherName && sc.date === s.date && sc.childId === s.childId; });
-        if (!linked) return false;
-      } else return false;
+    // 아동 조건
+    if (childId && s.childId !== childId) return false;
+    // 선생님 조건
+    if (teacherName) {
+      var hasTeacher = s.teacher === teacherName;
+      if (!hasTeacher && typeof scheduleDB !== 'undefined') {
+        hasTeacher = scheduleDB.some(function(sc){
+          return sc.teacher === teacherName && sc.date === s.date && sc.childId === s.childId;
+        });
+      }
+      if (!hasTeacher) return false;
     }
-    if (fromDate && (s.date || '') < fromDate) return false;
-    if (toDate   && (s.date || '') > toDate)   return false;
+    // 프로그램(목표항목) 조건
+    if (programName) {
+      var hasProgram = (s.goals||[]).some(function(g){ return g.name === programName; });
+      if (!hasProgram) return false;
+    }
+    // 기간 조건
+    if (fromDate && (s.date||'') < fromDate) return false;
+    if (toDate   && (s.date||'') > toDate)   return false;
     return true;
   }).sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
 
@@ -788,15 +782,17 @@ function generateFilteredSessionPDF(mode) {  // mode: 0=인쇄, 1=PDF저장
     return;
   }
 
-  // 제목
-  var label = '';
-  if (isChildTab) {
-    var ch = childDB.find(function(c){ return c.id === childId; });
-    label = ch ? ch.name + ' 아동' : '선택 아동';
-  } else {
-    label = teacherName + ' 선생님';
+  // 제목 조합
+  var parts = [];
+  if (childId) {
+    var ch0 = childDB.find(function(c){ return c.id === childId; });
+    if (ch0) parts.push(ch0.name + ' 아동');
   }
-  var periodStr = fromDate || toDate
+  if (teacherName) parts.push(teacherName + ' 선생님');
+  if (programName) parts.push(programName);
+  var label = parts.length > 0 ? parts.join(' · ') : '전체';
+
+  var periodStr = (fromDate || toDate)
     ? ' (' + (fromDate||'전체') + ' ~ ' + (toDate||'전체') + ')'
     : '';
 
@@ -838,8 +834,8 @@ function generateFilteredSessionPDF(mode) {  // mode: 0=인쇄, 1=PDF저장
       }).filter(Boolean);
       if (pParts.length) phonemeHtml = '<div style="font-size:11px;color:#7c3aed;margin-top:4px;">' + pParts.join('  ') + '</div>';
     }
-    // 선생님 표시 (아동별 조회일 때만)
-    var teacherBadge = isChildTab && s.teacher
+    // 선생님 표시 (아동 단독 조회가 아닐 때)
+    var teacherBadge = (!childId || teacherName) && s.teacher
       ? '<span style="font-size:11px;color:#64748b;">👩‍⚕️ ' + escHtml(s.teacher) + '</span>'
       : '';
 
