@@ -409,13 +409,12 @@ function doLogin() {
 function getMadiLogoSVG(w, h) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="' + w + '" height="' + h + '">'
     + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
-    + '<rect x="18" y="14" width="82" height="62" rx="14" fill="white"/>'
-    + '<polygon points="28,76 14,98 46,76" fill="white"/>'
-    + '<rect x="30" y="28" width="9" height="34" rx="4.5" fill="#0ea5a0"/>'
-    + '<rect x="46" y="20" width="9" height="42" rx="4.5" fill="#0ea5a0"/>'
-    + '<rect x="62" y="30" width="9" height="30" rx="4.5" fill="#0ea5a0"/>'
-    + '<rect x="78" y="22" width="9" height="38" rx="4.5" fill="#0ea5a0"/>'
-    + '<rect x="94" y="34" width="9" height="24" rx="4.5" fill="#0ea5a0"/>'
+    + '<rect x="18" y="100" width="94" height="18" rx="9" fill="rgba(255,255,255,0.3)"/>'
+    + '<rect x="59" y="26" width="12" height="80" rx="6" fill="white"/>'
+    + '<ellipse cx="36" cy="60" rx="32" ry="17" fill="white" transform="rotate(-40,36,60)"/>'
+    + '<ellipse cx="94" cy="52" rx="32" ry="17" fill="white" transform="rotate(40,94,52)"/>'
+    + '<circle cx="65" cy="22" r="13" fill="white"/>'
+    + '<circle cx="65" cy="22" r="7" fill="#0ea5a0"/>'
     + '</svg>';
 }
 
@@ -425,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // SVG 로고 4곳 자동 주입
   var lpNav = document.querySelector('.lp-nav-logo-icon');
-  if (lpNav) lpNav.innerHTML = getMadiLogoSVG(20, 20);
+  if (lpNav) lpNav.innerHTML = getMadiLogoSVG(44, 44);
   document.querySelectorAll('.login-logo-icon').forEach(function(el) {
     el.innerHTML = getMadiLogoSVG(34, 34);
   });
