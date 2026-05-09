@@ -294,13 +294,6 @@ function removeGoalRow(i) {
   renderGoalRows();
 }
 
-function addRecommendedGoal(goalText) {
-  var input = document.getElementById('childGoals');
-  var cur = input.value.trim();
-  input.value = cur ? cur + ', ' + goalText : goalText;
-  showToast('✅ "' + goalText + '" 추가됨');
-}
-
 // ─────── 아동 등록 ───────
 var _addChildLock = false;
 
