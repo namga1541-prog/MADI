@@ -440,7 +440,7 @@ function deployToGitHub() {
       return scanMadiFiles(folderHandle).then(function(jsFiles) {
         if (jsFiles.length === 0) throw new Error('madi-*.js 파일을 찾을 수 없습니다');
         JS_FILES  = jsFiles;
-        ALL_FILES = ['index.html', 'admin.html'].concat(JS_FILES);
+        ALL_FILES = ['index.html', 'admin.html', 'privacy.html'].concat(JS_FILES);
 
         // 각 파일의 내용 + SHA 동시 계산 (이전 SHA와 비교해 변경 판정)
         var lastDeployIso = localStorage.getItem('madi_last_deploy');
