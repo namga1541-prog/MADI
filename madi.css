@@ -65,7 +65,7 @@
       }
       /* 접힌 상태 */
       .sidebar.collapsed { width:52px; }
-      .sidebar.collapsed .s-lbl { display:none; }
+      .sidebar.collapsed .s-lbl { opacity:0; max-width:0; }
       .sidebar.collapsed .sidebar-item { justify-content:center; padding:10px 0; gap:0; }
       .sidebar.collapsed .sidebar-divider { margin:6px 8px; }
       /* 접힌 상태 툴팁 */
@@ -83,15 +83,26 @@
         display:flex; align-items:center; gap:10px;
         padding:10px 12px; border-radius:10px;
         font-size:13px; font-weight:500; color:var(--text2);
-        cursor:pointer; transition:background 0.15s, color 0.15s;
+        cursor:pointer;
+        transition:background 0.15s, color 0.15s, padding 0.22s cubic-bezier(0.4,0,0.2,1), gap 0.22s cubic-bezier(0.4,0,0.2,1);
         touch-action:manipulation; user-select:none;
         border:none; background:none; text-align:left; width:100%;
       }
       .sidebar-item:hover { background:var(--bg); color:var(--text); }
       .sidebar-item.active { background:#dbeafe; color:#2563eb; }
       body.dark-mode .sidebar-item.active { background:rgba(59,130,246,0.2); color:#93c5fd; }
+      /* 접힘 상태: 활성 메뉴에 좌측 3px 파란 막대 (좁은 공간에서 현재 위치 강조) */
+      .sidebar.collapsed .sidebar-item.active { box-shadow:inset 3px 0 0 #2563eb; }
+      body.dark-mode .sidebar.collapsed .sidebar-item.active { box-shadow:inset 3px 0 0 #93c5fd; }
       .sidebar-item .s-ico { font-size:16px; width:22px; text-align:center; flex-shrink:0; }
-      .sidebar-item .s-lbl { font-size:13px; transition:opacity 0.15s; }
+      .sidebar-item .s-lbl {
+        font-size:13px;
+        white-space:nowrap;
+        overflow:hidden;
+        max-width:160px;
+        opacity:1;
+        transition:opacity 0.18s ease, max-width 0.22s cubic-bezier(0.4,0,0.2,1);
+      }
       .sidebar-divider { height:1px; background:var(--border); margin:6px 12px; }
       .app-main { flex:1; overflow-y:auto; overflow-x:hidden; }
       .apikey-bar { margin-left:0; }
@@ -104,6 +115,11 @@
         touch-action:manipulation;
       }
       .sidebar-toggle-btn:hover { background:rgba(255,255,255,0.28); }
+      .sidebar-toggle-btn:active { transform:scale(0.92); background:rgba(255,255,255,0.4); }
+      /* 모션 감소 선호 사용자: 즉시 전환 */
+      @media (prefers-reduced-motion: reduce) {
+        .sidebar, .sidebar-item, .sidebar-item .s-lbl { transition:none !important; }
+      }
       /* Breadcrumb (PC only) */
       .breadcrumb-bar {
         display:flex; align-items:center; gap:6px;
