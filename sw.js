@@ -1,4 +1,4 @@
-var CACHE_NAME = "madi-v4-20260509-1829";
+var CACHE_NAME = "madi-v4-20260509-1852";
 var SKIP_URLS = ["api.anthropic.com","supabase.co","googleapis.com","cdnjs","jsdelivr","fonts.g"];
 self.addEventListener("install", function(e) { self.skipWaiting(); });
 self.addEventListener("activate", function(e) {
