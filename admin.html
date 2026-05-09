@@ -1382,11 +1382,18 @@ function loadStaffMgmtList() {
       if (!rows||!rows.length) { el.innerHTML='<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">등록된 선생님이 없습니다.</div>'; return; }
       el.innerHTML = rows.map(function(u){
         var isSelf = currentUser&&currentUser.id===u.id;
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;">'
-          +'<div><span style="font-size:13px;font-weight:700;">'+escHtml(u.name)+'</span>'
+        var nameEsc = escHtml(u.name).replace(/'/g, "\\'");
+        var actionButtons = isSelf
+          ? '<span style="font-size:11px;color:var(--text2);flex-shrink:0;">나</span>'
+          : '<div style="display:flex;gap:4px;flex-shrink:0;">'
+            + '<button onclick="resetStaffPassword('+u.id+',\''+nameEsc+'\')" title="비밀번호 재설정" style="font-size:13px;padding:4px 9px;background:#fff;border:1px solid #8b5cf6;border-radius:6px;color:#8b5cf6;cursor:pointer;">🔑</button>'
+            + '<button onclick="removeStaffAccount('+u.id+',\''+nameEsc+'\')" title="계정 삭제" style="font-size:13px;padding:4px 9px;background:#fff;border:1px solid #ef4444;border-radius:6px;color:#ef4444;cursor:pointer;">🗑️</button>'
+            + '</div>';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;gap:8px;">'
+          +'<div style="min-width:0;flex:1;"><span style="font-size:13px;font-weight:700;">'+escHtml(u.name)+'</span>'
           +'<span style="font-size:11px;color:var(--text2);margin-left:6px;">@'+escHtml(u.username)+'</span>'
           +'<span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:'+(u.role==='admin'?'var(--mint2)':'#f1f5f9')+';color:'+(u.role==='admin'?'var(--mint)':'var(--text2)')+';">'+(u.role==='admin'?'관리자':'선생님')+'</span></div>'
-          +(!isSelf?'<button class="btn-del" onclick="removeStaffAccount('+u.id+',\''+escHtml(u.name)+'\')" style="font-size:11px;padding:5px 10px;">삭제</button>':'<span style="font-size:11px;color:var(--text2);">나</span>')
+          + actionButtons
           +'</div>';
       }).join('');
     }).catch(function(err){ el.innerHTML='<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: '+escHtml(err.message||'')+'</div>'; });
@@ -1396,6 +1403,38 @@ function removeStaffAccount(id, name) {
   supaFetch('madi_users?id=eq.'+id,'DELETE')
     .then(function(){ showToast('🗑️ '+name+' 계정 삭제됨'); loadStaffMgmtList(); })
     .catch(function(err){ showToast('❌ 삭제 실패: '+escHtml(err.message||'오류')); });
+}
+
+function resetStaffPassword(id, name) {
+  var newPw = prompt(name + ' 선생님의 새 비밀번호를 입력하세요\n(4자 이상 영문/숫자)\n\n💡 빈 칸으로 두면 안전한 비밀번호가 자동 생성됩니다.');
+  if (newPw === null) return; // 취소
+  newPw = (newPw || '').trim();
+
+  // 빈 칸이면 자동 생성 (8자리, 헷갈리는 글자 0/O/1/l/I 제외)
+  if (!newPw) {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    newPw = '';
+    for (var i = 0; i < 8; i++) {
+      newPw += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  } else if (newPw.length < 4) {
+    showToast('⚠️ 비밀번호는 4자 이상이어야 합니다');
+    return;
+  }
+  if (!confirm(name + ' 선생님의 비밀번호를 재설정합니다.\n\n임시 비번: ' + newPw + '\n\n진행할까요?')) return;
+
+  hashPassword(newPw)
+    .then(function(hashed) {
+      return supaFetch('madi_users?id=eq.' + id, 'PATCH', { password: hashed });
+    })
+    .then(function() {
+      showToast('🔑 ' + name + ' 비밀번호 재설정 완료');
+      // 임시 비번 표시 (관리자가 직접 알려줘야 하므로 보존)
+      alert('✅ 비밀번호 재설정 완료\n\n' + name + ' 선생님께 다음 임시 비밀번호를 안내해주세요:\n\n  ▶ ' + newPw + '\n\n⚠️ 이 화면을 닫으면 비밀번호를 다시 볼 수 없습니다.\n선생님은 로그인 후 본인이 직접 변경하시는 것을 권장합니다.');
+    })
+    .catch(function(err) {
+      showToast('❌ 재설정 실패: ' + escHtml(err.message || '오류'));
+    });
 }
 
 // ── API 키 관리 ──
