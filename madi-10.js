@@ -158,6 +158,7 @@ function moveSchedPeriod(dir) {
 
 // ─────── 선생님 필터 ───────
 var _schedTeacherFilter = '전체';
+var _weekViewMode = 'therapist'; // 'therapist' | 'child'
 
 function renderTeacherFilter() {
   var bar = document.getElementById('teacherFilterBar');
@@ -284,6 +285,11 @@ function renderMonthGrid() {
 }
 
 // ─────── 주간 뷰 (7일 컬럼) ───────
+function toggleWeekViewMode() {
+  _weekViewMode = (_weekViewMode === 'therapist') ? 'child' : 'therapist';
+  renderWeekGrid();
+}
+
 function renderWeekGrid() {
   var d = schedCurrentDate;
   // 해당 주의 월요일 기준으로 7일 계산
@@ -315,6 +321,21 @@ function renderWeekGrid() {
 
   renderTeacherFilter();
 
+  // 뷰 모드 토글 버튼 렌더링
+  var toggleWrap = document.getElementById('weekViewToggle');
+  if (!toggleWrap) {
+    toggleWrap = document.createElement('div');
+    toggleWrap.id = 'weekViewToggle';
+    toggleWrap.style.cssText = 'display:flex;gap:6px;margin:8px 0 4px;';
+    var wgElRef = document.getElementById('weekGrid');
+    if (wgElRef && wgElRef.parentNode) wgElRef.parentNode.insertBefore(toggleWrap, wgElRef);
+  }
+  toggleWrap.innerHTML =
+    '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
+    + (_weekViewMode === 'therapist' ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
+    + '<button onclick="_weekViewMode=\'child\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
+    + (_weekViewMode === 'child' ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👶 아동 기준</button>';
+
   // 주간 내 모든 일정
   var allWeekScheds = scheduleDB.filter(function(s) {
     return weekDates.some(function(w){ return w.str === s.date; });
@@ -329,6 +350,12 @@ function renderWeekGrid() {
     if (t && therapists.indexOf(t) < 0) therapists.push(t);
   });
   therapists.sort();
+
+  // 아동 기준 뷰 분기
+  if (_weekViewMode === 'child') {
+    renderWeekGridByChild(weekDates, weekScheds);
+    return;
+  }
 
   var wgEl = document.getElementById('weekGrid');
   if (wgEl) { wgEl.style.display = 'block'; wgEl.style.width = '100%'; }
@@ -769,6 +796,94 @@ function goToSessionFromSched(schedId) {
     }
     if (s.date) document.getElementById('sessionDate').value = s.date;
   }, 200);
+}
+
+function renderWeekGridByChild(weekDates, weekScheds) {
+  var wgEl = document.getElementById('weekGrid');
+  if (!wgEl) return;
+  wgEl.style.display = 'block';
+  wgEl.style.width = '100%';
+
+  // 아동 목록 수집 (일정에 등장하는 아동만)
+  var childIds = [];
+  weekScheds.forEach(function(s) {
+    if (s.childId && childIds.indexOf(s.childId) < 0) childIds.push(s.childId);
+  });
+
+  // 아동 이름 기준 정렬
+  childIds.sort(function(a, b) {
+    var ca = childDB.find(function(c){ return c.id === a; });
+    var cb = childDB.find(function(c){ return c.id === b; });
+    var na = ca ? ca.name : '';
+    var nb = cb ? cb.name : '';
+    return na < nb ? -1 : 1;
+  });
+
+  if (childIds.length === 0) {
+    wgEl.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">이번 주 일정이 없습니다.</div>';
+    return;
+  }
+
+  var html = '<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
+
+  // 날짜 헤더
+  var todayStr = new Date().toISOString().slice(0,10);
+  html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;">아동</th>';
+  weekDates.forEach(function(w) {
+    var bg  = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
+    var col = w.isToday ? 'var(--mint,#0ea5a0)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
+    html += '<th style="padding:6px 4px;background:' + bg + ';border:1px solid #e2e8f0;color:' + col + ';font-weight:700;text-align:center;cursor:pointer;" onclick="switchToDay(\'' + w.str + '\')">'
+      + w.dayName + '<br><span style="font-size:12px;">' + w.day + '</span></th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  // 아동별 행
+  childIds.forEach(function(childId) {
+    var child = childDB.find(function(c){ return c.id === childId; });
+    var cname = child ? escHtml(child.name) : '?';
+    var cage  = child ? escHtml(child.age || '') : '';
+    var ccolor = (child && child.color) ? child.color : '#0ea5a0';
+
+    html += '<tr>';
+    html += '<td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;'
+      + 'color:' + ccolor + ';background:' + ccolor + '10;white-space:nowrap;vertical-align:top;">'
+      + cname
+      + (cage ? '<br><span style="font-size:9px;font-weight:400;color:var(--text2);">' + cage + '</span>' : '')
+      + '</td>';
+
+    weekDates.forEach(function(w) {
+      var daySched = weekScheds.filter(function(s){
+        return s.date === w.str && s.childId === childId;
+      }).sort(function(a,b){
+        return ((a.startTime||a.time)||'') < ((b.startTime||b.time)||'') ? -1 : 1;
+      });
+
+      if (daySched.length === 0) {
+        html += '<td style="padding:4px;border:1px solid #e2e8f0;height:40px;"></td>';
+      } else {
+        var items = daySched.map(function(s) {
+          var t = s.therapist || s.teacher || '';
+          var tcolor = getTeacherColor(t);
+          var time = (s.startTime||s.time||'').slice(0,5);
+          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(' + s.id + ')">'
+            + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
+            + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">'
+            + escHtml(t) + '</span>'
+            + '</div>';
+        }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
+        // 같은 날 2명 이상이면 셀 배경 강조
+        var bgStyle = daySched.length >= 2
+          ? 'background:#fff7ed;border:1px solid #fed7aa;'
+          : 'border:1px solid #e2e8f0;';
+        html += '<td style="padding:4px 5px;' + bgStyle + 'vertical-align:top;">' + items + '</td>';
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  wgEl.innerHTML = html;
 }
 
 function confirmSchedDelete(id, hasGroup) {
