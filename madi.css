@@ -6,6 +6,14 @@
       --border:#e2e8f0; --radius:14px; --shadow:0 2px 14px rgba(0,0,0,0.07);
       --card-bg:#fff; --input-bg:#fff; --input-border:#cbd5e1;
     }
+    /* iOS 자동 줌 방지: 모바일에서 입력 폰트 최소 16px */
+    @media (max-width: 768px) {
+      input:not([type="checkbox"]):not([type="radio"]),
+      select,
+      textarea {
+        font-size: max(16px, 1em) !important;
+      }
+    }
     body.dark-mode {
       --mint:#2dd4bf; --mint2:#134e4a; --navy:#020617; --navy2:#0f172a;
       --bg:#0f172a; --white:#1e293b; --red:#f87171; --amber:#fbbf24;
