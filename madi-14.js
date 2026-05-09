@@ -1,19 +1,20 @@
 // ═══════════════════════════════════════════════════════════
-// MADI 게시판 시스템 — 2단계: 골격 + 탭 전환
-// ═══════════════════════════════════════════════════════════
-// 다음 단계 예정:
-//   3단계: 마디 공지사항 (작성/목록/삭제)
-//   4단계: 센터 공지사항 통합
-//   5단계: 라운지 글 (1:1 + 센터)
-//   6단계: 라운지 댓글 + 이미지 업로드
+// MADI 게시판 시스템
+//   2단계: 골격 + 탭 전환                           ✅ 완료
+//   3단계: 마디 공지사항 (작성/목록/삭제)           ← 현재 단계
+//   4단계: 센터 공지사항 통합 (예정)
+//   5단계: 라운지 글 (1:1 + 센터, 예정)
+//   6단계: 라운지 댓글 + 이미지 업로드 (예정)
 // ═══════════════════════════════════════════════════════════
 
 // 현재 활성 서브탭 (global / center / lounge)
 var currentBoardTab = 'global';
 
+// 데이터 캐시 (단계별로 채워나감)
+var globalNoticesDB = [];
+
 // 게시판 진입 시 호출 (switchTab(7)에서 자동)
 function initBoard() {
-  // 첫 진입은 마디 공지사항 탭으로
   switchBoardTab(currentBoardTab || 'global');
 }
 
@@ -22,7 +23,6 @@ function switchBoardTab(name) {
   if (!name) return;
   currentBoardTab = name;
 
-  // 모든 서브탭 버튼 비활성화
   ['global', 'center', 'lounge'].forEach(function(n) {
     var btn = document.getElementById('bdBtn_' + n);
     if (btn) btn.classList.remove('active');
@@ -30,29 +30,165 @@ function switchBoardTab(name) {
     if (pnl) pnl.style.display = 'none';
   });
 
-  // 선택된 서브탭 활성화
   var activeBtn = document.getElementById('bdBtn_' + name);
   if (activeBtn) activeBtn.classList.add('active');
   var activePnl = document.getElementById('bdPanel_' + name);
   if (activePnl) activePnl.style.display = 'block';
 
-  // 서브탭별 렌더 함수 호출 (3단계 이후 실제 데이터 로드)
   if      (name === 'global') renderGlobalNotices();
   else if (name === 'center') renderCenterNotices();
   else if (name === 'lounge') renderLounge();
 }
 
-// ─────── 마디 공지사항 (3단계에서 구현) ───────
+// ═══════════════════════════════════════════════════════════
+// 🌐 마디 공지사항 (3단계)
+// ═══════════════════════════════════════════════════════════
+
+// 진입점 — 데이터 로드 후 UI 렌더
 function renderGlobalNotices() {
-  // 골격: 빈 화면 유지 (HTML에 이미 "준비 중" 메시지 있음)
+  var c = document.getElementById('bdGlobalList');
+  if (!c) return;
+  c.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>불러오는 중...</p></div>';
+  loadGlobalNotices();
 }
 
-// ─────── 센터 공지사항 (4단계에서 구현) ───────
+// Supabase에서 공지 목록 조회 (pinned 우선, 최신순, 최대 100개)
+function loadGlobalNotices() {
+  return supaFetch('madi_global_notices?order=pinned.desc,created_at.desc&limit=100', 'GET')
+    .then(function(rows) {
+      globalNoticesDB = Array.isArray(rows) ? rows : [];
+      renderGlobalNoticeUI();
+    })
+    .catch(function(e) {
+      var c = document.getElementById('bdGlobalList');
+      if (c) {
+        c.innerHTML = '<div class="empty">'
+          + '<div class="empty-icon">❌</div>'
+          + '<p>불러오기 실패: ' + escHtml(e.message || '오류') + '</p>'
+          + '<button class="btn btn-sm" onclick="loadGlobalNotices()" style="margin-top:8px;">🔄 다시 시도</button>'
+          + '</div>';
+      }
+    });
+}
+
+// UI 렌더 — 작성 폼(슈퍼어드민) + 공지 목록
+function renderGlobalNoticeUI() {
+  var c = document.getElementById('bdGlobalList');
+  if (!c) return;
+  var isSuperAdmin = currentUser && currentUser.role === 'superadmin';
+  var html = '';
+
+  // ── 슈퍼어드민 전용 작성 폼 ──
+  if (isSuperAdmin) {
+    html += '<div style="margin-bottom:14px;padding:12px;background:#f0f9ff;border:1px dashed #38bdf8;border-radius:10px;">'
+      + '<div style="font-size:13px;font-weight:700;color:#0c4a6e;margin-bottom:8px;">✏️ 새 공지 작성 (모든 센터에 발송)</div>'
+      + '<div style="display:grid;gap:8px;">'
+      + '<select id="bdGlobalType" class="form-input" style="font-size:13px;padding:8px;">'
+      +   '<option value="info">📢 일반</option>'
+      +   '<option value="pin">📍 중요 (상단 고정)</option>'
+      +   '<option value="imp">🚨 긴급 (상단 고정)</option>'
+      + '</select>'
+      + '<input id="bdGlobalTitle" class="form-input" placeholder="제목 (필수)" maxlength="200" style="font-size:13px;padding:8px;">'
+      + '<textarea id="bdGlobalContent" class="form-input" rows="3" placeholder="본문 (필수)" style="font-size:13px;padding:8px;resize:vertical;"></textarea>'
+      + '<button class="btn btn-primary" onclick="saveGlobalNotice()" style="font-size:13px;padding:10px;">💾 등록</button>'
+      + '</div></div>';
+  }
+
+  // ── 공지 목록 ──
+  if (globalNoticesDB.length === 0) {
+    html += '<div class="empty"><div class="empty-icon">📭</div><p>아직 등록된 마디 공지가 없습니다.</p></div>';
+  } else {
+    html += globalNoticesDB.map(function(n) { return renderGlobalNoticeCard(n, isSuperAdmin); }).join('');
+  }
+
+  c.innerHTML = html;
+}
+
+// 공지 카드 1개 렌더 (HTML 생성)
+function renderGlobalNoticeCard(n, isSuperAdmin) {
+  var typeBadge, borderColor;
+  if (n.notice_type === 'imp') {
+    typeBadge   = '<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">🚨 긴급</span>';
+    borderColor = '#ef4444';
+  } else if (n.notice_type === 'pin') {
+    typeBadge   = '<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">📍 중요</span>';
+    borderColor = '#f59e0b';
+  } else {
+    typeBadge   = '<span style="background:#e0f2fe;color:#0c4a6e;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">📢 일반</span>';
+    borderColor = '#0ea5a0';
+  }
+  var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
+  var deleteBtn = isSuperAdmin
+    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(' + n.id + ')">삭제</button>'
+    : '';
+
+  return '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap;">'
+    +   '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+    +     typeBadge
+    +     '<span style="font-size:14px;font-weight:700;color:#1e293b;">' + escHtml(n.title || '') + '</span>'
+    +   '</div>'
+    +   deleteBtn
+    + '</div>'
+    + (n.content ? '<div style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin:8px 0 6px;">' + escHtml(n.content) + '</div>' : '')
+    + '<div style="font-size:11px;color:#64748b;margin-top:6px;">👤 ' + escHtml(n.author_name || '익명') + ' · ' + escHtml(when) + '</div>'
+    + '</div>';
+}
+
+// 새 공지 등록
+function saveGlobalNotice() {
+  if (!currentUser || currentUser.role !== 'superadmin') { showToast('❌ 슈퍼어드민만 등록할 수 있습니다'); return; }
+
+  var title   = (document.getElementById('bdGlobalTitle')   || {value:''}).value.trim();
+  var content = (document.getElementById('bdGlobalContent') || {value:''}).value.trim();
+  var ntype   = (document.getElementById('bdGlobalType')    || {value:'info'}).value;
+  if (!title)   { showToast('⚠️ 제목을 입력해 주세요'); return; }
+  if (!content) { showToast('⚠️ 본문을 입력해 주세요'); return; }
+  if (title.length > 200) { showToast('⚠️ 제목은 200자 이하로 작성해 주세요'); return; }
+
+  // pin/imp는 자동으로 상단 고정
+  var pinned = (ntype !== 'info');
+
+  return supaFetch('madi_global_notices', 'POST', [{
+    notice_type: ntype,
+    pinned:      pinned,
+    title:       title,
+    content:     content,
+    author_name: currentUser.name || '슈퍼어드민'
+  }])
+    .then(function() {
+      var t = document.getElementById('bdGlobalTitle');   if (t) t.value = '';
+      var b = document.getElementById('bdGlobalContent'); if (b) b.value = '';
+      var s = document.getElementById('bdGlobalType');    if (s) s.value = 'info';
+      showToast('✅ 마디 공지가 등록됐습니다');
+      loadGlobalNotices();
+    })
+    .catch(function(e) { showToast('❌ 저장 실패: ' + (e.message || '')); });
+}
+
+// 공지 삭제
+function deleteGlobalNotice(id) {
+  if (!currentUser || currentUser.role !== 'superadmin') { showToast('❌ 슈퍼어드민만 삭제할 수 있습니다'); return; }
+  if (!confirm('이 공지를 삭제할까요? 모든 센터에서 사라집니다.')) return;
+
+  return supaFetch('madi_global_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
+    .then(function() {
+      showToast('🗑️ 공지가 삭제됐습니다');
+      loadGlobalNotices();
+    })
+    .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 📌 센터 공지사항 (4단계에서 구현)
+// ═══════════════════════════════════════════════════════════
 function renderCenterNotices() {
-  // 골격: 빈 화면 유지
+  // 골격 유지: HTML에 "준비 중" 메시지 표시됨
 }
 
-// ─────── 라운지 (5~6단계에서 구현) ───────
+// ═══════════════════════════════════════════════════════════
+// 🍵 라운지 (5~6단계에서 구현)
+// ═══════════════════════════════════════════════════════════
 function renderLounge() {
-  // 골격: 빈 화면 유지
+  // 골격 유지
 }
