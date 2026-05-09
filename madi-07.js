@@ -145,6 +145,12 @@ function suggestHomeActivities(sessionId) {
 // ─────── 세션 목록 ───────
 // 카운터 클릭 시 최근 20개 ↔ 전체 토글
 var sessionListExpanded = false;
+var _sessionShowAll    = false; // teacher 전용: 전체 세션 보기 토글
+
+function toggleSessionAllView() {
+  _sessionShowAll = !_sessionShowAll;
+  renderSessionList();
+}
 function toggleSessionListExpand() {
   sessionListExpanded = !sessionListExpanded;
   renderSessionList();
@@ -152,18 +158,26 @@ function toggleSessionListExpand() {
 
 function renderSessionList() {
   var c = document.getElementById('sessionList');
-  // 권한별 필터: admin은 전체, 그 외는 본인 세션만 (teacher 필드 없으면 admin만 노출)
+  var role = (currentUser && currentUser.role) || '';
+  var isAdminLevel = role === 'admin' || role === 'superadmin';
+
+  // 권한별 필터
+  // superadmin/admin: 전체 세션
+  // teacher: 기본 본인 세션만, 토글 ON 시 전체
   var visible = sessionDB.slice().reverse();
-  if (currentUser && currentUser.role !== 'admin') {
-    visible = visible.filter(function(s){ return s.teacher && s.teacher === currentUser.name; });
+  if (role === 'teacher') {
+    if (!_sessionShowAll) {
+      visible = visible.filter(function(s){ return s.teacher && s.teacher === currentUser.name; });
+    }
   }
+
   // 펼치기 상태에 따라 최근 20개 또는 전체
   var recent = sessionListExpanded ? visible : visible.slice(0, 20);
-  // 카드 제목 옆 카운터 갱신 (권한별 라벨 + 표시/전체 개수 + 펼치기 토글)
+
+  // 카드 제목 옆 카운터 갱신
   var countEl = document.getElementById('sessionListCount');
   if (countEl) {
-    var isAdmin   = currentUser && currentUser.role === 'admin';
-    var label     = isAdmin ? '전체' : '본인';
+    var label     = isAdminLevel ? '전체' : (_sessionShowAll ? '전체' : '본인');
     var canToggle = visible.length > 20;
     var arrow     = canToggle ? (sessionListExpanded ? ' ▲' : ' ▼') : '';
     var sub       = canToggle
@@ -180,6 +194,25 @@ function renderSessionList() {
       countEl.onclick = null;
       countEl.title = '';
     }
+  }
+
+  // teacher 전용: 전체/본인 토글 버튼 동적 삽입
+  var toggleBtnEl = document.getElementById('sessionAllToggleBtn');
+  if (role === 'teacher') {
+    if (!toggleBtnEl) {
+      toggleBtnEl = document.createElement('button');
+      toggleBtnEl.id = 'sessionAllToggleBtn';
+      toggleBtnEl.style.cssText = 'font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#64748b;cursor:pointer;font-family:inherit;margin-left:6px;touch-action:manipulation;';
+      if (countEl && countEl.parentNode) countEl.parentNode.insertBefore(toggleBtnEl, countEl.nextSibling);
+    }
+    toggleBtnEl.textContent = _sessionShowAll ? '👤 내 세션만' : '🌐 전체 보기';
+    toggleBtnEl.style.background = _sessionShowAll ? '#fef2f2' : '';
+    toggleBtnEl.style.color      = _sessionShowAll ? '#dc2626' : '';
+    toggleBtnEl.style.borderColor= _sessionShowAll ? '#dc2626' : '';
+    toggleBtnEl.onclick = toggleSessionAllView;
+    toggleBtnEl.style.display = '';
+  } else {
+    if (toggleBtnEl) toggleBtnEl.style.display = 'none';
   }
   if (recent.length === 0) {
     c.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>아직 기록된 세션이 없습니다.</p></div>';
