@@ -399,14 +399,13 @@ function doLogin() {
 // ─────── 마디 로고 SVG 단일 관리 함수 ───────
 // 로고를 수정할 때 이 함수 하나만 고치면 4곳(헤더·랜딩·로그인·가입) 전체 반영됩니다.
 function getMadiLogoSVG(w, h) {
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="' + w + '" height="' + h + '">'
-    + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
-    + '<rect x="18" y="100" width="94" height="18" rx="9" fill="rgba(255,255,255,0.3)"/>'
-    + '<rect x="59" y="26" width="12" height="80" rx="6" fill="white"/>'
-    + '<ellipse cx="36" cy="60" rx="32" ry="17" fill="white" transform="rotate(-40,36,60)"/>'
-    + '<ellipse cx="94" cy="52" rx="32" ry="17" fill="white" transform="rotate(40,94,52)"/>'
-    + '<circle cx="65" cy="22" r="13" fill="white"/>'
-    + '<circle cx="65" cy="22" r="7" fill="#0ea5a0"/>'
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="' + w + '" height="' + h + '">' 
+    + '<rect width="130" height="130" rx="28" fill="#e8f5f0"/>'
+    + '<rect x="18" y="14" width="94" height="76" rx="18" fill="#2d6a4f"/>'
+    + '<path d="M 26 90 L 16 112 L 52 90 Z" fill="#2d6a4f"/>'
+    + '<rect x="61" y="38" width="8" height="38" rx="4" fill="white"/>'
+    + '<path d="M 65 62 C 65 62 36 60 38 38 C 40 26 62 34 65 52 Z" fill="white"/>'
+    + '<path d="M 65 54 C 65 54 92 52 91 32 C 90 20 68 28 65 44 Z" fill="white"/>'
     + '</svg>';
 }
 
