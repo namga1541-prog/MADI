@@ -384,6 +384,95 @@ function deployFileToGitHub(token, filename, textContent, commitMsg) {
     });
 }
 
+// ─────── 배포 대상 파일 자동 스캔 ───────
+// 폴더 핸들에서 madi-NN.js 패턴 자동 감지 → 자연 정렬 → madi.css는 마지막에
+// 새 madi-XX.js 추가해도 자동 포함 (하드코딩 제거)
+function scanMadiFiles(folderHandle) {
+  var iterator = folderHandle.values();
+  var jsFiles = [];
+  var hasCss = false;
+  function next() {
+    return iterator.next().then(function(result) {
+      if (result.done) return;
+      var entry = result.value;
+      if (entry.kind === 'file') {
+        if (/^madi-\d+\.js$/.test(entry.name)) jsFiles.push(entry.name);
+        else if (entry.name === 'madi.css') hasCss = true;
+      }
+      return next();
+    });
+  }
+  return next().then(function() {
+    // 자연 정렬: madi-01 < madi-02 < ... < madi-13
+    jsFiles.sort(function(a, b) {
+      var na = parseInt(a.match(/\d+/)[0], 10);
+      var nb = parseInt(b.match(/\d+/)[0], 10);
+      return na - nb;
+    });
+    if (hasCss) jsFiles.push('madi.css');
+    return jsFiles;
+  });
+}
+
+// ─────── 파일 내용 → Git blob SHA-1 계산 ───────
+// GitHub의 blob SHA 알고리즘: SHA1('blob {size}\0{content}')
+// 동일 SHA = 동일 내용 (mtime만 바뀌고 내용 같으면 같은 SHA)
+function gitBlobSha(content) {
+  var enc    = new TextEncoder();
+  var body   = enc.encode(content);
+  var header = enc.encode('blob ' + body.length + '\0');
+  var data   = new Uint8Array(header.length + body.length);
+  data.set(header, 0);
+  data.set(body, header.length);
+  return crypto.subtle.digest('SHA-1', data).then(function(buf) {
+    return Array.prototype.map.call(new Uint8Array(buf), function(b) {
+      return ('0' + b.toString(16)).slice(-2);
+    }).join('');
+  });
+}
+
+// ─────── GitHub Pages 빌드 상태 폴링 ───────
+// 배포 후 자동으로 빌드 진행 상황을 확인하여 사용자에게 알림
+function pollGithubPagesBuild(token, deployStartTs) {
+  var attempts    = 0;
+  var MAX_TRY     = 30;     // 최대 30회 (5초 간격 = 약 2분 30초)
+  var INTERVAL_MS = 5000;
+  function poll() {
+    return fetch('https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/pages/builds/latest', {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' }
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(build) {
+      attempts++;
+      var buildTs = build.created_at ? new Date(build.created_at).getTime() : 0;
+      // 이번 배포 이후의 빌드인지 확인 (이전 빌드는 무시)
+      if (buildTs < deployStartTs) {
+        if (attempts >= MAX_TRY) { showToast('⏰ 빌드 시작 대기 시간 초과', { duration: 5000 }); return; }
+        return new Promise(function(r){ setTimeout(r, INTERVAL_MS); }).then(poll);
+      }
+      if (build.status === 'built') {
+        showToast('🌐 GitHub Pages 반영 완료! 새로고침하면 보입니다.', { duration: 7000 });
+      } else if (build.status === 'errored') {
+        var err = (build.error && build.error.message) || '알 수 없는 오류';
+        showToast('❌ GitHub Pages 빌드 실패: ' + err, { duration: 9000 });
+      } else {
+        // queued, building → 계속 폴링
+        if (attempts >= MAX_TRY) { showToast('⏰ 빌드 진행 중 — 잠시 후 사이트 확인', { duration: 5000 }); return; }
+        return new Promise(function(r){ setTimeout(r, INTERVAL_MS); }).then(poll);
+      }
+    })
+    .catch(function(e) {
+      // 폴링 실패는 배포 자체 실패가 아니므로 조용히 한 번만 알림
+      showToast('⚠️ 빌드 상태 확인 불가: ' + (e.message || '네트워크 오류'), { duration: 5000 });
+    });
+  }
+  // 첫 폴링은 5초 후 (GitHub이 빌드 큐에 등록할 시간 확보)
+  setTimeout(poll, 5000);
+}
+
 function deployToGitHub() {
   var token = getGithubToken();
   if (!token) {
@@ -409,56 +498,110 @@ function deployToGitHub() {
     return;
   }
 
-  var JS_FILES = [
-    'madi-01.js','madi-02.js','madi-03.js','madi-04.js','madi-05.js','madi-06.js',
-    'madi-07.js','madi-08.js','madi-09.js','madi-10.js','madi-11.js','madi-12.js',
-    'madi.css'
-  ];
-  var ALL_FILES = ['index.html', 'admin.html'].concat(JS_FILES);
-  var TOTAL_FILES = ALL_FILES.length + 1; // + sw.js
+  // 배포 대상 파일은 폴더 스캔 + SHA 변경 감지로 동적 결정
+  var JS_FILES, ALL_FILES, TOTAL_FILES, FILES_TO_UPLOAD;
+  var deployStartTs = Date.now(); // GitHub Pages 빌드 폴링 기준 시각
 
   showToast('📡 배포 준비 중...');
 
   getMadiFolderHandle()
     .then(function(folderHandle) {
-      function getFileContent(filename) {
-        return folderHandle.getFileHandle(filename)
-          .then(function(fh) { return fh.getFile(); })
-          .then(function(f) { return f.text(); })
-          .catch(function() { return null; });
-      }
-      return Promise.all(ALL_FILES.map(function(f) { return getFileContent(f); }));
-    })
-    .then(function(results) {
-      var indexContent = results[0];
-      var adminContent = results[1];
-      var jsContents   = results.slice(2);
-      if (!indexContent) throw new Error('index.html 읽기 실패');
+      return scanMadiFiles(folderHandle).then(function(jsFiles) {
+        if (jsFiles.length === 0) throw new Error('madi-*.js 파일을 찾을 수 없습니다');
+        JS_FILES  = jsFiles;
+        ALL_FILES = ['index.html', 'admin.html'].concat(JS_FILES);
 
-      showToast('📡 index.html 업로드 중... (1/' + TOTAL_FILES + ')');
-      return deployFileToGitHub(token, GITHUB_FILE, indexContent, '마디 앱 업데이트 — ' + commitTime)
-        .then(function() { return { adminContent: adminContent, jsContents: jsContents }; });
+        // 각 파일의 내용 + SHA 동시 계산 (이전 SHA와 비교해 변경 판정)
+        var lastDeployIso = localStorage.getItem('madi_last_deploy');
+        var prevShas      = {};
+        try { prevShas = JSON.parse(localStorage.getItem('madi_deploy_shas') || '{}') || {}; } catch(e) {}
+
+        return Promise.all(ALL_FILES.map(function(name) {
+          return folderHandle.getFileHandle(name)
+            .then(function(fh) { return fh.getFile(); })
+            .then(function(f) {
+              return f.text().then(function(content) {
+                return gitBlobSha(content).then(function(sha) {
+                  return {
+                    name:    name,
+                    content: content,
+                    sha:     sha,
+                    changed: prevShas[name] !== sha
+                  };
+                });
+              });
+            })
+            .catch(function() { return { name: name, content: null, sha: '', changed: false }; });
+        })).then(function(fileInfos) {
+          // 유효 파일 필터 + index.html 존재 검사
+          var valid    = fileInfos.filter(function(f){ return f.content !== null; });
+          var hasIndex = valid.some(function(f){ return f.name === 'index.html'; });
+          if (!hasIndex) throw new Error('index.html 읽기 실패 — 폴더에 없거나 접근 불가');
+
+          var changed     = valid.filter(function(f){ return f.changed; });
+          var unchanged   = valid.filter(function(f){ return !f.changed; });
+          var firstDeploy = !lastDeployIso;
+          var NL          = String.fromCharCode(10);
+          var lastText    = lastDeployIso
+            ? '마지막 배포: ' + new Date(lastDeployIso).toLocaleString('ko-KR')
+            : '마지막 배포: 기록 없음 (첫 배포)';
+
+          // 업로드 대상 결정: 첫 배포 또는 변경 0건이면 전체, 아니면 변경분만
+          var willUpload;
+          if (firstDeploy) {
+            willUpload = valid;
+          } else if (changed.length === 0) {
+            var msg = lastText + NL + NL
+                    + '⏸️ 마지막 배포 이후 내용이 변경된 파일이 없습니다.' + NL
+                    + '(SHA-1 해시 비교 — 저장만 했고 내용 동일한 파일은 자동 제외됨)' + NL + NL
+                    + '그래도 ' + valid.length + '개 파일을 모두 배포하시겠습니까?';
+            if (!confirm(msg)) throw new Error('USER_CANCEL');
+            willUpload = valid;
+          } else {
+            willUpload = changed;
+          }
+
+          // 미리보기 다이얼로그
+          var lines = [lastText, ''];
+          lines.push('✏️ 배포 대상 ' + willUpload.length + '개:');
+          willUpload.forEach(function(f, i) { lines.push('  ' + (i + 1) + '. ' + f.name); });
+          var skipped = valid.length - willUpload.length;
+          if (skipped > 0) {
+            lines.push('');
+            lines.push('⏸️ 미변경 ' + skipped + '개 (SHA 동일, 건너뜀):');
+            unchanged.forEach(function(f) { lines.push('  · ' + f.name); });
+          }
+          lines.push('', '+ sw.js (자동 캐시 갱신)', '', '진행하시겠습니까?');
+          if (!confirm(lines.join(NL))) throw new Error('USER_CANCEL');
+
+          FILES_TO_UPLOAD = willUpload;
+          TOTAL_FILES     = willUpload.length + 1;
+          // 모든 파일의 SHA 맵 (다음 배포 시 비교용으로 유지)
+          var allShas = {};
+          valid.forEach(function(f){ allShas[f.name] = f.sha; });
+          FILES_TO_UPLOAD.allShas = allShas;
+          return willUpload;
+        });
+      });
     })
-    .then(function(data) {
-      if (data.adminContent) {
-        showToast('📡 admin.html 업로드 중... (2/' + TOTAL_FILES + ')');
-        return deployFileToGitHub(token, 'admin.html', data.adminContent, '마디 관리자 업데이트 — ' + commitTime)
-          .then(function() { return data.jsContents; });
-      }
-      return Promise.resolve(data.jsContents);
-    })
-    .then(function(jsContents) {
-      var step = 3;
-      return jsContents.reduce(function(chain, content, i) {
+    .then(function(filesToUpload) {
+      // 순차 업로드 (커밋 메시지는 파일 종류에 따라)
+      var step = 1;
+      return filesToUpload.reduce(function(chain, fi) {
         return chain.then(function() {
-          if (!content) { step++; return Promise.resolve(); }
-          showToast('📡 ' + JS_FILES[i] + ' 업로드 중... (' + step + '/' + TOTAL_FILES + ')');
+          showToast('📡 ' + fi.name + ' 업로드 중... (' + step + '/' + TOTAL_FILES + ')');
           step++;
-          return deployFileToGitHub(token, JS_FILES[i], content, '마디 JS 업데이트 — ' + commitTime);
+          var msg;
+          if (fi.name === 'index.html')      msg = '마디 앱 업데이트 — ' + commitTime;
+          else if (fi.name === 'admin.html') msg = '마디 관리자 업데이트 — ' + commitTime;
+          else if (fi.name === 'madi.css')   msg = '마디 CSS 업데이트 — ' + commitTime;
+          else                                msg = '마디 JS 업데이트 — ' + commitTime;
+          return deployFileToGitHub(token, fi.name, fi.content, msg);
         });
       }, Promise.resolve());
     })
     .then(function() {
+      // sw.js는 항상 업로드 (캐시 갱신 보장)
       showToast('📡 sw.js 업로드 중... (' + TOTAL_FILES + '/' + TOTAL_FILES + ')');
       return deployFileToGitHub(token, GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
     })
@@ -466,14 +609,24 @@ function deployToGitHub() {
       btn.dataset.busy = '';
       btn.disabled    = false;
       btn.textContent = '🚀 배포';
-      showToast('🚀 배포 완료! 1~2분 후 반영됩니다.', { duration: 5000 });
+      showToast('🚀 배포 완료! ' + (FILES_TO_UPLOAD.length + 1) + '개 파일 1~2분 후 반영됩니다.', { duration: 5000 });
       localStorage.setItem('madi_last_deploy', new Date().toISOString());
+      // 다음 배포 시 SHA 비교를 위해 모든 파일의 SHA 저장 (변경되지 않은 파일도 포함)
+      try {
+        if (FILES_TO_UPLOAD.allShas) {
+          localStorage.setItem('madi_deploy_shas', JSON.stringify(FILES_TO_UPLOAD.allShas));
+        }
+      } catch(e) {}
+      // GitHub Pages 빌드 상태 자동 폴링 (5초 후 시작)
+      pollGithubPagesBuild(token, deployStartTs);
     })
     .catch(function(e) {
       btn.dataset.busy = '';
       btn.disabled    = false;
       btn.textContent = '🚀 배포';
-      if (e.message && e.message.includes('Bad credentials')) {
+      if (e.message === 'USER_CANCEL') {
+        showToast('배포 취소됨');
+      } else if (e.message && e.message.includes('Bad credentials')) {
         localStorage.removeItem('madi_gh_token');
         showToast('❌ Token 오류 — 다시 눌러 재입력해주세요.');
       } else {
