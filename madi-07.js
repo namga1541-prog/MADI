@@ -11,7 +11,7 @@ function saveSession(aiNote) {
   });
 
   var sessionId = Date.now() + Math.floor(Math.random() * 1000);
-  sessionDB.push({ id: sessionId, childId: childId, date: date, goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
+  sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
   saveSessions();
   renderSessionList();
   renderChildGrid();
@@ -55,6 +55,7 @@ function saveSessionAI() {
       var sessionId = Date.now() + Math.floor(Math.random() * 1000);
       sessionDB.push({
         id: sessionId, childId: childId, date: date,
+        teacher: (currentUser && currentUser.name) || '',
         goals: p.goals || [], memo: p.memo || aiText, aiNote: p.aiNote || '',
         phonemes: getPhonemeSnapshot()
       });
@@ -142,9 +143,44 @@ function suggestHomeActivities(sessionId) {
 }
 
 // ─────── 세션 목록 ───────
+// 카운터 클릭 시 최근 20개 ↔ 전체 토글
+var sessionListExpanded = false;
+function toggleSessionListExpand() {
+  sessionListExpanded = !sessionListExpanded;
+  renderSessionList();
+}
+
 function renderSessionList() {
   var c = document.getElementById('sessionList');
-  var recent = sessionDB.slice().reverse().slice(0, 20);
+  // 권한별 필터: admin은 전체, 그 외는 본인 세션만 (teacher 필드 없으면 admin만 노출)
+  var visible = sessionDB.slice().reverse();
+  if (currentUser && currentUser.role !== 'admin') {
+    visible = visible.filter(function(s){ return s.teacher && s.teacher === currentUser.name; });
+  }
+  // 펼치기 상태에 따라 최근 20개 또는 전체
+  var recent = sessionListExpanded ? visible : visible.slice(0, 20);
+  // 카드 제목 옆 카운터 갱신 (권한별 라벨 + 표시/전체 개수 + 펼치기 토글)
+  var countEl = document.getElementById('sessionListCount');
+  if (countEl) {
+    var isAdmin   = currentUser && currentUser.role === 'admin';
+    var label     = isAdmin ? '전체' : '본인';
+    var canToggle = visible.length > 20;
+    var arrow     = canToggle ? (sessionListExpanded ? ' ▲' : ' ▼') : '';
+    var sub       = canToggle
+      ? (sessionListExpanded ? ' 모두 표시' : ' · 최근 20개')
+      : '';
+    countEl.textContent = '(' + label + ' ' + visible.length + '개' + sub + arrow + ')';
+    if (canToggle) {
+      countEl.style.cursor = 'pointer';
+      countEl.style.userSelect = 'none';
+      countEl.onclick = toggleSessionListExpand;
+      countEl.title = sessionListExpanded ? '클릭하여 최근 20개만 보기' : '클릭하여 전체 보기';
+    } else {
+      countEl.style.cursor = '';
+      countEl.onclick = null;
+      countEl.title = '';
+    }
+  }
   if (recent.length === 0) {
     c.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>아직 기록된 세션이 없습니다.</p></div>';
     return;
@@ -207,6 +243,10 @@ function renderSessionList() {
       + (s.memo ? '<div style="font-size:13px;color:#334155;margin-top:8px;line-height:1.6;padding:8px 10px;background:#f8fafc;border-radius:8px;">' + escHtml(s.memo) + '</div>' : '')
       // AI 노트
       + (s.aiNote ? '<div style="font-size:12px;color:#7c3aed;margin-top:8px;padding:8px 10px;background:#f5f3ff;border-radius:8px;line-height:1.6;">🤖 ' + escHtml(s.aiNote) + '</div>' : '')
+      // 작성자 라벨 (admin이 다른 선생님 세션을 식별할 수 있도록 — admin + teacher 필드 있을 때만)
+      + ((currentUser && currentUser.role === 'admin' && s.teacher)
+          ? '<div style="font-size:11px;color:#64748b;margin-top:8px;text-align:right;">👤 작성자 <span style="font-weight:700;color:' + getTeacherColor(s.teacher) + ';">' + escHtml(s.teacher) + '</span></div>'
+          : '')
       + '</div>';
   });
   c.innerHTML = html;
