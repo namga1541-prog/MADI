@@ -51,6 +51,27 @@
     .header-user { font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; flex-shrink:0; }
     .header-user-badge { background:rgba(255,255,255,0.2); padding:3px 9px; border-radius:12px; font-size:11px; }
 
+    /* ── 사이드 네비 ── */
+    .admin-layout { display:flex; min-height:calc(100vh - 60px); }
+    .admin-sidenav {
+      width:180px; flex-shrink:0;
+      background:white; border-right:1px solid var(--border,#e2e8f0);
+      padding:16px 10px; display:flex; flex-direction:column; gap:4px;
+      position:sticky; top:60px; height:calc(100vh - 60px); overflow-y:auto;
+    }
+    .admin-sidenav a {
+      display:flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:10px;
+      font-size:13px; font-weight:600; color:#475569;
+      text-decoration:none; cursor:pointer; border:none; background:none; width:100%; text-align:left;
+    }
+    .admin-sidenav a:hover { background:#f1f5f9; }
+    .admin-sidenav a.active { background:#e0f7f6; color:#0ea5a0; }
+    .admin-sidenav .nav-divider { height:1px; background:var(--border,#e2e8f0); margin:8px 0; }
+    .admin-main { flex:1; min-width:0; }
+    @media (max-width:600px) {
+      .admin-sidenav { display:none; }
+    }
     /* ── 탭 바 ── */
     .admin-tab-bar {
       display:flex; background:var(--white); border-bottom:2px solid var(--border);
@@ -133,9 +154,22 @@
 <div class="header">
   <button class="back-btn" onclick="goBack()">← 앱으로</button>
   <div class="header-title">🛡️ 관리자 센터</div>
-
 </div>
 
+<div class="admin-layout">
+<!-- ── 사이드 네비 ── -->
+<nav class="admin-sidenav" id="adminSidenav">
+  <div style="font-size:11px;font-weight:700;color:#94a3b8;padding:4px 12px 8px;letter-spacing:0.5px;">서비스관리</div>
+  <a onclick="goBack();setTimeout(function(){switchTab(0);},100)">📅 캘린더</a>
+  <a onclick="goBack();setTimeout(function(){switchTab(1);},100)">👶 아동 관리</a>
+  <a onclick="goBack();setTimeout(function(){switchTab(2);},100)">📋 보고서</a>
+  <a onclick="goBack();setTimeout(function(){switchTab(3);},100)">📁 성장기록</a>
+  <a onclick="goBack();setTimeout(function(){switchTab(7);},100)">📌 게시판</a>
+  <div class="nav-divider"></div>
+  <a onclick="window.location.href='admin.html?tab=service'" id="sideService" class="active">🛠 서비스 관리</a>
+  <a onclick="window.location.href='admin.html?tab=settings'" id="sideSettings" style="display:none;">⚙️ 관리자설정</a>
+</nav>
+<div class="admin-main">
 <!-- ── 탭 바 ── -->
 <div class="admin-tab-bar">
   <button class="admin-tab-btn" id="adminTabService" onclick="showAdminTab('service')">🛠 서비스관리</button>
@@ -401,6 +435,9 @@
 
   </div>
 </div>
+
+</div><!-- admin-main -->
+</div><!-- admin-layout -->
 
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
@@ -1630,12 +1667,26 @@ window.addEventListener('DOMContentLoaded', function() {
   // 세션 시간 단위 로드
   // 센터 초대 코드 + 직원 목록 로드 (settings 탭이 기본 활성)
   // URL 파라미터로 초기 탭 결정 (service / settings)
-  var urlTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
+  var urlTab = new URLSearchParams(window.location.search).get('tab') || 'service';
   showAdminTab(urlTab);
-  // 관리자설정 탭은 superadmin만
+  // tab=service면 관리자설정 탭 숨기기 / tab=settings면 superadmin만
   var settingsTabBtn = document.getElementById('adminTabSettings');
-  if (settingsTabBtn) {
-    settingsTabBtn.style.display = (currentUser && currentUser.role === 'superadmin') ? '' : 'none';
+  var serviceTabBtn  = document.getElementById('adminTabService');
+  if (urlTab === 'service') {
+    if (settingsTabBtn) settingsTabBtn.style.display = 'none';
+  } else {
+    if (serviceTabBtn)  serviceTabBtn.style.display  = 'none';
+    if (settingsTabBtn) {
+      settingsTabBtn.style.display = (currentUser && currentUser.role === 'superadmin') ? '' : 'none';
+    }
+    // 사이드바 서비스/설정 활성 표시
+    var ss = document.getElementById('sideService');
+    var sg = document.getElementById('sideSettings');
+    if (ss) ss.classList.remove('active');
+    if (sg && currentUser && currentUser.role === 'superadmin') {
+      sg.style.display = '';
+      sg.classList.add('active');
+    }
   }
 });
 
