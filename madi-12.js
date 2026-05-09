@@ -972,7 +972,6 @@ function init() {
   var _db = document.getElementById('headerDeployBtn');
   if (_db) { _db.disabled = false; _db.textContent = '🚀 배포'; }
   loadDarkMode();
-  setTimeout(updateModelBtns, 300);
   setTimeout(applyPermissions, 400);
   startHeaderClock();
   setupNetworkMonitor();
