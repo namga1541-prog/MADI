@@ -5,7 +5,7 @@
   <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-  <title>마디 — 언어치료 AI · 아동 발달 관리 APP</title>
+  <title>아이마디 — 언어치료 AI · 아동 발달 관리 APP</title>
 
   <!-- PWA 메타태그 -->
   <meta name="theme-color" content="#0ea5a0">
@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="마디">
+  <meta name="apple-mobile-web-app-title" content="아이마디">
   <link rel="manifest" id="pwaManifest" href="blob:null/005d3b62-e909-43a6-8dc0-f8f62c965394">
   <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/af9da997-8bd6-4ec5-afeb-923517efc184">
 
@@ -961,7 +961,7 @@
   <nav class="lp-nav">
     <div class="lp-nav-logo">
       <div class="lp-nav-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="20" height="20"><rect width="130" height="130" rx="28" fill="#0ea5a0"></rect><rect x="28" y="54" width="10" height="22" rx="4" fill="white"></rect><rect x="44" y="40" width="10" height="50" rx="4" fill="white"></rect><rect x="60" y="30" width="10" height="70" rx="4" fill="white"></rect><rect x="76" y="45" width="10" height="40" rx="4" fill="white"></rect><rect x="92" y="56" width="10" height="18" rx="4" fill="white"></rect></svg></div>
-      <span>마디</span>
+      <span>아이마디</span>
     </div>
     <div class="lp-nav-btns">
       <button class="lp-btn-login" onclick="hideLanding(); showLoginScreen();">로그인</button>
@@ -972,7 +972,7 @@
   <!-- 히어로 섹션 -->
   <section class="lp-hero">
     <div class="lp-badge">🧠 언어치료 특화 AI · 아동 발달 관리 APP</div>
-    <h1>세션 기록부터 보고서까지<br><em>마디가 함께합니다</em></h1>
+    <h1>세션 기록부터 보고서까지<br><em>아이마디가 함께합니다</em></h1>
     <p>언어재활사의 반복 업무를 줄이고<br>아이와 함께하는 시간을 늘려드립니다.</p>
   </section>
 
@@ -1072,7 +1072,7 @@
     <button class="login-back-btn" onclick="backToLanding()">← 처음으로</button>
     <div class="login-logo">
       <div class="login-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="34" height="34"><rect width="130" height="130" rx="28" fill="#0ea5a0"></rect><rect x="28" y="54" width="10" height="22" rx="4" fill="white"></rect><rect x="44" y="40" width="10" height="50" rx="4" fill="white"></rect><rect x="60" y="30" width="10" height="70" rx="4" fill="white"></rect><rect x="76" y="45" width="10" height="40" rx="4" fill="white"></rect><rect x="92" y="56" width="10" height="18" rx="4" fill="white"></rect></svg></div>
-      <h1>마디 가입</h1>
+      <h1>아이마디 가입</h1>
       <p>초대 코드로 시작하기</p>
     </div>
 
@@ -1114,7 +1114,7 @@
     <div class="logo">
       <div class="logo-icon" onclick="showDashboard()" style="cursor:pointer;" title="홈으로 이동"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="22" height="22"><rect width="130" height="130" rx="28" fill="#0ea5a0"></rect><rect x="28" y="54" width="10" height="22" rx="4" fill="white"></rect><rect x="44" y="40" width="10" height="50" rx="4" fill="white"></rect><rect x="60" y="30" width="10" height="70" rx="4" fill="white"></rect><rect x="76" y="45" width="10" height="40" rx="4" fill="white"></rect><rect x="92" y="56" width="10" height="18" rx="4" fill="white"></rect></svg></div>
       <div class="logo-text">
-        <h1>마디</h1>
+        <h1>아이마디</h1>
         <p style="font-size:11px;opacity:0.7;margin-top:1px;font-weight:500;letter-spacing:0.3px;">언어가 자라는 곳</p>
       </div>
     </div>
@@ -1134,7 +1134,7 @@
   </div>
 </div>
 
-<div class="apikey-bar" id="apikeyBar" style="display:none !important;visibility:hidden;">
+<div class="apikey-bar" id="apikeyBar" style="display:none;">
   <label>🔑 API Key</label>
   <div style="flex:1;display:flex;align-items:center;gap:6px;position:relative;">
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" onfocus="onApiKeyFocus()" onblur="onApiKeyBlur()" style="display: none;">
@@ -1767,16 +1767,16 @@
 <!-- ─── 게시판 탭 패널 (2단계: 골격) ─── -->
 <div class="tab-panel" id="panelBoard">
   <div class="subtab-nav">
-    <button class="subtab-btn active" id="bdBtn_global" onclick="switchBoardTab('global')">🌐 마디 공지사항</button>
+    <button class="subtab-btn active" id="bdBtn_global" onclick="switchBoardTab('global')">🌐 아이아이마디 공지사항</button>
     <button class="subtab-btn" id="bdBtn_center" onclick="switchBoardTab('center')">📌 센터 공지사항</button>
     <button class="subtab-btn" id="bdBtn_lounge" onclick="switchBoardTab('lounge')">🍵 라운지</button>
   </div>
   <div class="content">
 
-    <!-- 마디 공지사항 -->
+    <!-- 아이마디 공지사항 -->
     <div class="board-sub" id="bdPanel_global">
       <div class="card">
-        <div class="card-title">🌐 마디 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">슈퍼어드민이 모든 센터에 발송</span></div>
+        <div class="card-title">🌐 아이아이마디 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">슈퍼어드민이 모든 센터에 발송</span></div>
         <div id="bdGlobalList">
           <div class="empty"><div class="empty-icon">🚧</div><p>준비 중입니다 (3단계에서 구현)</p></div>
         </div>
@@ -1895,23 +1895,14 @@
       <div id="pwChangeResult" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
     </div>
 
-    <!-- 마로 위치 초기화 -->
-    <div class="card">
-      <div class="card-title" style="margin-bottom:4px;">🤖 마로 버튼</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">마로 버튼 위치가 이상해지면 초기화하세요.</p>
-      <button class="btn-ghost" onclick="resetMaroPos()" style="width:100%;font-size:13px;">🔄 마로 위치 초기화</button>
-      <div id="maroResetResult" style="font-size:12px;color:var(--mint);margin-top:6px;text-align:center;"></div>
-    </div>
-
     <!-- 앱 정보 -->
     <div class="card">
       <div class="card-title" style="margin-bottom:4px;">ℹ️ 앱 정보</div>
       <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text2);">
-        <div style="display:flex;justify-content:space-between;"><span>앱 이름</span><span style="color:var(--text);font-weight:600;">마디 (MADI)</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>앱 이름</span><span style="color:var(--text);font-weight:600;">아이마디</span></div>
         <div style="display:flex;justify-content:space-between;"><span>버전</span><span style="color:var(--text);font-weight:600;">v2.0</span></div>
         <div style="display:flex;justify-content:space-between;"><span>설명</span><span style="color:var(--text);font-weight:600;">언어치료 AI · 아동 발달 관리 APP</span></div>
         <div style="display:flex;justify-content:space-between;"><span>개발</span><span style="color:var(--text);font-weight:600;">MADI Team</span></div>
-        <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:10px;"><a href="privacy.html" target="_blank" style="font-size:13px;color:var(--mint,#0ea5a0);text-decoration:none;font-weight:600;">📄 개인정보처리방침</a></div>
       </div>
     </div>
 
@@ -1949,7 +1940,7 @@
   <div class="chat-header">
     <div class="chat-header-avatar">🤖</div>
     <div class="chat-header-info">
-      <div class="chat-header-name">마로 (마디 AI)</div>
+      <div class="chat-header-name">마로 (아이마디 AI)</div>
       <div class="chat-header-status">● 온라인 · 아동 데이터 연동 중</div>
     </div>
     <button class="chat-close-btn" onclick="toggleChat()">✕</button>
