@@ -1,55 +1,3 @@
-// ─────── 전체 데이터 백업 / 복원 ───────
-function exportBackup() {
-  var data = {
-    version:     '1.0',
-    exportedAt:  new Date().toISOString(),
-    children:    childDB,
-    sessions:    sessionDB,
-    schedules:   scheduleDB,
-    assessments: assessmentDB
-  };
-  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'madi_backup_' + new Date().toISOString().slice(0,10) + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-  showToast('✅ 백업 파일 저장 완료!');
-}
-
-function importBackup(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  var resultEl = document.getElementById('restoreResult');
-  resultEl.textContent = '읽는 중...';
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    try {
-      var data = JSON.parse(ev.target.result);
-      if (!data.children) { resultEl.textContent = '❌ 올바른 백업 파일이 아닙니다.'; return; }
-      if (!confirm('현재 데이터를 백업 파일로 교체합니다. 기존 데이터는 사라집니다. 계속할까요?')) {
-        resultEl.textContent = ''; return;
-      }
-      childDB      = data.children    || [];
-      sessionDB    = data.sessions    || [];
-      scheduleDB   = data.schedules   || [];
-      assessmentDB = data.assessments || [];
-      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
-      renderChildGrid(); populateChildSelects();
-      var cnt = childDB.length + '명 아동 / ' + sessionDB.length + '개 세션 / ' + scheduleDB.length + '개 일정';
-      resultEl.innerHTML = '<span style="color:var(--mint);font-weight:700;">✅ ' + cnt + ' 복원 완료!</span>';
-      showToast('✅ 데이터 복원 완료!');
-    } catch(err) {
-      resultEl.textContent = '❌ 파일 읽기 실패: ' + err.message;
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-}
-
 // ─────── 권한 설정 모달 ───────
 var _permUserId = null;
 var _permData = {};
@@ -159,23 +107,6 @@ function renderStaffCard() {
     }).catch(function() {
       showToast('⚠️ 직원 목록을 불러오지 못했습니다.');
     });
-}
-
-function openAddStaffModal() {
-  var overlay = document.createElement('div');
-  overlay.className = 'sched-modal-overlay';
-  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
-  overlay.innerHTML = '<div class="sched-modal">'
-    + '<div class="sched-modal-title">👤 선생님 계정 추가</div>'
-    + '<div class="form-group"><label class="form-label">이름</label><input class="form-input" type="text" id="newStaffName" placeholder="예: 김지영"></div>'
-    + '<div class="form-group"><label class="form-label">아이디 (로그인용)</label><input class="form-input" type="text" id="newStaffId" placeholder="예: jiyoung" autocomplete="off"></div>'
-    + '<div class="form-group"><label class="form-label">비밀번호</label><input class="form-input" type="text" id="newStaffPw" placeholder="예: 1234" autocomplete="off"></div>'
-    + '<div class="form-group"><label class="form-label">역할</label>'
-    + '<select class="form-input" id="newStaffRole"><option value="teacher">👩‍⚕️ 선생님</option><option value="admin">👑 관리자</option></select></div>'
-    + '<div id="addStaffError" style="color:#ef4444;font-size:13px;margin-bottom:8px;"></div>'
-    + '<button class="btn btn-primary" style="margin-top:0;" onclick="saveNewStaff(this)">✅ 추가</button>'
-    + '</div>';
-  document.body.appendChild(overlay);
 }
 
 function saveNewStaff(btn) {
@@ -633,33 +564,6 @@ function deployToGitHub() {
         showToast('❌ 배포 실패: ' + (e.message || '오류'));
       }
     });
-}
-
-function toggleImportCard() {
-  var card = document.getElementById('importCard');
-  var btn  = document.getElementById('importToggleBtn');
-  var open = card.style.display === 'none';
-  card.style.display = open ? 'block' : 'none';
-  btn.textContent = open ? '접기' : '펼치기';
-}
-
-function onImportDragOver(e) {
-  e.preventDefault();
-  document.getElementById('importZone').classList.add('dragover');
-}
-function onImportDragLeave(e) {
-  document.getElementById('importZone').classList.remove('dragover');
-}
-function onImportDrop(e) {
-  e.preventDefault();
-  document.getElementById('importZone').classList.remove('dragover');
-  var file = e.dataTransfer.files[0];
-  if (file) processImportFile(file);
-}
-function handleImportFile(e) {
-  var file = e.target.files[0];
-  if (file) processImportFile(file);
-  e.target.value = '';
 }
 
 function processImportFile(file) {
