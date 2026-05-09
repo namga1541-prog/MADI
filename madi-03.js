@@ -255,9 +255,10 @@ function applyRoleUI() {
 }
 
 function getApiKeyOrAlert() {
-  var k = document.getElementById('apiKey').value.trim();
-  if (!k) { showToast('API 키를 먼저 입력해주세요.'); return null; }
-  return k;
+  // API 키는 서버(Edge Function 환경변수)에서 관리
+  // 클라이언트 입력 불필요 — 항상 통과
+  var el = document.getElementById('apiKey');
+  return el ? el.value.trim() : '';
 }
 
 // ─────── 탭 전환 ───────
