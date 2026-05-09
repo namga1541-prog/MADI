@@ -270,6 +270,69 @@
 <div class="panel active" id="panelAdminSettings">
   <div class="content">
 
+    <!-- 센터 초대 코드 -->
+    <div class="card" style="border:2px solid #8b5cf6;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#8b5cf6;">🎟️ 센터 초대 코드</div>
+        <span id="centerNameLabel" style="font-size:11px;color:var(--text2);"></span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+        선생님을 초대할 때 사용하는 코드입니다.<br>
+        선생님은 회원가입 시 이 코드를 입력하면 자동으로 센터에 소속됩니다.
+      </p>
+
+      <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">현재 초대 코드</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span id="inviteCodeDisplay" style="font-size:18px;font-weight:700;color:#8b5cf6;font-family:'Courier New',monospace;letter-spacing:1px;">------</span>
+          <button class="btn-ghost" style="font-size:11px;padding:5px 12px;" onclick="copyInviteCode()">📋 복사</button>
+        </div>
+        <div id="inviteExpiryDisplay" style="font-size:11px;margin-top:8px;"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <select id="inviteExpiryDays" class="form-input" style="font-size:13px;flex:1;">
+          <option value="30" selected>30일 유효</option>
+          <option value="7">7일 유효</option>
+          <option value="90">90일 유효</option>
+          <option value="0">무기한</option>
+        </select>
+        <button class="btn btn-primary" style="margin-top:0;background:#8b5cf6;border-color:#8b5cf6;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="regenInviteCode()">🔄 재발급</button>
+      </div>
+      <div style="font-size:11px;color:var(--text2);">⚠️ 재발급 시 기존 코드는 사용 불가가 됩니다.</div>
+    </div>
+
+    <!-- 직원 관리 -->
+    <div class="card" style="border:2px solid #0ea5a0;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#0ea5a0;">👥 직원 관리</div>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+        새 직원을 직접 추가하거나, 기존 직원 계정을 관리합니다.<br>
+        선생님이 본인 가입을 원할 경우 위 초대 코드를 안내해주세요.
+      </p>
+
+      <!-- 새 직원 추가 폼 -->
+      <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">➕ 새 직원 추가</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <input type="text" id="staffNewName" class="form-input" placeholder="이름 (예: 홍길동)" style="font-size:13px;">
+          <input type="text" id="staffNewUsername" class="form-input" placeholder="아이디 (영문/숫자)" style="font-size:13px;">
+          <input type="password" id="staffNewPassword" class="form-input" placeholder="비밀번호 (4자 이상)" style="font-size:13px;">
+          <select id="staffNewRole" class="form-input" style="font-size:13px;">
+            <option value="teacher" selected>선생님</option>
+            <option value="admin">관리자 (센터장)</option>
+          </select>
+          <button class="btn btn-primary" style="margin-top:0;background:#0ea5a0;border-color:#0ea5a0;font-size:13px;" onclick="addStaffAccount()">➕ 직원 추가</button>
+          <div id="staffAddResult" style="font-size:12px;margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <!-- 기존 직원 목록 -->
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">📋 직원 목록</div>
+      <div id="staffMgmtList"></div>
+    </div>
+
     <!-- 세션 시간 단위 설정 -->
     <div class="card" style="border:2px solid #f59e0b;">
       <div class="card-title">
@@ -493,6 +556,8 @@ function showAdminTab(tab) {
   }
   if (tab === 'settings') {
     loadCenterApiKey(false);
+    loadCenterInfo();
+    loadStaffMgmtList();
   }
 }
 
@@ -1372,6 +1437,130 @@ function toggleCenterKeyVisibility() {
   btn.textContent = input.type==='password'?'👁️':'🙈';
 }
 
+// ── 센터 초대 코드 관리 ──
+function loadCenterInfo() {
+  var cid = getCenterId();
+  if (!cid) return;
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid) + '&select=name,invite_code,invite_expires_at', 'GET')
+    .then(function(rows) {
+      if (!rows || !rows.length) return;
+      var center = rows[0];
+      var nameEl = document.getElementById('centerNameLabel');
+      var codeEl = document.getElementById('inviteCodeDisplay');
+      var expEl  = document.getElementById('inviteExpiryDisplay');
+      if (nameEl) nameEl.textContent = '🏢 ' + (center.name || cid);
+      if (codeEl) codeEl.textContent = center.invite_code || '발급 필요';
+      if (expEl) {
+        if (!center.invite_code) {
+          expEl.textContent = '';
+        } else {
+          var info = formatInviteExpiry(center.invite_expires_at);
+          expEl.textContent = info.text;
+          expEl.style.color = info.color;
+        }
+      }
+    })
+    .catch(function() {});
+}
+
+function copyInviteCode() {
+  var code = (document.getElementById('inviteCodeDisplay') || {}).textContent || '';
+  if (!code || code === '------' || code === '발급 필요') {
+    showToast('⚠️ 초대 코드가 없습니다. 재발급해주세요.');
+    return;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code)
+      .then(function() { showToast('📋 초대 코드 복사됨: ' + code); })
+      .catch(function() { showToast('코드: ' + code); });
+  } else {
+    showToast('코드: ' + code);
+  }
+}
+
+function regenInviteCode() {
+  var daysSel = document.getElementById('inviteExpiryDays');
+  var days = daysSel ? parseInt(daysSel.value, 10) : 30;
+  if (isNaN(days)) days = 30;
+  var expiryLabel = days === 0 ? '무기한' : days + '일 유효';
+  if (!confirm('초대 코드를 재발급할까요? (' + expiryLabel + ')\n기존 코드는 사용 불가가 됩니다.')) return;
+
+  var cid     = getCenterId();
+  var newCode = (cid || 'CENTER').toUpperCase().slice(0, 8) + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+  var payload = { invite_code: newCode };
+  if (days > 0) {
+    var exp = new Date();
+    exp.setDate(exp.getDate() + days);
+    payload.invite_expires_at = exp.toISOString();
+  } else {
+    payload.invite_expires_at = null;
+  }
+
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid), 'PATCH', payload)
+    .then(function() {
+      var codeEl = document.getElementById('inviteCodeDisplay');
+      var expEl  = document.getElementById('inviteExpiryDisplay');
+      if (codeEl) codeEl.textContent = newCode;
+      if (expEl) {
+        var info = formatInviteExpiry(payload.invite_expires_at);
+        expEl.textContent = info.text;
+        expEl.style.color = info.color;
+      }
+      showToast('✅ 재발급 완료: ' + newCode);
+    })
+    .catch(function(err) { showToast('❌ 재발급 실패: ' + escHtml(err.message || '오류')); });
+}
+
+// ── 직원 추가 ──
+function addStaffAccount() {
+  var nameEl   = document.getElementById('staffNewName');
+  var unameEl  = document.getElementById('staffNewUsername');
+  var pwEl     = document.getElementById('staffNewPassword');
+  var roleEl   = document.getElementById('staffNewRole');
+  var resultEl = document.getElementById('staffAddResult');
+  if (!nameEl || !unameEl || !pwEl || !roleEl) return;
+
+  var name     = nameEl.value.trim();
+  var username = unameEl.value.trim();
+  var pw       = pwEl.value.trim();
+  var role     = roleEl.value;
+
+  if (!name || !username || !pw) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>';
+    return;
+  }
+  if (pw.length < 4) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ 비밀번호는 4자 이상이어야 합니다.</span>';
+    return;
+  }
+
+  if (resultEl) resultEl.innerHTML = '<span style="color:var(--text2);">⏳ 추가 중...</span>';
+
+  hashPassword(pw)
+    .then(function(hashed) {
+      return supaFetch('madi_users', 'POST', [{
+        id:        Date.now() + Math.floor(Math.random() * 1000),
+        username:  username,
+        name:      name,
+        password:  hashed,
+        role:      role,
+        center_id: getCenterId(),
+        color:     '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
+      }]);
+    })
+    .then(function() {
+      if (resultEl) resultEl.innerHTML = '<span style="color:#10b981;">✅ ' + escHtml(name) + ' 직원 계정 추가됨</span>';
+      nameEl.value  = '';
+      unameEl.value = '';
+      pwEl.value    = '';
+      loadStaffMgmtList();
+      setTimeout(function() { if (resultEl) resultEl.innerHTML = ''; }, 3000);
+    })
+    .catch(function(err) {
+      if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
+    });
+}
+
 // ── 다크모드 ──
 function toggleDarkMode() {
   var isDark = document.body.classList.toggle('dark-mode');
@@ -1412,6 +1601,9 @@ window.addEventListener('DOMContentLoaded', function() {
   loadTeacherList();
   // 세션 시간 단위 로드
   loadSessionInterval();
+  // 센터 초대 코드 + 직원 목록 로드 (settings 탭이 기본 활성)
+  loadCenterInfo();
+  loadStaffMgmtList();
   // URL 파라미터로 초기 탭 결정 (service / settings)
   var urlTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
   showAdminTab(urlTab);
