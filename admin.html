@@ -1692,14 +1692,7 @@ window.addEventListener('DOMContentLoaded', function() {
   // URL 파라미터로 초기 탭 결정 (service / settings)
   var urlTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
   showAdminTab(urlTab);
-  // 진입한 탭만 보이도록 반대 탭 버튼 숨김
-  if (urlTab === 'service') {
-    var el = document.getElementById('adminTabSettings');
-    if (el) el.style.display = 'none';
-  } else {
-    var el = document.getElementById('adminTabService');
-    if (el) el.style.display = 'none';
-  }
+  // 두 탭 모두 항상 클릭 가능
 });
 
 
