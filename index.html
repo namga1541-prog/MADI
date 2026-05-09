@@ -1156,6 +1156,9 @@
     <button class="sidebar-item" id="sbTab3" onclick="switchTab(3)" data-tooltip="성장기록">
       <span class="s-ico">📁</span><span class="s-lbl">성장기록</span>
     </button>
+    <button class="sidebar-item" id="sbTab7" onclick="switchTab(7)" data-tooltip="게시판">
+      <span class="s-ico">📋</span><span class="s-lbl">게시판</span>
+    </button>
     <div class="sidebar-divider" id="sbDividerAdmin" style=""></div>
     <button class="sidebar-item" id="sbTab4" onclick="goToAdmin('service')" style="" data-tooltip="서비스 관리">
       <span class="s-ico">🛠️</span><span class="s-lbl">서비스 관리</span>
@@ -1738,6 +1741,48 @@
   <iframe id="adminSettingsFrame" src="" style="width:100%;height:calc(100vh - 72px);border:none;display:block;" allowfullscreen></iframe>
 </div>
 
+<!-- ─── 게시판 탭 패널 (2단계: 골격) ─── -->
+<div class="tab-panel" id="panelBoard">
+  <div class="subtab-nav">
+    <button class="subtab-btn active" id="bdBtn_global" onclick="switchBoardTab('global')">🌐 마디 공지사항</button>
+    <button class="subtab-btn" id="bdBtn_center" onclick="switchBoardTab('center')">📌 센터 공지사항</button>
+    <button class="subtab-btn" id="bdBtn_lounge" onclick="switchBoardTab('lounge')">🍵 라운지</button>
+  </div>
+  <div class="content">
+
+    <!-- 마디 공지사항 -->
+    <div class="board-sub" id="bdPanel_global">
+      <div class="card">
+        <div class="card-title">🌐 마디 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">슈퍼어드민이 모든 센터에 발송</span></div>
+        <div id="bdGlobalList">
+          <div class="empty"><div class="empty-icon">🚧</div><p>준비 중입니다 (3단계에서 구현)</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 센터 공지사항 -->
+    <div class="board-sub" id="bdPanel_center" style="display:none;">
+      <div class="card">
+        <div class="card-title">📌 센터 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">센터장이 본인 센터에 발송</span></div>
+        <div id="bdCenterList">
+          <div class="empty"><div class="empty-icon">🚧</div><p>준비 중입니다 (4단계에서 구현)</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 라운지 -->
+    <div class="board-sub" id="bdPanel_lounge" style="display:none;">
+      <div class="card">
+        <div class="card-title">🍵 라운지 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">자유 의견 + 1:1 문의</span></div>
+        <div id="bdLoungeList">
+          <div class="empty"><div class="empty-icon">🚧</div><p>준비 중입니다 (5~6단계에서 구현)</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ─── 설정 탭 패널 ─── -->
 <div class="tab-panel" id="panelUserSettings">
   <div class="content">
@@ -1858,6 +1903,7 @@
 <script src="madi-11.js"></script>
 <script src="madi-12.js"></script>
 <script src="madi-13.js"></script>
+<script src="madi-14.js"></script>
 
 <!-- ─── 플로팅 AI 비서 ─── -->
 <button class="float-btn" id="floatBtn" title="마로" style="inset: 318px 0px auto auto; transform: none;">
