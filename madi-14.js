@@ -417,7 +417,7 @@ function loadLoungePosts() {
   ui.innerHTML = '<div class="loading"><div class="spinner"></div><p>라운지 글을 불러오는 중...</p></div>';
 
   // admin/superadmin은 다른 센터 글까지 봐야 하므로 limit 넉넉하게
-  supaFetch('/madi_lounge_posts?select=*&order=created_at.desc&limit=100', 'GET')
+  supaFetch('madi_lounge_posts?select=*&order=created_at.desc&limit=100', 'GET')
     .then(function(data) {
       loungePostsDB = data || [];
       // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
@@ -551,7 +551,7 @@ function saveLoungePost() {
   var btn = document.querySelector('button[onclick="saveLoungePost()"]');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ 등록 중...'; }
 
-  supaFetch('/madi_lounge_posts', 'POST', post)
+  supaFetch('madi_lounge_posts', 'POST', post)
     .then(function() {
       titleEl.value = '';
       contentEl.value = '';
@@ -567,7 +567,7 @@ function saveLoungePost() {
 function deleteLoungePost(id) {
   if (!confirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.')) return;
 
-  supaFetch('/madi_lounge_posts?id=eq.' + id, 'DELETE')
+  supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
     .then(function() {
       showToast('🗑️ 글이 삭제됐습니다');
       loadLoungePosts();
