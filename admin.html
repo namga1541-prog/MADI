@@ -51,6 +51,21 @@
     .header-user { font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; flex-shrink:0; }
     .header-user-badge { background:rgba(255,255,255,0.2); padding:3px 9px; border-radius:12px; font-size:11px; }
 
+    /* ── 서비스 서브탭 ── */
+    .svc-subtab-bar {
+      display:flex; gap:2px; padding:10px 14px 0;
+      background:white; border-bottom:1px solid var(--border,#e2e8f0);
+      position:sticky; top:60px; z-index:100;
+    }
+    .svc-subtab-btn {
+      padding:10px 20px; border:none; background:transparent;
+      font-size:14px; font-weight:600; color:var(--text2,#64748b);
+      cursor:pointer; border-bottom:3px solid transparent;
+      font-family:inherit; white-space:nowrap;
+    }
+    .svc-subtab-btn:hover { color:var(--text,#1e293b); }
+    .svc-subtab-btn.active { color:#0ea5a0; border-bottom-color:#0ea5a0; }
+
     /* ── 사이드 네비 ── */
     .admin-layout { display:flex; min-height:calc(100vh - 60px); }
     .admin-sidenav {
@@ -178,8 +193,15 @@
 
 <!-- ══════ 서비스관리 패널 ══════ -->
 <div class="panel" id="panelAdminService">
-  <div class="content">
-    <!-- 현황 카드 4가지 -->
+  <!-- 서비스관리 서브탭 바 -->
+  <div class="svc-subtab-bar" id="svcSubtabBar">
+    <button class="svc-subtab-btn active" id="svcSubTab_stat"    onclick="showSvcSubTab('stat')">📊 현황</button>
+    <button class="svc-subtab-btn"        id="svcSubTab_service" onclick="showSvcSubTab('service')">🛠 서비스</button>
+    <button class="svc-subtab-btn"        id="svcSubTab_staff"   onclick="showSvcSubTab('staff')">👥 직원</button>
+  </div>
+
+  <!-- 📊 현황 서브패널 -->
+  <div class="content" id="svcSubPanel_stat">
     <div class="svc-stat-grid">
       <div class="svc-stat-card"><div class="stat-num" id="svcStatChildren">2</div><div class="stat-lbl">등록 이용자 수</div></div>
       <div class="svc-stat-card"><div class="stat-num" id="svcStatSessions">1</div><div class="stat-lbl">이번 달 세션</div></div>
@@ -202,6 +224,45 @@
       <div style="margin-bottom:14px;"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">치료사별 세션 수</div><div id="opsTeacherBars"></div></div>
       <div id="opsAIInsight" style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:12px 14px;display:none;"><div style="font-size:10px;color:#0ea5a0;font-weight:700;margin-bottom:4px;">✨ 인사이트</div><div id="opsInsightText" style="font-size:13px;color:#134e4a;line-height:1.65;"></div></div>
     </div>
+
+    <!-- 선생님별 통계 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">👩‍🏫 선생님별 통계</div>
+        <select id="svcStaffMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderStaffStats()"><option value="2026-05" selected="">2026년 5월</option><option value="2026-04">2026년 4월</option><option value="2026-03">2026년 3월</option><option value="2026-02">2026년 2월</option><option value="2026-01">2026년 1월</option><option value="2025-12">2025년 12월</option></select>
+      </div>
+      <div id="staffStatsList"><div style="font-size:11px;color:var(--text2);margin-bottom:8px;">선생님 카드를 누르면 월별 추이를 볼 수 있습니다.</div><div onclick="showStaffTrend('한기성') " style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;background:var(--bg);border-radius:10px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);"><div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text);">한기성</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">담당 이용자 0명</div></div><div style="display:flex;gap:12px;align-items:center;text-align:center;"><div><div style="font-size:18px;font-weight:900;color:var(--mint);">0</div><div style="font-size:10px;color:var(--text2);">세션</div></div><div><div style="font-size:18px;font-weight:900;color:var(--red);">0%</div><div style="font-size:10px;color:var(--text2);">완료율</div></div><div style="font-size:11px;color:var(--text2);">▶</div></div></div></div>
+      <div id="staffChartWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;" id="staffChartTitle"></div>
+        <canvas id="staffTrendChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- 선생님별 이용자 현황 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">👩‍🏫 선생님별 이용자 현황</div>
+        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="renderTeacherChildMap()">🔄</button>
+      </div>
+      <div id="teacherChildMap"><div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">로딩 중...</div></div>
+    </div>
+
+    <!-- 정산 요약 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">🧾 월별 정산 요약</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="month" id="settlMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderSettlement()">
+          <button class="btn-ghost" onclick="exportSettlementExcel()" style="font-size:12px;padding:6px 12px;white-space:nowrap;">📥 엑셀</button>
+        </div>
+      </div>
+      <div id="settlSummary" style="font-size:12px;color:var(--text2);padding:4px 0 8px;"></div>
+      <div id="settlList"><div class="empty"><div class="empty-icon">🧾</div><p>월을 선택하면 정산 내역이 표시됩니다.</p></div></div>
+    </div>
+  </div>
+
+  <!-- 🛠 서비스 서브패널 -->
+  <div class="content" id="svcSubPanel_service" style="display:none;">
 
     <!-- 프로그램 관리 -->
     <div class="card">
@@ -287,41 +348,10 @@
       <div id="dailySvcSummary" style="font-size:12px;color:var(--text2);padding:4px 0 8px;"></div>
       <div id="dailyServiceList"><div class="empty"><div class="empty-icon">📆</div><p>날짜를 선택하면 현황이 표시됩니다.</p></div></div>
     </div>
+  </div>
 
-    <!-- 선생님별 통계 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">👩‍🏫 선생님별 통계</div>
-        <select id="svcStaffMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderStaffStats()"><option value="2026-05" selected="">2026년 5월</option><option value="2026-04">2026년 4월</option><option value="2026-03">2026년 3월</option><option value="2026-02">2026년 2월</option><option value="2026-01">2026년 1월</option><option value="2025-12">2025년 12월</option></select>
-      </div>
-      <div id="staffStatsList"><div style="font-size:11px;color:var(--text2);margin-bottom:8px;">선생님 카드를 누르면 월별 추이를 볼 수 있습니다.</div><div onclick="showStaffTrend('한기성') " style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;background:var(--bg);border-radius:10px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);"><div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text);">한기성</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">담당 이용자 0명</div></div><div style="display:flex;gap:12px;align-items:center;text-align:center;"><div><div style="font-size:18px;font-weight:900;color:var(--mint);">0</div><div style="font-size:10px;color:var(--text2);">세션</div></div><div><div style="font-size:18px;font-weight:900;color:var(--red);">0%</div><div style="font-size:10px;color:var(--text2);">완료율</div></div><div style="font-size:11px;color:var(--text2);">▶</div></div></div></div>
-      <div id="staffChartWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;" id="staffChartTitle"></div>
-        <canvas id="staffTrendChart" height="180"></canvas>
-      </div>
-    </div>
-
-    <!-- 선생님별 이용자 현황 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">👩‍🏫 선생님별 이용자 현황</div>
-        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="renderTeacherChildMap()">🔄</button>
-      </div>
-      <div id="teacherChildMap"><div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">로딩 중...</div></div>
-    </div>
-
-    <!-- 정산 요약 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">🧾 월별 정산 요약</div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <input type="month" id="settlMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderSettlement()">
-          <button class="btn-ghost" onclick="exportSettlementExcel()" style="font-size:12px;padding:6px 12px;white-space:nowrap;">📥 엑셀</button>
-        </div>
-      </div>
-      <div id="settlSummary" style="font-size:12px;color:var(--text2);padding:4px 0 8px;"></div>
-      <div id="settlList"><div class="empty"><div class="empty-icon">🧾</div><p>월을 선택하면 정산 내역이 표시됩니다.</p></div></div>
-    </div>
+  <!-- 👥 직원 서브패널 -->
+  <div class="content" id="svcSubPanel_staff" style="display:none;">
 
     <!-- 센터 초대 코드 -->
     <div class="card" style="border:2px solid #8b5cf6;">
@@ -400,7 +430,6 @@
         <div id="permSaveStatus" style="font-size:12px;margin-top:8px;text-align:center;"></div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -572,6 +601,16 @@ function showToast(msg, opts) {
     el.style.opacity = '0';
     _toastTimer = null;
   }, opts.duration || 3500);
+}
+
+// ── 서비스 서브탭 전환 ──
+function showSvcSubTab(tab) {
+  ['stat','service','staff'].forEach(function(t) {
+    var panel = document.getElementById('svcSubPanel_' + t);
+    var btn   = document.getElementById('svcSubTab_' + t);
+    if (panel) panel.style.display = (t === tab) ? '' : 'none';
+    if (btn)   btn.classList.toggle('active', t === tab);
+  });
 }
 
 // ── 탭 전환 ──
