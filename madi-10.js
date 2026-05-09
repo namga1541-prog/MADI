@@ -126,19 +126,30 @@ var schedCurrentDate = new Date();
 
 function setSchedView(v) {
   schedView = v;
-  document.getElementById('viewBtnMonth').classList[v==='month'?'add':'remove']('active');
-  document.getElementById('viewBtnWeek').classList[v==='week'?'add':'remove']('active');
-  // 탭 버튼 텍스트 고정
+  ['month','week','day'].forEach(function(tab) {
+    var btn = document.getElementById('viewBtn_' + tab);
+    if (btn) btn.classList[v === tab ? 'add' : 'remove']('active');
+  });
+  // 하위 호환: 구형 viewBtnMonth/viewBtnWeek ID
+  var mBtn = document.getElementById('viewBtnMonth');
+  if (mBtn) mBtn.classList[v==='month'?'add':'remove']('active');
   var wBtn = document.getElementById('viewBtnWeek');
-  if (wBtn && wBtn.textContent.indexOf('일일') < 0) wBtn.textContent = '일일';
-  document.getElementById('monthViewWrap').style.display = v==='month' ? 'block' : 'none';
-  document.getElementById('weekViewWrap').style.display  = v==='week'  ? 'block' : 'none';
+  if (wBtn) { wBtn.classList[v==='week'?'add':'remove']('active'); wBtn.textContent = '주간'; }
+  // 각 뷰 wrap 표시 제어
+  var monthWrap = document.getElementById('monthViewWrap');
+  var weekWrap  = document.getElementById('weekViewWrap');
+  var dayWrap   = document.getElementById('dayViewWrap');
+  if (monthWrap) monthWrap.style.display = v==='month' ? 'block' : 'none';
+  if (weekWrap)  weekWrap.style.display  = v==='week'  ? 'block' : 'none';
+  if (dayWrap)   dayWrap.style.display   = v==='day'   ? 'block' : 'none';
   renderSchedView();
 }
 
 function moveSchedPeriod(dir) {
   if (schedView === 'month') {
     schedCurrentDate = new Date(schedCurrentDate.getFullYear(), schedCurrentDate.getMonth() + dir, 1);
+  } else if (schedView === 'week') {
+    schedCurrentDate = new Date(schedCurrentDate.getTime() + dir * 7 * 86400000);
   } else {
     schedCurrentDate = new Date(schedCurrentDate.getTime() + dir * 86400000);
   }
@@ -179,10 +190,10 @@ function setTeacherFilter(teacher) {
   renderSchedView();
 }
 
-// ─────── 월간에서 날짜 클릭 시 일일 뷰로 이동 ───────
+// ─────── 월간/주간에서 날짜 클릭 시 일일 뷰로 이동 ───────
 function switchToDay(dateStr) {
   schedCurrentDate = new Date(dateStr + 'T00:00:00');
-  setSchedView('week');
+  setSchedView('day');
 }
 
 // ─────── 선생님 select 옵션 빌드 ───────
@@ -207,10 +218,9 @@ function loadTeacherList(callback) {
 }
 
 function renderSchedView() {
-  var wBtn = document.getElementById('viewBtnWeek');
-  if (wBtn) wBtn.textContent = '일일';
   if (schedView === 'month') renderMonthGrid();
-  else renderWeekGrid();
+  else if (schedView === 'week') renderWeekGrid();
+  else renderDayGrid();
 }
 
 function renderMonthGrid() {
@@ -273,7 +283,107 @@ function renderMonthGrid() {
   renderSessionListForPeriod();
 }
 
+// ─────── 주간 뷰 (7일 컬럼) ───────
 function renderWeekGrid() {
+  var d = schedCurrentDate;
+  // 해당 주의 월요일 기준으로 7일 계산
+  var dow = d.getDay(); // 0=일
+  var mondayOffset = (dow === 0) ? -6 : 1 - dow;
+  var weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() + mondayOffset);
+  var dayNames = ['월','화','수','목','금','토','일'];
+  var todayStr = new Date().toISOString().slice(0,10);
+
+  // 7일 날짜 배열
+  var weekDates = [];
+  for (var i = 0; i < 7; i++) {
+    var dd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
+    weekDates.push({
+      str: dd.getFullYear() + '-' + String(dd.getMonth()+1).padStart(2,'0') + '-' + String(dd.getDate()).padStart(2,'0'),
+      day: dd.getDate(),
+      dayName: dayNames[i],
+      isToday: false,
+      isSun: i === 6,
+      isSat: i === 5
+    });
+  }
+  weekDates.forEach(function(w){ w.isToday = (w.str === todayStr); });
+
+  var endDate = weekDates[6];
+  document.getElementById('schedNavLabel').textContent =
+    (weekStart.getMonth()+1) + '월 ' + weekStart.getDate() + '일 ~ ' +
+    (endDate.str.slice(5,7).replace(/^0/,'')) + '월 ' + endDate.day + '일';
+
+  renderTeacherFilter();
+
+  // 주간 내 모든 일정
+  var allWeekScheds = scheduleDB.filter(function(s) {
+    return weekDates.some(function(w){ return w.str === s.date; });
+  });
+  var weekScheds = _schedTeacherFilter === '전체' ? allWeekScheds
+    : allWeekScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
+
+  // 치료사 목록
+  var therapists = [];
+  weekScheds.forEach(function(s) {
+    var t = s.therapist || s.teacher || '';
+    if (t && therapists.indexOf(t) < 0) therapists.push(t);
+  });
+  therapists.sort();
+
+  var wgEl = document.getElementById('weekGrid');
+  if (wgEl) { wgEl.style.display = 'block'; wgEl.style.width = '100%'; }
+
+  var html = '<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+
+  if (weekScheds.length === 0) {
+    html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">이번 주 일정이 없습니다.</div>';
+  } else {
+    // 날짜 헤더 + 치료사별 행
+    html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
+    // 날짜 헤더 행
+    html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:60px;min-width:60px;">치료사</th>';
+    weekDates.forEach(function(w) {
+      var bg = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
+      var col = w.isToday ? 'var(--mint,#0ea5a0)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
+      html += '<th style="padding:6px 4px;background:' + bg + ';border:1px solid #e2e8f0;color:' + col + ';font-weight:700;text-align:center;cursor:pointer;" onclick="switchToDay(\'' + w.str + '\')">'
+        + w.dayName + '<br><span style="font-size:12px;">' + w.day + '</span></th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    // 치료사별 행
+    therapists.forEach(function(t) {
+      var color = getTeacherColor(t);
+      html += '<tr>';
+      html += '<td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:' + color + ';background:' + color + '10;white-space:nowrap;vertical-align:top;">' + escHtml(t) + '</td>';
+      weekDates.forEach(function(w) {
+        var cells = weekScheds.filter(function(s){ return s.date === w.str && (s.therapist||s.teacher||'') === t; })
+          .sort(function(a,b){ return ((a.startTime||a.time)||'') < ((b.startTime||b.time)||'') ? -1 : 1; });
+        if (cells.length === 0) {
+          html += '<td style="padding:4px;border:1px solid #e2e8f0;height:44px;"></td>';
+        } else {
+          var items = cells.map(function(s) {
+            var child = childDB.find(function(c){ return c.id === s.childId; });
+            var cname = child ? escHtml(child.name) : '?';
+            var time  = (s.startTime||s.time||'').slice(0,5);
+            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(' + s.id + ')">'
+              + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
+              + '<span style="font-weight:700;">' + cname + '</span>'
+              + '</div>';
+          }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
+          html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+
+  html += '</div>';
+  document.getElementById('weekGrid').innerHTML = html;
+  renderSessionListForPeriod(weekDates.map(function(w){ return w.str; }));
+}
+
+function renderDayGrid() {
   var todayD = new Date();
   var today = todayD.getFullYear() + '-' + String(todayD.getMonth()+1).padStart(2,'0') + '-' + String(todayD.getDate()).padStart(2,'0');
   var d = schedCurrentDate;
@@ -297,7 +407,7 @@ function renderWeekGrid() {
     : allScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
 
   // weekGrid의 grid 레이아웃 해제 (테이블이 전체폭 차지하도록)
-  var wgEl = document.getElementById('weekGrid');
+  var wgEl = document.getElementById('dayGrid');
   if (wgEl) {
     wgEl.style.display = 'block';
     wgEl.style.width = '100%';
@@ -391,7 +501,7 @@ function renderWeekGrid() {
 
   html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)" style="margin-top:10px;">+</button></div>';
 
-  document.getElementById('weekGrid').innerHTML = html;
+  document.getElementById('dayGrid').innerHTML = html;
   renderSessionListForPeriod([dateStr]);
 }
 
