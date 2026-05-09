@@ -3,7 +3,7 @@
 // 검사 선택 목록 (한글명 추가)
 var SI_TESTS = [
   { key: 'DDST',  label: '덴버 발달 선별검사 (DDST)' },
-  { key: 'K-DST', label: '한국형 영유아 발달 선별검사 (K-DST)' },
+  { key: 'K-DST', label: '한국 영유아 발달선별검사 (K-DST)' },
   { key: 'SP2',   label: '감각프로파일2 (SP2)' },
   { key: 'SSP2',  label: '단축 감각프로파일2 (SSP2)' },
   { key: 'SIPT',  label: '감각통합 및 실행기능 검사 (SIPT)' },
@@ -22,7 +22,7 @@ var DDST_DOMAINS = [
   { key: 'gross',     label: '대근육 운동 발달' }
 ];
 
-// K-DST 발달 영역 (한국 영유아 발달 선별검사)
+// K-DST 발달 영역 (한국 영유아 발달선별검사)
 var KDST_DOMAINS = [
   { key: 'gross',     label: '대근육 운동' },
   { key: 'fine',      label: '소근육 운동' },
@@ -77,7 +77,7 @@ function renderSIReport() {
 
   // DDST 영역별 결과 입력
   function makeDevRows(domains, prefix) {
-    // K-DST는 한국형 영유아 발달 선별검사 공식 판정 기준 3단계 사용
+    // K-DST는 한국 영유아 발달선별검사 공식 판정 기준 3단계 사용
     var isKdst = (prefix === 'kdst');
     var levelOpts = isKdst
       ? '<option>또래수준</option><option>추적검사요망</option><option>심화평가권고</option>'
@@ -214,7 +214,7 @@ function renderSIReport() {
 
     // 5b. 검사 결과 — K-DST
     + '<div class="form-group" style="margin-bottom:12px;">'
-    + '<label class="form-label">IV-B. 한국 영유아 발달 선별검사 (K-DST) 결과</label>'
+    + '<label class="form-label">IV-B. 한국 영유아 발달선별검사 (K-DST) 결과</label>'
     + '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
     + '<thead><tr style="background:#ede9fe;">'
     + '<th style="padding:8px;text-align:left;white-space:nowrap;color:#5b21b6;">영역</th>'
