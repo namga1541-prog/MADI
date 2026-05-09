@@ -350,6 +350,21 @@ function renderWeekGrid() {
     });
     html += '</tr></thead><tbody>';
 
+    // 날짜별 중복 아동 계산 (같은 날 2명 이상 치료사에게 있는 아동)
+    var duplicateMap = {};
+    weekDates.forEach(function(w) {
+      var dayScheds = weekScheds.filter(function(s){ return s.date === w.str; });
+      var childCount = {};
+      dayScheds.forEach(function(s) {
+        if (s.childId) childCount[s.childId] = (childCount[s.childId] || 0) + 1;
+      });
+      var dupIds = [];
+      Object.keys(childCount).forEach(function(id) {
+        if (childCount[id] >= 2) dupIds.push(parseInt(id));
+      });
+      duplicateMap[w.str] = dupIds;
+    });
+
     // 치료사별 행
     therapists.forEach(function(t) {
       var color = getTeacherColor(t);
@@ -365,9 +380,12 @@ function renderWeekGrid() {
             var child = childDB.find(function(c){ return c.id === s.childId; });
             var cname = child ? escHtml(child.name) : '?';
             var time  = (s.startTime||s.time||'').slice(0,5);
+            var isDup = duplicateMap[w.str] && duplicateMap[w.str].indexOf(s.childId) >= 0;
+            var nameStyle = isDup ? 'font-weight:700;color:#ef4444;background:#fef2f2;border-radius:4px;padding:0 3px;' : 'font-weight:700;';
+            var prefix = isDup ? '🔴 ' : '';
             return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(' + s.id + ')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
-              + '<span style="font-weight:700;">' + cname + '</span>'
+              + '<span style="' + nameStyle + '">' + prefix + cname + '</span>'
               + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
@@ -738,195 +756,6 @@ function goToSessionFromSched(schedId) {
   if (!s) return;
   var ol = document.getElementById('editSchedOverlay');
   if (ol) ol.remove();
-  showPreSessionBriefing(schedId);
-}
-
-// ─────── 세션 전 브리핑 (AI 없는 룰 기반) ───────
-function showPreSessionBriefing(schedId) {
-  var sched = scheduleDB.find(function(x){ return x.id === schedId; });
-  if (!sched) return;
-  var child = childDB.find(function(c){ return c.id === sched.childId; });
-  if (!child) return;
-
-  // 이 아동의 세션 목록 (최신순)
-  var childSessions = sessionDB
-    .filter(function(s){ return s.childId === child.id; })
-    .sort(function(a, b){ return b.date < a.date ? -1 : 1; });
-
-  // 지난 세션
-  var lastSession = childSessions[0] || null;
-
-  // 목표별 최근 4회 평균 + 추이 계산
-  var recent4 = childSessions.slice(0, 4);
-  var goalStats = {};
-  recent4.forEach(function(s) {
-    (s.goals || []).forEach(function(g) {
-      if (!g.name || g.score === null || g.score === undefined) return;
-      if (!goalStats[g.name]) goalStats[g.name] = [];
-      goalStats[g.name].push({ date: s.date, score: parseFloat(g.score) });
-    });
-  });
-
-  // 추이 판정 (최근 3회 연속 방향)
-  function getTrend(scores) {
-    if (scores.length < 2) return 'hold';
-    var diffs = [];
-    for (var i = 0; i < scores.length - 1; i++) {
-      diffs.push(scores[i].score - scores[i+1].score);
-    }
-    var allUp   = diffs.every(function(d){ return d > 0; });
-    var allDown = diffs.every(function(d){ return d < 0; });
-    if (allDown) return 'down';
-    if (allUp)   return 'up';
-    return 'hold';
-  }
-
-  // 목표별 평균 점수 + 추이
-  var goalList = Object.keys(goalStats).map(function(name) {
-    var scores = goalStats[name];
-    var avg = Math.round(scores.reduce(function(a, b){ return a + b.score; }, 0) / scores.length);
-    var trend = getTrend(scores);
-    return { name: name, avg: avg, trend: trend, scores: scores };
-  }).sort(function(a, b){ return a.avg - b.avg; }); // 낮은 순 (집중 필요 먼저)
-
-  // 오늘 집중 포인트 룰
-  function getFocusPoint(list) {
-    var needFocus = list.filter(function(g){ return g.trend === 'down' || g.avg < 50; });
-    var good      = list.filter(function(g){ return g.avg >= 80; });
-    var msgs = [];
-    if (needFocus.length > 0) {
-      msgs.push('🔴 <b>' + escHtml(needFocus[0].name) + '</b> ' +
-        (needFocus[0].trend === 'down' ? '연속 하락 중 — 오늘 집중 필요' : '달성률 부족 — 시간 더 배분'));
-    }
-    if (good.length > 0) {
-      msgs.push('🟢 <b>' + escHtml(good[0].name) + '</b> 안정권 — 워밍업으로 짧게');
-    }
-    if (msgs.length === 0) msgs.push('📌 특이 사항 없음 — 기존 계획대로 진행');
-    return msgs;
-  }
-  var focusMsgs = getFocusPoint(goalList);
-
-  // 다음 예약 일정
-  var today = new Date().toISOString().slice(0, 10);
-  var nextSched = scheduleDB
-    .filter(function(s){ return s.childId === child.id && s.date > sched.date; })
-    .sort(function(a, b){ return a.date < b.date ? -1 : 1; })[0];
-
-  // ── 모달 HTML 생성 ──
-  var NL = String.fromCharCode(10);
-  var totalSessions = childSessions.length;
-
-  // 목표 바 HTML
-  var goalBarsHtml = '';
-  if (goalList.length === 0) {
-    goalBarsHtml = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:8px 0;">세션 기록 없음</div>';
-  } else {
-    goalList.slice(0, 4).forEach(function(g) {
-      var barColor = g.avg >= 80 ? '#10b981' : g.avg >= 60 ? '#f59e0b' : '#ef4444';
-      var trendIcon = g.trend === 'up' ? '↑' : g.trend === 'down' ? '↓' : '→';
-      var trendColor = g.trend === 'up' ? '#10b981' : g.trend === 'down' ? '#ef4444' : '#94a3b8';
-      goalBarsHtml +=
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
-        '<div style="font-size:12px;color:var(--text);width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escHtml(g.name) + '">' + escHtml(g.name) + '</div>' +
-        '<div style="flex:1;background:#f1f5f9;border-radius:99px;height:8px;">' +
-        '<div style="width:' + g.avg + '%;height:8px;border-radius:99px;background:' + barColor + ';transition:width 0.4s;"></div>' +
-        '</div>' +
-        '<div style="font-size:12px;font-weight:700;color:' + barColor + ';width:44px;text-align:right;flex-shrink:0;">' +
-        g.avg + '% <span style="color:' + trendColor + ';">' + trendIcon + '</span>' +
-        '</div>' +
-        '</div>';
-    });
-  }
-
-  // 집중 포인트 HTML
-  var focusHtml = focusMsgs.map(function(m) {
-    return '<div style="font-size:13px;color:#134e4a;line-height:1.6;margin-bottom:4px;">' + m + '</div>';
-  }).join('');
-
-  // 지난 세션 HTML
-  var lastHtml = lastSession
-    ? '<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">' +
-        lastSession.date + (lastSession.teacher ? ' · ' + escHtml(lastSession.teacher) : '') +
-      '</div>' +
-      '<div style="font-size:13px;color:var(--text);line-height:1.6;">' +
-        escHtml((lastSession.memo || '메모 없음').slice(0, 100) + ((lastSession.memo || '').length > 100 ? '...' : '')) +
-      '</div>'
-    : '<div style="font-size:13px;color:var(--text2);">아직 세션 기록이 없습니다.</div>';
-
-  // 다음 일정 HTML
-  var nextHtml = nextSched
-    ? nextSched.date + (nextSched.startTime ? ' ' + nextSched.startTime.slice(0,5) : '')
-    : '예약 없음';
-
-  var overlay = document.createElement('div');
-  overlay.id = 'preSessionBriefing';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:4000;display:flex;align-items:flex-end;justify-content:center;padding:0;';
-  overlay.onclick = function(e){ if (e.target === overlay) overlay.remove(); };
-
-  overlay.innerHTML =
-    '<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;">' +
-
-    // 헤더
-    '<div style="background:#0f172a;border-radius:20px 20px 0 0;padding:16px 20px;">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
-    '<span style="background:#0ea5a0;color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">📋 세션 전 브리핑</span>' +
-    '<button onclick="closePreBriefing()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;line-height:1;">✕</button>' +
-    '</div>' +
-    '<div style="display:flex;align-items:center;gap:12px;">' +
-    '<div style="width:48px;height:48px;border-radius:50%;background:' + (child.color || '#0ea5a0') + '22;border:2px solid ' + (child.color || '#0ea5a0') + ';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">👤</div>' +
-    '<div>' +
-    '<div style="color:white;font-size:17px;font-weight:700;">' + escHtml(child.name) + '</div>' +
-    '<div style="color:#94a3b8;font-size:12px;margin-top:2px;">' + escHtml(child.age||'') + ' · ' + escHtml(child.type||'') + ' · 총 ' + totalSessions + '회 세션</div>' +
-    '</div>' +
-    '</div>' +
-    '</div>' +
-
-    // 지난 세션
-    '<div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;">' +
-    '<div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:8px;">📝 지난 세션 요약</div>' +
-    '<div style="background:#f8fafc;border-radius:10px;padding:10px 12px;">' + lastHtml + '</div>' +
-    '</div>' +
-
-    // 목표 달성률
-    '<div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;">' +
-    '<div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:10px;">📈 목표 달성률 (최근 4회 평균)</div>' +
-    goalBarsHtml +
-    '</div>' +
-
-    // 오늘 집중 포인트
-    '<div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;">' +
-    '<div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:8px;">🎯 오늘 집중 포인트</div>' +
-    '<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:12px 14px;">' +
-    focusHtml +
-    '</div>' +
-    '</div>' +
-
-    // 다음 일정
-    '<div style="padding:12px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">' +
-    '<span style="font-size:12px;color:#94a3b8;font-weight:700;">📅 다음 예약</span>' +
-    '<span style="font-size:13px;color:var(--text);font-weight:600;">' + escHtml(nextHtml) + '</span>' +
-    '</div>' +
-
-    // 버튼
-    '<div style="display:flex;gap:8px;padding:16px 20px;padding-bottom:calc(16px + env(safe-area-inset-bottom));">' +
-    '<button onclick="closePreBriefing()" style="background:white;color:#64748b;border:1px solid #e2e8f0;border-radius:12px;padding:14px 18px;font-size:14px;cursor:pointer;font-family:inherit;">닫기</button>' +
-    '<button onclick="startSessionFromBriefing(' + schedId + ')" style="flex:1;background:#0ea5a0;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">✅ 세션 시작</button>' +
-    '</div>' +
-
-    '</div>';
-
-  document.body.appendChild(overlay);
-}
-
-function closePreBriefing() {
-  var el = document.getElementById('preSessionBriefing');
-  if (el) el.remove();
-}
-
-function startSessionFromBriefing(schedId) {
-  var s = scheduleDB.find(function(x){ return x.id === schedId; });
-  document.getElementById('preSessionBriefing').remove();
-  if (!s) return;
   switchTab(2);
   setTimeout(function() {
     var sel = document.getElementById('sessionChild');
