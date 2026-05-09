@@ -645,6 +645,21 @@ function makeSearchable(id) {
   if (id === 'sessionChild' && sel._ssInp) sel._ssInp.placeholder = '아동 검색...';
 }
 
+// ─────── 세션탭 종결 아동 포함 토글 ───────
+var _showDischargedInSession = false;
+
+function toggleDischargedInSession() {
+  _showDischargedInSession = !_showDischargedInSession;
+  var btn = document.getElementById('sessionDischargedToggle');
+  if (btn) {
+    btn.textContent = _showDischargedInSession ? '🔒 종결 아동 숨기기' : '🔒 종결 아동 포함';
+    btn.style.background = _showDischargedInSession ? '#fef2f2' : '';
+    btn.style.color      = _showDischargedInSession ? '#dc2626' : '';
+    btn.style.borderColor= _showDischargedInSession ? '#dc2626' : '';
+  }
+  populateChildSelects();
+}
+
 function populateChildSelects() {
   // 캐시 키: 아동 수 + 마지막 아동 id + 마지막 이름 (변경 감지)
   var lastChild = childDB.length > 0 ? childDB[childDB.length - 1] : null;
@@ -667,15 +682,16 @@ function populateChildSelects() {
     var cur = el.value;
     var needsEmpty = ['sessionChild','chartChild',
                       'reportChild','portfolioChild','faqChild','eduChild','iepChild'];
-    // sessionChild는 종결 아동 자동 제외 (세션 입력은 활성 아동만)
+    // sessionChild는 종결 아동 자동 제외 — 토글 ON 시 포함 (🔒 종결 아동 포함 버튼)
     var optsHtml;
     if (id === 'sessionChild') {
       var activeChildren = childDB
-        .filter(function(c){ return c.status !== '종결'; })
+        .filter(function(c){ return _showDischargedInSession ? true : c.status !== '종결'; })
         .sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); });
       optsHtml = activeChildren.map(function(c) {
-        var label = escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age) + ')';
-        return '<option value="' + c.id + '">' + label + '</option>';
+        var isDischarged = (c.status === '종결');
+        var label = (isDischarged ? '[종결] ' : '') + escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age) + ')';
+        return '<option value="' + c.id + '"' + (isDischarged ? ' style="color:#94a3b8;"' : '') + '>' + label + '</option>';
       }).join('');
     } else {
       optsHtml = _optionsCacheHtml;
@@ -694,6 +710,24 @@ function populateChildSelects() {
       if (id) loadGoalRows(id);
     };
     if (sc.value) loadGoalRows(parseInt(sc.value));
+    // 종결 아동 포함 토글 버튼 삽입 (중복 방지)
+    if (!document.getElementById('sessionDischargedToggle')) {
+      var toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.id   = 'sessionDischargedToggle';
+      toggleBtn.textContent = '🔒 종결 아동 포함';
+      toggleBtn.onclick = toggleDischargedInSession;
+      toggleBtn.style.cssText = 'margin-top:6px;font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#64748b;cursor:pointer;font-family:inherit;touch-action:manipulation;';
+      var scParent = sc._ssWrap ? sc._ssWrap.parentNode : sc.parentNode;
+      if (scParent) scParent.appendChild(toggleBtn);
+    } else {
+      // 상태 동기화
+      var existBtn = document.getElementById('sessionDischargedToggle');
+      existBtn.textContent  = _showDischargedInSession ? '🔒 종결 아동 숨기기' : '🔒 종결 아동 포함';
+      existBtn.style.background  = _showDischargedInSession ? '#fef2f2' : '#fff';
+      existBtn.style.color       = _showDischargedInSession ? '#dc2626' : '#64748b';
+      existBtn.style.borderColor = _showDischargedInSession ? '#dc2626' : '#cbd5e1';
+    }
   }
   // assessType 변경 시 직접입력 토글
   var at = document.getElementById('assessType');
