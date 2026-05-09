@@ -154,54 +154,29 @@ function deleteStaff(id, name) {
   );
 }
 
-// ─────── Supabase Realtime 실시간 동기화 ───────
-var _supaClient = null;
-var _realtimeChannel = null;
-var _reloadTimer = null;
+// ─────── 폴링 방식 동기화 (보안 강화 — Realtime 대체) ───────
+var _pollTimer = null;
+var _pollInterval = 10000; // 10초마다 갱신
+var _myChangeTs = 0;
 
 function initRealtime() {
-  try {
-    if (typeof supabase === 'undefined' || !supabase.createClient) return;
-    _supaClient = supabase.createClient(SUPA_URL, SUPA_REALTIME_KEY);
-    subscribeRealtime();
-  } catch(e) {
-    console.warn('Realtime 초기화 실패:', e);
-  }
+  stopRealtime();
+  _pollTimer = setInterval(function() {
+    // 내가 방금 저장한 경우 2초 동안 폴링 스킵 (중복 갱신 방지)
+    if (_myChangeTs && Date.now() < _myChangeTs + 2000) return;
+    if (typeof loadDBFromSupabase === 'function') {
+      loadDBFromSupabase(true);
+    }
+  }, _pollInterval);
+  console.log('✅ 폴링 동기화 시작 (' + (_pollInterval/1000) + '초 간격)');
 }
 
-function subscribeRealtime() {
-  if (!_supaClient) return;
-  if (_realtimeChannel) {
-    _supaClient.removeChannel(_realtimeChannel);
-  }
-  _realtimeChannel = _supaClient
-    .channel('madi-sync')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_children' },    onRemoteChange)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_sessions' },    onRemoteChange)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_schedules' },   onRemoteChange)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'madi_assessments' }, onRemoteChange)
-    .subscribe(function(status) {
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ Realtime 연결됨');
-      }
-    });
-}
-
-function onRemoteChange(payload) {
-  if (_myChangeTs && Date.now() < _myChangeTs + 2000) return;
-  clearTimeout(_reloadTimer);
-  _reloadTimer = setTimeout(function() {
-    loadDBFromSupabase(true);
-  }, 800);
-}
-
-var _myChangeTs = 0;
 function markMyChange() { _myChangeTs = Date.now(); }
 
 function stopRealtime() {
-  if (_realtimeChannel && _supaClient) {
-    _supaClient.removeChannel(_realtimeChannel);
-    _realtimeChannel = null;
+  if (_pollTimer) {
+    clearInterval(_pollTimer);
+    _pollTimer = null;
   }
 }
 
@@ -936,12 +911,13 @@ function initPWA() {
   var NL = String.fromCharCode(10);
 
   var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130">'
-    + '<rect width="130" height="130" rx="28" fill="#e8f5f0"/>'
-    + '<rect x="18" y="14" width="94" height="76" rx="18" fill="#2d6a4f"/>'
-    + '<path d="M 26 90 L 16 112 L 52 90 Z" fill="#2d6a4f"/>'
-    + '<rect x="61" y="38" width="8" height="38" rx="4" fill="white"/>'
-    + '<path d="M 65 62 C 65 62 36 60 38 38 C 40 26 62 34 65 52 Z" fill="white"/>'
-    + '<path d="M 65 54 C 65 54 92 52 91 32 C 90 20 68 28 65 44 Z" fill="white"/>'
+    + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
+    + '<rect x="18" y="100" width="94" height="18" rx="9" fill="rgba(255,255,255,0.3)"/>'
+    + '<rect x="59" y="26" width="12" height="80" rx="6" fill="white"/>'
+    + '<ellipse cx="36" cy="60" rx="32" ry="17" fill="white" transform="rotate(-40,36,60)"/>'
+    + '<ellipse cx="94" cy="52" rx="32" ry="17" fill="white" transform="rotate(40,94,52)"/>'
+    + '<circle cx="65" cy="22" r="13" fill="white"/>'
+    + '<circle cx="65" cy="22" r="7" fill="#0ea5a0"/>'
     + '</svg>';
   var iconBlob = new Blob([iconSvg], { type: 'image/svg+xml' });
   var iconUrl  = URL.createObjectURL(iconBlob);
@@ -950,9 +926,9 @@ function initPWA() {
   if (iconLink) iconLink.href = iconUrl;
 
   var manifest = {
-    name: '아이마디 — 언어치료 AI 비서',
-    short_name: '아이마디',
-    description: '아이마디 — 언어치료사를 위한 AI 기반 세션 관리 앱',
+    name: '마디 — 언어치료 AI 비서',
+    short_name: '마디',
+    description: '언어치료사를 위한 AI 기반 세션 관리 앱',
     start_url: './',
     scope: './',
     display: 'standalone',
