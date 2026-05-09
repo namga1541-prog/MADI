@@ -873,3 +873,26 @@
     .dash-quick { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
     .dash-q-btn { flex:1; min-width:72px; background:var(--card-bg); border:1.5px solid var(--border); color:var(--text); font-size:12px; font-weight:700; padding:11px 6px; border-radius:12px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; }
     .dash-q-btn:active { border-color:var(--mint); color:var(--mint); }
+
+    /* ─────── 인쇄 전용 (window.print 시) ─────── */
+    @media print {
+      /* 헤더, 사이드바, 탭, 알림 등 UI 요소 숨김 */
+      header, .header, .sidebar, .nav-tabs, .tab-bar, .panel-tabs,
+      .toast, .modal, .modal-overlay, .sched-modal-overlay,
+      .btn, button, input[type="button"], .form-input,
+      #headerDeployBtn, .lp-features, .lp-cta,
+      .dash-quick, .child-status-tabs, .admin-tab-btn,
+      nav, footer, [onclick] { display: none !important; }
+      /* 카드는 보더만 간소화 */
+      .card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; margin-bottom: 12px; }
+      /* 폰트/색상 절약 (잉크 절약) */
+      body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+      .card-title-left { color: #000 !important; }
+      /* A4 페이지 여백 */
+      @page { margin: 1.5cm; }
+      /* 링크 URL 표시 안 함 (한국 보고서 관행) */
+      a[href]:after { content: none !important; }
+      /* 페이지 나누기 힌트 */
+      h1, h2, h3 { page-break-after: avoid; }
+      .session-card, .child-card { page-break-inside: avoid; }
+    }
