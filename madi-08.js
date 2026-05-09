@@ -244,6 +244,25 @@ function generateIEP() {
   btn.textContent = '⏳ 장단기계획(IEP) 생성 중...';
   document.getElementById('iepResult').innerHTML = '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px;">🤖 AI가 3개월 치료 계획을 작성 중입니다...</div>';
 
+  // 목표별 달성률 추이 계산
+  var goalTrend = {};
+  sessions.forEach(function(s) {
+    (s.goals || []).forEach(function(g) {
+      if (!g.name || g.score === null || g.score === undefined) return;
+      if (!goalTrend[g.name]) goalTrend[g.name] = [];
+      goalTrend[g.name].push({ date: s.date, score: parseFloat(g.score) });
+    });
+  });
+  var trendLog = Object.keys(goalTrend).map(function(name) {
+    var scores = goalTrend[name];
+    var avg = Math.round(scores.reduce(function(a,b){ return a+b.score; },0)/scores.length);
+    var last = scores[scores.length-1].score;
+    var first = scores[0].score;
+    var trend = last > first ? '↑향상' : last < first ? '↓하락' : '→유지';
+    var stagnant = scores.length >= 3 && scores.slice(-3).every(function(s){ return Math.abs(s.score-scores[scores.length-1].score)<=5; });
+    return name + ': 평균' + avg + '% ' + trend + (stagnant ? ' [3회 이상 정체]' : '');
+  }).join('\n');
+
   var sessionLog = sessions.map(function(s) {
     var g = (s.goals || []).map(function(g) {
       return g.name + (g.score !== null ? ':' + g.score + '%' : '');
@@ -260,20 +279,25 @@ function generateIEP() {
   }).join('\n');
 
   var NL = String.fromCharCode(10);
-  var SYSTEM = '당신은 언어치료 IEP(개별화 교육 계획) 전문가입니다. 제공된 아동 정보를 바탕으로 근거 기반의 3개월 치료 계획 초안을 작성하세요.'
-    + NL + '【언어 규칙】이 문서는 부모(주 양육자)가 읽는 자료입니다. 쉬운 일상 언어로 작성하세요.'
-    + NL + '금지: "통합적 발달을 모색","정체를 타개","도모하다","증진" 등 어려운 한자어 전문용어.'
-    + NL + '권장: "말이 늘고 있어요","문장으로 말하기 시작했어요","~을 연습할 거예요" 등 친근한 표현.'
-    + NL + '반드시 순수 JSON만 출력하세요. 다른 텍스트나 마크다운 코드블록 금지.'
-    + NL + '{"longTermGoals":["장기목표1","장기목표2"],"shortTermGoals":{"1개월":["단기목표A","단기목표B"],"2개월":["단기목표C"],"3개월":["단기목표D"]},"activities":["권장활동1","권장활동2","권장활동3"],"notes":"치료사 참고 메모"}';
+  var SYSTEM = '당신은 10년 이상 경력의 1급 언어재활사입니다. 제공된 아동 데이터를 근거로 3개월 IEP 초안을 작성하세요.'
+    + NL + '【핵심 원칙】'
+    + NL + '1. 정체 목표([3회 이상 정체] 표시)는 반드시 단기목표 재설정 또는 접근법 변경을 제안하세요.'
+    + NL + '2. 달성률 80% 이상 목표는 다음 단계로 도약하는 목표를 제시하세요.'
+    + NL + '3. 부모 협력 방법은 5분 내 실행 가능한 일상 활동으로 구체적으로 작성하세요.'
+    + NL + '【언어 규칙】이 문서는 부모(주 양육자)가 읽습니다. 쉬운 일상 언어만 사용하세요.'
+    + NL + '금지: "통합적 발달을 모색","정체를 타개","도모하다","증진","도출" 등 어려운 한자어.'
+    + NL + '권장: "말이 늘고 있어요","문장으로 말하기 시작했어요","~을 함께 해보세요" 등 친근한 표현.'
+    + NL + '반드시 순수 JSON만 출력. 마크다운 코드블록 금지.'
+    + NL + '{"priorityGoals":["가장 집중해야 할 목표 1-2개"],"longTermGoals":["3개월 후 기대 모습 2-3개"],"shortTermGoals":{"1개월":["구체적 단기목표"],"2개월":["구체적 단기목표"],"3개월":["구체적 단기목표"]},"parentCooperation":[{"activity":"부모와 함께할 활동명","how":"구체적 방법 2문장","frequency":"주 몇 회"}],"activities":["치료실 권장활동"],"therapistNote":"치료사 전용 임상 메모 — 접근법 변경 제안 포함"}';
 
   var USER = '아동: ' + child.name + ' (' + child.age + ', 진단: ' + child.type + ')'
     + NL + '치료 목표: ' + ((child.goals || []).join(', ') || '미설정')
     + (child.memo ? NL + '특이사항: ' + child.memo : '')
     + (assessLog ? NL + NL + '[검사 결과]' + NL + assessLog : '')
-    + (sessionLog ? NL + NL + '[최근 세션 ' + sessions.length + '회]' + NL + sessionLog : '');
+    + (trendLog ? NL + NL + '[목표별 달성률 추이]' + NL + trendLog : '')
+    + (sessionLog ? NL + NL + '[최근 세션 ' + sessions.length + '회 상세]' + NL + sessionLog : '');
 
-  callClaude(apiKey, SYSTEM, USER, 2000, getAIModel())
+  callClaude(apiKey, SYSTEM, USER, 2500, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
       if (!p || !p.longTermGoals) throw new Error('IEP 파싱 실패');
@@ -310,6 +334,14 @@ function renderIEP(p, childName) {
     + '<div style="font-size:11px;color:var(--text2);">' + escHtml(childName) + ' · ' + today + '</div>'
     + '</div>'
 
+    // 우선순위 목표 (신규)
+    + (p.priorityGoals && p.priorityGoals.length ? '<div style="background:#fef3c7;border-radius:10px;padding:10px 14px;margin-bottom:14px;border-left:4px solid #f59e0b;">'
+        + '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">⭐ 이번 달 최우선 집중 목표</div>'
+        + (p.priorityGoals || []).map(function(g) {
+            return '<div style="font-size:13px;color:#78350f;padding:3px 0;">• ' + escHtml(g) + '</div>';
+          }).join('')
+        + '</div>' : '')
+
     // 장기 목표
     + '<div style="margin-bottom:14px;">'
     + '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px;padding-bottom:4px;border-bottom:1.5px solid var(--border);">🎯 장기 목표 (3개월)</div>'
@@ -327,6 +359,17 @@ function renderIEP(p, childName) {
     + monthBlock('3개월차', (p.shortTermGoals || {})['3개월'])
     + '</div>'
 
+    // 부모 협력 (신규)
+    + (p.parentCooperation && p.parentCooperation.length ? '<div style="margin-bottom:14px;">'
+        + '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px;padding-bottom:4px;border-bottom:1.5px solid var(--border);">🏠 부모 협력 활동</div>'
+        + (p.parentCooperation || []).map(function(c) {
+            return '<div style="background:#f0fdf4;border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:3px solid #10b981;">'
+              + '<div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:4px;">🌿 ' + escHtml(c.activity) + (c.frequency ? ' <span style="font-size:11px;font-weight:400;color:#6b7280;">(' + escHtml(c.frequency) + ')</span>' : '') + '</div>'
+              + '<div style="font-size:12px;color:#374151;line-height:1.6;">' + escHtml(c.how) + '</div>'
+              + '</div>';
+          }).join('')
+        + '</div>' : '')
+
     // 권장 활동
     + '<div style="margin-bottom:14px;">'
     + '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px;padding-bottom:4px;border-bottom:1.5px solid var(--border);">🎮 권장 치료 활동</div>'
@@ -336,9 +379,9 @@ function renderIEP(p, childName) {
       }).join('')
     + '</div></div>'
 
-    // 치료사 메모
-    + (p.notes ? '<div style="background:#fffbeb;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.7;">'
-        + '📝 <strong>치료사 참고:</strong> ' + escHtml(p.notes) + '</div>' : '')
+    // 치료사 전용 메모 (신규: therapistNote 우선, 없으면 notes)
+    + ((p.therapistNote || p.notes) ? '<div style="background:#fffbeb;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.7;">'
+        + '📝 <strong>치료사 참고:</strong> ' + escHtml(p.therapistNote || p.notes) + '</div>' : '')
 
     // 버튼
     + '<div style="display:flex;gap:8px;margin-top:14px;">'
