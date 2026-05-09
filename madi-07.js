@@ -80,7 +80,7 @@ function saveSessionAI() {
 
 // ─────── 기능 2: 가정 활동 추천 AI ───────
 function suggestHomeActivities(sessionId) {
-  var apiKey = document.getElementById('apiKey').value.trim();
+  var apiKey = getApiKeyOrAlert();
   if (!apiKey) return;
   var session = sessionDB.find(function(s) { return s.id === sessionId; });
   if (!session) return;
@@ -94,30 +94,46 @@ function suggestHomeActivities(sessionId) {
 
   var goalsText = (session.goals || []).map(function(g) { return g.name + (g.score !== null ? ' ' + g.score + '%' : ''); }).join(', ');
 
-  // 카탈로그 컨텍스트 구성
+  // 달성률 낮은 목표 추출 (60% 미만)
+  var weakGoals = (session.goals || []).filter(function(g) {
+    return g.score !== null && parseFloat(g.score) < 60;
+  }).map(function(g) { return g.name; });
+
+  // 카탈로그 필터 강화: 진단명 + 달성률 낮은 목표 태그 매칭
   var catalogCtx = '';
   if (activityDB.length > 0) {
-    var matched = activityDB.filter(function(a) {
+    var scored = activityDB.map(function(a) {
       var diagOk = !a.diagnosis || a.diagnosis === '전체' || a.diagnosis === child.type;
-      return diagOk;
-    }).slice(0, 15);
+      if (!diagOk) return null;
+      var tagScore = 0;
+      if (a.tags && weakGoals.length > 0) {
+        weakGoals.forEach(function(g) {
+          if (a.tags.indexOf(g) !== -1) tagScore += 2;
+        });
+      }
+      return { a: a, score: tagScore };
+    }).filter(Boolean);
+    scored.sort(function(x, y) { return y.score - x.score; });
+    var matched = scored.slice(0, 15).map(function(x) { return x.a; });
     if (matched.length > 0) {
-      catalogCtx = '\n\n[등록된 활동 자료 카탈로그 (참고용)]\n'
+      catalogCtx = '\n\n[등록된 활동 카탈로그]\n'
         + matched.map(function(a) {
-            return '- ' + a.name + (a.diagnosis ? ' [' + a.diagnosis + ']' : '')
+            return '- ' + a.name
+              + (a.diagnosis ? ' [' + a.diagnosis + ']' : '')
               + (a.duration ? ' ' + a.duration + '분' : '')
               + (a.tags ? ' #' + a.tags.replace(/,/g,' #') : '');
           }).join('\n')
-        + '\n위 카탈로그에 있는 활동을 우선 추천하되, 없으면 일반적인 활동을 추천하세요.';
+        + '\n달성률이 낮은 목표와 관련된 활동을 우선 추천하세요. 카탈로그에 없으면 일반 활동도 가능합니다.';
     }
   }
 
   var NL = String.fromCharCode(10);
-  var SYSTEM = '당신은 언어치료 전문가입니다. 오늘 세션 내용을 바탕으로 부모가 집에서 아이와 할 수 있는 '
-    + '구체적인 활동 3가지를 추천하세요. 각 활동은 5-10분 내 실행 가능하고 일상에서 쉽게 접목할 수 있어야 합니다. '
-    + '순수 JSON만: {"activities":[{"title":"활동명","steps":"진행 방법 2-3문장","tip":"부모 팁"}]}';
+  var SYSTEM = '당신은 언어재활 전문가입니다. 오늘 세션 결과를 바탕으로 부모가 집에서 아이와 실천할 수 있는 활동 3가지를 추천하세요.'
+    + ' 달성률이 낮은 목표를 보완하는 활동을 우선하고, 각 활동은 5-10분 내 일상에서 바로 쓸 수 있어야 합니다.'
+    + ' 순수 JSON만 출력: {"activities":[{"title":"활동명","reason":"이 활동을 추천하는 이유 1문장","steps":"진행 방법 2-3문장","level":"쉬움/보통/어려움","tip":"부모 팁"}]}';
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')' + NL
-    + '오늘 세션 목표 달성: ' + goalsText + NL
+    + '오늘 세션 목표: ' + goalsText + NL
+    + (weakGoals.length ? '달성률 60% 미만(집중 보완 필요): ' + weakGoals.join(', ') + NL : '')
     + '메모: ' + session.memo
     + catalogCtx;
 
@@ -126,12 +142,18 @@ function suggestHomeActivities(sessionId) {
       var p = parseJSON(raw);
       var html = '<div class="ai-response-box">'
         + '<div class="ai-response-label">🏠 오늘 세션 기반 가정 활동 추천</div>';
+      var levelColor = { '쉬움':'#10b981','보통':'#f59e0b','어려움':'#ef4444' };
       (p.activities || []).forEach(function(a, i) {
-        html += '<div style="margin-top:10px;padding:10px;background:white;border-radius:8px;">'
-          + '<div style="font-weight:700;font-size:13px;color:var(--purple);margin-bottom:4px;">'
+        var lc = levelColor[a.level] || '#94a3b8';
+        html += '<div style="margin-top:10px;padding:11px 12px;background:white;border-radius:10px;border:1px solid #e2e8f0;">'
+          + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
+          + '<div style="font-weight:700;font-size:13px;color:var(--purple);">'
           + (i + 1) + '. ' + escHtml(a.title) + '</div>'
-          + '<div style="font-size:12px;line-height:1.6;color:var(--text);">' + escHtml(a.steps) + '</div>'
-          + (a.tip ? '<div style="font-size:11px;line-height:1.5;color:var(--text2);margin-top:4px;font-style:italic;">💡 ' + escHtml(a.tip) + '</div>' : '')
+          + (a.level ? '<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:' + lc + '20;color:' + lc + ';font-weight:700;">' + escHtml(a.level) + '</span>' : '')
+          + '</div>'
+          + (a.reason ? '<div style="font-size:11px;color:#0ea5a0;margin-bottom:5px;font-weight:600;">✅ ' + escHtml(a.reason) + '</div>' : '')
+          + '<div style="font-size:12px;line-height:1.65;color:var(--text);">' + escHtml(a.steps) + '</div>'
+          + (a.tip ? '<div style="font-size:11px;line-height:1.5;color:var(--text2);margin-top:5px;font-style:italic;">💡 ' + escHtml(a.tip) + '</div>' : '')
           + '</div>';
       });
       html += '</div>';
@@ -145,12 +167,6 @@ function suggestHomeActivities(sessionId) {
 // ─────── 세션 목록 ───────
 // 카운터 클릭 시 최근 20개 ↔ 전체 토글
 var sessionListExpanded = false;
-var _sessionShowAll    = false; // teacher 전용: 전체 세션 보기 토글
-
-function toggleSessionAllView() {
-  _sessionShowAll = !_sessionShowAll;
-  renderSessionList();
-}
 function toggleSessionListExpand() {
   sessionListExpanded = !sessionListExpanded;
   renderSessionList();
@@ -158,26 +174,18 @@ function toggleSessionListExpand() {
 
 function renderSessionList() {
   var c = document.getElementById('sessionList');
-  var role = (currentUser && currentUser.role) || '';
-  var isAdminLevel = role === 'admin' || role === 'superadmin';
-
-  // 권한별 필터
-  // superadmin/admin: 전체 세션
-  // teacher: 기본 본인 세션만, 토글 ON 시 전체
+  // 권한별 필터: admin은 전체, 그 외는 본인 세션만 (teacher 필드 없으면 admin만 노출)
   var visible = sessionDB.slice().reverse();
-  if (role === 'teacher') {
-    if (!_sessionShowAll) {
-      visible = visible.filter(function(s){ return s.teacher && s.teacher === currentUser.name; });
-    }
+  if (currentUser && currentUser.role !== 'admin') {
+    visible = visible.filter(function(s){ return s.teacher && s.teacher === currentUser.name; });
   }
-
   // 펼치기 상태에 따라 최근 20개 또는 전체
   var recent = sessionListExpanded ? visible : visible.slice(0, 20);
-
-  // 카드 제목 옆 카운터 갱신
+  // 카드 제목 옆 카운터 갱신 (권한별 라벨 + 표시/전체 개수 + 펼치기 토글)
   var countEl = document.getElementById('sessionListCount');
   if (countEl) {
-    var label     = isAdminLevel ? '전체' : (_sessionShowAll ? '전체' : '본인');
+    var isAdmin   = currentUser && currentUser.role === 'admin';
+    var label     = isAdmin ? '전체' : '본인';
     var canToggle = visible.length > 20;
     var arrow     = canToggle ? (sessionListExpanded ? ' ▲' : ' ▼') : '';
     var sub       = canToggle
@@ -194,25 +202,6 @@ function renderSessionList() {
       countEl.onclick = null;
       countEl.title = '';
     }
-  }
-
-  // teacher 전용: 전체/본인 토글 버튼 동적 삽입
-  var toggleBtnEl = document.getElementById('sessionAllToggleBtn');
-  if (role === 'teacher') {
-    if (!toggleBtnEl) {
-      toggleBtnEl = document.createElement('button');
-      toggleBtnEl.id = 'sessionAllToggleBtn';
-      toggleBtnEl.style.cssText = 'font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#64748b;cursor:pointer;font-family:inherit;margin-left:6px;touch-action:manipulation;';
-      if (countEl && countEl.parentNode) countEl.parentNode.insertBefore(toggleBtnEl, countEl.nextSibling);
-    }
-    toggleBtnEl.textContent = _sessionShowAll ? '👤 내 세션만' : '🌐 전체 보기';
-    toggleBtnEl.style.background = _sessionShowAll ? '#fef2f2' : '';
-    toggleBtnEl.style.color      = _sessionShowAll ? '#dc2626' : '';
-    toggleBtnEl.style.borderColor= _sessionShowAll ? '#dc2626' : '';
-    toggleBtnEl.onclick = toggleSessionAllView;
-    toggleBtnEl.style.display = '';
-  } else {
-    if (toggleBtnEl) toggleBtnEl.style.display = 'none';
   }
   if (recent.length === 0) {
     c.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>아직 기록된 세션이 없습니다.</p></div>';
