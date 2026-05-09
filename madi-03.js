@@ -254,6 +254,19 @@ function applyRoleUI() {
   if (deployBtn)  deployBtn.style.display  = (isSuperAdmin && isLocal) ? '' : 'none';
 }
 
+
+function resetMaroPos() {
+  localStorage.removeItem('madi_maro_pos');
+  var el = document.getElementById('maroResetResult');
+  if (el) {
+    el.textContent = '✅ 초기화 완료! 적용됩니다.';
+    setTimeout(function() { if (el) el.textContent = ''; }, 3000);
+  }
+  var btn = document.getElementById('floatBtn');
+  if (btn) { btn.style.inset = ''; btn.style.transform = ''; }
+  showToast('✅ 마로 위치 초기화됨');
+}
+
 function getApiKeyOrAlert() {
   // API 키는 서버(Edge Function 환경변수)에서 관리
   // 클라이언트 입력 불필요 — 항상 통과
