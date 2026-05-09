@@ -378,9 +378,10 @@ function updateBreadcrumb(idx) {
 }
 // 사이드바 관리자 메뉴 표시 (권한에 따라)
 function updateSidebarAdminVisibility() {
-  var isAdmin = currentUser && (currentUser.role==='admin'||currentUser.role==='superadmin');
+  var isAdmin  = currentUser && (currentUser.role==='admin'||currentUser.role==='superadmin');
+  var isSuper  = currentUser && currentUser.role==='superadmin';
   var s4=document.getElementById('sbTab4'); if(s4) s4.style.display=isAdmin?'':'none';
-  var s5=document.getElementById('sbTab5'); if(s5) s5.style.display=isAdmin?'':'none';
+  var s5=document.getElementById('sbTab5'); if(s5) s5.style.display=isSuper?'':'none';
   var sd=document.getElementById('sbDividerAdmin'); if(sd) sd.style.display=isAdmin?'':'none';
 }
 
