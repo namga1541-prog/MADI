@@ -1571,7 +1571,6 @@ function addStaffAccount() {
   hashPassword(pw)
     .then(function(hashed) {
       return supaFetch('madi_users', 'POST', [{
-        id:        Date.now() + Math.floor(Math.random() * 1000),
         username:  username,
         name:      name,
         password:  hashed,
