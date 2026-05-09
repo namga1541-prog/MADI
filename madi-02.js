@@ -490,7 +490,7 @@ function callClaude(apiKey, system, user, maxTokens, model) {
       'Authorization': 'Bearer ' + getToken()
     },
     body: JSON.stringify({
-      model:      model || MODEL_SONNET,
+      model:      model || MODEL_HAIKU,
       max_tokens: maxTokens || 1500,
       system:     system,
       messages:   [{ role: 'user', content: user }]
@@ -508,7 +508,7 @@ function callClaude(apiKey, system, user, maxTokens, model) {
   .then(function(data) {
     // 토큰 사용량 추적
     if (data.usage) {
-      var usedModel = (data.model || model || MODEL_SONNET);
+      var usedModel = (data.model || model || MODEL_HAIKU);
       recordApiUsage(usedModel, data.usage.input_tokens || 0, data.usage.output_tokens || 0);
     }
     return (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
