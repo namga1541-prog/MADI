@@ -27,24 +27,6 @@ function calcAgeFromBirth(birthStr) {
   return months === 0 ? years + '세' : years + '세 ' + months + '개월';
 }
 
-// 생년월일 입력 시 생활연령 즉시 표시
-function updateAgeDisplay() {
-  var birth = document.getElementById('childBirth').value;
-  var el    = document.getElementById('ageDisplay');
-  var age   = calcAgeFromBirth(birth);
-  if (age) {
-    el.textContent = age;
-    el.style.color = 'var(--mint)';
-    el.style.background = '#f0fdf4';
-    el.style.borderColor = 'var(--mint)';
-  } else {
-    el.textContent = '생활연령';
-    el.style.color = '#94a3b8';
-    el.style.background = '#f8fafc';
-    el.style.borderColor = 'var(--border)';
-  }
-}
-
 // 하위 호환용 함수는 더 이상 필요하지 않음 (직접 호출 없음)
 
 function escHtml(str) {
@@ -203,55 +185,6 @@ function switchToDay(dateStr) {
   setSchedView('week');
 }
 
-// ─────── 날짜 클릭 팝업 (아이디어 4) ───────
-function openDayPopup(dateStr) {
-  var dayScheds = scheduleDB.filter(function(s) {
-    if (s.date !== dateStr) return false;
-    if (_schedTeacherFilter !== '전체' && s.teacher !== _schedTeacherFilter) return false;
-    return true;
-  }).sort(function(a, b) { return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
-
-  var overlay = document.createElement('div');
-  overlay.className = 'sched-modal-overlay';
-  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
-
-  var d = new Date(dateStr + 'T00:00:00');
-  var dayNames = ['일','월','화','수','목','금','토'];
-  var title = (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dayNames[d.getDay()] + ')';
-
-  var listHtml = '';
-  if (dayScheds.length === 0) {
-    listHtml = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">일정이 없습니다.</div>';
-  } else {
-    dayScheds.forEach(function(s) {
-      var child = childDB.find(function(c){ return c.id === s.childId; });
-      var color = s.teacher ? getTeacherColor(s.teacher) : (child ? child.color : '#94a3b8');
-      var time  = (s.startTime||s.time) ? (s.startTime||s.time).slice(0,5) + (s.endTime ? ' ~ ' + s.endTime.slice(0,5) : '') : '시간 미정';
-      listHtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;cursor:pointer;" onclick="openEditSchedModal(' + s.id + ')">'
-        + '<div style="width:4px;height:44px;background:' + color + ';border-radius:4px;flex-shrink:0;"></div>'
-        + '<div style="flex:1;">'
-        + '<div style="font-size:14px;font-weight:700;">' + escHtml(child ? child.name : '?') + '</div>'
-        + '<div style="font-size:12px;color:var(--text2);">⏰ ' + time
-        + (s.teacher ? ' &nbsp;👤 ' + escHtml(s.teacher) : '')
-        + (s.note ? ' &nbsp;📝 ' + escHtml(s.note) : '') + '</div>'
-        + '</div></div>';
-    });
-  }
-
-  overlay.innerHTML = '<div class="sched-modal">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
-    + '<div style="font-size:16px;font-weight:700;">📅 ' + title + '</div>'
-    + '<div style="display:flex;gap:8px;align-items:center;">'
-    + '<span style="font-size:12px;color:var(--text2);">' + dayScheds.length + '건</span>'
-    + '<button onclick="this.closest(\'.sched-modal-overlay\').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;">✕</button>'
-    + '</div></div>'
-    + listHtml
-    + '<button class="btn btn-primary" style="margin-top:12px;" onclick="this.closest(\'.sched-modal-overlay\').remove();openSchedModal(\'' + dateStr + '\',null)">+ 이 날 일정 추가</button>'
-    + '</div>';
-
-  document.body.appendChild(overlay);
-}
-
 // ─────── 선생님 select 옵션 빌드 ───────
 var _teacherList = []; // Supabase에서 불러온 선생님 목록 캐시
 
@@ -278,13 +211,6 @@ function renderSchedView() {
   if (wBtn) wBtn.textContent = '일일';
   if (schedView === 'month') renderMonthGrid();
   else renderWeekGrid();
-}
-
-function getWeekStart(date) {
-  var d = new Date(date);
-  var day = d.getDay();
-  var diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(new Date(d).setDate(diff));
 }
 
 function renderMonthGrid() {
@@ -778,8 +704,6 @@ function execSchedDelete(id, future) {
   });
 }
 
-function autoEditEndTime() {}
-
 function saveEditSched(id) {
   var idx = scheduleDB.findIndex(function(x){ return x.id === id; });
   if (idx < 0) return;
@@ -800,27 +724,6 @@ function saveEditSched(id) {
   if (ol) ol.remove();
   renderSchedView();
   showToast('✅ 일정 수정 완료!');
-}
-
-function deleteSchedFromModal(id) { confirmSchedDelete(id, 0); }
-
-function deleteSchedConfirm(id) {
-  var s = scheduleDB.find(function(x){ return x.id === id; });
-  if (!s) return;
-  var snapshot = Object.assign({}, s);
-  supaFetch('madi_schedules?id=eq.' + id, 'DELETE').catch(function(e) {
-    showToast('⚠️ 서버 삭제 실패 (새로고침 시 복원될 수 있음)');
-  });
-  scheduleDB = scheduleDB.filter(function(x){ return x.id !== id; });
-  saveSchedule(); renderSchedView();
-  var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
-  showToast('🗑️ ' + (cn ? cn + ' ' : '') + '일정 삭제됨', {
-    undo: function() {
-      scheduleDB.push(snapshot);
-      saveSchedule(); renderSchedView();
-      showToast('↩️ 일정이 복원되었습니다');
-    }
-  });
 }
 
 // ─────── 표준화 검사 ───────
