@@ -339,12 +339,12 @@ function renderDashboard() {
   }).join('');}}
 }
 var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7','panel8',
-                      'panelNotice','panelReport','panelPortfolio','panelService','panelUserSettings'];
-var TAB_PANEL_MAP  = ['panel2','panel0','panelReport','panelPortfolio','panelService','panel8','panelUserSettings'];
+                      'panelNotice','panelReport','panelPortfolio','panelService','panelUserSettings','panelBoard'];
+var TAB_PANEL_MAP  = ['panel2','panel0','panelReport','panelPortfolio','panelService','panel8','panelUserSettings','panelBoard'];
 
 // ─── 사이드바 active 동기화 ───
 function syncSidebarActive(idx) {
-  var ids = ['sbHome','sbTab0','sbTab1','sbTab2','sbTab3','sbTab4','sbTab5','sbTab6'];
+  var ids = ['sbHome','sbTab0','sbTab1','sbTab2','sbTab3','sbTab4','sbTab5','sbTab6','sbTab7'];
   ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('active'); });
   if (idx === -1) { var h=document.getElementById('sbHome'); if(h) h.classList.add('active'); }
   else { var t=document.getElementById('sbTab'+idx); if(t) t.classList.add('active'); }
@@ -367,7 +367,7 @@ function restoreSidebarState() {
   } catch(e) {}
 }
 // ─── Breadcrumb 업데이트 ───
-var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':'관리자 설정', '6':'설정' };
+var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':'관리자 설정', '6':'설정', '7':'게시판' };
 function updateBreadcrumb(idx) {
   var sep = document.getElementById('bcSep');
   var cur = document.getElementById('bcCurrent');
@@ -468,6 +468,7 @@ function switchTab(idx) {
     if (f5 && !f5.src.includes('admin.html')) f5.src = 'admin.html?tab=settings&embedded=1';
   }
   if (idx === 6) { initUserSettings(); }
+  if (idx === 7) { if (typeof initBoard === 'function') initBoard(); }
 }
 
 // ─── 보고서 서브탭 ───
