@@ -158,7 +158,8 @@ function moveSchedPeriod(dir) {
 
 // ─────── 선생님 필터 ───────
 var _schedTeacherFilter = '전체';
-var _weekViewMode = 'therapist'; // 'therapist' | 'child'
+var _weekViewMode  = 'therapist'; // 'therapist' | 'child'
+var _weekDupOnly   = false;        // 중복 수업 아동만 보기
 
 function renderTeacherFilter() {
   var bar = document.getElementById('teacherFilterBar');
@@ -333,8 +334,10 @@ function renderWeekGrid() {
   toggleWrap.innerHTML =
     '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
     + (_weekViewMode === 'therapist' ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
-    + '<button onclick="_weekViewMode=\'child\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
-    + (_weekViewMode === 'child' ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👶 아동 기준</button>';
+    + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
+    + (_weekViewMode === 'child' && !_weekDupOnly ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
+    + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=true;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
+    + (_weekDupOnly ? 'background:#f97316;color:#fff;font-weight:700;border-color:#f97316;' : 'background:#fff;color:#64748b;') + '">🔴 중복 수업만</button>';
 
   // 주간 내 모든 일정
   var allWeekScheds = scheduleDB.filter(function(s) {
@@ -407,12 +410,9 @@ function renderWeekGrid() {
             var child = childDB.find(function(c){ return c.id === s.childId; });
             var cname = child ? escHtml(child.name) : '?';
             var time  = (s.startTime||s.time||'').slice(0,5);
-            var isDup = duplicateMap[w.str] && duplicateMap[w.str].indexOf(s.childId) >= 0;
-            var nameStyle = isDup ? 'font-weight:700;color:#ef4444;background:#fef2f2;border-radius:4px;padding:0 3px;' : 'font-weight:700;';
-            var prefix = isDup ? '🔴 ' : '';
             return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(' + s.id + ')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
-              + '<span style="' + nameStyle + '">' + prefix + cname + '</span>'
+              + '<span style="font-weight:700;">' + cname + '</span>'
               + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
@@ -810,6 +810,17 @@ function renderWeekGridByChild(weekDates, weekScheds) {
     if (s.childId && childIds.indexOf(s.childId) < 0) childIds.push(s.childId);
   });
 
+  // 중복 수업 아동만 보기 필터 (_weekDupOnly)
+  if (_weekDupOnly) {
+    childIds = childIds.filter(function(cid) {
+      // 같은 날짜에 2개 이상 일정이 있는 아동만
+      return weekDates.some(function(w) {
+        var cnt = weekScheds.filter(function(s){ return s.date === w.str && s.childId === cid; }).length;
+        return cnt >= 2;
+      });
+    });
+  }
+
   // 아동 이름 기준 정렬
   childIds.sort(function(a, b) {
     var ca = childDB.find(function(c){ return c.id === a; });
@@ -820,7 +831,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   });
 
   if (childIds.length === 0) {
-    wgEl.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">이번 주 일정이 없습니다.</div>';
+    wgEl.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">' + (_weekDupOnly ? '이번 주에 같은 날 중복 수업 아동이 없습니다.' : '이번 주 일정이 없습니다.') + '</div>';
     return;
   }
 
