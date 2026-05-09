@@ -1,3 +1,89 @@
+// ─────── 게시판 이미지 업로드 유틸 ───────
+var _loungePostImages    = []; // 글 작성 폼 첨부 File 객체 배열 (최대 3장)
+var _loungeCommentImages = {}; // { postId: File } 댓글 첨부 1장
+
+// Supabase Storage board-images 버킷에 파일 업로드 → public URL 반환
+function uploadBoardImage(file, folder) {
+  var ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  var path = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
+  return fetch(SUPA_URL + '/storage/v1/object/board-images/' + path, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + SUPA_REALTIME_KEY,
+      'apikey':        SUPA_REALTIME_KEY,
+      'Content-Type':  file.type || 'application/octet-stream',
+      'x-upsert':      'true'
+    },
+    body: file
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(t){ throw new Error('이미지 업로드 실패(' + res.status + '): ' + t); });
+    return SUPA_URL + '/storage/v1/object/public/board-images/' + path;
+  });
+}
+
+// 이미지 URL 배열을 가로 스크롤 썸네일로 렌더
+function renderImageThumbs(urls) {
+  if (!urls || urls.length === 0) return '';
+  return '<div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0;margin-top:6px;-webkit-overflow-scrolling:touch;">'
+    + urls.map(function(url) {
+        var safeUrl = escHtml(url);
+        return '<a href="' + safeUrl + '" target="_blank" rel="noopener" style="flex-shrink:0;">'
+          + '<img src="' + safeUrl + '" alt="첨부 이미지" loading="lazy" '
+          + 'style="height:110px;width:auto;max-width:180px;border-radius:8px;object-fit:cover;border:1px solid var(--border);" '
+          + 'onerror="this.remove()">'
+          + '</a>';
+      }).join('')
+    + '</div>';
+}
+
+// 파일 input change → 미리보기 갱신 (글 작성 폼)
+function onLoungeImagesChange(input) {
+  _loungePostImages = [];
+  var previewEl = document.getElementById('loungeImgPreview');
+  if (!input.files || input.files.length === 0) {
+    if (previewEl) previewEl.innerHTML = '';
+    return;
+  }
+  var files = Array.prototype.slice.call(input.files, 0, 3);
+  files.forEach(function(f) { _loungePostImages.push(f); });
+  if (previewEl) {
+    previewEl.innerHTML = files.map(function(f, i) {
+      var url = URL.createObjectURL(f);
+      return '<div style="position:relative;display:inline-block;">'
+        + '<img src="' + url + '" style="height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">'
+        + '<button type="button" onclick="removeLoungeImage(' + i + ')" '
+        + 'style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1;font-weight:700;">×</button>'
+        + '</div>';
+    }).join('');
+  }
+}
+
+function removeLoungeImage(idx) {
+  _loungePostImages.splice(idx, 1);
+  var input = document.getElementById('loungeImgInput');
+  if (input) input.value = '';
+  var previewEl = document.getElementById('loungeImgPreview');
+  if (previewEl) {
+    previewEl.innerHTML = _loungePostImages.map(function(f, i) {
+      var url = URL.createObjectURL(f);
+      return '<div style="position:relative;display:inline-block;">'
+        + '<img src="' + url + '" style="height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">'
+        + '<button type="button" onclick="removeLoungeImage(' + i + ')" '
+        + 'style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1;font-weight:700;">×</button>'
+        + '</div>';
+    }).join('');
+  }
+}
+
+// 댓글 이미지 첨부
+function onCommentImageChange(postId, input) {
+  if (input.files && input.files[0]) {
+    _loungeCommentImages[postId] = input.files[0];
+  } else {
+    delete _loungeCommentImages[postId];
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // MADI 게시판 시스템
 //   2단계: 골격 + 탭 전환                           ✅ 완료
@@ -472,6 +558,11 @@ function renderLoungeUI() {
     + '<select id="loungeVisibility" class="form-input" style="font-size:14px;">' + visOptHtml + '</select>'
     + '<input type="text" id="loungeTitle" class="form-input" placeholder="제목 (100자 이내)" maxlength="100">'
     + '<textarea id="loungeContent" class="form-input" placeholder="내용을 입력하세요..." rows="4" style="resize:vertical;font-family:inherit;"></textarea>'
+    + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 이미지 첨부 (최대 3장, 선택)</div>'
+    + '<input type="file" id="loungeImgInput" accept="image/*" multiple style="font-size:12px;" onchange="onLoungeImagesChange(this)">'
+    + '<div id="loungeImgPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;"></div>'
+    + '</div>'
     + '<button class="btn btn-primary" onclick="saveLoungePost()" style="font-size:14px;">📝 작성하기</button>'
     + '</div>'
     + '</div>';
@@ -522,6 +613,7 @@ function renderLoungePostCard(post, user) {
     + '</div>'
     + '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">' + escHtml(post.title || '') + '</div>'
     + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:10px;">' + escHtml(post.content) + '</div>' : '')
+    + (post.image_urls && post.image_urls.length ? renderImageThumbs(post.image_urls) : '')
     + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:8px;">'
     +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + meta.color + ';border-color:' + meta.color + ';" onclick="toggleComments(' + post.id + ')">💬 댓글 <span id="commentCount_' + post.id + '"></span></button>'
     +   '<div id="commentArea_' + post.id + '" style="display:none;margin-top:10px;"></div>'
@@ -557,10 +649,24 @@ function saveLoungePost() {
   var btn = document.querySelector('button[onclick="saveLoungePost()"]');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ 등록 중...'; }
 
-  supaFetch('madi_lounge_posts', 'POST', post)
+  // 이미지 업로드 후 글 저장
+  var uploadPromises = _loungePostImages.map(function(f) {
+    return uploadBoardImage(f, 'posts');
+  });
+
+  Promise.all(uploadPromises)
+    .then(function(imageUrls) {
+      if (imageUrls.length > 0) post.image_urls = imageUrls;
+      return supaFetch('madi_lounge_posts', 'POST', post);
+    })
     .then(function() {
       titleEl.value = '';
       contentEl.value = '';
+      _loungePostImages = [];
+      var imgInput = document.getElementById('loungeImgInput');
+      if (imgInput) imgInput.value = '';
+      var preview = document.getElementById('loungeImgPreview');
+      if (preview) preview.innerHTML = '';
       showToast('✅ 글이 등록됐습니다');
       loadLoungePosts();
     })
@@ -649,13 +755,21 @@ function renderComments(postId) {
           + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(' + postId + ',' + c.id + ')">🗑️</button>' : '')
           + '</div>'
           + '<div style="font-size:13px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + escHtml(c.content) + '</div>'
+        + (c.image_url ? '<a href="' + escHtml(c.image_url) + '" target="_blank" rel="noopener">'
+          + '<img src="' + escHtml(c.image_url) + '" loading="lazy" '
+          + 'style="margin-top:6px;max-height:120px;max-width:100%;border-radius:8px;" '
+          + 'onerror="this.remove()"></a>' : '')
           + '</div>';
       }).join('');
 
   // 작성 폼
-  var formHtml = '<div style="display:flex;gap:6px;margin-top:8px;">'
+  var formHtml = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'
+    + '<div style="display:flex;gap:6px;">'
     + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeypress="if(event.key===\'Enter\') saveComment(' + postId + ')">'
     + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(' + postId + ')">📝 등록</button>'
+    + '</div>'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;">'
+    + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(' + postId + ',this)"></label>'
     + '</div>';
 
   area.innerHTML = listHtml + formHtml;
@@ -679,9 +793,18 @@ function saveComment(postId) {
     content:     content
   };
 
-  supaFetch('madi_lounge_comments', 'POST', comment)
+  // 이미지 첨부 있으면 업로드 후 저장
+  var imgFile = _loungeCommentImages[postId] || null;
+  var uploadP = imgFile ? uploadBoardImage(imgFile, 'comments') : Promise.resolve(null);
+
+  uploadP
+    .then(function(imageUrl) {
+      if (imageUrl) comment.image_url = imageUrl;
+      return supaFetch('madi_lounge_comments', 'POST', comment);
+    })
     .then(function() {
       inputEl.value = '';
+      delete _loungeCommentImages[postId];
       loadComments(postId);
     })
     .catch(function(err) {
