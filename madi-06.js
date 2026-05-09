@@ -667,10 +667,23 @@ function populateChildSelects() {
     var cur = el.value;
     var needsEmpty = ['sessionChild','chartChild',
                       'reportChild','portfolioChild','faqChild','eduChild','iepChild'];
+    // sessionChild는 종결 아동 자동 제외 (세션 입력은 활성 아동만)
+    var optsHtml;
+    if (id === 'sessionChild') {
+      var activeChildren = childDB
+        .filter(function(c){ return c.status !== '종결'; })
+        .sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); });
+      optsHtml = activeChildren.map(function(c) {
+        var label = escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age) + ')';
+        return '<option value="' + c.id + '">' + label + '</option>';
+      }).join('');
+    } else {
+      optsHtml = _optionsCacheHtml;
+    }
     el.innerHTML = childDB.length === 0
       ? '<option value="">아동을 먼저 등록해주세요</option>'
       : (needsEmpty.indexOf(id) > -1 ? '<option value="">아동 검색...</option>' : '')
-        + _optionsCacheHtml;
+        + optsHtml;
     // 이전 선택값 복원
     if (cur) el.value = cur;
   });
