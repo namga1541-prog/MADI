@@ -231,12 +231,7 @@ function goToAdmin(tab) {
     showToast('⚠️ 관리자만 접근할 수 있어요');
     return;
   }
-  // iframe 방식: 페이지 이동 없이 사이드바 유지
-  if (tab === 'service') {
-    switchTab(4);
-  } else {
-    switchTab(5);
-  }
+  window.location.href = 'admin.html?tab=' + (tab || 'service');
 }
 
 function applyRoleUI() {
