@@ -1149,8 +1149,6 @@
   <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
   <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
   <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📁</span><span class="tab-lbl">성장기록</span></button>
-  <button class="tab-btn" id="tabBtn4" onclick="goToAdmin('service')"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
-  <button class="tab-btn" id="tabBtn5" onclick="goToAdmin('settings')"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
   <button class="tab-btn" id="tabBtn6" onclick="switchTab(6)"><span class="tab-ico">🔧</span><span class="tab-lbl">설정</span></button>
 </div>
 
@@ -1756,13 +1754,6 @@
 <!-- TAB 1: 공지사항 (NEW) -->
 <div class="tab-panel" id="panelNotice"><!-- 공지사항이 관리자 탭으로 통합됨 --></div>
 
-<!-- TAB 5: 서비스관리 (NEW) -->
-<div class="tab-panel" id="panelService" style="padding:0;overflow:hidden;">
-  <iframe id="adminServiceFrame" src="" style="width:100%;height:calc(100vh - 72px);border:none;display:block;" allowfullscreen></iframe>
-</div>
-<div class="tab-panel" id="panel8" style="padding:0;overflow:hidden;">
-  <iframe id="adminSettingsFrame" src="" style="width:100%;height:calc(100vh - 72px);border:none;display:block;" allowfullscreen></iframe>
-</div>
 
 <!-- ─── 게시판 탭 패널 (2단계: 골격) ─── -->
 <div class="tab-panel" id="panelBoard">
