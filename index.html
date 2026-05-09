@@ -1423,6 +1423,7 @@
       <div class="view-toggle">
         <button class="view-toggle-btn active" id="viewBtnMonth" onclick="setSchedView('month')">월간</button>
         <button class="view-toggle-btn" id="viewBtnWeek" onclick="setSchedView('week')">주간</button>
+        <button class="view-toggle-btn" id="viewBtn_day" onclick="setSchedView('day')">일일</button>
       </div>
       <div class="week-nav">
         <button class="week-nav-btn" onclick="moveSchedPeriod(-1)">◀</button>
@@ -1444,6 +1445,9 @@
       </div>
       <div id="weekViewWrap" style="display:none;">
         <div class="week-grid" id="weekGrid"></div>
+      </div>
+      <div id="dayViewWrap" style="display:none;">
+        <div class="week-grid" id="dayGrid"></div>
       </div>
     </div>
   </div>
