@@ -37,6 +37,8 @@ function renderImageThumbs(urls) {
 }
 
 // 파일 input change → 미리보기 갱신 (글 작성 폼)
+var MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB
+
 function onLoungeImagesChange(input) {
   _loungePostImages = [];
   var previewEl = document.getElementById('loungeImgPreview');
@@ -45,6 +47,16 @@ function onLoungeImagesChange(input) {
     return;
   }
   var files = Array.prototype.slice.call(input.files, 0, 3);
+  var oversized = [];
+  files = files.filter(function(f) {
+    if (f.size > MAX_IMG_BYTES) { oversized.push(f.name); return false; }
+    return true;
+  });
+  if (oversized.length > 0) {
+    showToast('\u26a0\ufe0f 5MB \ucd08\uacfc \uc774\ubbf8\uc9c0\ub294 \uccca\ubd80\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4: ' + oversized.join(', '));
+    input.value = '';
+    if (files.length === 0) { if (previewEl) previewEl.innerHTML = ''; return; }
+  }
   files.forEach(function(f) { _loungePostImages.push(f); });
   if (previewEl) {
     previewEl.innerHTML = files.map(function(f, i) {
@@ -78,7 +90,14 @@ function removeLoungeImage(idx) {
 // 댓글 이미지 첨부
 function onCommentImageChange(postId, input) {
   if (input.files && input.files[0]) {
-    _loungeCommentImages[postId] = input.files[0];
+    var f = input.files[0];
+    if (f.size > MAX_IMG_BYTES) {
+      showToast('\u26a0\ufe0f \uc774\ubbf8\uc9c0\ub294 5MB \uc774\ud558\ub85c \ucca8\ubd80\ud574 \uc8fc\uc138\uc694');
+      input.value = '';
+      delete _loungeCommentImages[postId];
+      return;
+    }
+    _loungeCommentImages[postId] = f;
   } else {
     delete _loungeCommentImages[postId];
   }
