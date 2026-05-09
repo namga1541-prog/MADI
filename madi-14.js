@@ -13,6 +13,7 @@ var currentBoardTab = 'global';
 // 데이터 캐시 (단계별로 채워나감)
 var globalNoticesDB = [];
 var centerNoticesDB = [];
+var loungePostsDB = [];
 var centersByIdCache = null;  // null=미로드, {}=로드됨 (슈퍼어드민이 센터 이름 표시용)
 
 // 게시판 진입 시 호출 (switchTab(7)에서 자동)
@@ -374,5 +375,204 @@ function deleteCenterNotice(id) {
 // 🍵 라운지 (5~6단계에서 구현)
 // ═══════════════════════════════════════════════════════════
 function renderLounge() {
-  // 골격 유지
+  loadLoungePosts();
+}
+
+// ───────── 라운지 글 — 권한 기반 필터링 ─────────
+// teacher는 Edge Function이 center_id 자동 필터, admin/superadmin은 클라이언트 필터
+function filterLoungePosts(posts, user) {
+  if (!user || !posts) return [];
+  var role = user.role, name = user.name, cid = user.center_id;
+
+  return posts.filter(function(p) {
+    if (role === 'superadmin') {
+      // 슈퍼어드민: 모든 center 라운지 + 모든 private_super 1:1
+      return p.visibility === 'center' || p.visibility === 'private_super';
+    }
+    if (role === 'admin') {
+      // 센터장: 자기 센터의 center/private_admin + 본인 발신 private_super
+      if (p.center_id !== cid) return false;
+      if (p.visibility === 'center') return true;
+      if (p.visibility === 'private_admin') return true;
+      if (p.visibility === 'private_super' && p.author_name === name) return true;
+      return false;
+    }
+    // teacher: 자기 센터 center(이미 Edge 필터됨) + 본인 발신 private_*
+    if (p.visibility === 'center') return true;
+    if (p.author_name === name) return true;
+    return false;
+  });
+}
+
+// visibility 표시 메타 (라벨/아이콘/색상)
+function visibilityMeta(vis) {
+  if (vis === 'private_super') return { label: '1:1 슈퍼관리자', icon: '🔒', color: '#8b5cf6', bg: '#ede9fe' };
+  if (vis === 'private_admin') return { label: '1:1 센터장', icon: '🔒', color: '#0ea5a0', bg: '#e0f7f6' };
+  return { label: '라운지', icon: '📢', color: '#3b82f6', bg: '#dbeafe' };
+}
+
+function loadLoungePosts() {
+  var ui = document.getElementById('bdPanel_lounge');
+  if (!ui) return;
+  ui.innerHTML = '<div class="loading"><div class="spinner"></div><p>라운지 글을 불러오는 중...</p></div>';
+
+  // admin/superadmin은 다른 센터 글까지 봐야 하므로 limit 넉넉하게
+  supaFetch('/madi_lounge_posts?select=*&order=created_at.desc&limit=100', 'GET')
+    .then(function(data) {
+      loungePostsDB = data || [];
+      // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
+      if (currentUser && currentUser.role === 'superadmin') {
+        loadCentersByIdCache().finally(function() { renderLoungeUI(); });
+      } else {
+        renderLoungeUI();
+      }
+    })
+    .catch(function(err) {
+      ui.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+    });
+}
+
+function renderLoungeUI() {
+  var ui = document.getElementById('bdPanel_lounge');
+  if (!ui) return;
+
+  var user = currentUser || {};
+  var role = user.role;
+  var posts = filterLoungePosts(loungePostsDB, user);
+
+  // 역할별 작성 가능 visibility 옵션
+  var visOpts = [];
+  if (role === 'teacher') {
+    visOpts = [
+      { val: 'center',        label: '📢 라운지 (센터 모두에게 공개)' },
+      { val: 'private_super', label: '🔒 1:1 슈퍼관리자에게' },
+      { val: 'private_admin', label: '🔒 1:1 센터장에게' }
+    ];
+  } else if (role === 'admin') {
+    visOpts = [
+      { val: 'center',        label: '📢 라운지 (센터 모두에게 공개)' },
+      { val: 'private_super', label: '🔒 1:1 슈퍼관리자에게' }
+    ];
+  } else if (role === 'superadmin') {
+    visOpts = [
+      { val: 'center',        label: '📢 라운지 (모든 센터 공통)' }
+    ];
+  }
+  var visOptHtml = visOpts.map(function(o) {
+    return '<option value="' + o.val + '">' + o.label + '</option>';
+  }).join('');
+
+  // 작성 폼
+  var formHtml = visOpts.length === 0 ? '' :
+      '<div class="card" style="margin-bottom:16px;">'
+    + '<div class="card-title"><div class="card-title-left">✏️ 라운지 글 작성</div></div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;">'
+    + '<select id="loungeVisibility" class="form-input" style="font-size:14px;">' + visOptHtml + '</select>'
+    + '<input type="text" id="loungeTitle" class="form-input" placeholder="제목 (100자 이내)" maxlength="100">'
+    + '<textarea id="loungeContent" class="form-input" placeholder="내용을 입력하세요..." rows="4" style="resize:vertical;font-family:inherit;"></textarea>'
+    + '<button class="btn btn-primary" onclick="saveLoungePost()" style="font-size:14px;">📝 작성하기</button>'
+    + '</div>'
+    + '</div>';
+
+  // 글 목록
+  var listHtml = posts.length === 0
+    ? '<div style="text-align:center;padding:40px 20px;color:var(--text2);font-size:13px;">아직 등록된 글이 없습니다.</div>'
+    : posts.map(function(p) { return renderLoungePostCard(p, user); }).join('');
+
+  ui.innerHTML = formHtml + '<div style="display:flex;flex-direction:column;gap:10px;">' + listHtml + '</div>';
+}
+
+function renderLoungePostCard(post, user) {
+  var canDelete = (user && (user.role === 'superadmin' || post.author_name === user.name));
+  var meta = visibilityMeta(post.visibility);
+  var roleBadge = post.author_role === 'superadmin' ? '👑 슈퍼관리자' :
+                  post.author_role === 'admin'      ? '🎯 센터장'    : '👤 선생님';
+
+  // 슈퍼어드민이 다른 센터 글 보는 경우 센터 이름 표시
+  var centerBadge = '';
+  if (user && user.role === 'superadmin' && post.center_id) {
+    var centerName = (centersByIdCache && centersByIdCache[post.center_id]) || post.center_id;
+    centerBadge = ' · <span style="font-size:11px;color:var(--text2);">🏢 ' + escHtml(centerName) + '</span>';
+  }
+
+  // 시간 표시
+  var when = '';
+  try {
+    if (post.created_at) {
+      var d = new Date(post.created_at);
+      when = d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+  } catch (e) { when = ''; }
+
+  var deleteBtn = canDelete
+    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(' + post.id + ')">🗑️ 삭제</button>'
+    : '';
+
+  return '<div class="card" style="border-left:4px solid ' + meta.color + ';">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">'
+    + '<div style="flex:1;min-width:0;">'
+    +   '<span style="display:inline-block;font-size:11px;color:' + meta.color + ';font-weight:700;background:' + meta.bg + ';padding:3px 9px;border-radius:10px;">' + meta.icon + ' ' + meta.label + '</span>'
+    +   '<div style="margin-top:6px;font-size:12px;color:var(--text2);">'
+    +     '<span style="font-weight:600;color:var(--text);">' + escHtml(post.author_name || '익명') + '</span> · ' + roleBadge + centerBadge + ' · ' + when
+    +   '</div>'
+    + '</div>'
+    + deleteBtn
+    + '</div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">' + escHtml(post.title || '') + '</div>'
+    + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-word;">' + escHtml(post.content) + '</div>' : '')
+    + '</div>';
+}
+
+function saveLoungePost() {
+  var visEl     = document.getElementById('loungeVisibility');
+  var titleEl   = document.getElementById('loungeTitle');
+  var contentEl = document.getElementById('loungeContent');
+  if (!visEl || !titleEl || !contentEl) return;
+
+  var visibility = visEl.value;
+  var title      = (titleEl.value || '').trim();
+  var content    = (contentEl.value || '').trim();
+
+  if (!title)              { showToast('⚠️ 제목을 입력해주세요'); return; }
+  if (title.length > 100)  { showToast('⚠️ 제목은 100자 이하로 작성해주세요'); return; }
+
+  var user = currentUser || {};
+  if (!user.name || !user.role) { showToast('⚠️ 로그인 정보를 확인해주세요'); return; }
+
+  var post = {
+    center_id:   user.center_id || '',
+    author_name: user.name,
+    author_role: user.role,
+    visibility:  visibility,
+    title:       title,
+    content:     content
+  };
+
+  var btn = document.querySelector('button[onclick="saveLoungePost()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 등록 중...'; }
+
+  supaFetch('/madi_lounge_posts', 'POST', post)
+    .then(function() {
+      titleEl.value = '';
+      contentEl.value = '';
+      showToast('✅ 글이 등록됐습니다');
+      loadLoungePosts();
+    })
+    .catch(function(err) {
+      showToast('⚠️ 등록 실패: ' + (err.message || ''));
+      if (btn) { btn.disabled = false; btn.textContent = '📝 작성하기'; }
+    });
+}
+
+function deleteLoungePost(id) {
+  if (!confirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.')) return;
+
+  supaFetch('/madi_lounge_posts?id=eq.' + id, 'DELETE')
+    .then(function() {
+      showToast('🗑️ 글이 삭제됐습니다');
+      loadLoungePosts();
+    })
+    .catch(function(err) {
+      showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+    });
 }
