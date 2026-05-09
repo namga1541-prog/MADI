@@ -471,16 +471,6 @@ function deleteBackupConfirm(id) {
   });
 }
 
-function manualBackupNow() {
-  showToast('💾 백업 중...');
-  autoBackup().then(function() {
-    showToast('✅ 백업 완료!');
-    renderBackupList();
-  }).catch(function(err) {
-    showToast('❌ ' + err.message);
-  });
-}
-
 function callClaude(apiKey, system, user, maxTokens, model) {
   return fetchWithRetry(EDGE_URL + '/ai-proxy', {
     method: 'POST',
