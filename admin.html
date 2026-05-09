@@ -294,20 +294,6 @@
       <div id="intervalStatus" style="font-size:12px;margin-top:8px;"></div>
     </div>
 
-    <!-- GitHub 배포 -->
-    <div class="card" style="border:2px solid #24292e;">
-      <div class="card-title">
-        <div class="card-title-left">🚀 GitHub 배포</div>
-        <span id="deployStatus" style="font-size:11px;color:var(--text2);"></span>
-      </div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
-        <strong>admin.html</strong>을 GitHub에 업로드합니다.<br>
-        <span style="font-size:12px;color:var(--text2);">index.html 배포는 앱 헤더의 <b>🚀 배포</b> 버튼을 이용하세요.</span>
-      </p>
-      <button class="btn btn-primary" style="margin-top:0;background:#24292e;" onclick="deployAdminToGitHub()" id="deployBtn" disabled="">⏳ 배포 중...</button>
-      <div id="deployResult" style="margin-top:8px;font-size:13px;"><div style="font-size:12px;color:var(--text2);">📄 admin.html 업로드 중...</div></div>
-    </div>
-
     <!-- 센터 AI 키 관리 -->
     <div class="card" style="border:2px solid var(--mint);">
       <div class="card-title">
@@ -384,11 +370,9 @@ var SUPA_REALTIME_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 var GITHUB_OWNER = 'namga1541-prog';
 var GITHUB_REPO  = 'MADI';
 var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316','#06b6d4','#84cc16','#ec4899'];
-var AI_MODEL_PREF  = localStorage.getItem('madi_ai_model') || 'lite';
 
 // JWT 토큰 관리
 function getToken()  { return _madiToken || localStorage.getItem('madi_token') || ''; }
-function clearToken(){ _madiToken = null; localStorage.removeItem('madi_token'); }
 
 // 센터 ID 헬퍼
 function getCenterId()    { return (currentUser && currentUser.center_id) ? currentUser.center_id : ''; }
@@ -509,7 +493,6 @@ function showAdminTab(tab) {
   }
   if (tab === 'settings') {
     loadCenterApiKey(false);
-    updateModelBtns();
   }
 }
 
@@ -1324,68 +1307,8 @@ function formatInviteExpiry(expiresAt) {
   if (diffDays<=3) return { text:'⚠️ '+diffDays+'일 남음 ('+dateStr+')', color:'#f59e0b', expired:false };
   return { text:'✅ '+diffDays+'일 남음 ('+dateStr+')', color:'#16a34a', expired:false };
 }
-function loadCenterInfo() {
-  var cid = getCenterId();
-  supaFetch('madi_centers?id=eq.'+encodeURIComponent(cid)+'&select=*','GET')
-    .then(function(rows){
-      if (!rows||!rows.length) return;
-      var center = rows[0];
-      var nameEl = document.getElementById('centerName');
-      var codeEl = document.getElementById('inviteCodeDisplay');
-      var expEl  = document.getElementById('inviteExpiryDisplay');
-      if (nameEl) nameEl.textContent = center.name||cid;
-      if (codeEl) codeEl.textContent = center.invite_code||'없음';
-      if (expEl) {
-        if (!center.invite_code) { expEl.textContent=''; }
-        else { var info=formatInviteExpiry(center.invite_expires_at); expEl.textContent=info.text; expEl.style.color=info.color; }
-      }
-    }).catch(function(){});
-}
-function copyInviteCode() {
-  var code = (document.getElementById('inviteCodeDisplay')||{}).textContent||'';
-  if (!code||code==='------') { showToast('초대 코드가 없습니다.'); return; }
-  navigator.clipboard.writeText(code).then(function(){ showToast('📋 초대 코드 복사됨: '+code); }).catch(function(){ showToast('코드: '+code); });
-}
-function regenInviteCode() {
-  var daysSel = document.getElementById('inviteExpiryDays');
-  var days = daysSel?parseInt(daysSel.value,10):30;
-  if (isNaN(days)) days=30;
-  var expiryLabel = days===0?'무기한':days+'일 유효';
-  if (!confirm('초대 코드를 재발급할까요? ('+expiryLabel+')\n기존 코드는 사용 불가가 됩니다.')) return;
-  var cid     = getCenterId();
-  var newCode = cid.toUpperCase()+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
-  var payload = { invite_code:newCode };
-  if (days>0) { var exp=new Date(); exp.setDate(exp.getDate()+days); payload.invite_expires_at=exp.toISOString(); }
-  else { payload.invite_expires_at=null; }
-  supaFetch('madi_centers?id=eq.'+encodeURIComponent(cid),'PATCH',payload)
-    .then(function(){
-      var codeEl=document.getElementById('inviteCodeDisplay');
-      var expEl =document.getElementById('inviteExpiryDisplay');
-      if (codeEl) codeEl.textContent=newCode;
-      if (expEl) { var info=formatInviteExpiry(payload.invite_expires_at); expEl.textContent=info.text; expEl.style.color=info.color; }
-      showToast('✅ 재발급 완료: '+newCode+' ('+expiryLabel+')');
-    }).catch(function(err){ showToast('❌ 재발급 실패: '+escHtml(err.message||'오류')); });
-}
 
 // ── 선생님 계정 관리 ──
-function addStaffAccount() {
-  var name     = (document.getElementById('fixedStaffName')   ||{}).value.trim();
-  var username = (document.getElementById('newStaffUsername') ||{}).value.trim();
-  var pw       = (document.getElementById('fixedStaffPw')     ||{}).value.trim();
-  var role     = (document.getElementById('fixedStaffRole')   ||{}).value;
-  var resultEl = document.getElementById('staffAddResult');
-  if (!name||!username||!pw) { if(resultEl) resultEl.innerHTML='<span style="color:var(--red);">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>'; return; }
-  if (resultEl) resultEl.innerHTML='<span style="color:var(--text2);">추가 중...</span>';
-  hashPassword(pw).then(function(hashed){
-    return supaFetch('madi_users','POST',[{ id:Date.now()+Math.floor(Math.random()*1000), username:username, name:name, password:hashed, role:role, center_id:getCenterId(), color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0') }]);
-  }).then(function(){
-    if (resultEl) resultEl.innerHTML='<span style="color:var(--green);">✅ '+escHtml(name)+' 선생님 계정 추가됨</span>';
-    document.getElementById('fixedStaffName').value='';
-    document.getElementById('newStaffUsername').value='';
-    document.getElementById('fixedStaffPw').value='';
-    loadStaffMgmtList();
-  }).catch(function(err){ if(resultEl) resultEl.innerHTML='<span style="color:var(--red);">❌ 추가 실패: '+escHtml(err.message||'아이디 중복일 수 있습니다')+'</span>'; });
-}
 function loadStaffMgmtList() {
   var el = document.getElementById('staffMgmtList');
   if (!el) return;
@@ -1449,88 +1372,13 @@ function toggleCenterKeyVisibility() {
   btn.textContent = input.type==='password'?'👁️':'🙈';
 }
 
-// ── AI 모델 / 다크모드 ──
-function setAIModel(val) {
-  AI_MODEL_PREF = val;
-  localStorage.setItem('madi_ai_model', val);
-  showToast(val==='pro'?'⚡ PRO 모드 (Sonnet)로 변경됐어요':'✨ 라이트 모드 (Haiku)로 변경됐어요');
-}
-function updateModelBtns() {
-  var isLite = AI_MODEL_PREF!=='pro';
-  var btnLite = document.getElementById('btnLite');
-  var btnPro  = document.getElementById('btnPro');
-  var badge   = document.getElementById('aiModelBadge');
-  if (btnLite) { btnLite.style.background=isLite?'var(--mint)':'white'; btnLite.style.color=isLite?'white':'var(--mint)'; }
-  if (btnPro)  { btnPro.style.background =isLite?'white':'#8b5cf6';   btnPro.style.color =isLite?'#8b5cf6':'white'; }
-  if (badge)   badge.textContent = isLite?'✨ 라이트 (Haiku)':'⚡ PRO (Sonnet)';
-}
+// ── 다크모드 ──
 function toggleDarkMode() {
   var isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('madi_dark', isDark?'1':'0');
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', isDark?'#020617':'#4f46e5');
   showToast(isDark?'🌙 다크 모드':'☀️ 라이트 모드');
-}
-
-// ── GitHub 배포 (admin.html 전용) ──
-function getGithubToken() { return localStorage.getItem('madi_gh_token')||''; }
-function deployFileToGitHub(token, filename, textContent, commitMsg) {
-  var apiBase = 'https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+filename;
-  var headers = { 'Authorization':'token '+token, 'Accept':'application/vnd.github.v3+json', 'Content-Type':'application/json' };
-  var b64     = btoa(unescape(encodeURIComponent(textContent)));
-  return fetch(apiBase, { headers:headers })
-    .then(function(r){ return r.json(); })
-    .then(function(info){
-      var body = { message:commitMsg, content:b64 };
-      if (info.sha) body.sha = info.sha;
-      return fetch(apiBase, { method:'PUT', headers:headers, body:JSON.stringify(body) });
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(res){
-      if (res.content&&res.content.sha) return res;
-      throw new Error(res.message||filename+' 업로드 실패');
-    });
-}
-
-function deployAdminToGitHub() {
-  var token = getGithubToken();
-  if (!token) {
-    var t = prompt('GitHub Token을 입력하세요:\n(한 번 입력하면 저장됩니다)');
-    if (!t) return;
-    localStorage.setItem('madi_gh_token', t.trim());
-    token = t.trim();
-  }
-  var btn    = document.getElementById('deployBtn');
-  var result = document.getElementById('deployResult');
-  var status = document.getElementById('deployStatus');
-  if (!btn || !result) return;
-
-  btn.disabled    = true;
-  btn.textContent = '⏳ 배포 중...';
-  result.innerHTML = '<div style="font-size:12px;color:var(--text2);">📄 admin.html 업로드 중...</div>';
-
-  var commitTime   = new Date().toLocaleString('ko-KR');
-  var adminContent = document.documentElement.outerHTML;
-
-  deployFileToGitHub(token, 'admin.html', adminContent, '마디아이 관리자 업데이트 — ' + commitTime)
-    .then(function() {
-      btn.disabled    = false;
-      btn.textContent = '🚀 admin.html 배포';
-      result.innerHTML = '<div style="color:var(--mint);font-weight:700;">✅ 배포 완료!<br>'
-        + '<span style="font-size:11px;color:var(--text2);font-weight:400;">1~2분 후 반영됩니다.</span></div>';
-      if (status) status.textContent = '최근 배포: ' + new Date().toLocaleTimeString('ko-KR');
-      showToast('🚀 admin.html 배포 완료!');
-    })
-    .catch(function(e) {
-      btn.disabled    = false;
-      btn.textContent = '🚀 admin.html 배포';
-      if (e.message && e.message.includes('Bad credentials')) {
-        localStorage.removeItem('madi_gh_token');
-        result.innerHTML = '<div style="color:#ef4444;">❌ Token 오류 — 다시 시도해 주세요.</div>';
-      } else {
-        result.innerHTML = '<div style="color:#ef4444;">❌ 배포 실패: ' + escHtml(e.message||'알 수 없는 오류') + '</div>';
-      }
-    });
 }
 
 // ── 마로 위치 초기화 ──
@@ -1557,8 +1405,6 @@ window.addEventListener('DOMContentLoaded', function() {
   // 사용자 이름 표시
   var nameEl = document.getElementById('adminUserName');
   if (nameEl && currentUser) nameEl.textContent = currentUser.name;
-  // AI 모델 버튼 업데이트
-  updateModelBtns();
   // 데이터 로드 후 서비스 탭 렌더
   loadAdminData();
   // 프로그램 목록 + 선생님 목록 로드
