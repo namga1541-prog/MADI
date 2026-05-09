@@ -14,6 +14,8 @@ var currentBoardTab = 'global';
 var globalNoticesDB = [];
 var centerNoticesDB = [];
 var loungePostsDB = [];
+var loungeCommentsCache = {};   // { post_id: [comments...] } 펼친 글의 댓글만
+var loungeExpandedPosts = {};   // { post_id: true } 댓글 영역 펼친 글
 var centersByIdCache = null;  // null=미로드, {}=로드됨 (슈퍼어드민이 센터 이름 표시용)
 
 // 게시판 진입 시 호출 (switchTab(7)에서 자동)
@@ -519,7 +521,11 @@ function renderLoungePostCard(post, user) {
     + deleteBtn
     + '</div>'
     + '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">' + escHtml(post.title || '') + '</div>'
-    + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-word;">' + escHtml(post.content) + '</div>' : '')
+    + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:10px;">' + escHtml(post.content) + '</div>' : '')
+    + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:8px;">'
+    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + meta.color + ';border-color:' + meta.color + ';" onclick="toggleComments(' + post.id + ')">💬 댓글 <span id="commentCount_' + post.id + '"></span></button>'
+    +   '<div id="commentArea_' + post.id + '" style="display:none;margin-top:10px;"></div>'
+    + '</div>'
     + '</div>';
 }
 
@@ -571,6 +577,125 @@ function deleteLoungePost(id) {
     .then(function() {
       showToast('🗑️ 글이 삭제됐습니다');
       loadLoungePosts();
+    })
+    .catch(function(err) {
+      showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+    });
+}
+
+// ───────── 라운지 댓글 (6단계) ─────────
+function toggleComments(postId) {
+  var area = document.getElementById('commentArea_' + postId);
+  if (!area) return;
+
+  if (loungeExpandedPosts[postId]) {
+    // 접기
+    area.style.display = 'none';
+    loungeExpandedPosts[postId] = false;
+  } else {
+    // 펼치기 + 댓글 로드
+    area.style.display = 'block';
+    loungeExpandedPosts[postId] = true;
+    loadComments(postId);
+  }
+}
+
+function loadComments(postId) {
+  var area = document.getElementById('commentArea_' + postId);
+  if (!area) return;
+  area.innerHTML = '<div style="font-size:11px;color:var(--text2);text-align:center;padding:8px;">댓글 불러오는 중...</div>';
+
+  supaFetch('madi_lounge_comments?post_id=eq.' + postId + '&select=*&order=created_at.asc', 'GET')
+    .then(function(data) {
+      loungeCommentsCache[postId] = data || [];
+      renderComments(postId);
+    })
+    .catch(function(err) {
+      area.innerHTML = '<div style="font-size:11px;color:#ef4444;padding:6px;">⚠️ ' + escHtml(err.message || '오류') + '</div>';
+    });
+}
+
+function renderComments(postId) {
+  var area = document.getElementById('commentArea_' + postId);
+  var countEl = document.getElementById('commentCount_' + postId);
+  if (!area) return;
+
+  var comments = loungeCommentsCache[postId] || [];
+  var user = currentUser || {};
+
+  // 카운트 표시
+  if (countEl) countEl.textContent = comments.length > 0 ? '(' + comments.length + ')' : '';
+
+  // 댓글 목록 + 작성 폼
+  var listHtml = comments.length === 0
+    ? '<div style="font-size:11px;color:var(--text2);text-align:center;padding:8px;">아직 댓글이 없습니다.</div>'
+    : comments.map(function(c) {
+        var canDelete = (user.role === 'superadmin' || c.author_name === user.name);
+        var roleBadge = c.author_role === 'superadmin' ? '👑' :
+                        c.author_role === 'admin'      ? '🎯' : '👤';
+        var when = '';
+        try {
+          if (c.created_at) {
+            var d = new Date(c.created_at);
+            when = d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          }
+        } catch (e) { when = ''; }
+
+        return '<div style="background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px;">'
+          +   '<div style="font-size:11px;color:var(--text2);">'
+          +     '<span style="font-weight:600;color:var(--text);">' + roleBadge + ' ' + escHtml(c.author_name || '익명') + '</span> · ' + when
+          +   '</div>'
+          + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(' + postId + ',' + c.id + ')">🗑️</button>' : '')
+          + '</div>'
+          + '<div style="font-size:13px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + escHtml(c.content) + '</div>'
+          + '</div>';
+      }).join('');
+
+  // 작성 폼
+  var formHtml = '<div style="display:flex;gap:6px;margin-top:8px;">'
+    + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeypress="if(event.key===\'Enter\') saveComment(' + postId + ')">'
+    + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(' + postId + ')">📝 등록</button>'
+    + '</div>';
+
+  area.innerHTML = listHtml + formHtml;
+}
+
+function saveComment(postId) {
+  var inputEl = document.getElementById('newComment_' + postId);
+  if (!inputEl) return;
+  var content = (inputEl.value || '').trim();
+
+  if (!content) { showToast('⚠️ 댓글 내용을 입력해주세요'); return; }
+  if (content.length > 500) { showToast('⚠️ 댓글은 500자 이하로'); return; }
+
+  var user = currentUser || {};
+  if (!user.name || !user.role) { showToast('⚠️ 로그인 정보를 확인해주세요'); return; }
+
+  var comment = {
+    post_id:     postId,
+    author_name: user.name,
+    author_role: user.role,
+    content:     content
+  };
+
+  supaFetch('madi_lounge_comments', 'POST', comment)
+    .then(function() {
+      inputEl.value = '';
+      loadComments(postId);
+    })
+    .catch(function(err) {
+      showToast('⚠️ 댓글 등록 실패: ' + (err.message || ''));
+    });
+}
+
+function deleteComment(postId, commentId) {
+  if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+
+  supaFetch('madi_lounge_comments?id=eq.' + commentId, 'DELETE')
+    .then(function() {
+      showToast('🗑️ 댓글이 삭제됐습니다');
+      loadComments(postId);
     })
     .catch(function(err) {
       showToast('⚠️ 삭제 실패: ' + (err.message || ''));
