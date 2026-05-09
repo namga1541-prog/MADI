@@ -142,7 +142,7 @@
 <!-- ── 탭 바 ── -->
 <div class="admin-tab-bar">
   <button class="admin-tab-btn" id="adminTabService" onclick="showAdminTab('service')">🛠 서비스관리</button>
-  <button class="admin-tab-btn active" id="adminTabSettings" onclick="showAdminTab('settings')">⚙️ 관리자설정</button>
+  <button class="admin-tab-btn active" id="adminTabSettings" onclick="showAdminTab('settings')" style="display:none;">⚙️ 관리자설정</button>
 </div>
 
 <!-- ══════ 서비스관리 패널 ══════ -->
@@ -1635,7 +1635,11 @@ window.addEventListener('DOMContentLoaded', function() {
   // URL 파라미터로 초기 탭 결정 (service / settings)
   var urlTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
   showAdminTab(urlTab);
-  // 두 탭 모두 항상 클릭 가능
+  // 관리자설정 탭은 superadmin만
+  var settingsTabBtn = document.getElementById('adminTabSettings');
+  if (settingsTabBtn) {
+    settingsTabBtn.style.display = (currentUser && currentUser.role === 'superadmin') ? '' : 'none';
+  }
 });
 
 
