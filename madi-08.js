@@ -522,31 +522,6 @@ function downloadIEPPDF(childName) {
 }
 
 // ─────── W5: 활동 자료 카탈로그 ───────
-// ─────── W8: 정체 감지 설정 ───────
-function saveStagnationSettings() {
-  var countSel = document.getElementById('stagCountSel');
-  var scoreSel = document.getElementById('stagScoreSel');
-  if (!countSel || !scoreSel) return;
-  var count = countSel.value;
-  var score = scoreSel.value;
-  localStorage.setItem('madi_stag_count', count);
-  localStorage.setItem('madi_stag_score', score);
-  var desc = document.getElementById('stagSettingDesc');
-  if (desc) desc.textContent = '현재: ' + count + '회 연속 ' + score + '% 미만이면 정체로 감지합니다.';
-  showToast('✅ 설정 저장됨');
-}
-
-function loadStagnationSettings() {
-  var count = localStorage.getItem('madi_stag_count') || '3';
-  var score = localStorage.getItem('madi_stag_score') || '40';
-  var countSel = document.getElementById('stagCountSel');
-  var scoreSel = document.getElementById('stagScoreSel');
-  if (countSel) countSel.value = count;
-  if (scoreSel) scoreSel.value = score;
-  var desc = document.getElementById('stagSettingDesc');
-  if (desc) desc.textContent = '현재: ' + count + '회 연속 ' + score + '% 미만이면 정체로 감지합니다.';
-}
-
 // ─────── W8: 효과 통계 대시보드 ───────
 function renderEffectStats() {
   var el = document.getElementById('effectStatsBody');
