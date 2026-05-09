@@ -238,20 +238,6 @@ function goToAdmin(tab) {
     switchTab(5);
   }
 }
-// 내부 탭 직접 전환 (goToAdmin 리다이렉트 없이)
-function switchTabDirect(idx) {
-  ALL_PANELS_NEW.forEach(function(id){ var p=document.getElementById(id); if(p) p.classList.remove('active'); });
-  for(var i=0;i<6;i++){ var b=document.getElementById('tabBtn'+i); if(b) b.classList.remove('active'); }
-  var hb=document.getElementById('tabBtnHome'); if(hb) hb.classList.remove('active');
-  var targetId = TAB_PANEL_MAP[idx];
-  var tp = document.getElementById(targetId); if(tp) tp.classList.add('active');
-  var tb = document.getElementById('tabBtn'+idx); if(tb) tb.classList.add('active');
-  if (idx === 5) {
-    loadNotices();
-    loadCenterInfo();
-    loadStaffMgmtList();
-  }
-}
 
 function applyRoleUI() {
   var isAdminOrSuper = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
@@ -728,12 +714,6 @@ function setFontSize(size) {
   var labels = { small:'작게', medium:'기본', large:'크게' };
   showToast('🔤 글자 크기: ' + (labels[size] || '기본'));
 }
-function loadFontSize() {
-  var size = localStorage.getItem('madi_font_size') || 'medium';
-  document.body.classList.remove('font-small','font-large');
-  if (size === 'small') document.body.classList.add('font-small');
-  if (size === 'large') document.body.classList.add('font-large');
-}
 
 // ── 화면 항상 켜짐 ──
 function toggleWakeLock() {
@@ -766,10 +746,6 @@ function toggleHaptic() {
   if (next && navigator.vibrate) navigator.vibrate([20, 40, 20]);
   showToast(next ? '📳 진동 피드백 켜짐' : '📳 진동 피드백 꺼짐');
   updateSettingsUI();
-}
-function triggerHaptic() {
-  if (localStorage.getItem('madi_haptic') === '0') return;
-  if (navigator.vibrate) navigator.vibrate(10);
 }
 
 // ── 시작 탭 ──
