@@ -77,15 +77,40 @@ function renderSIReport() {
 
   // DDST 영역별 결과 입력
   function makeDevRows(domains, prefix) {
+    // K-DST는 한국형 영유아 발달 선별검사 공식 판정 기준 3단계 사용
+    var isKdst = (prefix === 'kdst');
+    var levelOpts = isKdst
+      ? '<option>또래수준</option><option>추적검사요망</option><option>심화평가권고</option>'
+      : '<option>정상 발달</option><option>의심스러운 발달</option><option>비정상 발달</option>';
     return domains.map(function(d) {
+      // K-DST는 select에 좌측 border 색상 + 우측 점 인디케이터 (위험도 시각화)
+      var selectId = 'si_' + prefix + '_' + d.key + '_level';
+      var dotId    = 'si_' + prefix + '_' + d.key + '_dot';
+      var levelCell;
+      if (isKdst) {
+        levelCell = '<td style="padding:4px 8px;">'
+          + '<div style="display:flex;align-items:center;gap:6px;">'
+          + '<select class="form-input kdst-level-select" id="' + selectId + '" '
+          +   'onchange="updateKdstLevelColor(this)" '
+          +   'style="font-size:12px;padding:6px 8px;border-left:4px solid #cbd5e1;flex:1;">'
+          + '<option value="">발달 수준 선택</option>'
+          + levelOpts
+          + '</select>'
+          + '<span id="' + dotId + '" class="kdst-level-dot" '
+          +   'style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#cbd5e1;flex-shrink:0;" '
+          +   'title="발달 수준 위험도"></span>'
+          + '</div></td>';
+      } else {
+        levelCell = '<td style="padding:4px 8px;">'
+          + '<select class="form-input" id="' + selectId + '" style="font-size:12px;padding:6px 8px;">'
+          + '<option value="">발달 수준 선택</option>'
+          + levelOpts
+          + '</select></td>';
+      }
       return '<tr>'
         + '<td style="padding:8px;font-size:13px;font-weight:600;">' + d.label + '</td>'
         + '<td style="padding:4px 8px;"><input class="form-input" id="si_' + prefix + '_' + d.key + '_result" placeholder="예: 주의2개/지연3개" style="font-size:12px;padding:6px 8px;"></td>'
-        + '<td style="padding:4px 8px;">'
-        + '<select class="form-input" id="si_' + prefix + '_' + d.key + '_level" style="font-size:12px;padding:6px 8px;">'
-        + '<option value="">발달 수준 선택</option>'
-        + '<option>정상 발달</option><option>의심스러운 발달</option><option>비정상 발달</option>'
-        + '</select></td>'
+        + levelCell
         + '<td style="padding:4px 8px;"><input class="form-input" id="si_' + prefix + '_' + d.key + '_note" placeholder="특이 수행 항목" style="font-size:12px;padding:6px 8px;"></td>'
         + '</tr>';
     }).join('');
@@ -164,7 +189,17 @@ function renderSIReport() {
     + '<div class="form-group" style="margin-bottom:12px;">'
     + '<label class="form-label">III. 실시한 검사</label>'
     + '<div style="display:flex;flex-wrap:wrap;gap:4px 16px;padding:10px;background:var(--bg2,#f8fafc);border-radius:8px;">'
-    + testsHtml + '</div></div>'
+    + testsHtml + '</div>'
+    // 수기 입력 영역 (✏️ 직접 입력)
+    + '<div style="margin-top:8px;padding:10px;background:#fef9c3;border:1px dashed #ca8a04;border-radius:8px;">'
+    + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
+    + '<span style="font-size:13px;font-weight:600;color:#854d0e;white-space:nowrap;">✏️ 직접 입력</span>'
+    + '<input type="text" id="siCustomTestInput" class="form-input" placeholder="검사명을 직접 입력하세요 (예: WPPSI-IV)" style="flex:1;min-width:160px;font-size:13px;padding:6px 8px;" onkeydown="if(event.key===&quot;Enter&quot;){event.preventDefault();addCustomSITest();}">'
+    + '<button type="button" class="btn btn-sm" onclick="addCustomSITest()" style="background:#ca8a04;color:#fff;font-size:13px;padding:6px 12px;white-space:nowrap;">＋ 추가</button>'
+    + '</div>'
+    + '<div id="siCustomTestList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>'
+    + '</div>'
+    + '</div>'
 
     // 5. 검사 결과 — DDST
     + '<div class="form-group" style="margin-bottom:12px;">'
@@ -246,6 +281,11 @@ function collectSIData() {
   document.querySelectorAll('.si-test-chk:checked').forEach(function(el) {
     var t = SI_TESTS.find(function(x){ return x.key === el.value; });
     if (t) tests.push(t.label);
+  });
+  // 사용자 정의 검사 (✏️ 직접 입력으로 추가된 항목)
+  document.querySelectorAll('#siCustomTestList .si-custom-test').forEach(function(el) {
+    var name = el.dataset.name || '';
+    if (name) tests.push(name);
   });
 
   // DDST 영역별 결과
@@ -393,4 +433,66 @@ function copySIReport() {
     document.body.removeChild(ta);
     showToast('📋 클립보드에 복사됐습니다!');
   }
+}
+
+// ─────── 감통보고서 — 사용자 정의 검사명 입력 ───────
+// 추가/삭제 시 화면만 갱신하고 collectSIData() 수집 시 일괄 추출
+function addCustomSITest() {
+  var input = document.getElementById('siCustomTestInput');
+  var list  = document.getElementById('siCustomTestList');
+  if (!input || !list) return;
+  var name = (input.value || '').trim();
+  if (!name) { showToast('검사명을 입력해주세요.'); return; }
+  if (name.length > 80) { showToast('검사명이 너무 깁니다(최대 80자).'); return; }
+
+  // 중복 체크 (사용자 입력 + 기존 SI_TESTS 라벨 모두)
+  var existsCustom = Array.prototype.some.call(
+    list.querySelectorAll('.si-custom-test'),
+    function(el){ return el.dataset.name === name; }
+  );
+  var existsBuiltin = (typeof SI_TESTS !== 'undefined') && SI_TESTS.some(function(t){ return t.label === name; });
+  if (existsCustom || existsBuiltin) { showToast('이미 추가된 검사입니다.'); return; }
+
+  // 안전한 DOM 생성 (innerHTML 인젝션 방지)
+  var chip = document.createElement('span');
+  chip.className = 'si-custom-test';
+  chip.dataset.name = name;
+  chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #ca8a04;color:#854d0e;border-radius:999px;padding:4px 4px 4px 10px;font-size:12px;font-weight:600;';
+  var label = document.createElement('span');
+  label.textContent = name;
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '×';
+  btn.title = '삭제';
+  btn.style.cssText = 'border:none;background:#fef3c7;color:#854d0e;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;font-weight:700;';
+  btn.onclick = function(){ removeCustomSITest(chip); };
+  chip.appendChild(label);
+  chip.appendChild(btn);
+  list.appendChild(chip);
+
+  input.value = '';
+  input.focus();
+}
+
+function removeCustomSITest(el) {
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+// ─────── K-DST 발달수준 색상 시각화 ───────
+// 또래수준(녹색) / 추적검사요망(주황) / 심화평가권고(빨강) — 위험도 한눈에 파악
+function updateKdstLevelColor(selectEl) {
+  if (!selectEl) return;
+  var val = selectEl.value || '';
+  // 색상 매핑 (좌측 border + 우측 점)
+  var colorMap = {
+    '또래수준':     '#16a34a', // 녹색 — 정상
+    '추적검사요망': '#ca8a04', // 주황 — 주의·관찰 필요
+    '심화평가권고': '#dc2626'  // 빨강 — 즉시 평가 필요
+  };
+  var color = colorMap[val] || '#cbd5e1'; // 미선택 시 회색
+  selectEl.style.borderLeft = '4px solid ' + color;
+  // 같은 행의 점 인디케이터 찾기 (id 규칙: ..._level → ..._dot)
+  var dotId = (selectEl.id || '').replace(/_level$/, '_dot');
+  var dot = document.getElementById(dotId);
+  if (dot) dot.style.background = color;
 }
