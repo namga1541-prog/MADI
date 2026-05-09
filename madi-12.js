@@ -440,7 +440,7 @@ function deployToGitHub() {
       return scanMadiFiles(folderHandle).then(function(jsFiles) {
         if (jsFiles.length === 0) throw new Error('madi-*.js 파일을 찾을 수 없습니다');
         JS_FILES  = jsFiles;
-        ALL_FILES = ['index.html', 'admin.html', 'privacy.html'].concat(JS_FILES);
+        ALL_FILES = ['index.html', 'admin.html'].concat(JS_FILES);
 
         // 각 파일의 내용 + SHA 동시 계산 (이전 SHA와 비교해 변경 판정)
         var lastDeployIso = localStorage.getItem('madi_last_deploy');
@@ -936,13 +936,12 @@ function initPWA() {
   var NL = String.fromCharCode(10);
 
   var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130">'
-    + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
-    + '<rect x="18" y="100" width="94" height="18" rx="9" fill="rgba(255,255,255,0.3)"/>'
-    + '<rect x="59" y="26" width="12" height="80" rx="6" fill="white"/>'
-    + '<ellipse cx="36" cy="60" rx="32" ry="17" fill="white" transform="rotate(-40,36,60)"/>'
-    + '<ellipse cx="94" cy="52" rx="32" ry="17" fill="white" transform="rotate(40,94,52)"/>'
-    + '<circle cx="65" cy="22" r="13" fill="white"/>'
-    + '<circle cx="65" cy="22" r="7" fill="#0ea5a0"/>'
+    + '<rect width="130" height="130" rx="28" fill="#e8f5f0"/>'
+    + '<rect x="18" y="14" width="94" height="76" rx="18" fill="#2d6a4f"/>'
+    + '<path d="M 26 90 L 16 112 L 52 90 Z" fill="#2d6a4f"/>'
+    + '<rect x="61" y="38" width="8" height="38" rx="4" fill="white"/>'
+    + '<path d="M 65 62 C 65 62 36 60 38 38 C 40 26 62 34 65 52 Z" fill="white"/>'
+    + '<path d="M 65 54 C 65 54 92 52 91 32 C 90 20 68 28 65 44 Z" fill="white"/>'
     + '</svg>';
   var iconBlob = new Blob([iconSvg], { type: 'image/svg+xml' });
   var iconUrl  = URL.createObjectURL(iconBlob);
@@ -951,9 +950,9 @@ function initPWA() {
   if (iconLink) iconLink.href = iconUrl;
 
   var manifest = {
-    name: '마디 — 언어치료 AI 비서',
-    short_name: '마디',
-    description: '언어치료사를 위한 AI 기반 세션 관리 앱',
+    name: '아이마디 — 언어치료 AI 비서',
+    short_name: '아이마디',
+    description: '아이마디 — 언어치료사를 위한 AI 기반 세션 관리 앱',
     start_url: './',
     scope: './',
     display: 'standalone',
