@@ -2,7 +2,6 @@
 // ─────── 상수 ───────
 var MODEL_HAIKU  = 'claude-haiku-4-5-20251001';
 var MODEL_SONNET = 'claude-sonnet-4-6';
-var AI_MODEL_PREF = localStorage.getItem('madi_ai_model') || 'lite';
 
 // ─────── 권한 관리 ───────
 var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };
@@ -40,14 +39,7 @@ function applyPermissions() {
     if (aiSubBtn) aiSubBtn.style.display = 'none';
   }
 } // 기본값: 라이트(Haiku)
-function getAIModel() { return AI_MODEL_PREF === 'pro' ? MODEL_SONNET : MODEL_HAIKU; }
-function setAIModel(val) {
-  AI_MODEL_PREF = val;
-  localStorage.setItem('madi_ai_model', val);
-  var badge = document.getElementById('aiModelBadge');
-  if (badge) badge.textContent = val === 'pro' ? '⚡ PRO (Sonnet)' : '✨ 라이트 (Haiku)';
-  showToast(val === 'pro' ? '⚡ PRO 모드 (Sonnet)로 변경됐어요' : '✨ 라이트 모드 (Haiku)로 변경됐어요');
-}
+function getAIModel() { return MODEL_HAIKU; }
 var DISORDER_EMOJI = {
   '언어발달장애':'🗣️','조음음운장애':'👄','유창성장애':'💬',
   '자폐스펙트럼':'🌈','지적장애':'🧩','청각장애':'👂','기타':'📋'
@@ -732,23 +724,6 @@ function vibrate(pattern) {
   try {
     if (navigator.vibrate) navigator.vibrate(pattern || 30);
   } catch(e) {}
-}
-
-// ─────── AI 모델 버튼 상태 업데이트 ───────
-function updateModelBtns() {
-  var isLite = AI_MODEL_PREF !== 'pro';
-  var btnLite = document.getElementById('btnLite');
-  var btnPro  = document.getElementById('btnPro');
-  var badge   = document.getElementById('aiModelBadge');
-  if (btnLite) {
-    btnLite.style.background = isLite ? 'var(--mint)' : 'white';
-    btnLite.style.color      = isLite ? 'white' : 'var(--mint)';
-  }
-  if (btnPro) {
-    btnPro.style.background = isLite ? 'white' : '#8b5cf6';
-    btnPro.style.color      = isLite ? '#8b5cf6' : 'white';
-  }
-  if (badge) badge.textContent = isLite ? '✨ 라이트 (Haiku)' : '⚡ PRO (Sonnet)';
 }
 
 // ─────── UX: 다크 모드 ───────
