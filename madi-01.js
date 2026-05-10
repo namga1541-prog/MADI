@@ -980,7 +980,7 @@ function doParentSignup() {
       // madi_parent_children 연결
       return supaFetch('madi_parent_children', 'POST', [{
         parent_user_id: newUser.id,
-        child_id:       _parentInviteRow.child_id,
+        child_id:       String(_parentInviteRow.child_id),
         center_id:      _parentInviteRow.center_id
       }]).then(function() { return newUser; });
     })
