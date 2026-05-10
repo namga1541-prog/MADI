@@ -381,7 +381,7 @@ function renderWeekGrid() {
     // 날짜 헤더 + 치료사별 행
     html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
     // 날짜 헤더 행
-    html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:60px;min-width:60px;">치료사</th>';
+    html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:60px;min-width:60px;position:sticky;left:0;z-index:3;">치료사</th>';
     weekDates.forEach(function(w) {
       var bg = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
       var col = w.isToday ? 'var(--mint,#0ea5a0)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
@@ -409,7 +409,7 @@ function renderWeekGrid() {
     therapists.forEach(function(t) {
       var color = getTeacherColor(t);
       html += '<tr>';
-      html += '<td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:' + color + ';background:' + color + '10;white-space:nowrap;vertical-align:top;">' + escHtml(t) + '</td>';
+      html += '<td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:' + color + ';background:' + color + '10;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">' + escHtml(t) + '</td>';
       weekDates.forEach(function(w) {
         var cells = weekScheds.filter(function(s){ return s.date === w.str && (s.therapist||s.teacher||'') === t; })
           .sort(function(a,b){ return ((a.startTime||a.time)||'') < ((b.startTime||b.time)||'') ? -1 : 1; });
@@ -530,7 +530,7 @@ function renderDayGrid() {
     groupOrder.forEach(function(timeKey, ri) {
       var rowBg = ri % 2 === 0 ? '#ffffff' : '#f8fafc';
       html += '<tr>';
-      html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:10px;background:#f8fafc;white-space:nowrap;vertical-align:top;">' + escHtml(timeKey) + '</td>';
+      html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:10px;background:#f8fafc;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">' + escHtml(timeKey) + '</td>';
       therapists.forEach(function(t) {
         var cell = groups[timeKey].filter(function(s){ return (s.therapist||s.teacher||'') === t; });
         if (cell.length === 0) {
@@ -850,7 +850,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
 
   // 날짜 헤더
   var todayStr = new Date().toISOString().slice(0,10);
-  html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;">아동</th>';
+  html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;position:sticky;left:0;z-index:3;">아동</th>';
   weekDates.forEach(function(w) {
     var bg  = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
     var col = w.isToday ? 'var(--mint,#0ea5a0)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
@@ -868,7 +868,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
 
     html += '<tr>';
     html += '<td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;'
-      + 'color:' + ccolor + ';background:' + ccolor + '10;white-space:nowrap;vertical-align:top;">'
+      + 'color:' + ccolor + ';background:' + ccolor + '10;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">'
       + cname
       + (cage ? '<br><span style="font-size:9px;font-weight:400;color:var(--text2);">' + cage + '</span>' : '')
       + '</td>';
