@@ -437,15 +437,14 @@
   <!-- 👪 학부모 서브패널 -->
   <div class="content" id="svcSubPanel_parent" style="display:none;">
 
-    <!-- 학부모 초대 발급 카드 -->
+    <!-- 학부모 계정 생성 카드 -->
     <div class="card" style="border:2px solid #f59e0b;">
       <div class="card-title">
-        <div class="card-title-left" style="color:#d97706;">👪 학부모 초대 발급</div>
-        <span style="font-size:11px;color:var(--text2);">링크 유효 7일</span>
+        <div class="card-title-left" style="color:#d97706;">👪 학부모 계정 생성</div>
       </div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
-        아동을 선택하고 학부모 정보를 입력하면 전용 가입 링크가 생성됩니다.<br>
-        학부모가 링크를 눌러 이름·비밀번호를 설정하면 계정이 만들어집니다.
+        아동을 선택하고 학부모 정보를 입력하면 즉시 계정이 만들어집니다.<br>
+        생성된 아이디·비밀번호를 학부모에게 카톡으로 전달하세요.
       </p>
 
       <div class="form-group">
@@ -458,31 +457,29 @@
       </div>
       <div class="form-group">
         <label class="form-label">학부모 이름</label>
-        <input id="parentInviteName" class="form-input" placeholder="예: 홍길동 어머니" style="font-size:14px;">
+        <input id="parentNewName" class="form-input" placeholder="예: 홍길동 어머니" style="font-size:14px;">
       </div>
       <div class="form-group">
-        <label class="form-label">연락처 (선택)</label>
-        <input id="parentInvitePhone" class="form-input" placeholder="010-0000-0000" style="font-size:14px;">
+        <label class="form-label">아이디</label>
+        <input id="parentNewUsername" class="form-input" placeholder="영문/숫자, 4자 이상" style="font-size:14px;" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <input id="parentNewPassword" class="form-input" placeholder="4자 이상" style="font-size:14px;" type="text" autocomplete="off">
+        <div style="font-size:11px;color:var(--text2);margin-top:4px;">학부모에게 전달할 수 있도록 평문으로 표시됩니다.</div>
       </div>
 
-      <button class="btn btn-primary" style="background:#f59e0b;margin-bottom:12px;" onclick="generateParentInvite()">🔗 초대 링크 생성</button>
+      <button class="btn btn-primary" style="background:#f59e0b;margin-bottom:12px;" onclick="createParentAccount()">👪 학부모 계정 생성</button>
 
-      <!-- 생성된 링크 표시 -->
-      <div id="parentInviteResult" style="display:none;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:14px;">
-        <div style="font-size:12px;color:#92400e;margin-bottom:8px;font-weight:700;">✅ 초대 링크가 생성됐습니다</div>
-        <div id="parentInviteLink" style="font-size:12px;word-break:break-all;color:#1e293b;background:#fff;border-radius:8px;padding:10px;margin-bottom:10px;border:1px solid #fde68a;"></div>
-        <button class="btn-ghost" style="width:100%;font-size:13px;" onclick="copyParentInviteLink()">📋 링크 복사</button>
-      </div>
-    </div>
-
-    <!-- 초대 이력 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-left">📋 초대 이력</div>
-        <button class="btn-ghost" style="font-size:12px;" onclick="loadParentInvites()">🔄 새로고침</button>
-      </div>
-      <div id="parentInviteList">
-        <div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">불러오는 중...</div>
+      <!-- 생성 결과 표시 -->
+      <div id="parentNewResult" style="display:none;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:14px;">
+        <div style="font-size:13px;color:#92400e;margin-bottom:10px;font-weight:700;">✅ 계정이 생성됐습니다</div>
+        <div style="font-size:13px;line-height:1.9;color:#1e293b;background:#fff;border-radius:8px;padding:12px;margin-bottom:10px;border:1px solid #fde68a;">
+          <div>아동: <strong id="parentNewResultChild"></strong></div>
+          <div>아이디: <strong id="parentNewResultId"></strong></div>
+          <div>비밀번호: <strong id="parentNewResultPw"></strong></div>
+        </div>
+        <button class="btn-ghost" style="width:100%;font-size:13px;" onclick="copyParentNewInfo()">📋 카톡 전송용 정보 복사</button>
       </div>
     </div>
 
@@ -679,7 +676,7 @@ function showSvcSubTab(tab) {
     if (panel) panel.style.display = (t === tab) ? '' : 'none';
     if (btn)   btn.classList.toggle('active', t === tab);
   });
-  if (tab === 'parent') { loadParentInvites(); loadParentList(); populateParentChildSelect(); }
+  if (tab === 'parent') { loadParentList(); populateParentChildSelect(); }
 }
 
 // ── 탭 전환 ──
@@ -2025,74 +2022,87 @@ function selectParentChild(id, name) {
 }
 
 // 초대 링크 생성
-function generateParentInvite() {
-  var childId   = document.getElementById('parentInviteChild').value;
-  var name      = (document.getElementById('parentInviteName').value || '').trim();
-  var phone     = (document.getElementById('parentInvitePhone').value || '').trim();
-  var resultEl  = document.getElementById('parentInviteResult');
-  var linkEl    = document.getElementById('parentInviteLink');
+// ══════════════════════════════════════
+// 학부모 계정 직접 생성
+// ══════════════════════════════════════
+
+var _lastCreatedParent = null;
+
+function createParentAccount() {
+  var childId  = document.getElementById('parentInviteChild').value;
+  var childTxt = document.getElementById('parentChildSearchInput').value;
+  var name     = (document.getElementById('parentNewName').value || '').trim();
+  var username = (document.getElementById('parentNewUsername').value || '').trim();
+  var password = document.getElementById('parentNewPassword').value || '';
 
   if (!childId) { showToast('⚠️ 아동을 선택해주세요'); return; }
   if (!name)    { showToast('⚠️ 학부모 이름을 입력해주세요'); return; }
+  if (!username || username.length < 4) { showToast('⚠️ 아이디는 4자 이상이어야 합니다'); return; }
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) { showToast('⚠️ 아이디는 영문/숫자/언더바만 가능'); return; }
+  if (!password || password.length < 4) { showToast('⚠️ 비밀번호는 4자 이상이어야 합니다'); return; }
 
-  var cid = typeof centerFilter === 'function'
-    ? (centerFilter().replace('center_id=eq.','') || '')
-    : '';
+  var cid = centerFilter().replace('center_id=eq.','') || '';
 
-  supaFetch('madi_parent_invites', 'POST', [{
-    center_id:    cid,
-    child_id:     String(childId),
-    parent_name:  name,
-    parent_phone: phone || null
-  }])
-    .then(function(res) {
-      var row = Array.isArray(res) ? res[0] : res;
-      if (!row || !row.token) throw new Error('token 없음');
-      var base = window.location.origin + window.location.pathname.replace('admin.html','index.html');
-      var link = base + '?parent_invite=' + row.token;
-      linkEl.textContent = link;
-      resultEl.style.display = 'block';
-      showToast('✅ 초대 링크 생성 완료');
-      loadParentInvites();
+  // 1) 아이디 중복 확인
+  supaFetch('madi_users?username=eq.' + encodeURIComponent(username) + '&select=id', 'GET')
+    .then(function(dup) {
+      if (Array.isArray(dup) && dup.length > 0) throw new Error('이미 사용 중인 아이디입니다');
+      // 2) 비밀번호 해싱
+      return hashPassword(password);
     })
-    .catch(function(e) { showToast('❌ 생성 실패: ' + ((e && e.message) || '오류')); });
-}
-
-// 초대 링크 복사
-function copyParentInviteLink() {
-  var link = document.getElementById('parentInviteLink').textContent;
-  if (!link) return;
-  navigator.clipboard.writeText(link)
-    .then(function() { showToast('📋 링크 복사됨'); })
-    .catch(function() { showToast('❌ 복사 실패'); });
-}
-
-// 초대 이력 불러오기
-function loadParentInvites() {
-  var el = document.getElementById('parentInviteList');
-  if (!el) return;
-  var cid = centerFilter().replace('center_id=eq.','');
-  supaFetch('madi_parent_invites?center_id=eq.' + cid + '&order=created_at.desc&limit=20', 'GET')
+    .then(function(pwHash) {
+      // 3) madi_users 생성
+      return supaFetch('madi_users', 'POST', [{
+        username:  username,
+        password:  pwHash,
+        name:      name,
+        role:      'parent',
+        center_id: cid
+      }]).then(function() {
+        // POST 응답 body 없을 수 있어 별도 GET으로 id 조회
+        return supaFetch('madi_users?username=eq.' + encodeURIComponent(username) + '&select=id', 'GET');
+      });
+    })
     .then(function(rows) {
-      if (!Array.isArray(rows) || rows.length === 0) {
-        el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">발급된 초대가 없습니다</div>';
-        return;
-      }
-      el.innerHTML = rows.map(function(r) {
-        var used    = !!r.used_at;
-        var expired = !used && new Date(r.expires_at) < new Date();
-        var status  = used ? '✅ 가입완료' : expired ? '⏰ 만료' : '⏳ 대기중';
-        var statusColor = used ? 'var(--green)' : expired ? 'var(--text2)' : 'var(--amber)';
-        return '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">'
-          + '<div style="flex:1;">'
-          + '<div style="font-size:13px;font-weight:700;">' + escHtml(r.parent_name) + '</div>'
-          + '<div style="font-size:11px;color:var(--text2);">아동 ID: ' + r.child_id + (r.parent_phone ? ' · ' + escHtml(r.parent_phone) : '') + '</div>'
-          + '<div style="font-size:11px;color:var(--text2);">만료: ' + new Date(r.expires_at).toLocaleDateString('ko-KR') + '</div>'
-          + '</div>'
-          + '<span style="font-size:12px;font-weight:700;color:' + statusColor + ';">' + status + '</span>'
-          + '</div>';
-      }).join('');
-    }).catch(function() { el.innerHTML = '<div style="color:var(--red);font-size:13px;padding:10px;">불러오기 실패</div>'; });
+      var newUser = Array.isArray(rows) ? rows[0] : null;
+      if (!newUser || !newUser.id) throw new Error('계정 조회 실패');
+      // 4) madi_parent_children 연결
+      return supaFetch('madi_parent_children', 'POST', [{
+        parent_user_id: String(newUser.id),
+        child_id:       String(childId),
+        center_id:      String(cid)
+      }]);
+    })
+    .then(function() {
+      // 5) 결과 표시
+      _lastCreatedParent = { username: username, password: password, child: childTxt, name: name };
+      document.getElementById('parentNewResultChild').textContent = childTxt;
+      document.getElementById('parentNewResultId').textContent    = username;
+      document.getElementById('parentNewResultPw').textContent    = password;
+      document.getElementById('parentNewResult').style.display    = 'block';
+      // 입력란 초기화
+      document.getElementById('parentNewName').value     = '';
+      document.getElementById('parentNewUsername').value = '';
+      document.getElementById('parentNewPassword').value = '';
+      showToast('✅ 학부모 계정 생성 완료');
+      loadParentList();
+    })
+    .catch(function(e) { showToast('❌ ' + ((e && e.message) || '생성 실패')); });
+}
+
+// 카톡 전송용 정보 복사
+function copyParentNewInfo() {
+  if (!_lastCreatedParent) return;
+  var p = _lastCreatedParent;
+  var msg = '[아이마디 학부모 계정 안내]\n'
+    + '아동: ' + p.child + '\n'
+    + '아이디: ' + p.username + '\n'
+    + '비밀번호: ' + p.password + '\n\n'
+    + '아래 주소에서 로그인해주세요.\n'
+    + window.location.origin + window.location.pathname.replace('admin.html','index.html');
+  navigator.clipboard.writeText(msg)
+    .then(function() { showToast('📋 카톡 전송용 메시지 복사됨'); })
+    .catch(function() { showToast('❌ 복사 실패'); });
 }
 
 // 등록된 학부모 목록
