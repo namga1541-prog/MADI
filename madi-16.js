@@ -6,7 +6,7 @@
 
 // ─────── VAPID 공개 키 (배포 전 대장님이 직접 입력) ───────
 // ⚠️ Public Key만 여기에 — Private Key는 절대 넣지 마세요 (Edge Function Secrets에 입력)
-var VAPID_PUBLIC_KEY = 'BK-EQBMF2Al6ZCekTeFughuc_sg2CaLRScm1l2-VuDr0O2VmR5WEODE0-ehAqRKby1YCvDP9o3kyw3DrDAEPnJc';
+var VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
 
 // ─────── base64url → Uint8Array 변환 ───────
 function urlBase64ToUint8Array(base64String) {
@@ -27,6 +27,15 @@ function isPWAInstalled() {
     if (window.navigator && window.navigator.standalone === true) return true;
   } catch (e) {}
   return false;
+}
+
+// ─────── PWA 설치가 반드시 필요한 환경인지 확인 ───────
+// iOS: 설치 필수 (미설치 시 PushManager 없음)
+// PC·Android: 설치 없이 브라우저에서 바로 푸시 가능
+function needsPWAInstall() {
+  var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!isIOS) return false;
+  return !isPWAInstalled();
 }
 
 // ─────── 환경 지원 여부 (가장 먼저 체크) ───────
@@ -55,8 +64,8 @@ function updatePushButtonUI() {
     return;
   }
 
-  // PWA 미설치 (특히 iOS)
-  if (!isPWAInstalled()) {
+  // PWA 미설치 (iOS만 — PC·Android는 브라우저에서 바로 가능)
+  if (needsPWAInstall()) {
     card.style.display = 'block';
     btn.textContent = '📱 홈 화면 추가 방법 보기';
     btn.disabled = false;
