@@ -955,7 +955,7 @@ function execSchedDelete(id, future) {
     : [s];
   var toDeleteIds = toDeleteItems.map(function(x){ return x.id; });
   var snapshot = toDeleteItems.map(function(x){ return Object.assign({}, x); });
-  toDeleteIds.forEach(function(did) { supaFetch('madi_schedules?id=eq.' + did, 'DELETE'); });
+  toDeleteIds.forEach(function(did) { supaFetch('madi_schedules?id=eq.' + did, 'DELETE').catch(function(e){ console.warn('일정 삭제 실패 id=' + did, e); }); });
   scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1; });
   saveSchedule(); renderSchedView();
   var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
