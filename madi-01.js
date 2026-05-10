@@ -4,7 +4,7 @@ var MODEL_HAIKU  = 'claude-haiku-4-5-20251001';
 var MODEL_SONNET = 'claude-sonnet-4-6';
 
 // ─────── 권한 관리 ───────
-var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };
+var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, deleteChild:false };
 function canDo(perm) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin') return true;
@@ -225,10 +225,8 @@ function showSignupScreen() {
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
-  var _signupErr = document.getElementById('signupError');
-  if (_signupErr) _signupErr.textContent = '';
-  var _signupCenter = document.getElementById('signupCenterName');
-  if (_signupCenter) _signupCenter.textContent = '';
+  document.getElementById('signupError').textContent = '';
+  document.getElementById('signupCenterName').textContent = '';
   setTimeout(function(){
     var inv = document.getElementById('signupInviteCode');
     if (inv) inv.focus();
