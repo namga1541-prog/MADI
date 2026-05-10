@@ -225,8 +225,10 @@ function showSignupScreen() {
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
-  document.getElementById('signupError').textContent = '';
-  document.getElementById('signupCenterName').textContent = '';
+  var _signupErr = document.getElementById('signupError');
+  if (_signupErr) _signupErr.textContent = '';
+  var _signupCenter = document.getElementById('signupCenterName');
+  if (_signupCenter) _signupCenter.textContent = '';
   setTimeout(function(){
     var inv = document.getElementById('signupInviteCode');
     if (inv) inv.focus();
