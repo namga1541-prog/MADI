@@ -407,6 +407,14 @@ function getMadiLogoSVG(w, h) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // ─── 학부모 초대 링크 감지 ───
+  var urlParams = new URLSearchParams(window.location.search);
+  var parentInviteToken = urlParams.get('parent_invite');
+  if (parentInviteToken) {
+    checkParentInviteToken(parentInviteToken);
+    return; // 일반 초기화 건너뜀
+  }
+
   // 사이드바 접힘 상태 복원
   restoreSidebarState();
 
@@ -438,7 +446,14 @@ function applyUserUI() {
   var headerUserBadge = document.getElementById('headerUserBadge');
   if (!headerUser || !headerUserName || !headerUserBadge) return;
   headerUserName.textContent = currentUser.name;
-  headerUserBadge.textContent = (currentUser.role === 'admin' || currentUser.role === 'superadmin') ? '관리자' : '선생님';
+  if (currentUser.role === 'parent') {
+    headerUserBadge.textContent = '학부모';
+    headerUserBadge.style.background = 'rgba(245,158,11,0.25)';
+    headerUserBadge.style.borderColor = 'rgba(245,158,11,0.5)';
+    applyParentUI(); // 학부모 전용 UI 적용
+  } else {
+    headerUserBadge.textContent = (currentUser.role === 'admin' || currentUser.role === 'superadmin') ? '관리자' : '선생님';
+  }
   headerUser.style.display = 'flex';
   if (typeof updateSidebarAdminVisibility === 'function') updateSidebarAdminVisibility();
 }
@@ -868,5 +883,157 @@ function setupNetworkMonitor() {
   // 초기 상태 확인
   if (!navigator.onLine) showOfflineBanner();
 }
+
+// ══════════════════════════════════════
+// 학부모 포털 — 초대·가입·UI
+// ══════════════════════════════════════
+
+var _parentInviteToken = null;
+var _parentInviteRow   = null;
+
+// 초대 토큰 검증
+function checkParentInviteToken(token) {
+  _parentInviteToken = token;
+  // 모든 화면 숨기기
+  ['landingScreen','loginScreen','signupScreen'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  supaFetch('madi_parent_invites?token=eq.' + encodeURIComponent(token) + '&select=*', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) throw new Error('유효하지 않은 초대 링크입니다');
+      var row = rows[0];
+      if (row.used_at) throw new Error('이미 사용된 초대 링크입니다');
+      if (new Date(row.expires_at) < new Date()) throw new Error('만료된 초대 링크입니다 (유효기간 7일)');
+      _parentInviteRow = row;
+
+      // 아동 이름 조회
+      return supaFetch('madi_children?id=eq.' + row.child_id + '&select=data', 'GET')
+        .then(function(cr) {
+          var childName = (cr && cr[0] && cr[0].data && cr[0].data.name) ? cr[0].data.name : '';
+          var nameEl = document.getElementById('parentSignupChildName');
+          if (nameEl) nameEl.textContent = childName ? childName + ' 아동의 학부모 계정 만들기' : '학부모 계정 만들기';
+          var dnEl = document.getElementById('parentSignupDisplayName');
+          if (dnEl && row.parent_name) dnEl.value = row.parent_name;
+        });
+    })
+    .then(function() {
+      var ps = document.getElementById('parentSignupScreen');
+      if (ps) ps.style.display = 'flex';
+    })
+    .catch(function(e) {
+      alert('⚠️ ' + (e && e.message ? e.message : '초대 링크 오류'));
+      var ls = document.getElementById('landingScreen');
+      if (ls) ls.style.display = 'flex';
+      // URL 파라미터 제거
+      history.replaceState(null, '', window.location.pathname);
+    });
+}
+
+// 학부모 가입 처리
+function doParentSignup() {
+  var displayName = (document.getElementById('parentSignupDisplayName').value || '').trim();
+  var username    = (document.getElementById('parentSignupUsername').value || '').trim();
+  var password    = document.getElementById('parentSignupPassword').value || '';
+  var confirm_    = document.getElementById('parentSignupPasswordConfirm').value || '';
+  var errEl       = document.getElementById('parentSignupError');
+  var btn         = document.getElementById('parentSignupSubmitBtn');
+
+  if (errEl) errEl.textContent = '';
+  if (!displayName) { if (errEl) errEl.textContent = '이름을 입력해주세요'; return; }
+  if (!username || username.length < 4) { if (errEl) errEl.textContent = '아이디는 4자 이상이어야 합니다'; return; }
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) { if (errEl) errEl.textContent = '아이디는 영문/숫자/언더바만 사용 가능합니다'; return; }
+  if (!password || password.length < 4) { if (errEl) errEl.textContent = '비밀번호는 4자 이상이어야 합니다'; return; }
+  if (password !== confirm_) { if (errEl) errEl.textContent = '비밀번호가 일치하지 않습니다'; return; }
+  if (!_parentInviteRow) { if (errEl) errEl.textContent = '초대 정보 없음. 링크를 다시 사용해주세요'; return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = '가입 중...'; }
+
+  // 아이디 중복 확인
+  supaFetch('madi_users?username=eq.' + encodeURIComponent(username) + '&select=id', 'GET')
+    .then(function(dup) {
+      if (Array.isArray(dup) && dup.length > 0) throw new Error('이미 사용 중인 아이디입니다');
+
+      // 비밀번호 해싱
+      var enc = new TextEncoder();
+      return crypto.subtle.digest('SHA-256', enc.encode(password))
+        .then(function(buf) {
+          return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+        });
+    })
+    .then(function(pwHash) {
+      // madi_users 생성
+      return supaFetch('madi_users', 'POST', [{
+        username:      username,
+        password_hash: pwHash,
+        display_name:  displayName,
+        role:          'parent',
+        center_id:     _parentInviteRow.center_id
+      }]);
+    })
+    .then(function(res) {
+      var newUser = Array.isArray(res) ? res[0] : res;
+      if (!newUser || !newUser.id) throw new Error('계정 생성 실패');
+
+      // madi_parent_children 연결
+      return supaFetch('madi_parent_children', 'POST', [{
+        parent_user_id: newUser.id,
+        child_id:       _parentInviteRow.child_id,
+        center_id:      _parentInviteRow.center_id
+      }]).then(function() { return newUser; });
+    })
+    .then(function(newUser) {
+      // 초대 토큰 사용 처리
+      return supaFetch('madi_parent_invites?token=eq.' + encodeURIComponent(_parentInviteToken), 'PATCH', {
+        used_at: new Date().toISOString()
+      }).then(function() { return newUser; });
+    })
+    .then(function() {
+      // URL 파라미터 제거 후 로그인 화면으로
+      history.replaceState(null, '', window.location.pathname);
+      var ps = document.getElementById('parentSignupScreen');
+      if (ps) ps.style.display = 'none';
+      alert('✅ 가입 완료! 아이디와 비밀번호로 로그인해주세요.');
+      showLoginScreen();
+    })
+    .catch(function(e) {
+      if (errEl) errEl.textContent = '❌ ' + (e && e.message ? e.message : '가입 실패');
+      if (btn) { btn.disabled = false; btn.textContent = '👪 학부모 가입하기'; }
+    });
+}
+
+// 학부모 전용 UI 적용
+function applyParentUI() {
+  // 학부모는 치료사/관리자 전용 탭 숨김
+  var hideTabIds = ['tabBtnChild','tabBtnSession','tabBtnReport','tabBtnSchedule'];
+  hideTabIds.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // 배포 버튼 숨김
+  var deployBtn = document.getElementById('headerDeployBtn');
+  if (deployBtn) deployBtn.style.display = 'none';
+  // 학부모 탭으로 자동 이동 (홈)
+  if (typeof showDashboard === 'function') showDashboard();
+  // 학부모용 대시보드 데이터 로드
+  loadParentDashboard();
+}
+
+// 학부모 대시보드 데이터 로드
+function loadParentDashboard() {
+  if (!currentUser || currentUser.role !== 'parent') return;
+  // 내 아동 ID 목록 조회
+  supaFetch('madi_parent_children?parent_user_id=eq.' + currentUser.id + '&select=child_id,center_id', 'GET')
+    .then(function(links) {
+      if (!Array.isArray(links) || links.length === 0) return;
+      var childId   = links[0].child_id;
+      var centerId  = links[0].center_id;
+      window._parentChildId   = childId;
+      window._parentCenterId  = centerId;
+      // 홈 카드에 내 아동 스케줄/리포트 표시 (추후 확장)
+    }).catch(function() {});
+}
+
 
 // ─────── 글로벌 에러 핸들러 ───────
