@@ -4,7 +4,7 @@ var MODEL_HAIKU  = 'claude-haiku-4-5-20251001';
 var MODEL_SONNET = 'claude-sonnet-4-6';
 
 // ─────── 권한 관리 ───────
-var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, deleteChild:false };
+var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };
 function canDo(perm) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin') return true;
@@ -79,8 +79,7 @@ function loadCenterSessionInterval() {
 }
 var EDGE_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';
 var _madiToken = null; // JWT 토큰 (메모리 캐시)
-// Realtime 전용 anon key (REST API는 Edge Function 사용 — 이 키로 DB 직접 접근 불가)
-var SUPA_REALTIME_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqeGRoYWZ6anlyZ2xhY2xhcndlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODA3ODgsImV4cCI6MjA5Mjk1Njc4OH0.V0chvVlTG1M_pD_c2obJpNP41WuaYOtAHQt4Fg_nbig';
+// ★ 보안 강화: anon key 소스코드 제거 완료 (Edge Function --no-verify-jwt 적용 필요)
 
 // JWT 토큰 관리
 function getToken()       { return _madiToken || localStorage.getItem('madi_token') || ''; }
@@ -92,7 +91,6 @@ function supaFetch(path, method, body) {
     method: 'POST',
     headers: {
       'Content-Type':  'application/json',
-      'apikey':        SUPA_REALTIME_KEY,
       'Authorization': 'Bearer ' + getToken()
     },
     body: JSON.stringify({ path: path, method: method || 'GET', body: body || null })
@@ -365,8 +363,7 @@ function doLogin() {
   fetchWithRetry(EDGE_URL + '/login', {
     method: 'POST',
     headers: {
-      'Content-Type':  'application/json',
-      'apikey':        SUPA_REALTIME_KEY
+      'Content-Type':  'application/json'
     },
     body: JSON.stringify({ username: un, password: pw })
   }, { retries: 1, label: '로그인' })
