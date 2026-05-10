@@ -476,7 +476,6 @@ function callClaude(apiKey, system, user, maxTokens, model) {
     method: 'POST',
     headers: {
       'Content-Type':  'application/json',
-      'apikey':        SUPA_REALTIME_KEY,
       'Authorization': 'Bearer ' + getToken()
     },
     body: JSON.stringify({
