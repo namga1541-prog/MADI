@@ -1994,9 +1994,10 @@ function populateParentChildSelect() {
 function filterParentChildList(q) {
   var drop = document.getElementById('parentChildDrop');
   if (!drop) return;
-  var filtered = q
-    ? _parentChildList.filter(function(c){ return c.name.includes(q); })
-    : _parentChildList;
+  q = (q || '').trim();
+  // 검색어 없으면 드롭다운 숨김 (타이핑 시에만 결과 표시)
+  if (!q) { drop.style.display = 'none'; return; }
+  var filtered = _parentChildList.filter(function(c){ return c.name.includes(q); });
   if (filtered.length === 0) {
     drop.innerHTML = '<div style="padding:12px 14px;color:#94a3b8;text-align:center;font-size:13px;">검색 결과 없음</div>';
   } else {
@@ -2006,13 +2007,16 @@ function filterParentChildList(q) {
         + 'onmouseover="this.style.background=\'#e0f7f6\'" onmouseout="this.style.background=\'\'">'
         + escHtml(c.name) + (c.birth ? ' <span style="color:#94a3b8;font-size:11px;">(' + escHtml(c.birth) + ')</span>' : '')
         + '</div>';
-    }).join('');
+    }).join('')
+    + (filtered.length > 30 ? '<div style="padding:8px 14px;color:#94a3b8;text-align:center;font-size:11px;border-top:1px solid #f1f5f9;">상위 30명만 표시 — 검색어를 좁혀주세요</div>' : '');
   }
   drop.style.display = 'block';
 }
 
 function showParentChildDrop() {
-  filterParentChildList(document.getElementById('parentChildSearchInput').value || '');
+  // focus 시: 입력값 있을 때만 드롭다운 표시 (자동 전체 목록 표시 안 함)
+  var v = (document.getElementById('parentChildSearchInput').value || '').trim();
+  if (v) filterParentChildList(v);
 }
 
 function selectParentChild(id, name) {
