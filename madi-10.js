@@ -113,11 +113,21 @@ function renderUnwrittenAlert() {
 function quickFillSession(date, schedId) {
   var sched = scheduleDB.find(function(s) { return s.id === schedId; });
   if (!sched) return;
-  document.getElementById('sessionChild').value = sched.childId;
-  document.getElementById('sessionDate').value  = date;
-  loadGoalRows(sched.childId);
-  showToast('📝 날짜가 자동 설정되었습니다.');
-  window.scrollTo(0, 0);
+  // 보고서 탭 → 세션기록 서브탭으로 이동
+  if (typeof switchTab === 'function') switchTab(2);
+  if (typeof switchReportTab === 'function') switchReportTab('session');
+  // 아동 + 날짜 자동 설정 (탭 렌더링 후 실행)
+  setTimeout(function() {
+    var childEl = document.getElementById('sessionChild');
+    var dateEl  = document.getElementById('sessionDate');
+    if (childEl) { childEl.value = sched.childId; childEl.dispatchEvent(new Event('change')); }
+    if (dateEl)  dateEl.value = date;
+    if (typeof loadGoalRows === 'function') loadGoalRows(sched.childId);
+    // 세션 기록 폼으로 스크롤
+    var form = document.getElementById('sessionFormCard') || document.getElementById('unwrittenAlert');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showToast('📝 ' + date + ' · 아동 자동 설정됨');
+  }, 200);
 }
 
 // ─────── 스케줄 ───────
