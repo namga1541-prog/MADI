@@ -971,12 +971,16 @@ function doParentSignup() {
         name:          displayName,
         role:          'parent',
         center_id:     _parentInviteRow.center_id
-      }]);
+      }]).then(function() {
+        // POST 응답 body 없을 수 있으므로 별도 GET으로 id 조회
+        return supaFetch('madi_users?username=eq.' + encodeURIComponent(username) + '&select=id,role,name', 'GET');
+      }).then(function(rows) {
+        var newUser = Array.isArray(rows) ? rows[0] : null;
+        if (!newUser || !newUser.id) throw new Error('계정 생성 실패');
+        return newUser;
+      });
     })
-    .then(function(res) {
-      var newUser = Array.isArray(res) ? res[0] : res;
-      if (!newUser || !newUser.id) throw new Error('계정 생성 실패');
-
+    .then(function(newUser) {
       // madi_parent_children 연결
       return supaFetch('madi_parent_children', 'POST', [{
         parent_user_id: String(newUser.id),
