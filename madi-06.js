@@ -4,7 +4,8 @@ function openBulkClosedDateModal(ids) {
   if (!modal) return;
 
   // 아동 수
-  document.getElementById('bcdCount').textContent = ids.length;
+  var bcdCountEl = document.getElementById('bcdCount');
+  if (bcdCountEl) bcdCountEl.textContent = ids.length;
 
   // 이름 미리보기 생성
   var preview = document.getElementById('bcdNamePreview');
