@@ -967,7 +967,7 @@ function doParentSignup() {
       // madi_users 생성
       return supaFetch('madi_users', 'POST', [{
         username:      username,
-        password_hash: pwHash,
+        password: pwHash,
         name:          displayName,
         role:          'parent',
         center_id:     _parentInviteRow.center_id
