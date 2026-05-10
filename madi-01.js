@@ -387,6 +387,10 @@ function doLogin() {
     initRealtime();
     // 세션 시간 단위 로드
     loadCenterSessionInterval();
+    // 학부모 푸시 알림 구독 셋업 (NEW)
+    if (typeof setupParentPushSubscription === 'function') {
+      setupParentPushSubscription();
+    }
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
