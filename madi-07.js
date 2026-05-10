@@ -13,6 +13,8 @@ function saveSession(aiNote) {
   var sessionId = Date.now() + Math.floor(Math.random() * 1000);
   sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
   saveSessions();
+  // 저장된 날짜를 기억 (소급 입력 시 다음 세션도 같은 날짜로 편의 제공)
+  try { localStorage.setItem('madi_last_session_date', date); } catch(e) {}
   renderSessionList();
   renderChildGrid();
   document.getElementById('sessionMemo').value = '';
@@ -60,10 +62,9 @@ function saveSessionAI() {
         phonemes: getPhonemeSnapshot()
       });
       saveSessions();
+      // 저장된 날짜를 기억
+      try { localStorage.setItem('madi_last_session_date', date); } catch(e) {}
       renderSessionList();
-      renderChildGrid();
-      document.getElementById('aiInput').value = '';
-      showToast('🤖 AI 정리 저장 완료!');
       vibrate(40);  // UX: 햅틱 피드백
       resetPhonemeMatrix();
       setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
