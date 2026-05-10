@@ -1038,6 +1038,13 @@ function triggerPWAInstall() {
 document.addEventListener('DOMContentLoaded', function() {
   init();
   initFloatBtnDrag();
+
+  // ─── 뒤로가기 버튼 탭 연동 ───
+  window.addEventListener('popstate', function(e) {
+    if (e.state && typeof e.state.tab !== 'undefined') {
+      if (typeof switchTab === 'function') switchTab(e.state.tab);
+    }
+  });
 });
 
 
