@@ -450,9 +450,11 @@
 
       <div class="form-group">
         <label class="form-label">아동 선택</label>
-        <select id="parentInviteChild" class="form-input" style="font-size:14px;">
-          <option value="">아동을 선택하세요</option>
-        </select>
+        <div style="position:relative;">
+          <input type="text" id="parentChildSearchInput" class="form-input" placeholder="이름으로 검색..." style="font-size:14px;" oninput="filterParentChildList(this.value)" onfocus="showParentChildDrop()" autocomplete="off">
+          <input type="hidden" id="parentInviteChild">
+          <div id="parentChildDrop" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:white;border:1.5px solid var(--mint);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.14);max-height:220px;overflow-y:auto;z-index:600;"></div>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">학부모 이름</label>
@@ -1756,6 +1758,14 @@ function resetMaroPosition() {
 // 7. 초기화
 // ══════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
+  // 외부 클릭 시 아동 검색 드롭다운 닫기
+  document.addEventListener('click', function(e) {
+    var inp  = document.getElementById('parentChildSearchInput');
+    var drop = document.getElementById('parentChildDrop');
+    if (drop && inp && !inp.contains(e.target) && !drop.contains(e.target)) {
+      drop.style.display = 'none';
+    }
+  });
   // 다크모드 복원
   if (localStorage.getItem('madi_dark') === '1') {
     document.body.classList.add('dark-mode');
@@ -1971,21 +1981,47 @@ function saveUserPerms(){
 // 학부모 초대 기능
 // ══════════════════════════════════════
 
-// 아동 선택 셀렉트 채우기
+// 아동 목록 로드 (검색용)
+var _parentChildList = [];
 function populateParentChildSelect() {
-  var sel = document.getElementById('parentInviteChild');
-  if (!sel) return;
-  var cur = sel.value;
   supaFetch('madi_children?' + centerFilter() + '&select=id,data&order=id.asc', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) return;
-      sel.innerHTML = '<option value="">아동을 선택하세요</option>'
-        + rows.map(function(r) {
-            var d = r.data || {};
-            return '<option value="' + r.id + '">' + escHtml(d.name || '?') + ' (' + escHtml(d.birth || '') + ')</option>';
-          }).join('');
-      if (cur) sel.value = cur;
+      _parentChildList = rows.map(function(r) {
+        var d = r.data || {};
+        return { id: r.id, name: d.name || '?', birth: d.birth || '' };
+      }).sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); });
     }).catch(function() {});
+}
+
+function filterParentChildList(q) {
+  var drop = document.getElementById('parentChildDrop');
+  if (!drop) return;
+  var filtered = q
+    ? _parentChildList.filter(function(c){ return c.name.includes(q); })
+    : _parentChildList;
+  if (filtered.length === 0) {
+    drop.innerHTML = '<div style="padding:12px 14px;color:#94a3b8;text-align:center;font-size:13px;">검색 결과 없음</div>';
+  } else {
+    drop.innerHTML = filtered.slice(0,30).map(function(c) {
+      return '<div onclick="selectParentChild(\'' + c.id + '\',\'' + escHtml(c.name) + '\')" '
+        + 'style="padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#1e293b;" '
+        + 'onmouseover="this.style.background=\'#e0f7f6\'" onmouseout="this.style.background=\'\'">'
+        + escHtml(c.name) + (c.birth ? ' <span style="color:#94a3b8;font-size:11px;">(' + escHtml(c.birth) + ')</span>' : '')
+        + '</div>';
+    }).join('');
+  }
+  drop.style.display = 'block';
+}
+
+function showParentChildDrop() {
+  filterParentChildList(document.getElementById('parentChildSearchInput').value || '');
+}
+
+function selectParentChild(id, name) {
+  document.getElementById('parentInviteChild').value = id;
+  document.getElementById('parentChildSearchInput').value = name;
+  document.getElementById('parentChildDrop').style.display = 'none';
 }
 
 // 초대 링크 생성
