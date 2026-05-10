@@ -294,7 +294,8 @@ function renderDashboard() {
   var em=h<12?'🌅':h<18?'☀️':'🌙';
   var nm=(currentUser&&currentUser.name)||'';
   var wel=document.getElementById('dashWelcome'); var dt=document.getElementById('dashDate');
-  if(wel) wel.textContent=gr+', '+nm+' 선생님! '+em;
+  var _roleLabel = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
+  if(wel) wel.textContent=gr+', '+nm+' '+_roleLabel+'! '+em;
   if(dt) dt.textContent=todayStr.replace(/-/g,'.')+'('+wd[today.getDay()]+')';
   // 오늘의 일정
   var ts=scheduleDB.filter(function(s){return s.date===todayStr;});
