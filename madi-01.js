@@ -503,7 +503,7 @@ function loadDBFromSupabase(silent) {
       sessionDB    = supaSe;
       scheduleDB   = supaSch;
       assessmentDB = supaAs;
-      if (silent) showToast('🔄 데이터 업데이트됨');
+      if (silent) { /* 백그라운드 폴링 — 토스트 없음 */ }
       else showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
     }
 
