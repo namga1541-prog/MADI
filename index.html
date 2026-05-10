@@ -17,6 +17,9 @@
   <link rel="manifest" id="pwaManifest" href="blob:null/005d3b62-e909-43a6-8dc0-f8f62c965394">
   <link rel="apple-touch-icon" id="pwaIcon" href="blob:null/af9da997-8bd6-4ec5-afeb-923517efc184">
 
+  <!-- 구글 폰트 preconnect: DNS·TLS 핸드셰이크를 미리 처리해 로딩 단축 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -310,8 +313,9 @@
       .child-card:hover { background:#f8fafc; }
     }
     .child-card-row { display:flex; align-items:center; gap:10px; padding:11px 14px; }
+    .child-card-row > div[style*="flex:1"] { min-width:0; }
     .child-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
-    .child-name { font-size:14px; font-weight:700; }
+    .child-name { font-size:14px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
     .child-age-badge { font-size:11px; color:var(--text2); white-space:nowrap; }
     .child-expand-icon { font-size:11px; color:#94a3b8; margin-left:4px; transition:transform 0.2s; }
     .child-card.open .child-expand-icon { transform:rotate(180deg); }
