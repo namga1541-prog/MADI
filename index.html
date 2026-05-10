@@ -1197,6 +1197,14 @@
   <button class="tab-btn" id="tabBtn6" onclick="switchTab(6)"><span class="tab-ico">🔧</span><span class="tab-lbl">설정</span></button>
 </div>
 
+<!-- ─── 학부모 전용 탭바 (parent 역할 로그인 시에만 표시) ─── -->
+<div class="tabs" id="parentTabs" style="display:none;">
+  <button class="tab-btn active" id="ptBtnHome" onclick="switchParentTab('home')"><span class="tab-ico">🏠</span><span class="tab-lbl">홈</span></button>
+  <button class="tab-btn" id="ptBtnSched" onclick="switchParentTab('sched')"><span class="tab-ico">📅</span><span class="tab-lbl">일정</span></button>
+  <button class="tab-btn" id="ptBtnReport" onclick="switchParentTab('report')"><span class="tab-ico">📋</span><span class="tab-lbl">리포트</span></button>
+  <button class="tab-btn" id="ptBtnNotice" onclick="switchParentTab('notice')"><span class="tab-ico">📢</span><span class="tab-lbl">공지</span></button>
+</div>
+
 <!-- ─── PC 사이드바 + 메인 래퍼 ─── -->
 <div class="app-layout">
 
@@ -1935,6 +1943,88 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     학부모 전용 패널
+══════════════════════════════════════ -->
+
+<!-- 학부모 홈 -->
+<div class="tab-panel" id="parentPanelHome" style="display:none;">
+  <div class="dash-content">
+    <!-- D-day 카드 -->
+    <div id="parentNextSched" style="background:linear-gradient(135deg,#3b82f6 0%,#0ea5a0 100%);border-radius:18px;padding:20px 22px;margin-bottom:14px;color:white;">
+      <div style="font-size:13px;opacity:0.8;margin-bottom:6px;">다음 치료 일정</div>
+      <div id="parentNextSchedText" style="font-size:22px;font-weight:800;">불러오는 중...</div>
+      <div id="parentNextSchedSub" style="font-size:12px;opacity:0.75;margin-top:4px;"></div>
+    </div>
+    <!-- 요약 카드 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div class="dash-card" onclick="switchParentTab('report')">
+        <div class="dash-card-hd">
+          <div class="dash-card-ico dash-ico-mint">📋</div>
+          <div class="dash-card-hd-title">최근 리포트</div>
+          <div class="dash-arrow">›</div>
+        </div>
+        <div class="dash-card-body">
+          <div id="parentLatestReport" class="dash-empty">불러오는 중...</div>
+        </div>
+      </div>
+      <div class="dash-card" onclick="switchParentTab('sched')">
+        <div class="dash-card-hd">
+          <div class="dash-card-ico dash-ico-blue">📅</div>
+          <div class="dash-card-hd-title">이번 주 일정</div>
+          <div class="dash-arrow">›</div>
+        </div>
+        <div class="dash-card-body">
+          <div id="parentWeekSched" class="dash-empty">불러오는 중...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 학부모 일정 -->
+<div class="tab-panel" id="parentPanelSched" style="display:none;">
+  <div class="content">
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📅 치료 일정</div>
+        <span id="parentSchedChildName" style="font-size:12px;color:var(--text2);"></span>
+      </div>
+      <div id="parentSchedList">
+        <div class="loading"><div class="spinner"></div><p>일정 불러오는 중...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 학부모 리포트 -->
+<div class="tab-panel" id="parentPanelReport" style="display:none;">
+  <div class="content">
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📋 세션 리포트</div>
+        <span id="parentReportChildName" style="font-size:12px;color:var(--text2);"></span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7;">선생님이 작성하고 공개한 세션 기록입니다.</p>
+      <div id="parentReportList">
+        <div class="loading"><div class="spinner"></div><p>리포트 불러오는 중...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 학부모 공지 -->
+<div class="tab-panel" id="parentPanelNotice" style="display:none;">
+  <div class="content">
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">📢 센터 공지사항</div></div>
+      <div id="parentNoticeList">
+        <div class="loading"><div class="spinner"></div><p>공지 불러오는 중...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast show" id="toast" style="pointer-events: auto;">📡 배포 준비 중...</div>
 
 
@@ -1953,6 +2043,7 @@
 <script src="madi-12.js"></script>
 <script src="madi-13.js"></script>
 <script src="madi-14.js"></script>
+<script src="madi-15.js"></script>
 
 <!-- ─── 플로팅 AI 비서 ─── -->
 <button class="float-btn" id="floatBtn" title="마로" style="inset: 318px 16px auto auto; transform: none;">
