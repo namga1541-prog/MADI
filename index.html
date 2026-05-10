@@ -1115,6 +1115,42 @@
   </div>
 </div>
 
+<!-- ══ 학부모 전용 가입 화면 ══ -->
+<div class="login-screen" id="parentSignupScreen" style="display:none;">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">👪</div>
+      <h1 style="font-family:'Noto Sans KR',sans-serif;font-size:22px;color:#0f2942;font-weight:800;">학부모 가입</h1>
+      <p id="parentSignupChildName" style="font-size:13px;color:var(--text2);margin-top:4px;"></p>
+    </div>
+
+    <div style="background:#fff7ed;border:1.5px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#92400e;line-height:1.7;">
+      📩 센터에서 발송한 초대 링크로 접속하셨습니다.<br>
+      아이디와 비밀번호를 설정하면 가입이 완료됩니다.
+    </div>
+
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">학부모 이름</label>
+      <input class="form-input" type="text" id="parentSignupDisplayName" placeholder="홍길동 어머니" style="font-size:16px;">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">아이디</label>
+      <input class="form-input" type="text" id="parentSignupUsername" placeholder="영문/숫자, 4자 이상" autocomplete="off" style="font-size:16px;">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">비밀번호</label>
+      <input class="form-input" type="password" id="parentSignupPassword" placeholder="4자 이상" style="font-size:16px;">
+    </div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">비밀번호 확인</label>
+      <input class="form-input" type="password" id="parentSignupPasswordConfirm" placeholder="다시 입력" style="font-size:16px;">
+    </div>
+
+    <button class="btn btn-primary" id="parentSignupSubmitBtn" style="margin-top:0;background:#f59e0b;height:50px;font-size:16px;" onclick="doParentSignup()">👪 학부모 가입하기</button>
+    <div id="parentSignupError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;line-height:1.5;"></div>
+  </div>
+</div>
+
 <div class="header">
   <div style="display:flex;align-items:center;gap:10px;">
     <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="메뉴 접기/펼치기">☰</button>
