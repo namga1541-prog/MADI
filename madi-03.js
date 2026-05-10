@@ -381,6 +381,8 @@ function updateSidebarAdminVisibility() {
 }
 
 function switchTab(idx) {
+  // 뒤로가기 연동 — history에 현재 탭 저장
+  try { history.pushState({ tab: idx }, '', window.location.pathname + window.location.search); } catch(e) {}
   // 아동 탭이 아닌 곳으로 이동 시 일괄 처리 모드 자동 종료
   if (typeof _bulkMode !== 'undefined' && _bulkMode && idx !== 1) {
     _bulkMode = false; _bulkSelected = {};
@@ -409,7 +411,21 @@ function switchTab(idx) {
   var targetId = TAB_PANEL_MAP[idx];
   if (!targetId) return;
   var tp = document.getElementById(targetId);
-  if (tp) tp.classList.add('active');
+  if (tp) {
+    // 로딩 스피너 표시
+    tp.classList.add('active');
+    if (!tp.dataset.loaded) {
+      var _spinEl = document.createElement('div');
+      _spinEl.className = 'loading'; _spinEl.id = 'tabSpinner_' + targetId;
+      _spinEl.innerHTML = '<div class="spinner"></div><p>불러오는 중...</p>';
+      _spinEl.style.position = 'absolute'; _spinEl.style.top = '80px';
+      _spinEl.style.left = '50%'; _spinEl.style.transform = 'translateX(-50%)';
+      _spinEl.style.zIndex = '10'; _spinEl.style.pointerEvents = 'none';
+      tp.style.position = 'relative';
+      tp.appendChild(_spinEl);
+      setTimeout(function() { var s = document.getElementById('tabSpinner_' + targetId); if (s) s.remove(); }, 400);
+    }
+  }
   var tb = document.getElementById('tabBtn' + idx);
   if (tb) tb.classList.add('active');
   syncSidebarActive(idx);
