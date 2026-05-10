@@ -156,33 +156,22 @@ function deleteStaff(id, name) {
 
 // ─────── 폴링 방식 동기화 (보안 강화 — Realtime 대체) ───────
 var _pollTimer = null;
-var _pollInterval = 30000; // 30초마다 갱신 (API 비용 절감)
+var _pollInterval = 10000; // 10초마다 갱신
 var _myChangeTs = 0;
 
 function initRealtime() {
   stopRealtime();
   _pollTimer = setInterval(function() {
-    // 탭이 숨겨진 경우 폴링 스킵 (백그라운드 비용 절감)
-    if (document.hidden) return;
     // 내가 방금 저장한 경우 2초 동안 폴링 스킵 (중복 갱신 방지)
     if (_myChangeTs && Date.now() < _myChangeTs + 2000) return;
     if (typeof loadDBFromSupabase === 'function') {
       loadDBFromSupabase(true);
     }
   }, _pollInterval);
-  // 탭 복귀 시 즉시 1회 갱신
-  document.removeEventListener('visibilitychange', _onVisibilityChange);
-  document.addEventListener('visibilitychange', _onVisibilityChange);
   console.log('✅ 폴링 동기화 시작 (' + (_pollInterval/1000) + '초 간격)');
 }
 
 function markMyChange() { _myChangeTs = Date.now(); }
-
-function _onVisibilityChange() {
-  if (!document.hidden && typeof loadDBFromSupabase === 'function') {
-    loadDBFromSupabase(true);
-  }
-}
 
 function stopRealtime() {
   if (_pollTimer) {
@@ -869,21 +858,10 @@ function init() {
   maybeAutoBackup();
   loadApiUsage();
   var today = new Date().toISOString().slice(0, 10);
-  // 마지막으로 입력한 세션 날짜 복원 (소급 입력 편의)
-  var lastSessionDate = localStorage.getItem('madi_last_session_date') || today;
-  // 마지막 날짜가 오늘보다 미래이면 오늘로 리셋
-  if (lastSessionDate > today) lastSessionDate = today;
-  document.getElementById('sessionDate').value     = lastSessionDate;
+  document.getElementById('sessionDate').value     = today;
   document.getElementById('portfolioMonth').value  = today.slice(0, 7);
   document.getElementById('assessDate').value      = today;
   schedCurrentDate = new Date();
-  // 세션 날짜 변경 시 localStorage에 저장
-  var _sdEl = document.getElementById('sessionDate');
-  if (_sdEl) {
-    _sdEl.addEventListener('change', function() {
-      if (this.value) localStorage.setItem('madi_last_session_date', this.value);
-    });
-  }
 
   var saved = localStorage.getItem('cn3_apikey');
   if (saved) {
@@ -1627,7 +1605,6 @@ function sendChat() {
     method: 'POST',
     headers: {
       'Content-Type':  'application/json',
-      'apikey':        SUPA_REALTIME_KEY,
       'Authorization': 'Bearer ' + getToken()
     },
     body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 600, system: SYSTEM, messages: messages })
