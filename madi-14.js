@@ -3,21 +3,35 @@ var _loungePostImages    = []; // 글 작성 폼 첨부 File 객체 배열 (최�
 var _loungeCommentImages = {}; // { postId: File } 댓글 첨부 1장
 
 // Supabase Storage board-images 버킷에 파일 업로드 → public URL 반환
+// ★ 보안: anon key 직접 사용 제거 — Edge Function(upload-image)을 경유하여 업로드
 function uploadBoardImage(file, folder) {
-  var ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  var path = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
-  return fetch(SUPA_URL + '/storage/v1/object/board-images/' + path, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + SUPA_REALTIME_KEY,
-      'apikey':        SUPA_REALTIME_KEY,
-      'Content-Type':  file.type || 'application/octet-stream',
-      'x-upsert':      'true'
-    },
-    body: file
-  }).then(function(res) {
-    if (!res.ok) return res.text().then(function(t){ throw new Error('이미지 업로드 실패(' + res.status + '): ' + t); });
-    return SUPA_URL + '/storage/v1/object/public/board-images/' + path;
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onerror = function() { reject(new Error('파일 읽기 실패')); };
+    reader.onload = function(e) {
+      var base64 = e.target.result.split(',')[1]; // data:mime;base64,<여기>
+      var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      fetch(EDGE_URL + '/upload-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + getToken()
+        },
+        body: JSON.stringify({
+          file:     base64,
+          mimeType: file.type || 'application/octet-stream',
+          folder:   folder,
+          ext:      ext
+        })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.error) throw new Error('이미지 업로드 실패: ' + data.error);
+        resolve(data.url);
+      })
+      .catch(reject);
+    };
+    reader.readAsDataURL(file);
   });
 }
 
