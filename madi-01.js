@@ -548,6 +548,15 @@ function saveChildren() {
     showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요');
   });
 }
+// ─────── 저장 실패 메시지 헬퍼 ───────
+function getSaveErrMsg(e, label) {
+  var msg = e && e.message ? e.message : '';
+  if (!navigator.onLine) return label + ' 저장 실패 — 인터넷 연결을 확인해주세요';
+  if (msg.indexOf('403') !== -1 || msg.indexOf('401') !== -1) return label + ' 저장 권한 없음 — 관리자에게 문의해주세요';
+  if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1) return label + ' 저장 실패 — 서버 응답 없음, 잠시 후 재시도해주세요';
+  return label + ' 저장 실패 — 잠시 후 다시 시도해주세요';
+}
+
 function saveSessions() {
   markMyChange();
   localStorage.setItem('cn3_sessions', JSON.stringify(sessionDB));
@@ -558,7 +567,7 @@ function saveSessions() {
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
     return p.then(function() { return supaFetch('madi_sessions?on_conflict=id', 'POST', batch); });
-  }, Promise.resolve()).catch(function(e) { showToast('❌ 세션 저장 실패'); });
+  }, Promise.resolve()).catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '세션')); });
 }
 function saveSchedule() {
   markMyChange();
@@ -570,7 +579,7 @@ function saveSchedule() {
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
     return p.then(function() { return supaFetch('madi_schedules?on_conflict=id', 'POST', batch); });
-  }, Promise.resolve()).catch(function(e) { showToast('❌ 스케줄 저장 실패'); });
+  }, Promise.resolve()).catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '일정')); });
 }
 function saveAssess() {
   markMyChange();
@@ -582,7 +591,7 @@ function saveAssess() {
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
     return p.then(function() { return supaFetch('madi_assessments?on_conflict=id', 'POST', batch); });
-  }, Promise.resolve()).catch(function(e) { showToast('❌ 검사 저장 실패'); });
+  }, Promise.resolve()).catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '검사')); });
 }
 
 var childDB = [], sessionDB = [], scheduleDB = [], assessmentDB = [], activityDB = [], iepDB = [];
