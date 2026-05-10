@@ -331,7 +331,8 @@ function doSignup() {
       if (typeof loadCenterApiKey === 'function') loadCenterApiKey();
       if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase();
       if (typeof initRealtime === 'function') initRealtime();
-      showToast('🎉 환영합니다, ' + result.user.name + ' 선생님! (' + result.center.name + ')');
+      var roleLabel = result.user.role === 'superadmin' ? '대장님 👑' : result.user.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
+      showToast('🎉 환영합니다, ' + result.user.name + ' ' + roleLabel + '! (' + result.center.name + ')');
     })
     .catch(function(err) {
       btn.dataset.busy = '';
@@ -452,7 +453,7 @@ function applyUserUI() {
     headerUserBadge.style.borderColor = 'rgba(245,158,11,0.5)';
     applyParentUI(); // 학부모 전용 UI 적용
   } else {
-    headerUserBadge.textContent = (currentUser.role === 'admin' || currentUser.role === 'superadmin') ? '관리자' : '선생님';
+    headerUserBadge.textContent = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
   }
   headerUser.style.display = 'flex';
   if (typeof updateSidebarAdminVisibility === 'function') updateSidebarAdminVisibility();
