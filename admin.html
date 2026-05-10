@@ -199,6 +199,7 @@
     <button class="svc-subtab-btn active" id="svcSubTab_stat"    onclick="showSvcSubTab('stat')">📊 현황</button>
     <button class="svc-subtab-btn"        id="svcSubTab_service" onclick="showSvcSubTab('service')">🛠 서비스</button>
     <button class="svc-subtab-btn"        id="svcSubTab_staff"   onclick="showSvcSubTab('staff')">👥 직원</button>
+    <button class="svc-subtab-btn"        id="svcSubTab_parent"  onclick="showSvcSubTab('parent')">👪 학부모</button>
   </div>
 
   <!-- 📊 현황 서브패널 -->
@@ -432,6 +433,70 @@
       </div>
     </div>
   </div>
+
+  <!-- 👪 학부모 서브패널 -->
+  <div class="content" id="svcSubPanel_parent" style="display:none;">
+
+    <!-- 학부모 초대 발급 카드 -->
+    <div class="card" style="border:2px solid #f59e0b;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#d97706;">👪 학부모 초대 발급</div>
+        <span style="font-size:11px;color:var(--text2);">링크 유효 7일</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+        아동을 선택하고 학부모 정보를 입력하면 전용 가입 링크가 생성됩니다.<br>
+        학부모가 링크를 눌러 이름·비밀번호를 설정하면 계정이 만들어집니다.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">아동 선택</label>
+        <select id="parentInviteChild" class="form-input" style="font-size:14px;">
+          <option value="">아동을 선택하세요</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">학부모 이름</label>
+        <input id="parentInviteName" class="form-input" placeholder="예: 홍길동 어머니" style="font-size:14px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">연락처 (선택)</label>
+        <input id="parentInvitePhone" class="form-input" placeholder="010-0000-0000" style="font-size:14px;">
+      </div>
+
+      <button class="btn btn-primary" style="background:#f59e0b;margin-bottom:12px;" onclick="generateParentInvite()">🔗 초대 링크 생성</button>
+
+      <!-- 생성된 링크 표시 -->
+      <div id="parentInviteResult" style="display:none;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;color:#92400e;margin-bottom:8px;font-weight:700;">✅ 초대 링크가 생성됐습니다</div>
+        <div id="parentInviteLink" style="font-size:12px;word-break:break-all;color:#1e293b;background:#fff;border-radius:8px;padding:10px;margin-bottom:10px;border:1px solid #fde68a;"></div>
+        <button class="btn-ghost" style="width:100%;font-size:13px;" onclick="copyParentInviteLink()">📋 링크 복사</button>
+      </div>
+    </div>
+
+    <!-- 초대 이력 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📋 초대 이력</div>
+        <button class="btn-ghost" style="font-size:12px;" onclick="loadParentInvites()">🔄 새로고침</button>
+      </div>
+      <div id="parentInviteList">
+        <div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">불러오는 중...</div>
+      </div>
+    </div>
+
+    <!-- 등록된 학부모 목록 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">👥 등록된 학부모</div>
+        <button class="btn-ghost" style="font-size:12px;" onclick="loadParentList()">🔄 새로고침</button>
+      </div>
+      <div id="parentUserList">
+        <div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">불러오는 중...</div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <!-- ══════ 관리자설정 패널 ══════ -->
@@ -606,12 +671,13 @@ function showToast(msg, opts) {
 
 // ── 서비스 서브탭 전환 ──
 function showSvcSubTab(tab) {
-  ['stat','service','staff'].forEach(function(t) {
+  ['stat','service','staff','parent'].forEach(function(t) {
     var panel = document.getElementById('svcSubPanel_' + t);
     var btn   = document.getElementById('svcSubTab_' + t);
     if (panel) panel.style.display = (t === tab) ? '' : 'none';
     if (btn)   btn.classList.toggle('active', t === tab);
   });
+  if (tab === 'parent') { loadParentInvites(); loadParentList(); populateParentChildSelect(); }
 }
 
 // ── 탭 전환 ──
@@ -1899,6 +1965,122 @@ function saveUserPerms(){
   supaFetch('madi_users?id=eq.'+encodeURIComponent(_pcu),'PATCH',{permissions:_pd})
     .then(function(){ if(st) st.innerHTML='<span style="color:var(--green);">✅ 저장 완료</span>'; showToast('✅ 권한 저장 완료'); })
     .catch(function(e){ if(st) st.innerHTML='<span style="color:var(--red);">❌ '+escHtml((e&&e.message)||'오류')+'</span>'; });
+}
+
+// ══════════════════════════════════════
+// 학부모 초대 기능
+// ══════════════════════════════════════
+
+// 아동 선택 셀렉트 채우기
+function populateParentChildSelect() {
+  var sel = document.getElementById('parentInviteChild');
+  if (!sel) return;
+  var cur = sel.value;
+  supaFetch('madi_children?' + centerFilter() + '&select=id,data&order=id.asc', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows)) return;
+      sel.innerHTML = '<option value="">아동을 선택하세요</option>'
+        + rows.map(function(r) {
+            var d = r.data || {};
+            return '<option value="' + r.id + '">' + escHtml(d.name || '?') + ' (' + escHtml(d.birth || '') + ')</option>';
+          }).join('');
+      if (cur) sel.value = cur;
+    }).catch(function() {});
+}
+
+// 초대 링크 생성
+function generateParentInvite() {
+  var childId   = document.getElementById('parentInviteChild').value;
+  var name      = (document.getElementById('parentInviteName').value || '').trim();
+  var phone     = (document.getElementById('parentInvitePhone').value || '').trim();
+  var resultEl  = document.getElementById('parentInviteResult');
+  var linkEl    = document.getElementById('parentInviteLink');
+
+  if (!childId) { showToast('⚠️ 아동을 선택해주세요'); return; }
+  if (!name)    { showToast('⚠️ 학부모 이름을 입력해주세요'); return; }
+
+  var cid = typeof centerFilter === 'function'
+    ? (centerFilter().replace('center_id=eq.','') || '')
+    : '';
+
+  supaFetch('madi_parent_invites', 'POST', [{
+    center_id:    cid,
+    child_id:     parseInt(childId),
+    parent_name:  name,
+    parent_phone: phone || null
+  }])
+    .then(function(res) {
+      var row = Array.isArray(res) ? res[0] : res;
+      if (!row || !row.token) throw new Error('token 없음');
+      var base = window.location.origin + window.location.pathname.replace('admin.html','index.html');
+      var link = base + '?parent_invite=' + row.token;
+      linkEl.textContent = link;
+      resultEl.style.display = 'block';
+      showToast('✅ 초대 링크 생성 완료');
+      loadParentInvites();
+    })
+    .catch(function(e) { showToast('❌ 생성 실패: ' + ((e && e.message) || '오류')); });
+}
+
+// 초대 링크 복사
+function copyParentInviteLink() {
+  var link = document.getElementById('parentInviteLink').textContent;
+  if (!link) return;
+  navigator.clipboard.writeText(link)
+    .then(function() { showToast('📋 링크 복사됨'); })
+    .catch(function() { showToast('❌ 복사 실패'); });
+}
+
+// 초대 이력 불러오기
+function loadParentInvites() {
+  var el = document.getElementById('parentInviteList');
+  if (!el) return;
+  var cid = centerFilter().replace('center_id=eq.','');
+  supaFetch('madi_parent_invites?center_id=eq.' + cid + '&order=created_at.desc&limit=20', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">발급된 초대가 없습니다</div>';
+        return;
+      }
+      el.innerHTML = rows.map(function(r) {
+        var used    = !!r.used_at;
+        var expired = !used && new Date(r.expires_at) < new Date();
+        var status  = used ? '✅ 가입완료' : expired ? '⏰ 만료' : '⏳ 대기중';
+        var statusColor = used ? 'var(--green)' : expired ? 'var(--text2)' : 'var(--amber)';
+        return '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="flex:1;">'
+          + '<div style="font-size:13px;font-weight:700;">' + escHtml(r.parent_name) + '</div>'
+          + '<div style="font-size:11px;color:var(--text2);">아동 ID: ' + r.child_id + (r.parent_phone ? ' · ' + escHtml(r.parent_phone) : '') + '</div>'
+          + '<div style="font-size:11px;color:var(--text2);">만료: ' + new Date(r.expires_at).toLocaleDateString('ko-KR') + '</div>'
+          + '</div>'
+          + '<span style="font-size:12px;font-weight:700;color:' + statusColor + ';">' + status + '</span>'
+          + '</div>';
+      }).join('');
+    }).catch(function() { el.innerHTML = '<div style="color:var(--red);font-size:13px;padding:10px;">불러오기 실패</div>'; });
+}
+
+// 등록된 학부모 목록
+function loadParentList() {
+  var el = document.getElementById('parentUserList');
+  if (!el) return;
+  var cid = centerFilter().replace('center_id=eq.','');
+  supaFetch('madi_users?center_id=eq.' + cid + '&role=eq.parent&order=id.desc', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">등록된 학부모가 없습니다</div>';
+        return;
+      }
+      el.innerHTML = rows.map(function(r) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="width:34px;height:34px;background:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">👪</div>'
+          + '<div style="flex:1;">'
+          + '<div style="font-size:13px;font-weight:700;">' + escHtml(r.display_name || r.username) + '</div>'
+          + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(r.username) + '</div>'
+          + '</div>'
+          + '<span style="font-size:11px;background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:8px;font-weight:700;">학부모</span>'
+          + '</div>';
+      }).join('');
+    }).catch(function() { el.innerHTML = '<div style="color:var(--red);font-size:13px;padding:10px;">불러오기 실패</div>'; });
 }
 
 </script>
