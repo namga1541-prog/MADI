@@ -884,7 +884,7 @@ function applyParentUI() {
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = 'none';
   var parentTabs = document.getElementById('parentTabs');
-  if (parentTabs) parentTabs.style.display = 'flex';
+  if (parentTabs) parentTabs.setAttribute('style', 'display: flex !important;');
 
   // 사이드바 숨김 (학부모는 탭바만 사용)
   var sidebar = document.getElementById('appSidebar');
