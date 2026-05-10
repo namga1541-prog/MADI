@@ -1006,19 +1006,31 @@ function doParentSignup() {
 
 // 학부모 전용 UI 적용
 function applyParentUI() {
-  // 학부모는 치료사/관리자 전용 탭 숨김
-  var hideTabIds = ['tabBtnChild','tabBtnSession','tabBtnReport','tabBtnSchedule'];
-  hideTabIds.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
+  // 치료사 탭바 숨기고 학부모 탭바 표시
+  var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
+  if (staffTabs) staffTabs.style.display = 'none';
+  var parentTabs = document.getElementById('parentTabs');
+  if (parentTabs) parentTabs.style.display = 'flex';
+
+  // 사이드바 숨김 (학부모는 탭바만 사용)
+  var sidebar = document.getElementById('appSidebar');
+  if (sidebar) sidebar.style.display = 'none';
+  var sidebarToggle = document.getElementById('sidebarToggleBtn');
+  if (sidebarToggle) sidebarToggle.style.display = 'none';
+  var breadcrumb = document.querySelector('.breadcrumb-bar');
+  if (breadcrumb) breadcrumb.style.display = 'none';
+
   // 배포 버튼 숨김
   var deployBtn = document.getElementById('headerDeployBtn');
   if (deployBtn) deployBtn.style.display = 'none';
-  // 학부모 탭으로 자동 이동 (홈)
-  if (typeof showDashboard === 'function') showDashboard();
-  // 학부모용 대시보드 데이터 로드
-  loadParentDashboard();
+
+  // 기존 탭 패널 모두 숨김
+  document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
+    if (!el.id.startsWith('parentPanel')) el.style.display = 'none';
+  });
+
+  // 학부모 홈 탭 표시
+  switchParentTab('home');
 }
 
 // 학부모 대시보드 데이터 로드
