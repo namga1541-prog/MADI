@@ -2041,7 +2041,7 @@ function generateParentInvite() {
 
   supaFetch('madi_parent_invites', 'POST', [{
     center_id:    cid,
-    child_id:     parseInt(childId),
+    child_id:     String(childId),
     parent_name:  name,
     parent_phone: phone || null
   }])
