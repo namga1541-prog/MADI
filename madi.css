@@ -312,8 +312,10 @@
       .child-card:hover { background:#f8fafc; }
     }
     .child-card-row { display:flex; align-items:center; gap:10px; padding:11px 14px; }
+    /* 이름 영역 min-width:0 — ellipsis가 동작하려면 flex 자식에 필수 */
+    .child-card-row > div[style*="flex:1"] { min-width:0; }
     .child-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
-    .child-name { font-size:14px; font-weight:700; }
+    .child-name { font-size:14px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
     .child-age-badge { font-size:11px; color:var(--text2); white-space:nowrap; }
     .child-expand-icon { font-size:11px; color:#94a3b8; margin-left:4px; transition:transform 0.2s; }
     .child-card.open .child-expand-icon { transform:rotate(180deg); }
@@ -876,82 +878,23 @@
 
     /* ─────── 인쇄 전용 (window.print 시) ─────── */
     @media print {
-      /* ① UI 요소 전체 숨김 */
+      /* 헤더, 사이드바, 탭, 알림 등 UI 요소 숨김 */
       header, .header, .sidebar, .nav-tabs, .tab-bar, .panel-tabs,
       .toast, .modal, .modal-overlay, .sched-modal-overlay,
       .btn, button, input[type="button"], .form-input,
       #headerDeployBtn, .lp-features, .lp-cta,
       .dash-quick, .child-status-tabs, .admin-tab-btn,
-      #floatBtn, .float-btn, .chat-panel, .chat-overlay,
-      .deploy-bar, .pwa-banner, .network-badge,
       nav, footer, [onclick] { display: none !important; }
-
-      /* ② A4 페이지 설정 */
-      @page { size: A4 portrait; margin: 1.8cm 1.5cm; }
-
-      /* ③ 본문 기본 리셋 — 모바일 레이아웃 해제 */
-      html, body {
-        background: #fff !important;
-        color: #000 !important;
-        font-size: 10pt !important;
-        line-height: 1.6 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: visible !important;
-      }
-
-      /* ④ 컨테이너 모바일 너비 해제 → A4 전체 폭 활용 */
-      .main-content, .content-wrap, .tab-content,
-      .panel, .report-panel, .assess-panel {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: visible !important;
-      }
-
-      /* ⑤ 카드 스타일 — 보고서 형태 */
-      .card {
-        border: 1px solid #bbb !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        page-break-inside: avoid;
-        margin-bottom: 10pt !important;
-        padding: 10pt 12pt !important;
-        background: #fff !important;
-      }
-
-      /* ⑥ 제목·텍스트 색상 잉크 절약 */
-      .card-title-left, h1, h2, h3, h4,
-      .section-title, .report-title {
-        color: #000 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
-      /* ⑦ 테이블 — 보고서 표 스타일 */
-      table { border-collapse: collapse !important; width: 100% !important; }
-      th, td {
-        border: 1px solid #999 !important;
-        padding: 4pt 6pt !important;
-        font-size: 9pt !important;
-        background: #fff !important;
-        color: #000 !important;
-      }
-      th { background: #f0f0f0 !important; font-weight: 700 !important; }
-
-      /* ⑧ 페이지 나누기 제어 */
-      h1, h2, h3 { page-break-after: avoid; }
-      .session-card, .child-card,
-      .assess-block, .iep-block { page-break-inside: avoid; }
-      .report-section { page-break-before: auto; }
-
-      /* ⑨ 링크 URL 표시 안 함 */
+      /* 카드는 보더만 간소화 */
+      .card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; margin-bottom: 12px; }
+      /* 폰트/색상 절약 (잉크 절약) */
+      body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+      .card-title-left { color: #000 !important; }
+      /* A4 페이지 여백 */
+      @page { margin: 1.5cm; }
+      /* 링크 URL 표시 안 함 (한국 보고서 관행) */
       a[href]:after { content: none !important; }
-
-      /* ⑩ 배경색·그라디언트 제거 (잉크 절약) */
-      * { box-shadow: none !important; text-shadow: none !important; }
-      [style*="background"] { background: #fff !important; }
+      /* 페이지 나누기 힌트 */
+      h1, h2, h3 { page-break-after: avoid; }
+      .session-card, .child-card { page-break-inside: avoid; }
     }
