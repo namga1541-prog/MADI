@@ -617,7 +617,7 @@ async function loadNotices() {
     renderNoticeList();
     startNoticeBanner(noticeDB); // 배너 업데이트
   } catch(e) {
-    listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + (e.message||'') + '</small></p></div>';
+    listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + escHtml(e.message||'') + '</small></p></div>';
   }
 }
 function renderNoticeList() {
