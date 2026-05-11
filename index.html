@@ -905,6 +905,24 @@
   </style>
 </head>
 <body>
+<!-- ── 아이마디 아이콘 심볼 정의 (A9 하트 새싹) ── -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <linearGradient id="madiIconBg" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <symbol id="madiIconSym" viewBox="0 0 100 100">
+      <rect width="100" height="100" rx="22" fill="url(#madiIconBg)"/>
+      <path d="M50 79 L42 87 L54 80 C25 78 9 63 9 44 C9 28 20 18 34 21 C40 23 45 29 50 36 C55 29 60 23 66 21 C80 18 91 28 91 44 C91 63 75 78 50 79Z" fill="rgba(255,255,255,0.88)"/>
+      <path d="M50 74 C49 64 49 55 50 45" stroke="#166534" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M48 63 C39 57 31 52 29 44 C36 42 44 49 48 63Z" fill="#4ade80"/>
+      <path d="M52 55 C61 49 69 44 71 37 C64 39 56 45 52 55Z" fill="#22c55e"/>
+      <path d="M49 46 C44 42 41 36 44 31 C49 34 51 40 49 46Z" fill="#4ade80"/>
+      <path d="M51 46 C56 41 60 35 57 30 C52 33 49 39 51 46Z" fill="#22c55e"/>
+    </symbol>
+  </defs>
+</svg>
 
 <!-- 삭제 확인 모달 -->
 <div id="deleteConfirmModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;">
@@ -967,7 +985,7 @@
   <!-- 상단 네비게이션 -->
   <nav class="lp-nav">
     <div class="lp-nav-logo">
-      <div class="lp-nav-logo-icon"><img src="./icon-192.png" width="40" height="40" style="border-radius:12px;display:block;" alt="아이마디"></div>
+      <div class="lp-nav-logo-icon"><svg width="40" height="40" style="display:block;border-radius:12px;overflow:hidden;"><use href="#madiIconSym"/></svg></div>
       <span>아이마디</span>
     </div>
     <div class="lp-nav-btns">
@@ -1042,7 +1060,7 @@
     <button class="login-back-btn" onclick="backToLanding()">← 처음으로</button>
     <!-- 로고 & 슬로건 -->
     <div class="login-logo">
-      <div class="login-logo-icon"><img src="./icon-192.png" width="64" height="64" style="display:block;object-fit:cover;" alt="아이마디"></div>
+      <div class="login-logo-icon"><svg width="64" height="64" style="display:block;border-radius:18px;overflow:hidden;"><use href="#madiIconSym"/></svg></div>
     </div>
 
     <!-- 아이디 입력 -->
@@ -1078,7 +1096,7 @@
   <div class="login-box">
     <button class="login-back-btn" onclick="backToLanding()">← 처음으로</button>
     <div class="login-logo">
-      <div class="login-logo-icon"><img src="./icon-192.png" width="64" height="64" style="display:block;object-fit:cover;" alt="아이마디"></div>
+      <div class="login-logo-icon"><svg width="64" height="64" style="display:block;border-radius:18px;overflow:hidden;"><use href="#madiIconSym"/></svg></div>
       <h1>마디 가입</h1>
       <p>초대 코드로 시작하기</p>
     </div>
@@ -1118,7 +1136,7 @@
   <div style="display:flex;align-items:center;gap:10px;">
     <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="메뉴 접기/펼치기">☰</button>
     <div class="logo">
-      <div class="logo-icon" onclick="showDashboard()" style="cursor:pointer;" title="홈으로 이동"><img src="./icon-192.png" width="38" height="38" style="display:block;object-fit:cover;" alt="아이마디"></div>
+      <div class="logo-icon" onclick="showDashboard()" style="cursor:pointer;" title="홈으로 이동"><svg width="38" height="38" style="display:block;border-radius:10px;overflow:hidden;"><use href="#madiIconSym"/></svg></div>
       <div class="logo-text">
         <h1>마디</h1>
         <p style="font-size:11px;opacity:0.7;margin-top:1px;font-weight:500;letter-spacing:0.3px;">언어가 자라는 곳</p>
