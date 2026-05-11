@@ -910,24 +910,16 @@ var _pwaPrompt = null;
 function initPWA() {
   var NL = String.fromCharCode(10);
 
-  var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130">'
-    + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
-    + '<rect x="18" y="100" width="94" height="18" rx="9" fill="rgba(255,255,255,0.3)"/>'
-    + '<rect x="59" y="26" width="12" height="80" rx="6" fill="white"/>'
-    + '<ellipse cx="36" cy="60" rx="32" ry="17" fill="white" transform="rotate(-40,36,60)"/>'
-    + '<ellipse cx="94" cy="52" rx="32" ry="17" fill="white" transform="rotate(40,94,52)"/>'
-    + '<circle cx="65" cy="22" r="13" fill="white"/>'
-    + '<circle cx="65" cy="22" r="7" fill="#0ea5a0"/>'
-    + '</svg>';
-  var iconBlob = new Blob([iconSvg], { type: 'image/svg+xml' });
-  var iconUrl  = URL.createObjectURL(iconBlob);
+  var iconUrl192 = './icon-192.png';
+  var iconUrl512 = './icon-512.png';
+  var iconUrl180 = './icon-180.png';
 
   var iconLink = document.getElementById('pwaIcon');
-  if (iconLink) iconLink.href = iconUrl;
+  if (iconLink) iconLink.href = iconUrl180;
 
   var manifest = {
-    name: '마디 — 언어치료 AI 비서',
-    short_name: '마디',
+    name: '아이마디 — 언어치료 AI 비서',
+    short_name: '아이마디',
     description: '언어치료사를 위한 AI 기반 세션 관리 앱',
     start_url: './',
     scope: './',
@@ -937,7 +929,8 @@ function initPWA() {
     orientation: 'portrait-primary',
     lang: 'ko',
     icons: [
-      { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' }
+      { src: iconUrl192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: iconUrl512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
     ]
   };
   var manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
