@@ -533,6 +533,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress) {
     + '<div class="portfolio-stat"><span class="portfolio-stat-label">총 세션 수</span><span class="portfolio-stat-value">' + sessions.length + '회</span></div>';
   for (var gn in goalProgress) {
     var pts = goalProgress[gn];
+    if (!pts || pts.length === 0) continue;
     var first = pts[0].score, last = pts[pts.length - 1].score;
     var diff = last - first;
     var arrow = diff > 0 ? '<span style="color:var(--green)">▲ +' + diff.toFixed(0) + '%</span>'
