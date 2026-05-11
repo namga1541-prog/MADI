@@ -525,7 +525,29 @@
       <div id="centerKeyStatus" style="font-size:12px;margin-top:8px;"></div>
     </div>
 
-
+    <!-- ── 오류 모니터링 (슈퍼어드민 전용) ── -->
+    <div class="card" style="border:2px solid #ef4444;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#ef4444;">🐞 오류 모니터링</div>
+        <span style="font-size:11px;color:var(--text2);">슈퍼관리자 전용</span>
+      </div>
+      <div id="errorLogStats" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+        <select id="errorLogCenterFilter" class="form-input" style="flex:1;min-width:120px;font-size:13px;" onchange="loadErrorLogs()">
+          <option value="">전체 센터</option>
+        </select>
+        <select id="errorLogLimitSel" class="form-input" style="width:90px;font-size:13px;" onchange="loadErrorLogs()">
+          <option value="20">최근 20건</option>
+          <option value="50">최근 50건</option>
+          <option value="100">최근 100건</option>
+        </select>
+        <button class="btn-ghost" style="font-size:12px;padding:8px 12px;" onclick="loadErrorLogs()">🔄 새로고침</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px 12px;color:#ef4444;border-color:#ef4444;" onclick="clearOldErrorLogs()">🗑️ 30일+ 삭제</button>
+      </div>
+      <div id="errorLogList">
+        <div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">불러오는 중...</div>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -707,6 +729,7 @@ function showAdminTab(tab) {
   }
   if (tab === 'settings') {
     loadCenterApiKey(false);
+    if (currentUser && currentUser.role === 'superadmin') loadErrorLogs();
   }
 }
 
@@ -2131,6 +2154,79 @@ function loadParentList() {
           + '</div>';
       }).join('');
     }).catch(function() { el.innerHTML = '<div style="color:var(--red);font-size:13px;padding:10px;">불러오기 실패</div>'; });
+}
+
+// ─── 오류 모니터링 (슈퍼어드민 전용) ───
+function loadErrorLogs() {
+  var listEl  = document.getElementById('errorLogList');
+  var statsEl = document.getElementById('errorLogStats');
+  if (!listEl) return;
+  if (!currentUser || currentUser.role !== 'superadmin') {
+    listEl.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:12px;">슈퍼어드민만 조회할 수 있습니다.</div>';
+    return;
+  }
+  listEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>불러오는 중...</p></div>';
+
+  var centerId = document.getElementById('errorLogCenterFilter') ? document.getElementById('errorLogCenterFilter').value : '';
+  var limit    = document.getElementById('errorLogLimitSel')     ? (document.getElementById('errorLogLimitSel').value || '20') : '20';
+  var path = 'madi_error_logs?order=created_at.desc&limit=' + limit;
+  if (centerId) path += '&center_id=eq.' + encodeURIComponent(centerId);
+
+  supaFetch(path, 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows)) { listEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:12px;">불러오기 실패</div>'; return; }
+
+      var today = new Date().toISOString().slice(0, 10);
+      var todayCount = rows.filter(function(r) { return (r.created_at || '').slice(0, 10) === today; }).length;
+      var centers = [];
+      rows.forEach(function(r) { if (r.center_id && centers.indexOf(r.center_id) === -1) centers.push(r.center_id); });
+
+      if (statsEl) {
+        statsEl.innerHTML =
+          '<span style="font-size:12px;background:#fef2f2;color:#ef4444;padding:3px 10px;border-radius:20px;font-weight:700;">총 ' + rows.length + '건</span> '
+          + '<span style="font-size:12px;background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:20px;font-weight:700;">오늘 ' + todayCount + '건</span> '
+          + '<span style="font-size:12px;background:#f0f9ff;color:#0369a1;padding:3px 10px;border-radius:20px;font-weight:700;">' + centers.length + '개 센터</span>';
+      }
+
+      var filterSel = document.getElementById('errorLogCenterFilter');
+      if (filterSel && filterSel.options.length <= 1) {
+        centers.forEach(function(cid) {
+          var opt = document.createElement('option');
+          opt.value = cid; opt.textContent = '센터 ' + cid;
+          filterSel.appendChild(opt);
+        });
+      }
+
+      if (rows.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">🎉 최근 오류 없음</div>';
+        return;
+      }
+
+      listEl.innerHTML = rows.map(function(r) {
+        var dt  = (r.created_at || '').slice(0, 19).replace('T', ' ');
+        var src = r.source   ? ' <span style="color:var(--text2);font-size:11px;">@ ' + escHtml(r.source) + '</span>' : '';
+        var cid = r.center_id? '<span style="font-size:11px;background:#f0f9ff;color:#0369a1;padding:2px 7px;border-radius:10px;margin-right:4px;">' + escHtml(r.center_id) + '</span>' : '';
+        var usr = r.username ? '<span style="font-size:11px;color:var(--text2);">@' + escHtml(r.username) + '</span>' : '';
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">'
+          + '<span style="font-size:11px;color:var(--text2);">' + escHtml(dt) + '</span>'
+          + cid + usr
+          + '</div>'
+          + '<div style="font-size:13px;color:var(--text);word-break:break-all;line-height:1.6;">' + escHtml(r.message || '(메시지 없음)') + src + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function() { listEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:12px;">불러오기 실패</div>'; });
+}
+
+function clearOldErrorLogs() {
+  if (!confirm('30일 이상 된 오류 로그를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.')) return;
+  if (!currentUser || currentUser.role !== 'superadmin') { showToast('⚠️ 슈퍼어드민만 가능합니다'); return; }
+  var cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  supaFetch('madi_error_logs?created_at=lt.' + cutoff.toISOString(), 'DELETE')
+    .then(function() { showToast('🗑️ 30일 이상 오류 로그 삭제 완료'); loadErrorLogs(); })
+    .catch(function() { showToast('❌ 삭제 실패'); });
 }
 
 </script>
