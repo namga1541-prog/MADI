@@ -111,12 +111,34 @@ function resetApiUsage() {
 
 // 에러 로그 저장
 function pushErrorLog(entry) {
+  // 1) 기존 sessionStorage 저장 (즉시 조회 가능, 변경 없음)
   try {
     var arr = JSON.parse(sessionStorage.getItem('madi_error_log') || '[]');
     arr.push(entry);
     if (arr.length > ERROR_LOG_MAX) arr = arr.slice(-ERROR_LOG_MAX);
     sessionStorage.setItem('madi_error_log', JSON.stringify(arr));
   } catch(e) {}
+
+  // 2) Supabase에도 비동기 저장 (영구 보관 + 슈퍼어드민 조회용)
+  if (window._errorLogSending) return;   // 무한 루프 방지
+  if (!window.currentUser) return;        // 로그인 전 에러는 서버 저장 안 함
+  window._errorLogSending = true;
+  try {
+    var payload = {
+      user_id:    String((window.currentUser && window.currentUser.id) || ''),
+      username:   String((window.currentUser && window.currentUser.username) || ''),
+      message:    String(entry.message || '').slice(0, 1000),
+      source:     String(entry.source  || '').slice(0, 200),
+      user_agent: (navigator.userAgent || '').slice(0, 300),
+      url:        location.pathname,
+      ts:         entry.ts
+    };
+    supaFetch('madi_error_logs', 'POST', [payload])
+      .catch(function() {})
+      .finally(function() { window._errorLogSending = false; });
+  } catch(e) {
+    window._errorLogSending = false;
+  }
 }
 
 function getErrorLog() {
