@@ -86,6 +86,20 @@ function getToken()       { return _madiToken || localStorage.getItem('madi_toke
 function setToken(t)      { _madiToken = t; localStorage.setItem('madi_token', t); }
 function clearToken()     { _madiToken = null; localStorage.removeItem('madi_token'); }
 
+// localStorage 안전 저장 — QuotaExceededError 대응 (5MB 한계 초과 시 데이터 손실 방지)
+function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    console.error('localStorage 저장 실패:', key, e);
+    if (e && e.name === 'QuotaExceededError') {
+      showToast('⚠️ 로컬 저장 공간 부족 — 데이터는 서버에 안전하게 저장됩니다');
+    }
+    return false;
+  }
+}
+
 function supaFetch(path, method, body) {
   return fetchWithRetry(EDGE_URL + '/api', {
     method: 'POST',
@@ -538,7 +552,7 @@ function loadDBFromSupabase(silent) {
 function saveChildren() {
   markMyChange();
   _optionsCacheKey = null;
-  localStorage.setItem('cn3_children', JSON.stringify(childDB));
+  safeSetItem('cn3_children', JSON.stringify(childDB));
   if (childDB.length === 0) return;
   var cid = getCenterId();
   var rows = childDB.map(function(c){ return { id: c.id, center_id: cid, data: c }; });
@@ -564,7 +578,7 @@ function getSaveErrMsg(e, label) {
 
 function saveSessions() {
   markMyChange();
-  localStorage.setItem('cn3_sessions', JSON.stringify(sessionDB));
+  safeSetItem('cn3_sessions', JSON.stringify(sessionDB));
   if (sessionDB.length === 0) return;
   var cid = getCenterId();
   var rows = sessionDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; });
@@ -576,7 +590,7 @@ function saveSessions() {
 }
 function saveSchedule() {
   markMyChange();
-  localStorage.setItem('cn3_schedule', JSON.stringify(scheduleDB));
+  safeSetItem('cn3_schedule', JSON.stringify(scheduleDB));
   if (scheduleDB.length === 0) return;
   var cid = getCenterId();
   var rows = scheduleDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; });
@@ -588,7 +602,7 @@ function saveSchedule() {
 }
 function saveAssess() {
   markMyChange();
-  localStorage.setItem('cn3_assess', JSON.stringify(assessmentDB));
+  safeSetItem('cn3_assess', JSON.stringify(assessmentDB));
   if (assessmentDB.length === 0) return;
   var cid = getCenterId();
   var rows = assessmentDB.map(function(a){ return { id: a.id, center_id: cid, data: a }; });
@@ -611,7 +625,7 @@ function loadDB() {
 }
 
 function saveIEP() {
-  localStorage.setItem('cn3_iep', JSON.stringify(iepDB));
+  safeSetItem('cn3_iep', JSON.stringify(iepDB));
   var cid = getCenterId();
   var rows = iepDB.map(function(r){ return { id: r.id, center_id: cid, data: r }; });
   if (rows.length === 0) return;
@@ -626,7 +640,7 @@ function loadIEPFromSupa() {
                        .map(function(r){ var d=r.data; d.id=r.id; return d; });
       if (parsed.length > 0) {
         iepDB = parsed;
-        localStorage.setItem('cn3_iep', JSON.stringify(iepDB));
+        safeSetItem('cn3_iep', JSON.stringify(iepDB));
         renderIEPHistory(parseInt(document.getElementById('iepChild').value) || 0);
       }
     })
@@ -634,7 +648,7 @@ function loadIEPFromSupa() {
 }
 
 function saveActivities() {
-  localStorage.setItem('cn3_activities', JSON.stringify(activityDB));
+  safeSetItem('cn3_activities', JSON.stringify(activityDB));
   var cid = getCenterId();
   var rows = activityDB.map(function(a){ return Object.assign({}, a, { center_id: cid }); });
   supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(){});
@@ -645,7 +659,7 @@ function loadActivitiesFromSupa() {
     .then(function(rows) {
       if (Array.isArray(rows) && rows.length > 0) {
         activityDB = rows;
-        localStorage.setItem('cn3_activities', JSON.stringify(activityDB));
+        safeSetItem('cn3_activities', JSON.stringify(activityDB));
         renderActivityCatalog();
       }
     })
