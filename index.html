@@ -270,6 +270,12 @@
 
     .tab-btn.active .tab-lbl { color:var(--mint); }
 
+    /* 더보기 드롭다운 메뉴 항목 hover/active */
+    .more-menu-item { transition: background 0.15s; }
+    .more-menu-item:hover { background: rgba(14,165,160,0.08); }
+    .more-menu-item:active { background: rgba(14,165,160,0.15); }
+    .more-menu-item:last-child { border-bottom: none !important; }
+
     .content { padding:14px; max-width:860px; margin:0 auto; }
     .tab-panel { display:none; }
     .tab-panel.active { display:block; }
@@ -1208,10 +1214,26 @@
   <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico">📅</span><span class="tab-lbl">캘린더</span></button>
   <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
   <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
-  <button class="tab-btn" id="tabBtn3" onclick="switchTab(3)"><span class="tab-ico">📁</span><span class="tab-lbl">성장기록</span></button>
-  <button class="tab-btn" id="tabBtn4" onclick="goToAdmin('service')"><span class="tab-ico">🛠️</span><span class="tab-lbl">서비스</span></button>
-  <button class="tab-btn" id="tabBtn5" onclick="goToAdmin('settings')"><span class="tab-ico">⚙️</span><span class="tab-lbl">관리자</span></button>
-  <button class="tab-btn" id="tabBtn6" onclick="switchTab(6)"><span class="tab-ico">🔧</span><span class="tab-lbl">설정</span></button>
+  <button class="tab-btn" id="tabBtnMore" onclick="toggleMoreMenu(event)" style="position:relative;"><span class="tab-ico">⋯</span><span class="tab-lbl">더보기</span></button>
+</div>
+
+<!-- ─── 더보기 드롭다운 메뉴 (탭바 아래) ─── -->
+<div id="moreMenu" style="display:none;position:fixed;top:60px;right:8px;background:var(--card-bg,white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.18);z-index:300;min-width:180px;overflow:hidden;">
+  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(3);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
+    <span style="font-size:18px;">📁</span><span>성장기록</span>
+  </button>
+  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(4);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
+    <span style="font-size:18px;">📋</span><span>게시판</span>
+  </button>
+  <button class="more-menu-item" onclick="closeMoreMenu();goToAdmin('service');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
+    <span style="font-size:18px;">🛠️</span><span>서비스 관리</span>
+  </button>
+  <button class="more-menu-item" onclick="closeMoreMenu();goToAdmin('settings');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
+    <span style="font-size:18px;">⚙️</span><span>관리자 설정</span>
+  </button>
+  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(6);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:18px;">🔧</span><span>설정</span>
+  </button>
 </div>
 
 <!-- ─── 학부모 전용 탭바 (parent 역할 로그인 시에만 표시) ─── -->
