@@ -247,3 +247,196 @@ function loadParentNotice() {
       }).catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
   });
 }
+
+// ══════════════════════════════════════════════════════════════
+// ★ 학부모 자동 가입 (핸드폰 번호 매칭 방식)
+// ══════════════════════════════════════════════════════════════
+
+var _parentSignupMatchedChildren = []; // lookup 결과 캐시
+
+// ─── 화면 전환: 학부모 가입 화면 표시 ───
+function showParentSignupScreen() {
+  // 기존 화면 모두 숨기기
+  var screens = ['landingScreen', 'loginScreen', 'signupScreen'];
+  screens.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  var ps = document.getElementById('parentSignupScreen');
+  if (ps) ps.style.display = '';
+  // 초기화
+  resetParentSignup();
+}
+
+// ─── 학부모 가입 → 로그인 화면 복귀 ───
+function backToLoginFromParentSignup() {
+  var ps = document.getElementById('parentSignupScreen');
+  if (ps) ps.style.display = 'none';
+  var ls = document.getElementById('loginScreen');
+  if (ls) ls.style.display = '';
+  resetParentSignup();
+}
+
+// ─── 입력 시 자동 하이픈 (010-1234-5678) ───
+function formatParentPhone(input) {
+  if (!input) return;
+  var raw = input.value.replace(/[^0-9]/g, '');
+  if (raw.length > 11) raw = raw.slice(0, 11);
+  var formatted = raw;
+  if (raw.length >= 4 && raw.length <= 7) {
+    formatted = raw.slice(0, 3) + '-' + raw.slice(3);
+  } else if (raw.length >= 8) {
+    formatted = raw.slice(0, 3) + '-' + raw.slice(3, 7) + '-' + raw.slice(7);
+  }
+  input.value = formatted;
+}
+
+// ─── 단계 2 → 단계 1로 되돌리기 ───
+function resetParentSignup() {
+  var step1 = document.getElementById('parentSignupStep1');
+  var step2 = document.getElementById('parentSignupStep2');
+  if (step1) step1.style.display = '';
+  if (step2) step2.style.display = 'none';
+  var fields = ['parentPhoneInput', 'parentSignupPassword', 'parentSignupPasswordConfirm'];
+  fields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var errors = ['parentLookupError', 'parentSignupError'];
+  errors.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
+  _parentSignupMatchedChildren = [];
+}
+
+// ─── 액션 1: 핸드폰 번호로 아동 조회 ───
+function parentLookup() {
+  var phoneInput = document.getElementById('parentPhoneInput');
+  var errEl = document.getElementById('parentLookupError');
+  var btn = document.getElementById('parentLookupBtn');
+  if (!phoneInput || !errEl || !btn) return;
+
+  var phone = phoneInput.value.replace(/[^0-9]/g, '');
+  if (phone.length < 10 || phone.length > 11) {
+    errEl.textContent = '⚠️ 올바른 핸드폰 번호를 입력해주세요';
+    return;
+  }
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = '⏳ 조회 중...';
+
+  fetch(EDGE_URL + '/parent-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'lookup', phone: phone })
+  })
+    .then(function(r) { return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.textContent = '🔍 내 아이 찾기';
+      if (!res.ok) {
+        errEl.textContent = '❌ ' + (res.data.error || '조회 실패');
+        return;
+      }
+      if (res.data.alreadyJoined) {
+        errEl.textContent = '⚠️ 이미 가입된 번호입니다. 로그인 화면에서 로그인해주세요.';
+        return;
+      }
+      if (!res.data.children || res.data.children.length === 0) {
+        errEl.textContent = '❌ 등록된 아동이 없습니다. 센터에 보호자 번호 등록을 요청해주세요.';
+        return;
+      }
+      // 매칭 성공 → 단계 2로 전환
+      _parentSignupMatchedChildren = res.data.children;
+      var matchedEl = document.getElementById('parentMatchedChildren');
+      if (matchedEl) {
+        matchedEl.innerHTML = res.data.children.map(function(c) {
+          return '<div>👶 ' + escHtml(c.name) + '</div>';
+        }).join('');
+      }
+      document.getElementById('parentSignupStep1').style.display = 'none';
+      document.getElementById('parentSignupStep2').style.display = '';
+      // 비밀번호 입력란에 포커스
+      setTimeout(function() {
+        var pwEl = document.getElementById('parentSignupPassword');
+        if (pwEl) pwEl.focus();
+      }, 100);
+    })
+    .catch(function(e) {
+      btn.disabled = false;
+      btn.textContent = '🔍 내 아이 찾기';
+      errEl.textContent = '❌ 네트워크 오류: ' + (e.message || '');
+    });
+}
+
+// ─── 액션 2: 학부모 가입 처리 ───
+function parentSignup() {
+  var phoneInput = document.getElementById('parentPhoneInput');
+  var pwInput = document.getElementById('parentSignupPassword');
+  var pw2Input = document.getElementById('parentSignupPasswordConfirm');
+  var errEl = document.getElementById('parentSignupError');
+  var btn = document.getElementById('parentSignupBtn');
+  if (!phoneInput || !pwInput || !pw2Input || !errEl || !btn) return;
+
+  var phone = phoneInput.value.replace(/[^0-9]/g, '');
+  var pw = pwInput.value;
+  var pw2 = pw2Input.value;
+
+  if (!pw || pw.length < 4) {
+    errEl.textContent = '⚠️ 비밀번호는 4자 이상 입력해주세요';
+    return;
+  }
+  if (pw !== pw2) {
+    errEl.textContent = '⚠️ 비밀번호가 일치하지 않습니다';
+    return;
+  }
+  if (!_parentSignupMatchedChildren || _parentSignupMatchedChildren.length === 0) {
+    errEl.textContent = '⚠️ 매칭된 아동 정보가 없습니다. 다시 조회해주세요.';
+    return;
+  }
+
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = '⏳ 가입 중...';
+
+  var childIds = _parentSignupMatchedChildren.map(function(c) { return c.id; });
+
+  fetch(EDGE_URL + '/parent-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'signup',
+      phone: phone,
+      password: pw,
+      childIds: childIds
+    })
+  })
+    .then(function(r) { return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.textContent = '✨ 가입 완료';
+      if (!res.ok) {
+        errEl.textContent = '❌ ' + (res.data.error || '가입 실패');
+        return;
+      }
+      // 가입 성공 → 토스트 + 로그인 화면으로 이동 + 아이디 자동 입력
+      showToast('🎉 가입 완료! 자동으로 로그인 화면으로 이동합니다', { duration: 3000 });
+      setTimeout(function() {
+        backToLoginFromParentSignup();
+        // 아이디 자동 입력
+        var unEl = document.getElementById('loginUsernameInput');
+        var pwEl2 = document.getElementById('loginPwInput');
+        if (unEl) unEl.value = phone;
+        if (pwEl2) {
+          pwEl2.value = '';
+          setTimeout(function(){ pwEl2.focus(); }, 200);
+        }
+      }, 1500);
+    })
+    .catch(function(e) {
+      btn.disabled = false;
+      btn.textContent = '✨ 가입 완료';
+      errEl.textContent = '❌ 네트워크 오류: ' + (e.message || '');
+    });
+}
