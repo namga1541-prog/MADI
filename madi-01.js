@@ -425,14 +425,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // 사이드바 접힘 상태 복원
   restoreSidebarState();
 
-  // SVG 로고 4곳 자동 주입
-  var lpNav = document.querySelector('.lp-nav-logo-icon');
-  if (lpNav) lpNav.innerHTML = getMadiLogoSVG(44, 44);
-  document.querySelectorAll('.login-logo-icon').forEach(function(el) {
-    el.innerHTML = getMadiLogoSVG(34, 34);
-  });
-  var logoIcon = document.querySelector('.logo-icon');
-  if (logoIcon) logoIcon.innerHTML = getMadiLogoSVG(22, 22);
+  // SVG 로고 4곳 자동 주입 — 비활성화됨 (A7 base64 아이콘 사용을 위해 2026-05-12)
+  // var lpNav = document.querySelector('.lp-nav-logo-icon');
+  // if (lpNav) lpNav.innerHTML = getMadiLogoSVG(44, 44);
+  // document.querySelectorAll('.login-logo-icon').forEach(function(el) {
+  //   el.innerHTML = getMadiLogoSVG(34, 34);
+  // });
+  // var logoIcon = document.querySelector('.logo-icon');
+  // if (logoIcon) logoIcon.innerHTML = getMadiLogoSVG(22, 22);
 
   // Enter 키 로그인 처리
   var pwInput = document.getElementById('loginPwInput');
