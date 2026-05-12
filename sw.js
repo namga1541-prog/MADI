@@ -1,4 +1,4 @@
-var CACHE_NAME = "madi-v6-20260512-nocache";
+var CACHE_NAME = "madi-v4-20260512-1303";
 var SKIP_URLS = ["api.anthropic.com","supabase.co","googleapis.com","cdnjs","jsdelivr","fonts.g"];
 self.addEventListener("install", function(e) { self.skipWaiting(); });
 self.addEventListener("activate", function(e) {
@@ -12,8 +12,6 @@ self.addEventListener("fetch", function(e) {
   var url = e.request.url;
   if (SKIP_URLS.some(function(s){ return url.includes(s); })) return;
   if (e.request.method !== "GET") return;
-  // HTML 문서(index.html 등)는 캐싱 제외 — 항상 서버에서 최신 버전 로드
-  if (e.request.destination === "document" || url.endsWith(".html")) return;
   e.respondWith(
     fetch(e.request).then(function(res) {
       if (!res || res.status !== 200 || res.type === "opaque") return res;
