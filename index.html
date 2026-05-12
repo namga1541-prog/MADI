@@ -1071,6 +1071,9 @@
     <button class="btn-ghost" style="width:100%;height:46px;color:var(--mint);border-color:var(--mint);font-weight:700;font-size:14px;" onclick="showSignupScreen()">
       ✨ 초대 코드로 가입하기
     </button>
+    <button class="btn-ghost" style="width:100%;height:46px;color:#3b82f6;border-color:#3b82f6;font-weight:700;font-size:14px;margin-top:8px;" onclick="showParentSignupScreen()">
+      👨‍👩‍👧 학부모 가입하기
+    </button>
   </div>
 </div>
 
@@ -1113,6 +1116,56 @@
     <button class="btn btn-primary" id="signupSubmitBtn" style="margin-top:0;" onclick="doSignup()">✨ 가입하기</button>
     <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToLoginFromSignup()">← 로그인 화면으로</button>
     <div id="signupError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;line-height:1.5;"></div>
+  </div>
+</div>
+
+<!-- 학부모 가입 화면 (핸드폰 번호 매칭 방식) -->
+<div class="login-screen" id="parentSignupScreen" style="display:none;">
+  <div class="login-box">
+    <button class="login-back-btn" onclick="backToLoginFromParentSignup()">← 처음으로</button>
+    <div class="login-logo">
+      <div class="login-logo-icon"><div class="madi-icon" style="width:64px;height:64px;border-radius:18px;"></div></div>
+      <h1>학부모 가입</h1>
+      <p>등록된 핸드폰 번호로 가입</p>
+    </div>
+
+    <!-- 단계 1: 핸드폰 번호 조회 -->
+    <div id="parentSignupStep1">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">핸드폰 번호</label>
+        <input class="form-input" type="tel" id="parentPhoneInput" placeholder="010-1234-5678" maxlength="13"
+          oninput="formatParentPhone(this)" autocomplete="tel"
+          style="font-size:16px;letter-spacing:1px;height:48px;">
+        <p style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.5;">
+          📌 센터에 등록된 보호자 번호와 동일해야 합니다
+        </p>
+      </div>
+      <button class="btn btn-primary" id="parentLookupBtn" style="height:50px;font-size:16px;font-weight:700;margin-top:0;" onclick="parentLookup()">🔍 내 아이 찾기</button>
+      <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToLoginFromParentSignup()">← 로그인 화면으로</button>
+      <div id="parentLookupError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;min-height:18px;line-height:1.5;"></div>
+    </div>
+
+    <!-- 단계 2: 매칭된 아동 확인 + 비밀번호 설정 -->
+    <div id="parentSignupStep2" style="display:none;">
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+        <p style="font-size:12px;color:#166534;font-weight:600;margin-bottom:6px;">✅ 매칭된 아동</p>
+        <div id="parentMatchedChildren" style="font-size:15px;color:#15803d;font-weight:700;line-height:1.7;"></div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">비밀번호 설정</label>
+        <input class="form-input" type="password" id="parentSignupPassword" placeholder="4자 이상" autocomplete="new-password" style="font-size:16px;height:48px;">
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">비밀번호 확인</label>
+        <input class="form-input" type="password" id="parentSignupPasswordConfirm" placeholder="다시 입력" autocomplete="new-password" style="font-size:16px;height:48px;">
+      </div>
+
+      <button class="btn btn-primary" id="parentSignupBtn" style="height:50px;font-size:16px;font-weight:700;margin-top:0;" onclick="parentSignup()">✨ 가입 완료</button>
+      <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="resetParentSignup()">← 다른 번호로 다시</button>
+      <div id="parentSignupError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;min-height:18px;line-height:1.5;"></div>
+    </div>
   </div>
 </div>
 <div class="header">
