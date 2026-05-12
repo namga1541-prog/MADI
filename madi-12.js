@@ -910,16 +910,24 @@ var _pwaPrompt = null;
 function initPWA() {
   var NL = String.fromCharCode(10);
 
-  var iconUrl192 = './icon-192.png';
-  var iconUrl512 = './icon-512.png';
-  var iconUrl180 = './icon-180.png';
+  var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130">'
+    + '<rect width="130" height="130" rx="28" fill="#0ea5a0"/>'
+    + '<rect x="18" y="100" width="94" height="18" rx="9" fill="rgba(255,255,255,0.3)"/>'
+    + '<rect x="59" y="26" width="12" height="80" rx="6" fill="white"/>'
+    + '<ellipse cx="36" cy="60" rx="32" ry="17" fill="white" transform="rotate(-40,36,60)"/>'
+    + '<ellipse cx="94" cy="52" rx="32" ry="17" fill="white" transform="rotate(40,94,52)"/>'
+    + '<circle cx="65" cy="22" r="13" fill="white"/>'
+    + '<circle cx="65" cy="22" r="7" fill="#0ea5a0"/>'
+    + '</svg>';
+  var iconBlob = new Blob([iconSvg], { type: 'image/svg+xml' });
+  var iconUrl  = URL.createObjectURL(iconBlob);
 
   var iconLink = document.getElementById('pwaIcon');
-  if (iconLink) iconLink.href = iconUrl180;
+  if (iconLink) iconLink.href = iconUrl;
 
   var manifest = {
-    name: '아이마디 — 언어치료 AI 비서',
-    short_name: '아이마디',
+    name: '마디 — 언어치료 AI 비서',
+    short_name: '마디',
     description: '언어치료사를 위한 AI 기반 세션 관리 앱',
     start_url: './',
     scope: './',
@@ -929,8 +937,7 @@ function initPWA() {
     orientation: 'portrait-primary',
     lang: 'ko',
     icons: [
-      { src: iconUrl192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-      { src: iconUrl512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+      { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' }
     ]
   };
   var manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
@@ -1082,12 +1089,20 @@ function initFloatBtnDrag() {
 
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch(e) {}
+  // 저장된 위치 안전 검증: 화면 상단 60% 영역에 있으면 (콘텐츠 가림) 무시하고 기본값(우측 하단) 사용
   if (saved) {
-    btn.style.top    = saved.top  + 'px';
-    btn.style.bottom = 'auto';
-    btn.style.right  = saved.right + 'px';
-    btn.style.left   = 'auto';
-    btn.style.transform = 'none';
+    var topOk    = typeof saved.top === 'number' && saved.top >= window.innerHeight * 0.6;
+    var rightOk  = typeof saved.right === 'number' && saved.right >= 0 && saved.right < window.innerWidth - 56;
+    if (topOk && rightOk) {
+      btn.style.top    = saved.top  + 'px';
+      btn.style.bottom = 'auto';
+      btn.style.right  = saved.right + 'px';
+      btn.style.left   = 'auto';
+      btn.style.transform = 'none';
+    } else {
+      // 부적절한 저장값 → localStorage에서 제거 (다음번에도 같은 문제 안 생기게)
+      try { localStorage.removeItem('madi_maro_pos'); } catch(e) {}
+    }
   }
 
   function getPos(e) {
