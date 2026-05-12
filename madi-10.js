@@ -510,12 +510,14 @@ function renderDayGrid() {
   if (dayScheds.length === 0) {
     html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">일정이 없습니다.</div>';
   } else {
-    var tableW = Math.min(therapists.length * 140 + 50, window.innerWidth - 32);
-    html += '<table style="width:' + tableW + 'px;border-collapse:collapse;font-size:11px;table-layout:fixed;margin:0 auto;">';
-    // 컬럼 너비 균등 분배
-    var colW = Math.floor(100 / (therapists.length + 1));
-    html += '<colgroup><col style="width:44px;">';
-    therapists.forEach(function(){ html += '<col>'; });
+    // 치료사 컬럼 최소 너비 보장 (모바일 가독성) + 가로 스크롤 컨테이너로 래핑
+    var COL_W_TEACHER = 110;  // 치료사 1명당 컬럼 너비
+    var COL_W_TIME    = 50;   // 시간 컬럼 너비
+    var tableW = COL_W_TIME + therapists.length * COL_W_TEACHER;
+    html += '<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid #e2e8f0;">';
+    html += '<table style="width:' + tableW + 'px;min-width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;">';
+    html += '<colgroup><col style="width:' + COL_W_TIME + 'px;">';
+    therapists.forEach(function(){ html += '<col style="width:' + COL_W_TEACHER + 'px;">'; });
     html += '</colgroup>';
     // 헤더: 시간 + 치료사 컬럼
     html += '<thead><tr>'
@@ -551,7 +553,7 @@ function renderDayGrid() {
       });
       html += '</tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
   }
 
   html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)" style="margin-top:10px;">+</button></div>';
