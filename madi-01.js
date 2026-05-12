@@ -938,3 +938,23 @@ function loadParentDashboard() {
 
 
 // ─────── 글로벌 에러 핸들러 ───────
+// ─────── 상단 탭바 '더보기' 메뉴 ───────
+function toggleMoreMenu(e) {
+  if (e) { e.stopPropagation(); }
+  var menu = document.getElementById('moreMenu');
+  if (!menu) return;
+  menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+}
+function closeMoreMenu() {
+  var menu = document.getElementById('moreMenu');
+  if (menu) menu.style.display = 'none';
+}
+// 외부 클릭 시 메뉴 자동 닫기
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('moreMenu');
+  if (!menu || menu.style.display === 'none') return;
+  var moreBtn = document.getElementById('tabBtnMore');
+  if (moreBtn && moreBtn.contains(e.target)) return;  // 더보기 버튼 자체 클릭은 toggle이 처리
+  if (menu.contains(e.target)) return;  // 메뉴 안 클릭은 닫지 않음 (개별 항목이 닫음)
+  closeMoreMenu();
+});
