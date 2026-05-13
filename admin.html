@@ -266,6 +266,81 @@
   <!-- 🛠 서비스 서브패널 -->
   <div class="content" id="svcSubPanel_service" style="display:none;">
 
+    <!-- ── 내 라이선스 현황 + 활성화 (센터장 전용) ── -->
+    <div class="card" id="myLicenseAdminSection" style="border:2px solid var(--mint);">
+      <div class="card-title">
+        <div class="card-title-left" style="color:var(--mint);">🔑 내 라이선스</div>
+        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="loadMyLicense()">🔄 새로고침</button>
+      </div>
+      <!-- 현재 라이선스 상태 표시 영역 -->
+      <div id="myLicenseCard" style="margin-bottom:14px;min-height:48px;">
+        <div style="text-align:center;color:var(--text2);font-size:13px;padding:12px;">불러오는 중...</div>
+      </div>
+      <!-- 키 활성화 영역 -->
+      <div style="border-top:1px solid var(--border);padding-top:12px;">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.6;">
+          발급받은 <strong>6자리 라이선스 키</strong>를 입력하고 활성화 버튼을 누르세요.
+        </p>
+        <div style="display:flex;gap:8px;">
+          <input type="text" class="form-input" id="licActivateKey" maxlength="6"
+            placeholder="예: A3BK7Z"
+            style="font-family:monospace;font-weight:700;letter-spacing:4px;font-size:16px;
+                   text-align:center;text-transform:uppercase;flex:1;min-width:0;">
+          <button class="btn btn-primary" style="margin-top:0;flex-shrink:0;white-space:nowrap;"
+            onclick="activateLicense()">🔓 활성화</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AI 모델 선택 (Haiku ↔ Sonnet) ── -->
+    <div class="card" style="border:2px solid #8b5cf6;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#8b5cf6;">🤖 AI 모델 설정</div>
+        <span id="aiModelCurrentLabel" style="font-size:11px;color:var(--text2);font-weight:600;">불러오는 중...</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px;">
+        앱 내 모든 AI 기능(보고서·세션기록·IEP 등)에 사용할 모델을 선택하세요.
+      </p>
+
+      <!-- Haiku 옵션 -->
+      <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:all 0.15s;" id="aiModelHaikuLabel">
+        <input type="radio" name="aiModelChoice" value="haiku" id="aiModelHaikuRadio"
+          onchange="saveAIModelChoice('haiku')"
+          style="margin-top:3px;width:18px;height:18px;accent-color:#0ea5a0;flex-shrink:0;cursor:pointer;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+            <span style="font-weight:800;font-size:15px;color:var(--text);">⚡ Haiku 4.5</span>
+            <span style="background:#ecfdf5;color:#047857;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;">빠름·저렴</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">
+            일반 작업·간단한 응답에 권장. 응답 속도 빠르고 비용 부담 적음.<br>
+            <span style="font-size:11px;color:#94a3b8;">💰 입력 $0.80 / 출력 $4.00 (백만 토큰당)</span>
+          </div>
+        </div>
+      </label>
+
+      <!-- Sonnet 옵션 -->
+      <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;" id="aiModelSonnetLabel">
+        <input type="radio" name="aiModelChoice" value="sonnet" id="aiModelSonnetRadio"
+          onchange="saveAIModelChoice('sonnet')"
+          style="margin-top:3px;width:18px;height:18px;accent-color:#8b5cf6;flex-shrink:0;cursor:pointer;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+            <span style="font-weight:800;font-size:15px;color:var(--text);">🎯 Sonnet 4.6</span>
+            <span style="background:#f3e8ff;color:#7c3aed;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;">강력·정밀</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">
+            임상 추론·평가 보고서·복잡한 분석에 권장. 통합 해석력 우수.<br>
+            <span style="font-size:11px;color:#94a3b8;">💰 입력 $3.00 / 출력 $15.00 (백만 토큰당, Haiku 대비 약 4배)</span>
+          </div>
+        </div>
+      </label>
+
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-top:12px;font-size:11px;color:#92400e;line-height:1.5;">
+        💡 추천: 평일 일반 업무는 Haiku, 종합 평가 보고서 작성 시 Sonnet 사용
+      </div>
+    </div>
+
     <!-- 프로그램 관리 -->
     <div class="card">
       <div class="card-title">
@@ -525,6 +600,61 @@
       <div id="centerKeyStatus" style="font-size:12px;margin-top:8px;"></div>
     </div>
 
+    <!-- ── 라이선스 발급 (슈퍼어드민 전용) ── -->
+    <div class="card" id="licIssueSuperadminSection" style="border:2px solid var(--mint);">
+      <div class="card-title">
+        <div class="card-title-left" style="color:var(--mint);">🔑 라이선스 발급</div>
+        <span style="font-size:11px;color:var(--text2);">슈퍼관리자 전용</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">센터 ID</label>
+          <input type="text" class="form-input" id="licCenterId" placeholder="센터 ID 입력">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">플랜</label>
+          <select class="form-input" id="licPlan">
+            <option value="trial">체험판 (30일, 0원)</option>
+            <option value="starter">스타터 (1개월, 30,000원)</option>
+            <option value="pro" selected>프로 (1개월, 70,000원)</option>
+            <option value="enterprise">엔터프라이즈 (1개월, 150,000원~)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">입금액 (원)</label>
+          <input type="number" class="form-input" id="licPaid" placeholder="0" min="0">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">라이선스 키</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" class="form-input" id="licKeyGenerated" readonly
+              placeholder="🎲 버튼으로 생성"
+              style="font-family:monospace;font-weight:700;letter-spacing:3px;font-size:15px;text-align:center;flex:1;min-width:0;">
+            <button type="button" class="btn-ghost" onclick="refreshLicenseKey()"
+              style="flex-shrink:0;padding:10px 12px;font-size:14px;" title="새 키 생성">🎲</button>
+            <button type="button" class="btn-ghost" onclick="copyLicenseKey(document.getElementById('licKeyGenerated').value)"
+              style="flex-shrink:0;padding:10px 12px;font-size:14px;" title="복사">📋</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">메모 (선택)</label>
+        <input type="text" class="form-input" id="licMemo" placeholder="예: 5월 입금 완료, 김원장님">
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:0;" onclick="issueLicense()">✅ 라이선스 발급</button>
+    </div>
+
+    <!-- ── 발급 이력 (슈퍼어드민 전용) ── -->
+    <div class="card" id="licHistorySuperadminSection" style="border:2px solid #f59e0b;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#d97706;">📋 발급 이력</div>
+        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="loadLicenseList()">🔄 새로고침</button>
+      </div>
+      <div id="licenseListEl">
+        <div style="text-align:center;color:var(--text2);font-size:13px;padding:16px;">불러오는 중...</div>
+      </div>
+    </div>
+
     <!-- ── 오류 모니터링 (슈퍼어드민 전용) ── -->
     <div class="card" style="border:2px solid #ef4444;">
       <div class="card-title">
@@ -699,6 +829,8 @@ function showSvcSubTab(tab) {
     if (btn)   btn.classList.toggle('active', t === tab);
   });
   if (tab === 'parent') { loadParentList(); populateParentChildSelect(); }
+  if (tab === 'service' && currentUser && currentUser.role === 'admin') { loadMyLicense(); }
+  if (tab === 'service' && typeof updateAIModelUI === 'function') { updateAIModelUI(); }
 }
 
 // ── 탭 전환 ──
@@ -729,7 +861,10 @@ function showAdminTab(tab) {
   }
   if (tab === 'settings') {
     loadCenterApiKey(false);
-    if (currentUser && currentUser.role === 'superadmin') loadErrorLogs();
+    if (currentUser && currentUser.role === 'superadmin') {
+      loadErrorLogs();
+      loadLicenseList();
+    }
   }
 }
 
@@ -1795,6 +1930,14 @@ window.addEventListener('DOMContentLoaded', function() {
   // 사용자 이름 표시
   var nameEl = document.getElementById('adminUserName');
   if (nameEl && currentUser) nameEl.textContent = currentUser.name;
+  // 라이선스 카드 역할별 표시 처리
+  var isSuper = currentUser && currentUser.role === 'superadmin';
+  var licIssue   = document.getElementById('licIssueSuperadminSection');
+  var licHistory = document.getElementById('licHistorySuperadminSection');
+  var licMine    = document.getElementById('myLicenseAdminSection');
+  if (licIssue)   licIssue.style.display   = isSuper ? '' : 'none';
+  if (licHistory) licHistory.style.display = isSuper ? '' : 'none';
+  if (licMine)    licMine.style.display    = isSuper ? 'none' : '';
   // 데이터 로드 후 서비스 탭 렌더
   loadAdminData();
   // 프로그램 목록 + 선생님 목록 로드
@@ -2229,7 +2372,246 @@ function clearOldErrorLogs() {
     .catch(function() { showToast('❌ 삭제 실패'); });
 }
 
-</script>
+// ══════════════════════════════════════════════
+// ★ 라이선스 시스템
+// ══════════════════════════════════════════════
+var LICENSE_CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // I, O, 0, 1 제외
 
+// ── 키 생성 ──
+function generateLicenseKey() {
+  var key = '';
+  var arr = new Uint8Array(6);
+  crypto.getRandomValues(arr);
+  for (var i = 0; i < 6; i++) {
+    key += LICENSE_CHARSET[arr[i] % LICENSE_CHARSET.length];
+  }
+  return key;
+}
+
+// ── 🎲 버튼 클릭 ──
+function refreshLicenseKey() {
+  var el = document.getElementById('licKeyGenerated');
+  if (el) el.value = generateLicenseKey();
+}
+
+// ── 플랜별 만료일 계산 (발급 시점 기준) ──
+function calcExpiresAt(plan) {
+  var d = new Date();
+  if (plan === 'trial') {
+    d.setDate(d.getDate() + 30);
+  } else {
+    d.setMonth(d.getMonth() + 1);
+  }
+  return d.toISOString();
+}
+
+// ── 키 복사 ──
+function copyLicenseKey(key) {
+  if (!key || !key.trim()) { showToast('⚠️ 복사할 키가 없습니다. 먼저 🎲를 눌러 키를 생성해주세요.'); return; }
+  navigator.clipboard.writeText(key.trim()).then(function() {
+    showToast('📋 키 복사됨: ' + key.trim());
+  }).catch(function() {
+    showToast('⚠️ 복사 실패 — 직접 선택해 복사해주세요: ' + key.trim());
+  });
+}
+
+// ── 라이선스 발급 (슈퍼어드민) ──
+function issueLicense() {
+  if (!currentUser || currentUser.role !== 'superadmin') {
+    showToast('⚠️ 슈퍼어드민만 발급할 수 있습니다'); return;
+  }
+  var centerId = (document.getElementById('licCenterId') || {}).value || '';
+  var plan     = (document.getElementById('licPlan')     || {}).value || 'pro';
+  var paidStr  = (document.getElementById('licPaid')     || {}).value || '0';
+  var memo     = (document.getElementById('licMemo')     || {}).value || '';
+  var keyEl    = document.getElementById('licKeyGenerated');
+  var key      = keyEl ? keyEl.value.trim() : '';
+
+  centerId = centerId.trim();
+  memo     = memo.trim();
+
+  if (!centerId) { showToast('⚠️ 센터 ID를 입력해주세요'); return; }
+  if (!key || key.length !== 6) { showToast('⚠️ 🎲 버튼을 눌러 6자리 키를 먼저 생성해주세요'); return; }
+
+  var paid = parseInt(paidStr, 10);
+  if (isNaN(paid) || paid < 0) paid = 0;
+  var expiresAt = calcExpiresAt(plan);
+  var now = new Date().toISOString();
+
+  var body = {
+    center_id:   centerId,
+    license_key: key,
+    plan:        plan,
+    status:      'pending',
+    paid_amount: paid,
+    paid_at:     paid > 0 ? now : null,
+    expires_at:  expiresAt,
+    memo:        memo || null,
+    created_at:  now
+  };
+
+  supaFetch('madi_licenses', 'POST', body)
+    .then(function() {
+      showToast('✅ 라이선스 발급 완료! 키: ' + key);
+      if (document.getElementById('licCenterId')) document.getElementById('licCenterId').value = '';
+      if (document.getElementById('licPaid'))     document.getElementById('licPaid').value     = '';
+      if (document.getElementById('licMemo'))     document.getElementById('licMemo').value     = '';
+      if (keyEl) keyEl.value = '';
+      loadLicenseList();
+    })
+    .catch(function(e) { showToast('❌ 발급 실패: ' + (e.message || '')); });
+}
+
+// ── 발급 이력 조회 (슈퍼어드민) ──
+function loadLicenseList() {
+  var el = document.getElementById('licenseListEl');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:16px;">불러오는 중...</div>';
+
+  supaFetch('madi_licenses?order=id.desc&limit=30', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px;">발급 이력이 없습니다</div>';
+        return;
+      }
+      var planLabels = { trial: '체험판', starter: '스타터', pro: '프로', enterprise: '엔터' };
+      var now = new Date();
+      el.innerHTML = rows.map(function(r) {
+        var exp = r.expires_at ? r.expires_at.slice(0, 10) : '-';
+        var diffDays = r.expires_at ? Math.ceil((new Date(r.expires_at) - now) / 86400000) : 9999;
+        var statusColor = r.status === 'active'  ? '#10b981'
+                        : r.status === 'pending' ? '#f59e0b' : '#ef4444';
+        var statusLabel = r.status === 'active'  ? '✅ 활성'
+                        : r.status === 'pending' ? '⏳ 대기' : '❌ 만료';
+        var dDayHtml = '';
+        if (r.status === 'active' && diffDays >= 0 && diffDays <= 7) {
+          dDayHtml = '<span style="background:#fef3c7;color:#92400e;font-size:11px;padding:2px 7px;border-radius:10px;">D-' + diffDays + '</span>';
+        }
+        var paidHtml = r.paid_amount > 0
+          ? '<span style="font-size:11px;color:#10b981;font-weight:700;">' + r.paid_amount.toLocaleString() + '원</span>'
+          : '';
+        var memoHtml = r.memo
+          ? '<div style="font-size:11px;color:var(--text2);margin-top:3px;">📝 ' + escHtml(r.memo) + '</div>'
+          : '';
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">'
+          + '<span style="font-weight:700;font-family:monospace;font-size:15px;letter-spacing:3px;color:var(--mint);min-width:76px;">'
+            + escHtml(r.license_key) + '</span>'
+          + '<span style="font-size:12px;background:#f0f9ff;color:#0369a1;padding:2px 8px;border-radius:10px;">'
+            + escHtml(r.center_id) + '</span>'
+          + '<span style="font-size:12px;background:#f5f3ff;color:#7c3aed;padding:2px 8px;border-radius:10px;">'
+            + escHtml(planLabels[r.plan] || r.plan) + '</span>'
+          + '<span style="font-size:12px;color:' + statusColor + ';font-weight:700;">' + statusLabel + '</span>'
+          + dDayHtml
+          + '<span style="font-size:11px;color:var(--text2);margin-left:auto;">만료 ' + escHtml(exp) + '</span>'
+          + '<button onclick="copyLicenseKey(\'' + escHtml(r.license_key) + '\')"'
+            + ' style="padding:4px 10px;font-size:11px;border:1px solid var(--border);border-radius:8px;'
+            + 'background:white;cursor:pointer;font-family:inherit;flex-shrink:0;">📋</button>'
+          + '</div>'
+          + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+          + paidHtml + memoHtml
+          + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function() {
+      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:12px;">❌ 불러오기 실패</div>';
+    });
+}
+
+// ── 내 라이선스 조회 (센터장) ──
+function loadMyLicense() {
+  var el = document.getElementById('myLicenseCard');
+  if (!el) return;
+  if (!currentUser || !currentUser.center_id) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text2);padding:8px;">센터 정보를 찾을 수 없습니다</div>';
+    return;
+  }
+  el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:12px;">불러오는 중...</div>';
+
+  supaFetch('madi_licenses?center_id=eq.' + currentUser.center_id + '&order=id.desc&limit=1', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text2);">'
+          + '<div style="font-size:28px;margin-bottom:6px;">🔑</div>'
+          + '<div style="font-size:13px;font-weight:700;">등록된 라이선스가 없습니다</div>'
+          + '<div style="font-size:12px;margin-top:4px;">아래에서 키를 입력해 활성화해주세요</div>'
+          + '</div>';
+        return;
+      }
+      var r = rows[0];
+      var now = new Date();
+      var expDate = new Date(r.expires_at);
+      var diffDays = Math.ceil((expDate - now) / 86400000);
+      var isExpired = r.status === 'expired' || diffDays < 0;
+      var planLabels = { trial: '체험판 (30일)', starter: '스타터', pro: '프로', enterprise: '엔터프라이즈' };
+
+      var warningHtml = '';
+      if (r.status === 'active' && diffDays >= 0 && diffDays <= 7) {
+        warningHtml = '<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;'
+          + 'padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e;line-height:1.6;">'
+          + '⚠️ 라이선스가 <strong>' + diffDays + '일 후</strong> 만료됩니다. 담당자에게 갱신을 요청해주세요.</div>';
+      } else if (isExpired) {
+        warningHtml = '<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;'
+          + 'padding:10px 14px;margin-bottom:12px;font-size:13px;color:#dc2626;line-height:1.6;">'
+          + '❌ 라이선스가 만료되었습니다. 담당자에게 갱신을 요청해주세요.</div>';
+      }
+
+      var statusColor = r.status === 'active'  ? '#10b981'
+                      : r.status === 'pending' ? '#f59e0b' : '#ef4444';
+      var statusLabel = r.status === 'active'  ? '✅ 활성'
+                      : r.status === 'pending' ? '⏳ 미활성화' : '❌ 만료';
+
+      el.innerHTML = warningHtml
+        + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">'
+        + '<div>'
+        + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;">플랜</div>'
+        + '<div style="font-size:14px;font-weight:800;color:var(--mint);">' + escHtml(planLabels[r.plan] || r.plan) + '</div>'
+        + '</div>'
+        + '<div>'
+        + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;">상태</div>'
+        + '<div style="font-size:13px;font-weight:700;color:' + statusColor + ';">' + statusLabel + '</div>'
+        + '</div>'
+        + '<div>'
+        + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;">만료일</div>'
+        + '<div style="font-size:13px;font-weight:700;">' + escHtml(r.expires_at.slice(0, 10)) + '</div>'
+        + '</div>'
+        + '</div>';
+    })
+    .catch(function() {
+      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px;">❌ 라이선스 정보 불러오기 실패</div>';
+    });
+}
+
+// ── 라이선스 활성화 (센터장) ──
+function activateLicense() {
+  var keyInput = document.getElementById('licActivateKey');
+  if (!keyInput) return;
+  var key = keyInput.value.trim().toUpperCase();
+
+  if (key.length !== 6) { showToast('⚠️ 6자리 키를 입력해주세요'); return; }
+  if (!currentUser || !currentUser.center_id) { showToast('⚠️ 센터 정보가 없습니다. 다시 로그인해주세요'); return; }
+
+  // 키 + 센터ID + pending 상태로 조회
+  supaFetch('madi_licenses?license_key=eq.' + key
+    + '&center_id=eq.' + currentUser.center_id
+    + '&status=eq.pending&limit=1', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        showToast('❌ 유효하지 않은 키이거나 이미 사용된 키입니다');
+        return;
+      }
+      var r = rows[0];
+      return supaFetch('madi_licenses?id=eq.' + r.id, 'PATCH', { status: 'active' })
+        .then(function() {
+          showToast('🎉 라이선스가 성공적으로 활성화됐습니다!', { duration: 4000 });
+          keyInput.value = '';
+          loadMyLicense();
+        });
+    })
+    .catch(function(e) { showToast('❌ 활성화 실패: ' + (e.message || '')); });
+}
+
+</script>
 
 </body></html>
