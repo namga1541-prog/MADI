@@ -1,15 +1,49 @@
 // 검사별 서브필드 정의
-// ── 아동 선택 시 생활연령 표시 ──
+// ── 생활연령 계산 (출생일 + 검사일 → "Xy Xm" / "X세 X개월" 형식) ──
+function calcLivingAge(birthStr, testDateStr) {
+  if (!birthStr) return null;
+  var birth = new Date(birthStr);
+  var test  = testDateStr ? new Date(testDateStr) : new Date();
+  if (isNaN(birth.getTime()) || isNaN(test.getTime())) return null;
+  if (test < birth) return null;
+
+  var years  = test.getFullYear() - birth.getFullYear();
+  var months = test.getMonth()    - birth.getMonth();
+  var days   = test.getDate()     - birth.getDate();
+  if (days < 0) { months -= 1; }
+  if (months < 0) { years -= 1; months += 12; }
+  if (years < 0) return null;
+
+  // 검사 보고서용 표준 표기: "Xy Xm" (예: 7y 3m)
+  return years + 'y ' + months + 'm';
+}
+
+// ── 아동 + 검사일 → 생활연령 표시 ──
 function onAssessChildChange() {
   var childId = parseInt(document.getElementById('assessChild').value);
   var el      = document.getElementById('assessAgeDisplay');
   if (!el) return;
   var child   = childId ? childDB.find(function(c) { return c.id === childId; }) : null;
-  if (child && child.age) {
-    el.textContent = child.age;
+  var dateEl  = document.getElementById('assessDate');
+  var testDate = dateEl ? dateEl.value : '';
+  // 검사일이 비어있으면 오늘 기준 (input에도 자동 채움 — 다음 자동저장 시 누락 방지)
+  if (!testDate) {
+    testDate = new Date().toISOString().slice(0, 10);
+    if (dateEl) dateEl.value = testDate;
+  }
+
+  var ageStr = null;
+  if (child && child.birth) {
+    ageStr = calcLivingAge(child.birth, testDate);
+  }
+
+  if (ageStr) {
+    el.textContent = ageStr;
     el.style.color = 'var(--mint)';
     el.style.background = '#f0fdf4';
     el.style.borderColor = 'var(--mint)';
+    // 보고서 생성 시 사용할 수 있도록 child 객체에도 캐시 (다른 함수에서 child.age 사용)
+    if (child) child.age = ageStr;
   } else {
     el.textContent = '생활연령';
     el.style.color = '#94a3b8';
@@ -572,7 +606,8 @@ function getAssessFieldValues() {
   return values;
 }
 
-function addAssessment() {
+function addAssessment(opts) {
+  opts = opts || {};
   var childId  = parseInt(document.getElementById('assessChild').value);
   var date     = document.getElementById('assessDate').value;
   var typeVal  = document.getElementById('assessType').value;
@@ -580,18 +615,40 @@ function addAssessment() {
     ? (document.getElementById('assessCustomNameInput').value.trim() || '직접입력')
     : typeVal;
   var memo     = document.getElementById('assessMemo').value.trim();
-  if (!childId)  { showToast('아동을 선택해주세요.'); return; }
-  if (!date)     { showToast('검사일을 선택해주세요.'); return; }
+
+  // 자동저장(silent) 모드: 필수값 또는 점수 입력이 없으면 조용히 skip
+  var scores = getAssessFieldValues();
+  var hasAnyScore = Object.keys(scores).some(function(k) {
+    var v = scores[k];
+    return v !== null && v !== undefined && String(v).trim() !== '';
+  });
+  if (opts.silent) {
+    if (!childId || !date || !hasAnyScore) return false;  // 자동저장 조건 미달 → 조용히 skip
+  } else {
+    if (!childId)  { showToast('아동을 선택해주세요.'); return false; }
+    if (!date)     { showToast('검사일을 선택해주세요.'); return false; }
+  }
+
   assessmentDB.push({
     id: Date.now() + Math.floor(Math.random() * 1000), childId: childId, date: date,
     testName: testName, typeKey: typeVal,
-    scores: getAssessFieldValues(), memo: memo
+    scores: scores, memo: memo
   });
   saveAssess();
   renderAssessmentList();
-  document.getElementById('assessMemo').value = '';
-  renderAssessFields(); // 필드 초기화
-  showToast('✅ 검사 결과 저장 완료!');
+
+  if (!opts.silent) {
+    document.getElementById('assessMemo').value = '';
+    renderAssessFields(); // 필드 초기화
+    showToast('✅ 검사 결과 저장 완료!');
+  }
+  return true;
+}
+
+// ── 검사명 변경 시: 이전 입력 자동저장 → 필드 다시 그리기 ──
+function onAssessTypeChange() {
+  try { addAssessment({ silent: true }); } catch(e) {}
+  renderAssessFields();
 }
 
 function formatAssessScores(a) {
@@ -648,9 +705,24 @@ function generateAssessReport() {
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   var child = childDB.find(function(c) { return c.id === childId; });
   if (!child) return;
+
+  // ── 자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장 ──
+  // assessFields 안에 원점수 등이 입력된 상태라면 addAssessment()를 호출해 저장
+  var hasInputData = false;
+  var assessFieldsEl = document.getElementById('assessFields');
+  if (assessFieldsEl) {
+    var inputs = assessFieldsEl.querySelectorAll('input, textarea, select');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value && String(inputs[i].value).trim() !== '') { hasInputData = true; break; }
+    }
+  }
+  if (hasInputData && typeof addAssessment === 'function') {
+    try { addAssessment({ silent: true }); } catch(e) { /* 저장 실패해도 보고서는 진행 */ }
+  }
+
   var list = assessmentDB.filter(function(a) { return a.childId === childId; })
     .sort(function(a,b) { return a.date < b.date ? -1 : 1; });
-  if (list.length === 0) { showToast('검사 결과가 없습니다.'); return; }
+  if (list.length === 0) { showToast('검사 결과를 먼저 입력해주세요.'); return; }
 
   var btn    = document.getElementById('assessReportBtn');
   var result = document.getElementById('assessReportResult');
@@ -677,7 +749,17 @@ function generateAssessReport() {
   var institution   = (document.getElementById('reportInstitution')    || {}).value   || '';
   var evaluator     = (document.getElementById('reportEvaluator')      || {}).value   || '';
   var referral      = (document.getElementById('reportReferralReason') || {}).value   || '';
-  var background    = (document.getElementById('reportBackground')     || {}).value   || '';
+  // ── 배경정보 4개 필드 통합 (각 라벨과 함께 정리) ──
+  var bgPregnancy   = (document.getElementById('reportBgPregnancy')    || {}).value   || '';
+  var bgLanguage    = (document.getElementById('reportBgLanguage')     || {}).value   || '';
+  var bgPhysical    = (document.getElementById('reportBgPhysical')     || {}).value   || '';
+  var bgTreatment   = (document.getElementById('reportBgTreatment')    || {}).value   || '';
+  var backgroundParts = [];
+  if (bgPregnancy.trim()) backgroundParts.push('· 임신·출산: ' + bgPregnancy.trim());
+  if (bgPhysical.trim())  backgroundParts.push('· 신체발달력: ' + bgPhysical.trim());
+  if (bgLanguage.trim())  backgroundParts.push('· 언어발달력: ' + bgLanguage.trim());
+  if (bgTreatment.trim()) backgroundParts.push('· 이전 평가·치료력: ' + bgTreatment.trim());
+  var background    = backgroundParts.join('\n');
   var testBehavior  = (document.getElementById('reportTestBehavior')   || {}).value   || '';
 
   var SYSTEM = '당신은 15년 이상 경력의 대한민국 1급 언어재활사입니다.\n'
