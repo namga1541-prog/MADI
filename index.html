@@ -1530,6 +1530,52 @@
 <div class="sub-panel" id="panel3">
   <div class="content">
     <div class="card">
+      <div class="card-title"><div class="card-title-left">📄 AI 평가 보고서</div></div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">검사 결과를 바탕으로 AI가 <strong>임상 수준의 전문 평가 보고서</strong>를 작성합니다. (아래에서 선택한 아동 기준)</p>
+
+      <!-- 보고서 상세 정보 (선택사항) -->
+      <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📝 보고서 상세 정보 <span style="font-weight:400;color:#94a3b8;">(선택 — 입력할수록 보고서 품질 향상)</span></div>
+        <div class="form-row">
+          <div style="flex:1;">
+            <label class="form-label">기관명</label>
+            <input class="form-input" type="text" id="reportInstitution" placeholder="예: 햇살의원 아동발달클리닉">
+          </div>
+          <div style="flex:1;">
+            <label class="form-label">평가자</label>
+            <input class="form-input" type="text" id="reportEvaluator" placeholder="예: 홍길동 (1급 언어재활사)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">의뢰 사유</label>
+          <input class="form-input" type="text" id="reportReferralReason" placeholder="예: 현행 수준 파악 및 언어 발달 지연 여부 확인을 위해 내원">
+        </div>
+        <div class="form-group">
+          <label class="form-label">📌 임신·출산 정보</label>
+          <textarea class="form-input" id="reportBgPregnancy" placeholder="예: 32주 3일 출산, 산모 32세, 출생 시 체중 2.5kg, 첫째" style="min-height:48px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🗣️ 언어발달력</label>
+          <textarea class="form-input" id="reportBgLanguage" placeholder="예: 12개월경 첫 낱말(엄마·아빠), 24개월경 두 단어 조합" style="min-height:48px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🚶 신체발달력</label>
+          <textarea class="form-input" id="reportBgPhysical" placeholder="예: 5개월 뒤집기, 10개월 배밀이, 14개월 첫 보행, 배변 훈련 24개월" style="min-height:48px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">📋 이전 평가 및 치료력</label>
+          <textarea class="form-input" id="reportBgTreatment" placeholder="예: 24개월경 OO발달센터 6개월 언어치료(주2회), 평가 경험 없음" style="min-height:48px;"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">검사 태도 및 행동 관찰</label>
+          <textarea class="form-input" id="reportTestBehavior" placeholder="협조도, eye contact 빈도, 집중력, 특이 행동, 검사 수행 방식 등" style="min-height:60px;"></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-purple" id="assessReportBtn" onclick="generateAssessReport()">🤖 AI 평가 보고서 생성</button>
+      <div id="assessReportResult" style="margin-top:12px;"></div>
+    </div>
+    <div class="card">
       <div class="card-title"><div class="card-title-left">📋 검사 결과 입력</div></div>
 
       <!-- 아동 선택 + 생활연령 자동 표시 -->
@@ -1549,9 +1595,9 @@
 
       <div class="form-row">
         <div style="flex:1;"><label class="form-label">검사일</label>
-          <input class="form-input" type="date" id="assessDate"></div>
+          <input class="form-input" type="date" id="assessDate" onchange="onAssessChildChange()"></div>
         <div style="flex:1.6;"><label class="form-label">검사명</label>
-          <select class="form-input" id="assessType" onchange="renderAssessFields()">
+          <select class="form-input" id="assessType" onchange="onAssessTypeChange()">
             <option value="REVT">REVT (수용·표현 어휘)</option>
             <option value="SELSI">SELSI (영유아 언어발달)</option>
             <option value="PRES">PRES (학령전기 언어)</option>
@@ -1584,44 +1630,9 @@
         <label class="form-label">메모</label>
         <textarea class="form-input" id="assessMemo" placeholder="협조도, 특이사항 등" style="min-height:54px;"></textarea>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="addAssessment()">💾 저장</button>
-        <button class="btn btn-primary" style="flex:1;background:var(--purple);" onclick="addAndReport()">💾 저장 + 보고서</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title"><div class="card-title-left">📄 AI 평가 보고서</div></div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">검사 결과를 바탕으로 AI가 <strong>임상 수준의 전문 평가 보고서</strong>를 작성합니다. (위에서 선택한 아동 기준)</p>
-
-      <!-- 보고서 상세 정보 (선택사항) -->
-      <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📝 보고서 상세 정보 <span style="font-weight:400;color:#94a3b8;">(선택 — 입력할수록 보고서 품질 향상)</span></div>
-        <div class="form-row">
-          <div style="flex:1;">
-            <label class="form-label">기관명</label>
-            <input class="form-input" type="text" id="reportInstitution" placeholder="예: 햇살의원 아동발달클리닉">
-          </div>
-          <div style="flex:1;">
-            <label class="form-label">평가자</label>
-            <input class="form-input" type="text" id="reportEvaluator" placeholder="예: 홍길동 (1급 언어재활사)">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">의뢰 사유</label>
-          <input class="form-input" type="text" id="reportReferralReason" placeholder="예: 현행 수준 파악 및 언어 발달 지연 여부 확인을 위해 내원">
-        </div>
-        <div class="form-group">
-          <label class="form-label">배경정보 (출생·발달·치료력)</label>
-          <textarea class="form-input" id="reportBackground" placeholder="임신/출산 정보, 신체발달력(배밀이·걷기·뛰기), 언어발달력(첫 낱말·첫 문장), 이전 치료력 등" style="min-height:72px;"></textarea>
-        </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">검사 태도 및 행동 관찰</label>
-          <textarea class="form-input" id="reportTestBehavior" placeholder="협조도, eye contact 빈도, 집중력, 특이 행동, 검사 수행 방식 등" style="min-height:60px;"></textarea>
-        </div>
-      </div>
-
-      <button class="btn btn-purple" id="assessReportBtn" onclick="generateAssessReport()">🤖 AI 평가 보고서 생성</button>
-      <div id="assessReportResult" style="margin-top:12px;"></div>
+      <p style="font-size:11px;color:var(--text2);background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;line-height:1.6;margin:0;">
+        💡 위에 입력한 검사 결과는 <strong>「AI 평가 보고서 생성」</strong> 클릭 시 자동 저장됩니다. 검사명을 바꿔도 자동 저장돼요.
+      </p>
     </div>
     <div class="card">
       <div class="card-title"><div class="card-title-left">📊 검사 결과 목록</div></div>
