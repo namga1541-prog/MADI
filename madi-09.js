@@ -404,6 +404,12 @@ function downloadWordDoc(name) {
   if (!el) { showToast('먼저 보고서를 생성해주세요.'); return; }
   var content    = el.textContent || el.innerText || '';
   var today      = new Date().toLocaleDateString('ko-KR');
+  // ── DOM에서 메타데이터 직접 읽기 (이전엔 변수 미정의로 ReferenceError 발생했었음) ──
+  var assessDate  = (document.getElementById('assessDate')         || {}).value || today;
+  var institution = ((document.getElementById('reportInstitution') || {}).value || '').trim();
+  var evaluator   = ((document.getElementById('reportEvaluator')   || {}).value || '').trim();
+  // 본문 마크다운 → HTML 변환 (PDF와 동일한 함수 재사용)
+  var bodyHtml    = (typeof markdownToHtml === 'function') ? markdownToHtml(content) : ('<pre>' + escHtml(content) + '</pre>');
 
   var wordHtml = '<!DOCTYPE html>\n'
     + '<html xmlns:o="urn:schemas-microsoft-com:office:office"\n'
@@ -430,14 +436,14 @@ function downloadWordDoc(name) {
     + '</tr></table>\n</div>\n'
     + bodyHtml
     + '\n<p style="margin-top:24pt;text-align:right;font-size:9pt;color:#94a3b8;border-top:0.75pt solid #e2e8f0;padding-top:6pt;">'
-    + '마디(Madi) AI 보조 작성 | 출력일: ' + today + '</p>\n'
+    + '마디아이(MadiAI) AI 보조 작성 | 출력일: ' + today + '</p>\n'
     + '</body></html>';
 
   var blob = new Blob(['\ufeff' + wordHtml], { type: 'application/msword;charset=utf-8' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
   a.href     = url;
-  a.download = '평가보고서_' + name + '_' + assessDate.replace(/-/g, '') + '.doc';
+  a.download = '평가보고서_' + name + '_' + (assessDate || today).replace(/-/g, '') + '.doc';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
