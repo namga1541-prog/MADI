@@ -39,7 +39,56 @@ function applyPermissions() {
     if (aiSubBtn) aiSubBtn.style.display = 'none';
   }
 } // 기본값: 라이트(Haiku)
-function getAIModel() { return MODEL_HAIKU; }
+// AI 모델 선택 (사용자가 서비스 관리 탭에서 변경 가능, 기본값 HAIKU)
+function getAIModel() {
+  try {
+    var v = localStorage.getItem('madi_ai_model');
+    if (v === 'sonnet') return MODEL_SONNET;
+    if (v === 'haiku')  return MODEL_HAIKU;
+  } catch (e) {}
+  return MODEL_HAIKU; // 기본값
+}
+
+// 모델 선택 저장 + UI 동기화 + 토스트 (서비스 관리 탭에서 호출)
+function saveAIModelChoice(choice) {
+  if (choice !== 'haiku' && choice !== 'sonnet') return;
+  try { localStorage.setItem('madi_ai_model', choice); } catch (e) {}
+  updateAIModelUI();
+  var label = choice === 'sonnet' ? '🎯 Sonnet 4.6 (임상 추론·정밀)' : '⚡ Haiku 4.5 (빠름·저렴)';
+  if (typeof showToast === 'function') showToast('✅ AI 모델이 ' + label + ' 으로 설정됐습니다');
+}
+
+// 현재 선택값에 따라 라디오 + 라벨 시각 동기화
+function updateAIModelUI() {
+  var current = 'haiku';
+  try {
+    var v = localStorage.getItem('madi_ai_model');
+    if (v === 'sonnet') current = 'sonnet';
+  } catch (e) {}
+
+  var haikuRadio   = document.getElementById('aiModelHaikuRadio');
+  var sonnetRadio  = document.getElementById('aiModelSonnetRadio');
+  var haikuLabel   = document.getElementById('aiModelHaikuLabel');
+  var sonnetLabel  = document.getElementById('aiModelSonnetLabel');
+  var currentLabel = document.getElementById('aiModelCurrentLabel');
+
+  if (haikuRadio)  haikuRadio.checked  = (current === 'haiku');
+  if (sonnetRadio) sonnetRadio.checked = (current === 'sonnet');
+
+  // 선택된 옵션 강조 (테두리 색)
+  if (haikuLabel) {
+    haikuLabel.style.borderColor = current === 'haiku'  ? '#0ea5a0' : 'var(--border)';
+    haikuLabel.style.background  = current === 'haiku'  ? '#f0fdfa' : 'transparent';
+  }
+  if (sonnetLabel) {
+    sonnetLabel.style.borderColor = current === 'sonnet' ? '#8b5cf6' : 'var(--border)';
+    sonnetLabel.style.background  = current === 'sonnet' ? '#faf5ff' : 'transparent';
+  }
+  if (currentLabel) {
+    currentLabel.textContent = '현재: ' + (current === 'sonnet' ? '🎯 Sonnet' : '⚡ Haiku');
+    currentLabel.style.color = current === 'sonnet' ? '#7c3aed' : '#047857';
+  }
+}
 var DISORDER_EMOJI = {
   '언어발달장애':'🗣️','조음음운장애':'👄','유창성장애':'💬',
   '자폐스펙트럼':'🌈','지적장애':'🧩','청각장애':'👂','기타':'📋'
@@ -938,3 +987,23 @@ function loadParentDashboard() {
 
 
 // ─────── 글로벌 에러 핸들러 ───────
+// ─────── 상단 탭바 '더보기' 메뉴 ───────
+function toggleMoreMenu(e) {
+  if (e) { e.stopPropagation(); }
+  var menu = document.getElementById('moreMenu');
+  if (!menu) return;
+  menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+}
+function closeMoreMenu() {
+  var menu = document.getElementById('moreMenu');
+  if (menu) menu.style.display = 'none';
+}
+// 외부 클릭 시 메뉴 자동 닫기
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('moreMenu');
+  if (!menu || menu.style.display === 'none') return;
+  var moreBtn = document.getElementById('tabBtnMore');
+  if (moreBtn && moreBtn.contains(e.target)) return;  // 더보기 버튼 자체 클릭은 toggle이 처리
+  if (menu.contains(e.target)) return;  // 메뉴 안 클릭은 닫지 않음 (개별 항목이 닫음)
+  closeMoreMenu();
+});
