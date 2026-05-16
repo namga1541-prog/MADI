@@ -678,7 +678,7 @@ function renderAssessmentList() {
       + '<span class="test-date">📅 ' + a.date + '</span></div>'
       + '<div style="font-size:12px;line-height:1.8;margin-top:6px;">' + formatAssessScores(a) + '</div>'
       + (a.memo ? '<div style="font-size:11px;color:var(--text2);margin-top:5px;">' + escHtml(a.memo) + '</div>' : '')
-      + '<button class="btn-del" style="margin-top:8px;" onclick="deleteAssessment(' + Number(a.id) + ')">삭제</button>'
+      + '<button class="btn-del" style="margin-top:8px;" onclick="deleteAssessment(\'' + a.id + '\')">삭제</button>'
       + '</div>';
   });
   el.innerHTML = html;
