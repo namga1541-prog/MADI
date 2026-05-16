@@ -1,6 +1,5 @@
 function generateReport() {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('reportChild').value);
   var period = document.getElementById('reportPeriod').value;
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
@@ -215,8 +214,7 @@ function toggleReportEdit() {
 
 // ─────── 장단기계획(IEP) 자동 생성 ───────
 function generateIEP() {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('iepChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
 
@@ -398,7 +396,7 @@ function renderIEP(p, childName) {
   var childId = parseInt(document.getElementById('iepChild').value) || 0;
   var todayStr = new Date().toISOString().slice(0, 10);
   var record = {
-    id: Date.now() + Math.floor(Math.random() * 1000),
+    id: generateClientId(),
     childId: childId,
     childName: childName,
     date: todayStr,
