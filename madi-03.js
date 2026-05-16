@@ -206,12 +206,17 @@ function loadStaffMgmtList() {
           + '<span style="font-size:11px;color:var(--text2);margin-left:6px;">@' + escHtml(u.username) + '</span>'
           + '<span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:' + (u.role==='admin'?'var(--mint2)':'#f1f5f9') + ';color:' + (u.role==='admin'?'var(--mint)':'var(--text2)') + ';">' + (u.role==='admin'?'관리자':'선생님') + '</span>'
           + '</div>'
-          + (!isSelf ? '<button class="btn-del" onclick="removeStaffAccount(' + u.id + ',\'' + escHtml(u.name) + '\')" style="font-size:11px;padding:5px 10px;">삭제</button>' : '<span style="font-size:11px;color:var(--text2);">나</span>')
+          + (!isSelf ? '<button class="btn-del" data-uid="' + u.id + '" data-uname="' + escHtml(u.name) + '" onclick="removeStaffAccountFromBtn(this)" style="font-size:11px;padding:5px 10px;">삭제</button>' : '<span style="font-size:11px;color:var(--text2);">나</span>')
           + '</div>';
       }).join('');
     }).catch(function(err) {
       el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: ' + escHtml(err.message || '') + '</div>';
     });
+}
+
+function removeStaffAccountFromBtn(btn) {
+  // C5 원칙: onclick 인라인 사용자 데이터 → data 속성 + 헬퍼로 분리
+  removeStaffAccount(btn.dataset.uid, btn.dataset.uname);
 }
 
 function removeStaffAccount(id, name) {
@@ -235,8 +240,9 @@ function goToAdmin(tab) {
 }
 
 function applyRoleUI() {
-  var isAdminOrSuper = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
-  var isSuperAdmin   = currentUser && currentUser.role === 'superadmin';
+  var flags          = getRoleFlags();
+  var isAdminOrSuper = flags.isAdminOrSuper;
+  var isSuperAdmin   = flags.isSuper;
   var apikeyBar  = document.getElementById('apikeyBar');
   var centerCard = document.getElementById('centerApiKeyCard');
   var mgmtCard   = document.getElementById('centerMgmtCard');
@@ -648,7 +654,7 @@ function renderNoticeList() {
     var badgeText  = n.notice_type === 'imp' ? '🚨 긴급' : (n.notice_type === 'pin' ? '📍 중요' : '📌 일반');
     var dateStr = n.created_at ? n.created_at.slice(0,10) : '';
     // 권한: admin 또는 superadmin 모두 삭제 가능
-    var canDelete = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+    var canDelete = getRoleFlags().isAdminOrSuper;
     var delBtn = canDelete
       ? '<button data-nid="' + n.id + '" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button>'
       : '';
