@@ -35,7 +35,7 @@ function renderActivityCatalog() {
       + '</div>'
       + (a.tools ? '<div style="font-size:11px;color:var(--text2);margin-top:3px;">🛠️ ' + escHtml(a.tools) + '</div>' : '')
       + '</div>'
-      + '<button class="btn-del" onclick="deleteActivity(' + a.id + ')">삭제</button>'
+      + '<button class="btn-del" onclick="deleteActivity(' + Number(a.id) + ')">삭제</button>'
       + '</div>';
   });
   el.innerHTML = html;
