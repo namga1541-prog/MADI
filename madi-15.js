@@ -33,7 +33,7 @@ function getMyChildInfo(callback) {
       window._parentChildId  = rows[0].child_id;
       window._parentCenterId = rows[0].center_id;
       callback(window._parentChildId, window._parentCenterId);
-    }).catch(function() {});
+    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 }
 
 // ─── 홈 ───
@@ -52,7 +52,7 @@ function loadParentHome() {
         document.querySelectorAll('.parentChildNameLabel').forEach(function(el) {
           el.textContent = d.name || '';
         });
-      }).catch(function() {});
+      }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
     // 다음 일정 조회
     supaFetch('madi_schedules?center_id=eq.' + centerId
@@ -109,7 +109,7 @@ function loadParentHome() {
             }).join('');
           }
         }
-      }).catch(function() {});
+      }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
     // 최근 리포트
     supaFetch('madi_sessions?center_id=eq.' + centerId
@@ -130,7 +130,7 @@ function loadParentHome() {
           + escHtml(latest.date || '') + '</div>'
           + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">'
           + escHtml((latest.note||latest.aiNote||'').slice(0,30)) + '...</div>';
-      }).catch(function() {});
+      }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
   });
 }
 
@@ -323,7 +323,7 @@ function openParentNotif(notifId) {
     .then(function(){
       loadParentNotifications(); // 카드 갱신
     })
-    .catch(function(){});
+    .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
   // 2. 링크 있으면 그 탭으로 이동
   // 미래: notice/123 같은 deep link 지원 예정
