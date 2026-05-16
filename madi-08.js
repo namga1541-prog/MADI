@@ -436,11 +436,11 @@ function renderIEPHistory(childId) {
       + '<div style="font-size:11px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
       + (goals ? escHtml(goals) : '—') + '</div>'
       + '</div>'
-      + '<button class="btn-del" onclick="deleteIEPRecord(' + r.id + ')">삭제</button>'
+      + '<button class="btn-del" onclick="deleteIEPRecord(' + Number(r.id) + ')">삭제</button>'
       + '</div>'
       + '<div style="display:flex;gap:6px;">'
-      + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;" onclick="loadIEPRecord(' + r.id + ')">📂 불러오기</button>'
-      + '<button class="btn-ghost" style="flex:0.5;font-size:12px;padding:7px 4px;" onclick="downloadIEPPDFById(' + r.id + ')">🖨️ PDF</button>'
+      + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;" onclick="loadIEPRecord(' + Number(r.id) + ')">📂 불러오기</button>'
+      + '<button class="btn-ghost" style="flex:0.5;font-size:12px;padding:7px 4px;" onclick="downloadIEPPDFById(' + Number(r.id) + ')">🖨️ PDF</button>'
       + '</div>'
       + '</div>';
   }).join('');
