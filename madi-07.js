@@ -55,7 +55,7 @@ function saveSessionAI() {
     + ' {"goals":[{"name":"항목명","score":0-100숫자}],"memo":"세션 핵심 2-3문장","aiNote":"치료사용 전문 메모"}';
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n치료사 입력:\n' + aiText;
 
-  callClaude(apiKey, SYSTEM, USER, 1200, MODEL_HAIKU)
+  callClaude(SYSTEM, USER, 1200, MODEL_HAIKU)
     .then(function(raw) {
       var p = parseJSON(raw);
       var sessionId = Date.now() + Math.floor(Math.random() * 1000);
@@ -146,7 +146,7 @@ function suggestHomeActivities(sessionId) {
     + '메모: ' + session.memo
     + catalogCtx;
 
-  callClaude(apiKey, SYSTEM, USER, 1000, MODEL_HAIKU)
+  callClaude(SYSTEM, USER, 1000, MODEL_HAIKU)
     .then(function(raw) {
       var p = parseJSON(raw);
       var html = '<div class="ai-response-box">'
@@ -344,7 +344,7 @@ function deleteSession(id) {
     '삭제된 세션은 복구할 수 없습니다.\n' + (backup.date || '') + ' 세션 기록이 삭제됩니다.',
     '세션삭제확인',
     function() {
-      supaFetch('madi_sessions?id=eq.' + id, 'DELETE').catch(function(){});
+      supaFetch('madi_sessions?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-07]',e&&e.message);});
       sessionDB = sessionDB.filter(function(s) { return s.id !== id; });
       saveSessions();
       renderSessionList();
@@ -354,7 +354,7 @@ function deleteSession(id) {
           sessionDB.push(backup);
           saveSessions();
           var row = Object.assign({}, backup);
-          supaFetch('madi_sessions', 'POST', [row]).catch(function(){});
+          supaFetch('madi_sessions', 'POST', [row]).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-07]',e&&e.message);});
           renderSessionList();
           renderChildGrid();
           showToast('↩️ 세션 복원됨');
@@ -672,7 +672,7 @@ function detectStagnation() {
   var stagnBtn = document.querySelector('[onclick*="detectStagnation"]');
   if (stagnBtn) { if (stagnBtn.dataset.busy === '1') return; stagnBtn.dataset.busy = '1'; stagnBtn.disabled = true; }
 
-  callClaude(apiKey, SYSTEM, USER, 1800, getAIModel())
+  callClaude(SYSTEM, USER, 1800, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
       renderStagnationResult(p, child.name, childId);
