@@ -1420,6 +1420,13 @@ function renderStaffStats() {
   if (!teachers.length) { listEl.innerHTML='<div class="empty"><div class="empty-icon">👩‍🏫</div><p>등록된 선생님 데이터가 없습니다.</p></div>'; return; }
   var monthSessions  = sessionDB.filter(function(s){  return (s.date||'').startsWith(ym); });
   var monthSchedules = scheduleDB.filter(function(s){ return (s.date||'').startsWith(ym); });
+
+  var avatarPalette = [
+    { bg:'#dbeafe', fg:'#1e40af' }, { bg:'#fef3c7', fg:'#92400e' },
+    { bg:'#fce7f3', fg:'#9f1239' }, { bg:'#dcfce7', fg:'#166534' },
+    { bg:'#ede9fe', fg:'#5b21b6' }, { bg:'#ffe4e6', fg:'#9f1239' }
+  ];
+
   var rows = teachers.map(function(teacher){
     var mySess = monthSessions.filter(function(s){ return s.teacher===teacher; });
     var mySched= monthSchedules.filter(function(s){ return s.teacher===teacher; });
@@ -1427,17 +1434,43 @@ function renderStaffStats() {
     mySess.forEach(function(s){ if(s.childId) childIds[s.childId]=true; });
     var childCount = Object.keys(childIds).length;
     var totalSched = mySched.length;
-    var rate = totalSched>0 ? Math.round(mySess.length/totalSched*100) : (mySess.length>0?100:0);
-    var rateColor = rate>=80?'var(--green)':(rate>=50?'var(--amber)':'var(--red)');
-    return '<div onclick="showStaffTrend(\''+teacher.replace(/'/g,'')+'\') " style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;background:var(--bg);border-radius:10px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);">'
-      +'<div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text);">'+escHtml(teacher)+'</div>'
-      +'<div style="font-size:11px;color:var(--text2);margin-top:3px;">담당 이용자 '+childCount+'명</div></div>'
-      +'<div style="display:flex;gap:12px;align-items:center;text-align:center;">'
-      +'<div><div style="font-size:18px;font-weight:900;color:var(--mint);">'+mySess.length+'</div><div style="font-size:10px;color:var(--text2);">세션</div></div>'
-      +'<div><div style="font-size:18px;font-weight:900;color:'+rateColor+';">'+rate+'%</div><div style="font-size:10px;color:var(--text2);">완료율</div></div>'
-      +'<div style="font-size:11px;color:var(--text2);">▶</div></div></div>';
+    var completedCount = mySess.length;
+    var hasData = totalSched>0 || completedCount>0;
+    var rate = totalSched>0 ? Math.round(completedCount/totalSched*100) : (completedCount>0?100:0);
+    var rateLabel, rateColor, rateBg;
+    if (!hasData)       { rateLabel='—';      rateColor='#9ca3af'; rateBg='#f3f4f6'; }
+    else if (rate>=80)  { rateLabel=rate+'%'; rateColor='#059669'; rateBg='#ecfdf5'; }
+    else if (rate>=50)  { rateLabel=rate+'%'; rateColor='#d97706'; rateBg='#fffbeb'; }
+    else                { rateLabel=rate+'%'; rateColor='#dc2626'; rateBg='#fef2f2'; }
+
+    var hash=0;
+    for (var i=0; i<teacher.length; i++) hash=(hash*31+teacher.charCodeAt(i))|0;
+    var pal=avatarPalette[Math.abs(hash)%avatarPalette.length];
+    var initial=teacher.charAt(0);
+
+    return '<div onclick="showStaffTrend(\''+teacher.replace(/'/g,'')+'\')" '
+      +'onmouseover="this.style.transform=\'translateY(-1px)\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.08)\';" '
+      +'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\';" '
+      +'style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);transition:all 0.15s ease;">'
+      +'<div style="flex:0 0 40px;width:40px;height:40px;border-radius:50%;background:'+pal.bg+';color:'+pal.fg+';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;">'+escHtml(initial)+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:15px;font-weight:800;color:var(--text);">'+escHtml(teacher)+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-top:2px;">👤 담당 이용자 '+childCount+'명</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">'
+      +'<div style="min-width:54px;padding:6px 8px;background:#f0fdfa;border-radius:8px;text-align:center;">'
+      +'<div style="font-size:15px;font-weight:900;color:#0d9488;line-height:1;">'+completedCount+'</div>'
+      +'<div style="font-size:9px;color:#0d9488;margin-top:2px;">세션</div></div>'
+      +'<div style="min-width:54px;padding:6px 8px;background:'+rateBg+';border-radius:8px;text-align:center;">'
+      +'<div style="font-size:15px;font-weight:900;color:'+rateColor+';line-height:1;">'+rateLabel+'</div>'
+      +'<div style="font-size:9px;color:'+rateColor+';margin-top:2px;">완료율</div></div>'
+      +'<div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin-left:4px;">'
+      +'<span style="font-size:10px;color:#6b7280;">▶</span></div>'
+      +'</div></div>';
   }).join('');
-  listEl.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">선생님 카드를 누르면 월별 추이를 볼 수 있습니다.</div>' + rows;
+  var hint = '<div style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;margin-bottom:10px;">'
+    +'<span style="font-size:11px;color:#1e40af;font-weight:600;">💡 카드를 눌러 월별 추이 확인</span></div>';
+  listEl.innerHTML = hint + rows;
   var wrap = document.getElementById('staffChartWrap');
   if (wrap) wrap.style.display = 'none';
 }
@@ -1456,8 +1489,32 @@ function showStaffTrend(teacher) {
   }
   title.textContent = teacher+' 선생님 · 최근 6개월 세션 추이';
   wrap.style.display = 'block';
+
+  // 모든 데이터 0이면 empty state
+  var allZero = data.every(function(v){ return v===0; });
   var ctx = document.getElementById('staffTrendChart');
+  if (allZero) {
+    if (_staffTrendChart) { _staffTrendChart.destroy(); _staffTrendChart=null; }
+    if (ctx) ctx.style.display='none';
+    var empty = document.getElementById('staffTrendEmpty');
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.id = 'staffTrendEmpty';
+      empty.style.cssText = 'padding:28px 16px;border:1.5px dashed var(--border);border-radius:12px;background:var(--bg);text-align:center;';
+      empty.innerHTML = '<div style="font-size:28px;margin-bottom:8px;">📊</div>'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">아직 세션 기록이 없어요</div>'
+        +'<div style="font-size:11px;color:var(--text2);">세션을 등록하면 6개월 추이가 표시됩니다</div>';
+      ctx.parentNode.appendChild(empty);
+    }
+    empty.style.display = 'block';
+    wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    return;
+  }
+  var existingEmpty = document.getElementById('staffTrendEmpty');
+  if (existingEmpty) existingEmpty.style.display = 'none';
+  if (ctx) ctx.style.display = '';
   if (!ctx) return;
+
   if (_staffTrendChart) { _staffTrendChart.destroy(); _staffTrendChart=null; }
   _staffTrendChart = new Chart(ctx, {
     type:'bar',
