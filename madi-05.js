@@ -344,15 +344,15 @@ function deleteChild(id) {
   if (!c) return;
   if (!confirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?')) return;
   // Supabase 삭제
-  supaFetch('madi_children?id=eq.' + id, 'DELETE').catch(function(){});
+  supaFetch('madi_children?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
   var sessIds = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
-  if (sessIds.length > 0) supaFetch('madi_sessions?id=in.(' + sessIds.join(',') + ')', 'DELETE').catch(function(){});
+  if (sessIds.length > 0) supaFetch('madi_sessions?id=in.(' + sessIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
   var schedIds = scheduleDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
-  if (schedIds.length > 0) supaFetch('madi_schedules?id=in.(' + schedIds.join(',') + ')', 'DELETE').catch(function(){});
+  if (schedIds.length > 0) supaFetch('madi_schedules?id=in.(' + schedIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
   var iepIds = (typeof iepDB !== 'undefined' ? iepDB : []).filter(function(r){ return r.childId === id; }).map(function(r){ return r.id; });
-  if (iepIds.length > 0) supaFetch('madi_iep_history?id=in.(' + iepIds.join(',') + ')', 'DELETE').catch(function(){});
+  if (iepIds.length > 0) supaFetch('madi_iep_history?id=in.(' + iepIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
   var assIds = assessmentDB.filter(function(a){ return a.childId === id; }).map(function(a){ return a.id; });
-  if (assIds.length > 0) supaFetch('madi_assessments?id=in.(' + assIds.join(',') + ')', 'DELETE').catch(function(){});
+  if (assIds.length > 0) supaFetch('madi_assessments?id=in.(' + assIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
   // 로컬 삭제
   childDB      = childDB.filter(function(c) { return c.id !== id; });
   sessionDB    = sessionDB.filter(function(s) { return s.childId !== id; });
