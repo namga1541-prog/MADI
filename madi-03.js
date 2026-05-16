@@ -280,7 +280,10 @@ function showDashboard() {
   for(var i=0;i<6;i++){ var b=document.getElementById('tabBtn'+i); if(b) b.classList.remove('active'); }
   var hb=document.getElementById('tabBtnHome'); if(hb) hb.classList.add('active');
   var hp=document.getElementById('panelHome'); if(hp) hp.classList.add('active');
-  var ban=document.getElementById('noticeBanner'); if(ban) ban.style.display='none';
+  // 배너 강제 숨김 제거 → 공지 있으면 배너 표시 (이전: ban.style.display='none')
+  if (typeof startNoticeBanner === 'function' && typeof noticeDB !== 'undefined') {
+    startNoticeBanner(noticeDB);
+  }
   syncSidebarActive(-1);
   updateBreadcrumb(-1);
   renderDashboard();
@@ -550,16 +553,19 @@ var _bannerClosed = false;
 function startNoticeBanner(notices) {
   _bannerNotices = (notices || []).filter(function(n){ return n.title; });
   if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = null; }
-  if (!_bannerNotices.length) return;
-
+  if (!_bannerNotices.length) {
+    var banner = document.getElementById('noticeBanner');
+    if (banner) banner.style.display = 'none';
+    return;
+  }
   var banner = document.getElementById('noticeBanner');
   if (!banner || _bannerClosed) return;
 
-  // 홈 또는 캘린더 탭이 active일 때 표시 (게시판에서는 공지 목록이 직접 보임)
-  var homePanel = document.getElementById('panelHome');
-  var calPanel  = document.getElementById('panelSched') || document.querySelector('.tab-panel.active[id^="panel"]');
+  // 배너는 탭 패널 바깥(탭바 아래)에 위치해 어느 탭에서든 표시 가능
+  // 홈 탭이나 캘린더 탭 active일 때만 표시
+  var panelHome = document.getElementById('panelHome');
   var calBtn    = document.getElementById('tabBtn0');
-  var homeActive = homePanel && homePanel.classList.contains('active');
+  var homeActive = panelHome && panelHome.classList.contains('active');
   var calActive  = calBtn && calBtn.classList.contains('active');
 
   if (homeActive || calActive) {
@@ -572,6 +578,8 @@ function startNoticeBanner(notices) {
         _renderBannerSlide();
       }, 5000);
     }
+  } else {
+    banner.style.display = 'none';
   }
 }
 
