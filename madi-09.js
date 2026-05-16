@@ -78,7 +78,7 @@ function saveActivity() {
   var name = (document.getElementById('actName') || {}).value.trim();
   if (!name) { showToast('자료명을 입력해주세요.'); return; }
   var act = {
-    id: Date.now() + Math.floor(Math.random() * 1000),
+    id: generateClientId(),
     name: name,
     diagnosis: (document.getElementById('actDiagnosis') || {}).value || '전체',
     duration: parseInt((document.getElementById('actDuration') || {}).value) || null,
