@@ -595,8 +595,7 @@ function deployToGitHub() {
 }
 
 function processImportFile(file) {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
 
   var resultEl = document.getElementById('importResult');
   resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>파일을 읽는 중...</p></div>';
@@ -835,7 +834,7 @@ function confirmImport() {
       nameToId[c.name] = exists.id;
       skippedCount++;
     } else {
-      var newId = Date.now() + Math.floor(Math.random() * 10000);
+      var newId = generateClientId();
       var birthVal = c.birth || '';
       var ageVal   = birthVal ? (calcAgeFromBirth(birthVal) || c.age || '미상') : (c.age || '미상');
       childDB.push({
@@ -862,7 +861,7 @@ function confirmImport() {
     var childId = nameToId[s.childName];
     if (!childId) return;
     sessionDB.push({
-      id:      Date.now() + Math.floor(Math.random() * 100000),
+      id:      generateClientId(),
       childId: childId,
       date:    s.date    || new Date().toISOString().slice(0, 10),
       goals:   Array.isArray(s.goals) ? s.goals : [],
@@ -916,14 +915,10 @@ function init() {
   document.getElementById('assessDate').value      = today;
   schedCurrentDate = new Date();
 
-  var saved = localStorage.getItem('cn3_apikey');
-  if (saved) {
-    document.getElementById('apiKey').value = saved;
-    showMaskedApiKey();
-  }
-  document.getElementById('apiKey').addEventListener('input', function() {
-    if (this.value.startsWith('sk-ant')) localStorage.setItem('cn3_apikey', this.value);
-  });
+  // cowork High #4: localStorage cn3_apikey 캐싱 제거 — API 키는 loadCenterApiKey()가 Supabase에서만 로드
+  // (DevTools 추출 방지)
+  // 마이그레이션: 기존 사용자 localStorage 잔재 자동 정리
+  try { localStorage.removeItem('cn3_apikey'); } catch(e) {}
 
   var savedUser  = localStorage.getItem('madi_user');
   var savedToken = localStorage.getItem('madi_token');
@@ -1692,7 +1687,7 @@ function buildChatContext() {
   var lines = ['📅 오늘: ' + today];
 
   if (currentUser) {
-    var roleTxt = (currentUser.role === 'admin' || currentUser.role === 'superadmin') ? '관리자' : '선생님';
+    var roleTxt = getRoleFlags().isAdminOrSuper ? '관리자' : '선생님';
     lines.push('🔑 현재 로그인: ' + currentUser.name + ' (' + roleTxt + ')');
   }
   lines.push('👶 등록 아동: ' + childDB.length + '명');
