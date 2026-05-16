@@ -82,8 +82,10 @@ function renderStaffCard() {
   var deployCard = document.getElementById('deployCard');
   if (!card) return;
   var isAdmin = currentUser && currentUser.role === 'admin';
+  var isSuperAdmin = currentUser && currentUser.role === 'superadmin';
   card.style.display = isAdmin ? 'block' : 'none';
-  if (deployCard) deployCard.style.display = isAdmin ? 'block' : 'none';
+  // 배포 카드는 superadmin 전용 (admin/teacher/parent 모두에게 숨김)
+  if (deployCard) deployCard.style.display = isSuperAdmin ? 'block' : 'none';
   if (!isAdmin) return;
   supaFetch('madi_users?select=id,username,name,role,color&order=role.desc,name.asc')
     .then(function(users) {
