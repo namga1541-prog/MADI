@@ -448,7 +448,7 @@ function renderWeekGrid() {
             var child = childDB.find(function(c){ return c.id === s.childId; });
             var cname = child ? escHtml(child.name) : '?';
             var time  = (s.startTime||s.time||'').slice(0,5);
-            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(' + s.id + ')">'
+            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(' + Number(s.id) + ')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
               + '<span style="font-weight:700;">' + cname + '</span>'
               + '</div>';
@@ -569,7 +569,7 @@ function renderDayGrid() {
             var child = childDB.find(function(c){ return c.id === s.childId; });
             var cname = child ? escHtml(child.name) : '?';
             var type = escHtml(s.type || '');
-            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(' + s.id + ')">'
+            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(' + Number(s.id) + ')">'
               + '<span style="font-weight:700;">' + cname + '</span>'
               + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '')
               + '</div>';
@@ -802,10 +802,10 @@ function openEditSchedModal(id) {
     + '<div class="form-group"><label class="form-label">메모</label>'
     + '<textarea class="form-input" id="editSchedNote" style="min-height:60px;" placeholder="특이사항 (예: 체험학습으로 인한 캔슬)">' + escHtml(s.note||'') + '</textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:8px;">'
-    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(' + id + ')">📝 회기기록</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(' + Number(id) + ')">📝 회기기록</button>'
     + (currentUser && currentUser.role === 'admin'
-      ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(' + id + ')">💾 수정</button>'
-      + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(' + id + ',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>'
+      ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(' + Number(id) + ')">💾 수정</button>'
+      + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(' + Number(id) + ',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>'
       : '')
     + '</div></div>';
   document.body.appendChild(overlay);
@@ -915,7 +915,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
           var t = s.therapist || s.teacher || '';
           var tcolor = getTeacherColor(t);
           var time = (s.startTime||s.time||'').slice(0,5);
-          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(' + s.id + ')">'
+          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(' + Number(s.id) + ')">'
             + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
             + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">'
             + escHtml(t) + '</span>'
@@ -960,7 +960,7 @@ function confirmSchedDelete(id, hasGroup) {
     + '</div>'
     + '<div style="display:flex;gap:8px;">'
     + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove()">아니요</button>'
-    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(' + id + ')">네, 삭제하겠습니다</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(' + Number(id) + ')">네, 삭제하겠습니다</button>'
     + '</div></div>';
   document.body.appendChild(delOv);
 }
