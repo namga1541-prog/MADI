@@ -269,8 +269,55 @@ var SW_LINES = [
 ];
 var SW_CODE = SW_LINES.join(String.fromCharCode(10));
 
+// 메모리 캐시: 페이지 로드 시 IndexedDB에서 사전 로드 (배포 시 user activation 보존 위해 sync 접근 필수)
+var _ghTokenCache = '';
+
 function getGithubToken() {
-  return localStorage.getItem('madi_gh_token') || '';
+  // sync 반환 — showDirectoryPicker는 user activation 소실 방지로 await 불가
+  return _ghTokenCache || '';
+}
+
+function _preloadGithubToken() {
+  // 백그라운드 로드 — 결과 안 기다림
+  _openMadiDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx  = db.transaction('handles', 'readonly');
+      var req = tx.objectStore('handles').get('gh_token');
+      req.onsuccess = function() {
+        _ghTokenCache = req.result || '';
+        resolve();
+      };
+      req.onerror = function() { resolve(); };
+    });
+  }).catch(function(e) {
+    if (window.console && console.warn) console.warn('[gh_token preload fail]', e && e.message);
+  });
+}
+
+function _saveGithubToken(token) {
+  _ghTokenCache = token; // 메모리 캐시 즉시 갱신 (영속 저장은 백그라운드)
+  // 기존 localStorage 잔재가 있으면 제거 (1회성 청소)
+  try { localStorage.removeItem('madi_gh_token'); } catch(e) {}
+  return _openMadiDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(token, 'gh_token');
+      tx.oncomplete = resolve;
+      tx.onerror    = function() { reject(tx.error); };
+    });
+  });
+}
+
+function _deleteGithubToken() {
+  _ghTokenCache = ''; // 캐시도 즉시 초기화
+  return _openMadiDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').delete('gh_token');
+      tx.oncomplete = resolve;
+      tx.onerror    = resolve; // cleanup 용도라 실패해도 OK
+    });
+  });
 }
 
 function deployFileToGitHub(token, filename, textContent, commitMsg) {
@@ -382,12 +429,15 @@ function pollGithubPagesBuild(token, deployStartTs) {
 }
 
 function deployToGitHub() {
-  var token = getGithubToken();
+  var token = getGithubToken(); // sync — user activation 보존
   if (!token) {
     var t = prompt('GitHub Token을 입력하세요:\n(한 번 입력하면 저장됩니다)');
     if (!t) return;
-    localStorage.setItem('madi_gh_token', t.trim());
     token = t.trim();
+    // fire-and-forget — await하면 user activation이 소실되어 showDirectoryPicker가 차단됨
+    _saveGithubToken(token).catch(function(e) {
+      if (window.console && console.warn) console.warn('[gh_token save fail]', e && e.message);
+    });
   }
 
   var btn = document.getElementById('headerDeployBtn');
@@ -535,7 +585,8 @@ function deployToGitHub() {
       if (e.message === 'USER_CANCEL') {
         showToast('배포 취소됨');
       } else if (e.message && e.message.includes('Bad credentials')) {
-        localStorage.removeItem('madi_gh_token');
+        _deleteGithubToken();
+        try { localStorage.removeItem('madi_gh_token'); } catch(ee) {}
         showToast('❌ Token 오류 — 다시 눌러 재입력해주세요.');
       } else {
         showToast('❌ 배포 실패: ' + (e.message || '오류'));
@@ -578,7 +629,7 @@ function processImportFile(file) {
         var wb2  = XLSX.read(data, { type: 'array' });
         var csv  = XLSX.utils.sheet_to_csv(wb2.Sheets[wb2.SheetNames[0]], { blankrows: false });
         var sample = csv.split('\n').slice(0, 30).join('\n');
-        analyzeImportData(apiKey, sample, resultEl);
+        analyzeImportData(sample, resultEl);
       }
     } catch(err) {
       resultEl.innerHTML = '<div class="import-warning">⚠️ 파일 읽기 실패: ' + escHtml(err.message || '오류') + '</div>';
@@ -669,7 +720,7 @@ function parseRowsToChildren(rows) {
   return children;
 }
 
-function analyzeImportData(apiKey, csvText, resultEl) {
+function analyzeImportData(csvText, resultEl) {
   var SYSTEM = '당신은 언어치료 데이터 마이그레이션 전문가입니다. '
     + '케어플센터 또는 다른 언어치료 앱에서 내보렬 엑셀/CSV 데이터를 분석하여 아동 정보와 세션 기록을 추출하세요.\n\n'
     + '【케어플센터 이용자 파일 컨럼 매핑 규칙】\n'
@@ -698,7 +749,7 @@ function analyzeImportData(apiKey, csvText, resultEl) {
   var USER = '아래 데이터를 변환하세요. goals는 빈 배열로, memo는 꼭 필요한 것만, 간결하게 작성하세요.\n\n'
     + csvText;
 
-  callClaude(apiKey, SYSTEM, USER, 4096, getAIModel())
+  callClaude(SYSTEM, USER, 4096, getAIModel())
     .then(function(raw) {
       var parsed = parseJSON(raw);
       renderImportPreview(parsed, resultEl);
@@ -957,7 +1008,7 @@ function initPWA() {
         var swUrl  = URL.createObjectURL(swBlob);
         navigator.serviceWorker.register(swUrl)
           .then(function() { console.log('[마디 PWA] Blob URL SW 등록 (폴백)'); })
-          .catch(function() {});
+          .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-12]',e&&e.message);});
       });
   }
 
@@ -1712,3 +1763,7 @@ function buildChatContext() {
 
   return lines.join('\n');
 }
+
+// ─── 모듈 초기화 ───
+// 배포 버튼 클릭 시 user activation 보존을 위해, IndexedDB의 GitHub 토큰을 미리 메모리에 캐시
+_preloadGithubToken();
