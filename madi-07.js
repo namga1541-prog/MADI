@@ -10,7 +10,7 @@ function saveSession(aiNote) {
     return { name: r.name, score: r.score !== '' ? parseFloat(r.score) : null };
   });
 
-  var sessionId = Date.now() + Math.floor(Math.random() * 1000);
+  var sessionId = generateClientId();
   sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
   saveSessions();
   // 저장된 날짜를 기억 (소급 입력 시 다음 세션도 같은 날짜로 편의 제공)
@@ -35,8 +35,7 @@ function saveSession(aiNote) {
 
 function saveSessionAI() {
   if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('sessionChild').value);
   var date = document.getElementById('sessionDate').value;
   var aiText = document.getElementById('aiInput').value.trim();
@@ -58,7 +57,7 @@ function saveSessionAI() {
   callClaude(SYSTEM, USER, 1200, MODEL_HAIKU)
     .then(function(raw) {
       var p = parseJSON(raw);
-      var sessionId = Date.now() + Math.floor(Math.random() * 1000);
+      var sessionId = generateClientId();
       sessionDB.push({
         id: sessionId, childId: childId, date: date,
         teacher: (currentUser && currentUser.name) || '',
@@ -89,8 +88,7 @@ function saveSessionAI() {
 
 // ─────── 기능 2: 가정 활동 추천 AI ───────
 function suggestHomeActivities(sessionId) {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var session = sessionDB.find(function(s) { return s.id === sessionId; });
   if (!session) return;
   var child = childDB.find(function(c) { return c.id === session.childId; });
@@ -640,8 +638,7 @@ function setPhonemePos(pos) {
 }
 
 function detectStagnation() {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('chartChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
 
