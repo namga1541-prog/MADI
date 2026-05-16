@@ -1,20 +1,14 @@
 function loadCenterApiKey(showFeedback) {
   // Supabase에서 센터 공용 API 키 로드
+  // cowork High #4: 클라이언트 localStorage 캐싱 제거 (DevTools 추출 방지)
   return supaFetch('madi_settings?key=eq.api_key&select=value', 'GET')
     .then(function(rows) {
       if (!rows || rows.length === 0 || !rows[0].value) {
-        // Supabase에 키 없으면 로컬 키 사용 (기존 호환)
-        var local = localStorage.getItem('cn3_apikey');
-        if (local) {
-          document.getElementById('apiKey').value = local;
-          showMaskedApiKey();
-        }
-        if (showFeedback) showToast('ℹ️ Supabase에 저장된 키 없음 — 로컬 키 사용 중');
+        if (showFeedback) showToast('ℹ️ Supabase에 저장된 키 없음');
         return;
       }
       var key = rows[0].value;
       document.getElementById('apiKey').value = key;
-      localStorage.setItem('cn3_apikey', key);
       showMaskedApiKey();
       if (showFeedback) showToast('✅ 센터 AI 키 불러옴');
 
@@ -27,12 +21,6 @@ function loadCenterApiKey(showFeedback) {
       }
     })
     .catch(function(err) {
-      // 로컬 키 폴백
-      var local = localStorage.getItem('cn3_apikey');
-      if (local) {
-        document.getElementById('apiKey').value = local;
-        showMaskedApiKey();
-      }
       console.error('센터 키 로드 실패:', err);
     });
 }
@@ -49,9 +37,8 @@ function saveCenterApiKey() {
 
   supaFetch('madi_settings', 'POST', [{ key: 'api_key', value: key }])
     .then(function() {
-      // 현재 세션에도 즉시 적용
+      // 현재 세션에도 즉시 적용 (DOM만, localStorage 캐싱 안 함)
       document.getElementById('apiKey').value = key;
-      localStorage.setItem('cn3_apikey', key);
       showMaskedApiKey();
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 저장 완료: ' + maskApiKey(key) + '</span>';
       showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
@@ -169,7 +156,7 @@ function addStaffAccount() {
 
   hashPassword(pw).then(function(hashed) {
     return supaFetch('madi_users', 'POST', [{
-      id: Date.now() + Math.floor(Math.random() * 1000),
+      id: generateClientId(),
       username: username,
       name: name,
       password: hashed,
@@ -918,7 +905,8 @@ function changeMyPassword() {
 
   if (!oldPw || !newPw || !newPw2) { setResult('<span style="color:var(--red);">❌ 모든 항목을 입력해주세요.</span>'); return; }
   if (newPw !== newPw2)            { setResult('<span style="color:var(--red);">❌ 새 비밀번호가 일치하지 않아요.</span>'); return; }
-  if (newPw.length < 4)            { setResult('<span style="color:var(--red);">❌ 비밀번호는 4자 이상이어야 해요.</span>'); return; }
+  var pwErr = validatePasswordStrength(newPw);
+  if (pwErr)                       { setResult('<span style="color:var(--red);">❌ ' + escHtml(pwErr) + '</span>'); return; }
 
   setResult('<span style="color:var(--text2);">변경 중...</span>');
 
