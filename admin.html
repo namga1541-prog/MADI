@@ -1769,9 +1769,9 @@ function resetStaffPassword(id, name) {
     for (var i = 0; i < 8; i++) {
       newPw += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-  } else if (newPw.length < 4) {
-    showToast('⚠️ 비밀번호는 4자 이상이어야 합니다');
-    return;
+  } else {
+    var pwErr = validatePasswordStrength(newPw);
+    if (pwErr) { showToast('⚠️ ' + pwErr); return; }
   }
   if (!confirm(name + ' 선생님의 비밀번호를 재설정합니다.\n\n임시 비번: ' + newPw + '\n\n진행할까요?')) return;
 
@@ -1920,8 +1920,9 @@ function addStaffAccount() {
     if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>';
     return;
   }
-  if (pw.length < 4) {
-    if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ 비밀번호는 4자 이상이어야 합니다.</span>';
+  var pwErr1 = validatePasswordStrength(pw);
+  if (pwErr1) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ ' + escHtml(pwErr1) + '</span>';
     return;
   }
 
@@ -2271,7 +2272,8 @@ function createParentAccount() {
   if (!name)    { showToast('⚠️ 학부모 이름을 입력해주세요'); return; }
   if (!username || username.length < 4) { showToast('⚠️ 아이디는 4자 이상이어야 합니다'); return; }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) { showToast('⚠️ 아이디는 영문/숫자/언더바만 가능'); return; }
-  if (!password || password.length < 4) { showToast('⚠️ 비밀번호는 4자 이상이어야 합니다'); return; }
+  var pwErr2 = validatePasswordStrength(password);
+  if (pwErr2) { showToast('⚠️ ' + pwErr2); return; }
 
   var cid = centerFilter().replace('center_id=eq.','') || '';
 
