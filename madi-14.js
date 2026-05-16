@@ -243,7 +243,7 @@ function renderGlobalNoticeCard(n, isSuperAdmin) {
   }
   var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
   var deleteBtn = isSuperAdmin
-    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(' + n.id + ')">삭제</button>'
+    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(' + Number(n.id) + ')">삭제</button>'
     : '';
 
   return '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'
@@ -426,7 +426,7 @@ function renderCenterNoticeCard(n, isAdminOrSuper, isSuperAdmin) {
 
   var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
   var deleteBtn = isAdminOrSuper
-    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteCenterNotice(' + n.id + ')">삭제</button>'
+    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteCenterNotice(' + Number(n.id) + ')">삭제</button>'
     : '';
 
   return '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'
@@ -631,7 +631,7 @@ function renderLoungePostCard(post, user) {
   } catch (e) { when = ''; }
 
   var deleteBtn = canDelete
-    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(' + post.id + ')">🗑️ 삭제</button>'
+    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(' + Number(post.id) + ')">🗑️ 삭제</button>'
     : '';
 
   return '<div class="card" style="border-left:4px solid ' + meta.color + ';">'
@@ -648,7 +648,7 @@ function renderLoungePostCard(post, user) {
     + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:10px;">' + escHtml(post.content) + '</div>' : '')
     + (post.image_urls && post.image_urls.length ? renderImageThumbs(post.image_urls) : '')
     + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:8px;">'
-    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + meta.color + ';border-color:' + meta.color + ';" onclick="toggleComments(' + post.id + ')">💬 댓글 <span id="commentCount_' + post.id + '"></span></button>'
+    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + meta.color + ';border-color:' + meta.color + ';" onclick="toggleComments(' + Number(post.id) + ')">💬 댓글 <span id="commentCount_' + post.id + '"></span></button>'
     +   '<div id="commentArea_' + post.id + '" style="display:none;margin-top:10px;"></div>'
     + '</div>'
     + '</div>';
@@ -785,7 +785,7 @@ function renderComments(postId) {
           +   '<div style="font-size:11px;color:var(--text2);">'
           +     '<span style="font-weight:600;color:var(--text);">' + roleBadge + ' ' + escHtml(c.author_name || '익명') + '</span> · ' + when
           +   '</div>'
-          + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(' + postId + ',' + c.id + ')">🗑️</button>' : '')
+          + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(' + Number(postId) + ',' + Number(c.id) + ')">🗑️</button>' : '')
           + '</div>'
           + '<div style="font-size:13px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + escHtml(c.content) + '</div>'
         + (c.image_url ? '<a href="' + escHtml(c.image_url) + '" target="_blank" rel="noopener">'
@@ -799,7 +799,7 @@ function renderComments(postId) {
   var formHtml = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'
     + '<div style="display:flex;gap:6px;">'
     + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeypress="if(event.key===\'Enter\') saveComment(' + postId + ')">'
-    + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(' + postId + ')">📝 등록</button>'
+    + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(' + Number(postId) + ')">📝 등록</button>'
     + '</div>'
     + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;">'
     + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(' + postId + ',this)"></label>'
