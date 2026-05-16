@@ -30,7 +30,7 @@ function generateReport() {
     + ' {"kakao":"카카오톡 메시지 (이모지, 친근한 존댓말, 200자 내외)","report":"전문 보고서 (치료 경과, 목표 달성, 가정 지도, 존댓말, 400자 내외)"}';
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n세션:\n' + summary;
 
-  callClaude(apiKey, SYSTEM, USER, 1500, getAIModel())
+  callClaude(SYSTEM, USER, 1500, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
       renderReport(p, child.name);
@@ -297,7 +297,7 @@ function generateIEP() {
     + (trendLog ? NL + NL + '[목표별 달성률 추이]' + NL + trendLog : '')
     + (sessionLog ? NL + NL + '[최근 세션 ' + sessions.length + '회 상세]' + NL + sessionLog : '');
 
-  callClaude(apiKey, SYSTEM, USER, 2500, getAIModel())
+  callClaude(SYSTEM, USER, 2500, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
       if (!p || !p.longTermGoals) throw new Error('IEP 파싱 실패');
@@ -516,7 +516,7 @@ function deleteIEPRecord(id) {
   var childId = r ? r.childId : 0;
   iepDB = iepDB.filter(function(x){ return x.id !== id; });
   saveIEP();
-  supaFetch('madi_iep_history?id=eq.' + id, 'DELETE').catch(function(){});
+  supaFetch('madi_iep_history?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-08]',e&&e.message);});
   renderIEPHistory(childId);
   showToast('🗑️ 장단기계획(IEP) 기록 삭제됨');
 }
