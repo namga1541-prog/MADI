@@ -242,22 +242,33 @@ function setupGlobalErrorHandler() {
   window.addEventListener('error', function(e) {
     // CORS 등 무관한 에러는 무시
     if (!e.message || e.message === 'Script error.') return;
-    console.error('[Global Error]', maskPII(e.message), e.filename + ':' + e.lineno);
+    var src = (e.filename || '').split('/').pop() + ':' + e.lineno;
+    console.error('[Global Error]', maskPII(e.message), src);
     pushErrorLog({
       ts: Date.now(),
       message: maskPII(e.message),
-      source: (e.filename || '').split('/').pop() + ':' + e.lineno
+      source: src
     });
-    // 사용자에게는 너무 자주 알림 띄우지 않도록 5분에 1회만
+    // 사용자에게는 너무 자주 알림 띄우지 않도록 5분에 1회만 — 단, 진짜 에러 메시지를 표시해 원인 파악 용이하게
     if (!window._lastErrorToast || Date.now() - window._lastErrorToast > 300000) {
       window._lastErrorToast = Date.now();
-      try { showToast('⚠️ 오류 발생. 문제가 계속되면 새로고침해 주세요.'); } catch(e) {}
+      try {
+        var shortMsg = (e.message || '').slice(0, 70);
+        showToast('⚠️ 오류: ' + shortMsg + ' @ ' + src, { duration: 6000 });
+      } catch(e2) {}
     }
   });
   window.addEventListener('unhandledrejection', function(e) {
     var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
     console.error('[Unhandled Promise]', maskPII(msg));
     pushErrorLog({ ts: Date.now(), message: 'Promise: ' + maskPII(msg), source: 'unhandledrejection' });
+    // 사용자에게도 비동기 에러 메시지 노출 (이전엔 silent였음)
+    if (!window._lastErrorToast || Date.now() - window._lastErrorToast > 300000) {
+      window._lastErrorToast = Date.now();
+      try {
+        showToast('⚠️ 비동기 오류: ' + maskPII(msg).slice(0, 80), { duration: 6000 });
+      } catch(e2) {}
+    }
   });
 }
 
