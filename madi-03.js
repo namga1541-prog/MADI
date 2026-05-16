@@ -552,13 +552,17 @@ function startNoticeBanner(notices) {
   if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = null; }
   if (!_bannerNotices.length) return;
 
-  // 캘린더 탭이 현재 active일 때만 표시
-  var isCalendar = document.getElementById('tabBtn0') &&
-                   document.getElementById('tabBtn0').classList.contains('active');
   var banner = document.getElementById('noticeBanner');
   if (!banner || _bannerClosed) return;
 
-  if (isCalendar) {
+  // 홈 또는 캘린더 탭이 active일 때 표시 (게시판에서는 공지 목록이 직접 보임)
+  var homePanel = document.getElementById('panelHome');
+  var calPanel  = document.getElementById('panelSched') || document.querySelector('.tab-panel.active[id^="panel"]');
+  var calBtn    = document.getElementById('tabBtn0');
+  var homeActive = homePanel && homePanel.classList.contains('active');
+  var calActive  = calBtn && calBtn.classList.contains('active');
+
+  if (homeActive || calActive) {
     banner.style.display = 'block';
     _bannerIdx = 0;
     _renderBannerSlide();
