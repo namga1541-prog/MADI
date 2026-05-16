@@ -470,7 +470,7 @@ function autoCalcAssessScores() {
     var USER = '검사: '+testName+', 생활연령: '+child.age+', 원점수: '+rawInputs
       + '\n누락 필드: '+missingFields.map(function(f){return f.key+'('+f.label+')'}).join(', ')
       + '\n이미 계산된 값: '+schema.filter(function(f){var el=document.getElementById('af_'+f.key);return el&&el.value;}).map(function(f){var el=document.getElementById('af_'+f.key);return f.label+'='+el.value;}).join(', ');
-    callClaude(apiKey, SYSTEM, USER, 500, getAIModel())
+    callClaude(SYSTEM, USER, 500, getAIModel())
       .then(function(raw) {
         var parsed = parseJSON(raw);
         var aiCount = 0;
@@ -481,7 +481,7 @@ function autoCalcAssessScores() {
           if(n){n.style.display='block';n.textContent='⚠️ AI 추정값 포함 — 공식 규준집으로 확인하세요';}
         }
       })
-      .catch(function(){})
+      .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-11]',e&&e.message);})
       .finally(function(){ var btn=document.getElementById('autoCalcBtn');if(btn){btn.dataset.busy='';btn.disabled=false;btn.textContent='🤖 원점수 → 등가연령·백분위 자동 계산';} });
   } else {
     var b2 = document.getElementById('autoCalcBtn');
@@ -690,7 +690,7 @@ function deleteAssessment(id) {
     return;
   }
   if (!confirm('이 검사 결과를 삭제할까요?')) return;
-  supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(){});
+  supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-11]',e&&e.message);});
   assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
   saveAssess();
   renderAssessmentList();
@@ -814,7 +814,7 @@ function generateAssessReport() {
     + '\n\n【검사태도 및 행동 관찰】\n' + (testBehavior || '(검사태도 미입력 — 일반적 협조적 수준으로 작성)')
     + '\n\n【검사 결과】\n' + testLog;
 
-  callClaude(apiKey, SYSTEM, USER, 3000, getAIModel())
+  callClaude(SYSTEM, USER, 3000, getAIModel())
     .then(function(raw) {
       // ** 마크다운 볼드/이탤릭 제거
       raw = raw.replace(/\*\*([^*\n]+)\*\*/g, '$1').replace(/\*([^*\n]+)\*/g, '$1');
@@ -869,7 +869,7 @@ function generateParentEdu() {
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n치료 목표: ' + (child.goals.join(', ')||'없음')
     + '\n\n최근 세션:\n' + (sessionSummary || '세션 기록 없음');
 
-  callClaude(apiKey, SYSTEM, USER, 1500, getAIModel())
+  callClaude(SYSTEM, USER, 1500, getAIModel())
     .then(function(raw) {
       result.innerHTML = '<div class="parent-edu-preview" id="eduText">' + escHtml(raw) + '</div>'
         + '<button class="print-btn" onclick="printParentEdu(\'' + escHtml(child.name) + '\')">🖨️ 인쇄하기</button>';
