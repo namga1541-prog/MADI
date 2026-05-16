@@ -397,7 +397,7 @@ function generateSIReport() {
     + 'V. 종합 소견: 주요 발달 특성, 감각 처리 패턴, 기능적 영향을 3~5문단으로 서술' + NL
     + 'VI. 치료 권고사항: 감각통합치료 목표, 접근법, 가정 연계 지도 등을 구체적으로 서술';
 
-  callClaude(apiKey, SYSTEM, USER, 2000, getAIModel())
+  callClaude(SYSTEM, USER, 2000, getAIModel())
     .then(function(raw) {
       var text = raw.trim();
       result.innerHTML = '<div style="border:1.5px solid var(--mint,#0ea5a0);border-radius:12px;padding:16px;margin-top:4px;">'
