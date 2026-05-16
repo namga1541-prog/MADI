@@ -24,6 +24,10 @@ function saveSession(aiNote) {
   updateCloneBtnState(childId);
   showToast('✅ 세션 저장 완료!');
   vibrate(40);  // UX: 햅틱 피드백
+  // 학부모 알림 fanout (fire-and-forget — 실패해도 세션 저장에 영향 없음)
+  if (typeof fanoutSessionNotification === 'function') {
+    fanoutSessionNotification(sessionDB[sessionDB.length - 1]);
+  }
   setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
   setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
   setTimeout(function() { checkAutoStagnation(childId); }, 1200);
@@ -66,6 +70,10 @@ function saveSessionAI() {
       try { localStorage.setItem('madi_last_session_date', date); } catch(e) {}
       renderSessionList();
       vibrate(40);  // UX: 햅틱 피드백
+      // 학부모 알림 fanout (fire-and-forget — 실패해도 세션 저장에 영향 없음)
+      if (typeof fanoutSessionNotification === 'function') {
+        fanoutSessionNotification(sessionDB[sessionDB.length - 1]);
+      }
       resetPhonemeMatrix();
       setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
       setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
