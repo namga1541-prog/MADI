@@ -124,7 +124,7 @@ function loadCenterSessionInterval() {
       if (rows && rows[0] && rows[0].session_interval) {
         CENTER_SESSION_INTERVAL = parseInt(rows[0].session_interval) || 40;
       }
-    }).catch(function(){});
+    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 var EDGE_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';
 var _madiToken = null; // JWT 토큰 (메모리 캐시)
@@ -678,7 +678,7 @@ function saveIEP() {
   var cid = getCenterId();
   var rows = iepDB.map(function(r){ return { id: r.id, center_id: cid, data: r }; });
   if (rows.length === 0) return;
-  supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).catch(function(){});
+  supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
 function loadIEPFromSupa() {
@@ -693,14 +693,14 @@ function loadIEPFromSupa() {
         renderIEPHistory(parseInt(document.getElementById('iepChild').value) || 0);
       }
     })
-    .catch(function(){});
+    .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
 function saveActivities() {
   safeSetItem('cn3_activities', JSON.stringify(activityDB));
   var cid = getCenterId();
   var rows = activityDB.map(function(a){ return Object.assign({}, a, { center_id: cid }); });
-  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(){});
+  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
 function loadActivitiesFromSupa() {
@@ -712,7 +712,7 @@ function loadActivitiesFromSupa() {
         renderActivityCatalog();
       }
     })
-    .catch(function(){});
+    .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
 // ─────── Toast ───────
@@ -982,7 +982,7 @@ function loadParentDashboard() {
       window._parentChildId   = childId;
       window._parentCenterId  = centerId;
       // 홈 카드에 내 아동 스케줄/리포트 표시 (추후 확장)
-    }).catch(function() {});
+    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
 
