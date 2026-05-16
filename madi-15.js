@@ -38,6 +38,8 @@ function getMyChildInfo(callback) {
 
 // ─── 홈 ───
 function loadParentHome() {
+  // 알림 카드 먼저 로드 (홈 진입 시마다)
+  loadParentNotifications();
   getMyChildInfo(function(childId, centerId) {
     var today = new Date().toISOString().slice(0,10);
 
@@ -246,4 +248,114 @@ function loadParentNotice() {
         }).join('');
       }).catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
   });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🔔 학부모 앱 내 알림 카드 (Phase 1A)
+// ═══════════════════════════════════════════════════════════
+
+// 학부모용 미확인 알림 로드 + 렌더링
+function loadParentNotifications() {
+  if (!currentUser || currentUser.role !== 'parent') return;
+  // 최근 10개 (읽음/미읽음 모두) - 미확인 우선 표시
+  supaFetch('madi_notifications?user_id=eq.' + currentUser.id
+    + '&order=created_at.desc&limit=10', 'GET')
+    .then(function(rows) {
+      var list = Array.isArray(rows) ? rows : [];
+      renderParentNotifList(list);
+    })
+    .catch(function() {
+      // 조용히 실패 (알림은 비핵심 기능 - 본 화면은 정상 표시)
+      var card = document.getElementById('parentNotifCard');
+      if (card) card.style.display = 'none';
+    });
+}
+
+// 알림 카드 렌더링 (미확인 1건 이상일 때만 카드 표시)
+function renderParentNotifList(rows) {
+  var card    = document.getElementById('parentNotifCard');
+  var listEl  = document.getElementById('parentNotifList');
+  var badgeEl = document.getElementById('parentNotifBadge');
+  if (!card || !listEl || !badgeEl) return;
+
+  var unread = rows.filter(function(n){ return !n.read_at; });
+  // 미확인 0건이면 카드 숨김
+  if (unread.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  badgeEl.textContent = unread.length;
+
+  // 미확인 알림만 최대 3개 표시
+  var show = unread.slice(0, 3);
+  listEl.innerHTML = show.map(function(n){
+    var icon = (n.type === 'notice') ? '📌'
+             : (n.type === 'session') ? '✅'
+             : (n.type === 'report')  ? '📊'
+             : '🔔';
+    var timeAgo = formatTimeAgo(n.created_at);
+    return ''
+      + '<div onclick="openParentNotif(' + n.id + ')" style="cursor:pointer;padding:8px 4px;border-bottom:1px solid var(--border);">'
+      +   '<div style="display:flex;align-items:start;gap:8px;">'
+      +     '<div style="font-size:16px;line-height:1.4;">' + icon + '</div>'
+      +     '<div style="flex:1;min-width:0;">'
+      +       '<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(n.title||'') + '</div>'
+      +       (n.body ? '<div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(n.body) + '</div>' : '')
+      +       '<div style="font-size:11px;color:var(--text2);margin-top:4px;">' + timeAgo + '</div>'
+      +     '</div>'
+      +   '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// 알림 클릭 시: 읽음 처리 + 링크 이동 (있으면)
+function openParentNotif(notifId) {
+  // 1. 읽음 처리
+  supaFetch('madi_notifications?id=eq.' + notifId,
+    'PATCH', { read_at: new Date().toISOString() })
+    .then(function(){
+      loadParentNotifications(); // 카드 갱신
+    })
+    .catch(function(){});
+
+  // 2. 링크 있으면 그 탭으로 이동
+  // 미래: notice/123 같은 deep link 지원 예정
+  // 지금은 type 기반으로 단순 라우팅
+  // 클릭한 알림의 type을 알아야 하므로 DOM에서 가져오기보다는
+  // 일단 공지는 공지 탭으로 이동
+  // (간단 구현: 현재 알림 데이터를 캐시해서 type 확인)
+  if (window._parentNotifCache) {
+    var n = window._parentNotifCache[notifId];
+    if (n && n.type === 'notice') switchParentTab('notice');
+    else if (n && n.type === 'report') switchParentTab('report');
+    else if (n && n.type === 'session') switchParentTab('sched');
+  }
+}
+
+// 모두 읽음 처리
+function markAllNotifRead() {
+  if (!currentUser || currentUser.role !== 'parent') return;
+  supaFetch('madi_notifications?user_id=eq.' + currentUser.id + '&read_at=is.null',
+    'PATCH', { read_at: new Date().toISOString() })
+    .then(function(){
+      loadParentNotifications();
+      showToast('✅ 모든 알림을 읽음 처리했습니다');
+    })
+    .catch(function(e){ showToast('❌ 처리 실패: ' + (e.message||'')); });
+}
+
+// "~분 전 / ~시간 전" 표시 헬퍼
+function formatTimeAgo(isoTs) {
+  if (!isoTs) return '';
+  var ms = Date.now() - new Date(isoTs).getTime();
+  if (ms < 0) ms = 0;
+  var min  = Math.floor(ms / 60000);
+  if (min < 1)  return '방금 전';
+  if (min < 60) return min + '분 전';
+  var hr = Math.floor(min / 60);
+  if (hr < 24)  return hr + '시간 전';
+  var day = Math.floor(hr / 24);
+  if (day < 7)  return day + '일 전';
+  return isoTs.slice(0, 10);
 }
