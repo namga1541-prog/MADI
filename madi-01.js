@@ -27,7 +27,7 @@ function isMyChild(childId) {
 }
 function applyPermissions() {
   if (!currentUser) return;
-  var isAdminOrSuper = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+  var isAdminOrSuper = getRoleFlags().isAdminOrSuper;
   // 설정/서비스 탭은 관리자·슈퍼관리자만
   var settingsBtn = document.getElementById('tabBtn5');
   if (settingsBtn) settingsBtn.style.display = isAdminOrSuper ? '' : 'none';
@@ -320,7 +320,8 @@ function doSignup() {
   // 2) 형식 검사
   if (username.length < 4) { errEl.textContent = '아이디는 4자 이상이어야 합니다.'; return; }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) { errEl.textContent = '아이디는 영문/숫자/언더바(_)만 사용 가능합니다.'; return; }
-  if (pw.length < 4) { errEl.textContent = '비밀번호는 4자 이상이어야 합니다.'; return; }
+  var pwErr = validatePasswordStrength(pw);
+  if (pwErr) { errEl.textContent = pwErr; return; }
   if (pw !== pwConfirm) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; return; }
 
   // 진행 중 표시 + 더블클릭 차단
@@ -356,7 +357,7 @@ function doSignup() {
       // 5) 비밀번호 해싱 후 INSERT
       return hashPassword(pw).then(function(hashed) {
         var newUser = {
-          id: Date.now() + Math.floor(Math.random() * 1000),
+          id: generateClientId(),
           username: username,
           name: name,
           password: hashed,
@@ -417,6 +418,10 @@ function doLogin() {
   if (!un) { if (errEl) errEl.textContent = '아이디를 입력해주세요.'; return; }
   if (!pw) { if (errEl) errEl.textContent = '비밀번호를 입력해주세요.'; return; }
 
+  // 시도 차단 체크 (5회 실패 → 30분, 클라이언트 1차 방어)
+  var blockMsg = checkLoginBlocked(un);
+  if (blockMsg) { if (errEl) errEl.textContent = blockMsg; return; }
+
   if (btn) {
     if (btn.dataset.busy === '1') return;
     btn.dataset.busy = '1';
@@ -435,9 +440,11 @@ function doLogin() {
   .then(function(data) {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (data.error) {
+      recordLoginFail(un);
       if (errEl) errEl.textContent = data.error;
       return;
     }
+    recordLoginSuccess(un);
     setToken(data.token);
     currentUser = data.user;
     localStorage.setItem('madi_user', JSON.stringify(currentUser));
@@ -743,7 +750,7 @@ function showToast(msg, opts) {
   if (toastLocked && !opts.force) return;
   var el = document.getElementById('toast');
   if (opts.undo && typeof opts.undo === 'function') {
-    el.innerHTML = '<span>' + msg + '</span> <span style="display:inline-block;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.18);border-radius:14px;color:#5eead4;font-size:12px;cursor:pointer;pointer-events:auto;" id="toastUndoBtn">↩️ 실행취소</span>';
+    el.innerHTML = '<span>' + escHtml(msg) + '</span> <span style="display:inline-block;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.18);border-radius:14px;color:#5eead4;font-size:12px;cursor:pointer;pointer-events:auto;" id="toastUndoBtn">↩️ 실행취소</span>';
     el.style.pointerEvents = 'auto';
     setTimeout(function() {
       var b = document.getElementById('toastUndoBtn');
@@ -1007,3 +1014,81 @@ document.addEventListener('click', function(e) {
   if (menu.contains(e.target)) return;  // 메뉴 안 클릭은 닫지 않음 (개별 항목이 닫음)
   closeMoreMenu();
 });
+
+// ─── 권한 체크 유틸 ───
+// 사용 예: var flags = getRoleFlags(); if (flags.isAdminOrSuper) { ... }
+// 향후 새 권한 체크는 이 헬퍼를 통해 일관되게 처리할 것
+function getRoleFlags(user) {
+  user = user || (typeof currentUser !== 'undefined' ? currentUser : null);
+  if (!user || !user.role) {
+    return { isAuth:false, isSuper:false, isAdmin:false, isTeacher:false, isParent:false, isAdminOrSuper:false };
+  }
+  var r = user.role;
+  return {
+    isAuth:         true,
+    isSuper:        r === 'superadmin',
+    isAdmin:        r === 'admin',
+    isTeacher:      r === 'teacher',
+    isParent:       r === 'parent',
+    isAdminOrSuper: r === 'admin' || r === 'superadmin'
+  };
+}
+
+// ─── 비밀번호 정책 + 로그인 시도 차단 (cowork High #1, #2) ───
+// 정책: 8자 이상 + 영문 + 숫자 혼합
+function validatePasswordStrength(pw) {
+  if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+  if (!/[a-zA-Z]/.test(pw)) return '비밀번호에 영문을 포함해주세요.';
+  if (!/[0-9]/.test(pw))    return '비밀번호에 숫자를 포함해주세요.';
+  return null; // 통과
+}
+
+// 로그인 시도 차단 (5회 실패 → 30분 차단, 클라이언트 측 1차 방어)
+// 한계: localStorage 지우면 우회 가능 — 서버 측 차단이 본질
+function _getLoginBlockData(username) {
+  try {
+    var raw = localStorage.getItem('login_block_' + username);
+    return raw ? JSON.parse(raw) : { attempts: 0, blockedUntil: 0 };
+  } catch(e) {
+    return { attempts: 0, blockedUntil: 0 };
+  }
+}
+function checkLoginBlocked(username) {
+  if (!username) return null;
+  var data = _getLoginBlockData(username);
+  if (data.blockedUntil && data.blockedUntil > Date.now()) {
+    var minLeft = Math.ceil((data.blockedUntil - Date.now()) / 60000);
+    return '로그인 시도가 너무 많습니다. ' + minLeft + '분 후 다시 시도해주세요.';
+  }
+  return null;
+}
+function recordLoginFail(username) {
+  if (!username) return;
+  try {
+    var data = _getLoginBlockData(username);
+    data.attempts = (data.attempts || 0) + 1;
+    if (data.attempts >= 5) {
+      data.blockedUntil = Date.now() + 30 * 60 * 1000; // 30분
+    }
+    localStorage.setItem('login_block_' + username, JSON.stringify(data));
+  } catch(e) {}
+}
+function recordLoginSuccess(username) {
+  if (!username) return;
+  try { localStorage.removeItem('login_block_' + username); } catch(e) {}
+}
+
+// ─── ID 생성 유틸 (cowork High #5) ───
+// 자릿수 유지 + crypto 진짜 난수 + 충돌 1/10000 (기존 대비 10배 개선)
+// 진짜 해결: DB 컬럼 BIGINT 확인 후 Date.now()*1000+r 또는 UUID v4 (별도 트랙)
+function generateClientId() {
+  var rnd;
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    var arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    rnd = arr[0] % 10000;
+  } else {
+    rnd = Math.floor(Math.random() * 10000);
+  }
+  return Date.now() + rnd;
+}
