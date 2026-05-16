@@ -539,7 +539,7 @@ function renderChildGrid() {
     var checkboxHtml = _bulkMode
       ? '<input type="checkbox" class="bulk-checkbox" id="bulkChk_' + child.id + '"'
         + (cardSelected ? ' checked' : '')
-        + ' onclick="event.stopPropagation();bulkToggleSelect(' + child.id + ')">'
+        + ' onclick="event.stopPropagation();bulkToggleSelect(' + Number(child.id) + ')">'
       : '';
 
     html += '<div class="child-card' + (cardSelected ? ' bulk-selected' : '') + '" id="cc_' + child.id + '">'
@@ -568,14 +568,14 @@ function renderChildGrid() {
       + voucherHtml
       + schedHtml
       + '<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;">'
-      + '<button class="btn-ghost" onclick="event.stopPropagation();goToSession(' + child.id + ')">📝 기록</button>'
-      + '<button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(' + child.id + ')">✏️ 편집</button>'
-      + '<button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(' + child.id + ')">🔍 상세</button>'
+      + '<button class="btn-ghost" onclick="event.stopPropagation();goToSession(' + Number(child.id) + ')">📝 기록</button>'
+      + '<button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(' + Number(child.id) + ')">✏️ 편집</button>'
+      + '<button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(' + Number(child.id) + ')">🔍 상세</button>'
       + (_childStatusFilter !== '종결'
-          ? '<button class="btn-ghost" style="color:#f59e0b;border-color:#f59e0b;" onclick="event.stopPropagation();closeChild(' + child.id + ')">🔒 종결</button>'
-          : '<button class="btn-ghost" style="color:var(--mint);border-color:var(--mint);" onclick="event.stopPropagation();reopenChild(' + child.id + ')">↩️ 재등록</button>')
+          ? '<button class="btn-ghost" style="color:#f59e0b;border-color:#f59e0b;" onclick="event.stopPropagation();closeChild(' + Number(child.id) + ')">🔒 종결</button>'
+          : '<button class="btn-ghost" style="color:var(--mint);border-color:var(--mint);" onclick="event.stopPropagation();reopenChild(' + Number(child.id) + ')">↩️ 재등록</button>')
       + (canDo('deleteChild')
-          ? '<button class="btn-ghost" style="color:#ef4444;border-color:#ef4444;" onclick="event.stopPropagation();deleteChild(' + child.id + ')">🗑️ 삭제</button>'
+          ? '<button class="btn-ghost" style="color:#ef4444;border-color:#ef4444;" onclick="event.stopPropagation();deleteChild(' + Number(child.id) + ')">🗑️ 삭제</button>'
           : '')
       + '</div>'
       + '</div></div>';
