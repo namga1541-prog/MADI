@@ -110,7 +110,7 @@ function loadCenterInfo() {
           expEl.style.color = info.color;
         }
       }
-    }).catch(function(){});
+    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-03]',e&&e.message);});
 }
 
 function copyInviteCode() {
@@ -852,7 +852,7 @@ function toggleWakeLock() {
     return;
   }
   if (_wakeLock) {
-    _wakeLock.release().catch(function(){});
+    _wakeLock.release().catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-03]',e&&e.message);});
     _wakeLock = null;
     showToast('💡 화면 자동 꺼짐 복원됐어요');
     updateSettingsUI();
