@@ -134,7 +134,7 @@ function pushErrorLog(entry) {
       ts:         entry.ts
     };
     supaFetch('madi_error_logs', 'POST', [payload])
-      .catch(function() {})
+      .catch(function() {}) // 의도적 무음: 에러 로그 전송 자체의 실패에 warn 찍으면 무한 루프 위험
       .finally(function() { window._errorLogSending = false; });
   } catch(e) {
     window._errorLogSending = false;
@@ -504,7 +504,7 @@ function deleteBackupConfirm(id) {
   });
 }
 
-function callClaude(apiKey, system, user, maxTokens, model) {
+function callClaude(system, user, maxTokens, model) {
   return fetchWithRetry(EDGE_URL + '/ai-proxy', {
     method: 'POST',
     headers: {
