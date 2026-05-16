@@ -616,9 +616,12 @@ function closeNoticeBanner() {
 var noticeDB = [];
 async function loadNotices() {
   var listEl = document.getElementById('noticeList');
-  if (!listEl) return;
-  if (!currentUser) { listEl.innerHTML = '<div class="empty"><p>로그인 후 확인하세요.</p></div>'; return; }
-  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div>';
+  if (!currentUser) {
+    if (listEl) listEl.innerHTML = '<div class="empty"><p>로그인 후 확인하세요.</p></div>';
+    return;
+  }
+  // listEl 없어도 배너용 데이터는 로드 (홈 탭에서도 배너 표시 가능)
+  if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div>';
   try {
     var centerId = encodeURIComponent(currentUser.center_id || '');
     var data = await supaFetch(
@@ -626,10 +629,10 @@ async function loadNotices() {
       'GET'
     );
     noticeDB = Array.isArray(data) ? data : [];
-    renderNoticeList();
-    startNoticeBanner(noticeDB); // 배너 업데이트
+    if (listEl) renderNoticeList();       // 게시판 목록은 listEl 있을 때만
+    startNoticeBanner(noticeDB);          // 배너는 항상 업데이트
   } catch(e) {
-    listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + escHtml(e.message||'') + '</small></p></div>';
+    if (listEl) listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + escHtml(e.message||'') + '</small></p></div>';
   }
 }
 function renderNoticeList() {
