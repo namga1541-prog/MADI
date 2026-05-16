@@ -1448,7 +1448,7 @@ function renderStaffStats() {
     var pal=avatarPalette[Math.abs(hash)%avatarPalette.length];
     var initial=teacher.charAt(0);
 
-    return '<div onclick="showStaffTrend(\''+teacher.replace(/'/g,'')+'\')" '
+    return '<div data-teacher="'+escHtml(teacher)+'" onclick="showStaffTrendFromCard(this)" '
       +'onmouseover="this.style.transform=\'translateY(-1px)\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.08)\';" '
       +'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\';" '
       +'style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);transition:all 0.15s ease;">'
@@ -1729,12 +1729,12 @@ function loadStaffMgmtList() {
       if (!rows||!rows.length) { el.innerHTML='<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">등록된 선생님이 없습니다.</div>'; return; }
       el.innerHTML = rows.map(function(u){
         var isSelf = currentUser&&currentUser.id===u.id;
-        var nameEsc = escHtml(u.name).replace(/'/g, "\\'");
+        var nameEsc = escHtml(u.name);
         var actionButtons = isSelf
           ? '<span style="font-size:11px;color:var(--text2);flex-shrink:0;">나</span>'
           : '<div style="display:flex;gap:4px;flex-shrink:0;">'
-            + '<button onclick="resetStaffPassword('+u.id+',\''+nameEsc+'\')" title="비밀번호 재설정" style="font-size:13px;padding:4px 9px;background:#fff;border:1px solid #8b5cf6;border-radius:6px;color:#8b5cf6;cursor:pointer;">🔑</button>'
-            + '<button onclick="removeStaffAccount('+u.id+',\''+nameEsc+'\')" title="계정 삭제" style="font-size:13px;padding:4px 9px;background:#fff;border:1px solid #ef4444;border-radius:6px;color:#ef4444;cursor:pointer;">🗑️</button>'
+            + '<button data-uid="'+u.id+'" data-uname="'+nameEsc+'" onclick="resetStaffPasswordFromBtn(this)" title="비밀번호 재설정" style="font-size:13px;padding:4px 9px;background:#fff;border:1px solid #8b5cf6;border-radius:6px;color:#8b5cf6;cursor:pointer;">🔑</button>'
+            + '<button data-uid="'+u.id+'" data-uname="'+nameEsc+'" onclick="removeStaffAccountFromBtn(this)" title="계정 삭제" style="font-size:13px;padding:4px 9px;background:#fff;border:1px solid #ef4444;border-radius:6px;color:#ef4444;cursor:pointer;">🗑️</button>'
             + '</div>';
         return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;gap:8px;">'
           +'<div style="min-width:0;flex:1;"><span style="font-size:13px;font-weight:700;">'+escHtml(u.name)+'</span>'
@@ -1745,6 +1745,11 @@ function loadStaffMgmtList() {
       }).join('');
     }).catch(function(err){ el.innerHTML='<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: '+escHtml(err.message||'')+'</div>'; });
 }
+// C5 원칙: onclick 인라인 사용자 데이터 → data 속성 + 헬퍼로 분리
+function showStaffTrendFromCard(el) { showStaffTrend(el.dataset.teacher); }
+function removeStaffAccountFromBtn(btn) { removeStaffAccount(btn.dataset.uid, btn.dataset.uname); }
+function resetStaffPasswordFromBtn(btn) { resetStaffPassword(btn.dataset.uid, btn.dataset.uname); }
+
 function removeStaffAccount(id, name) {
   if (!confirm(name+' 선생님 계정을 삭제할까요?')) return;
   supaFetch('madi_users?id=eq.'+id,'DELETE')
