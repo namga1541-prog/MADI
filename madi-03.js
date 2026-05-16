@@ -632,21 +632,27 @@ function renderNoticeList() {
     var badgeClass = n.notice_type === 'imp' ? 'imp' : (n.notice_type === 'pin' ? 'pin' : 'info');
     var badgeText  = n.notice_type === 'imp' ? '🚨 긴급' : (n.notice_type === 'pin' ? '📍 중요' : '📌 일반');
     var dateStr = n.created_at ? n.created_at.slice(0,10) : '';
-    var delBtn = (currentUser && currentUser.role === 'admin')
+    // 권한: admin 또는 superadmin 모두 삭제 가능
+    var canDelete = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+    var delBtn = canDelete
       ? '<button data-nid="' + n.id + '" onclick="deleteNotice(this.dataset.nid)" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 6px;">삭제</button>'
       : '';
+    // ★ escHtml 처리: 사용자가 입력한 문자열에 특수문자가 있어도 HTML/JS 깨지지 않도록
+    var safeTitle  = escHtml(n.title  || '');
+    var safeContent = escHtml(n.content || '');
+    var safeAuthor = escHtml(n.author_name || '');
     return '<div class="notice-card ' + typeClass + '">'
       + '<span class="notice-badge ' + badgeClass + '">' + badgeText + '</span>'
       + (delBtn ? '<span style="float:right;">' + delBtn + '</span>' : '')
-      + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">' + (n.title||'') + '</div>'
-      + '<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">' + (n.content||'') + '</div>'
-      + '<div style="font-size:11px;color:var(--text2);margin-top:8px;">' + dateStr + (n.author_name ? ' · ' + n.author_name : '') + '</div>'
+      + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">' + safeTitle + '</div>'
+      + '<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">' + safeContent + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);margin-top:8px;">' + dateStr + (n.author_name ? ' · ' + safeAuthor : '') + '</div>'
       + '</div>';
   }).join('');
   listEl.innerHTML = html;
 }
 async function saveNotice() {
-  if (!currentUser || currentUser.role !== 'admin') return;
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) return;
   var title   = (document.getElementById('noticeTitle')   || {value:''}).value.trim();
   var content = (document.getElementById('noticeContent') || {value:''}).value.trim();
   var ntype   = (document.getElementById('noticeType')    || {value:'info'}).value;
