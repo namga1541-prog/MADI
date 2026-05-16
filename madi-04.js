@@ -594,7 +594,7 @@ function renderStaffStats() {
     var pal = avatarPalette[Math.abs(hash) % avatarPalette.length];
     var initial = teacher.charAt(0);
 
-    return '<div onclick="showStaffTrend(\'' + teacher.replace(/'/g,'') + '\')" '
+    return '<div data-teacher="' + escHtml(teacher) + '" onclick="showStaffTrendFromCard(this)" '
       + 'onmouseover="this.style.transform=\'translateY(-1px)\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.08)\';" '
       + 'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\';" '
       + 'style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer;border:1.5px solid var(--border);transition:all 0.15s ease;">'
@@ -633,6 +633,11 @@ function renderStaffStats() {
   // 차트 초기화
   var wrap = document.getElementById('staffChartWrap');
   if (wrap) wrap.style.display = 'none';
+}
+
+function showStaffTrendFromCard(el) {
+  // C5 원칙: onclick 인라인 사용자 데이터 → data 속성 + 헬퍼로 분리
+  showStaffTrend(el.dataset.teacher);
 }
 
 function showStaffTrend(teacher) {
