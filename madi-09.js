@@ -515,7 +515,7 @@ function generatePortfolio() {
     + '세션 수: ' + sessions.length + '회\n\n'
     + '세션 상세 기록:\n' + sessionLog;
 
-  callClaude(apiKey, SYSTEM, USER, 3000, getAIModel())
+  callClaude(SYSTEM, USER, 3000, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
       renderPortfolio(p, child, month, sessions, goalProgress);
@@ -646,7 +646,7 @@ function naturalSearch() {
     + '날짜, 수치 등 구체적인 정보를 포함하세요. 200자 내외의 친근한 한국어로 답변하세요. JSON 없이 일반 텍스트로 답변.';
   var USER = '치료 데이터:\n' + allData + '\n\n질문: ' + query;
 
-  callClaude(apiKey, SYSTEM, USER, 800, getAIModel())
+  callClaude(SYSTEM, USER, 800, getAIModel())
     .then(function(raw) {
       resultEl.innerHTML = '<div class="ai-response-box">'
         + '<div class="ai-response-label">🤖 AI 답변</div>'
@@ -696,7 +696,7 @@ function generateFAQ() {
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n'
     + '최근 세션:\n' + (summary || '없음') + '\n\n부모 질문: "' + question + '"';
 
-  callClaude(apiKey, SYSTEM, USER, 1000, getAIModel())
+  callClaude(SYSTEM, USER, 1000, getAIModel())
     .then(function(raw) {
       resultEl.innerHTML = '<div class="ai-response-box">'
         + '<div class="ai-response-label">💬 AI 답변 예시 (참고용, 그대로 또는 수정 후 사용)</div>'
