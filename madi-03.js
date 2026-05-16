@@ -725,6 +725,52 @@ async function fanoutNoticeNotifications(savedNotice, title, ntype) {
   }
 }
 
+// 세션 저장 시 해당 아동의 학부모에게 알림 row 자동 생성 (Phase 1A - session 통합)
+async function fanoutSessionNotification(session) {
+  try {
+    if (!session || !session.childId) return;
+    var cid = (currentUser && currentUser.center_id)
+              || (typeof getCenterId === 'function' ? getCenterId() : '');
+    if (!cid) return;
+
+    // 1. child_id로 학부모 user_id 조회 (한 아동에 학부모 여러 명 가능)
+    var parents = await supaFetch(
+      'madi_parent_children?child_id=eq.' + encodeURIComponent(session.childId)
+        + '&center_id=eq.' + encodeURIComponent(cid)
+        + '&select=parent_user_id',
+      'GET'
+    );
+    if (!Array.isArray(parents) || parents.length === 0) return;
+
+    // 2. 본문: 목표수 + 평균점수 (옵션 A: 세션 자체 정보)
+    var goals = Array.isArray(session.goals) ? session.goals : [];
+    var scores = goals.map(function(g){ return typeof g.score === 'number' ? g.score : null; })
+                      .filter(function(s){ return s !== null; });
+    var avg = scores.length > 0
+              ? Math.round(scores.reduce(function(a,b){ return a+b; }, 0) / scores.length)
+              : null;
+    var bodyParts = [];
+    if (goals.length > 0) bodyParts.push('목표 ' + goals.length + '개');
+    if (avg !== null)     bodyParts.push('평균 ' + avg + '%');
+    var bodyText = bodyParts.length > 0 ? bodyParts.join(' · ') : null;
+
+    // 3. 알림 row 일괄 생성 (학부모마다 하나씩)
+    var rows = parents.map(function(p){
+      return {
+        user_id: p.parent_user_id,
+        center_id: cid,
+        type: 'session',
+        title: '🎯 새 세션 기록 도착',
+        body: bodyText,
+        link: session.id ? ('session/' + session.id) : null
+      };
+    });
+    await supaFetch('madi_notifications', 'POST', rows);
+  } catch(e) {
+    if (window.console && console.warn) console.warn('[fanoutSession fail]', e.message||e);
+  }
+}
+
 async function deleteNotice(id) {
   if (!confirm('이 공지를 삭제할까요?')) return;
   try {
