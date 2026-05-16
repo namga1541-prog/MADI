@@ -2001,6 +2001,17 @@
 <!-- 학부모 홈 -->
 <div class="tab-panel" id="parentPanelHome" style="display:none;">
   <div class="dash-content">
+    <!-- 🔔 알림 카드 (미확인 있을 때만 표시) -->
+    <div id="parentNotifCard" style="display:none;background:white;border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text);">
+          <span>🔔 알림</span>
+          <span id="parentNotifBadge" style="background:#ef4444;color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;">0</span>
+        </div>
+        <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;padding:4px 6px;">모두 읽음</button>
+      </div>
+      <div id="parentNotifList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
     <!-- D-day 카드 -->
     <div id="parentNextSched" style="background:linear-gradient(135deg,#3b82f6 0%,#0ea5a0 100%);border-radius:18px;padding:20px 22px;margin-bottom:14px;color:white;">
       <div style="font-size:13px;opacity:0.8;margin-bottom:6px;">다음 치료 일정</div>
