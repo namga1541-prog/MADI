@@ -61,7 +61,8 @@
     body.dark-mode #tabBtnHome .tab-ico { background: rgba(14,165,160,0.18); }
     body.dark-mode #tabBtnHome.active .tab-ico { background: var(--mint); }
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100%; overflow-x:hidden; }
+    html { overflow-x:hidden; max-width:100vw; position:relative; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100%; overflow-x:hidden; max-width:100vw; position:relative; }
 
     .header { background:linear-gradient(135deg,#3b82f6 0%,#0ea5a0 100%); padding:calc(16px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-right, 0px)) 12px calc(20px + env(safe-area-inset-left, 0px)); display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 16px rgba(59,130,246,0.3); }
     .logo { display:flex; align-items:center; gap:10px; }
@@ -1225,10 +1226,10 @@
   <button class="more-menu-item" onclick="closeMoreMenu();switchTab(4);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
     <span style="font-size:18px;">📋</span><span>게시판</span>
   </button>
-  <button class="more-menu-item" onclick="closeMoreMenu();goToAdmin('service');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
+  <button class="more-menu-item" id="moreItemService" onclick="closeMoreMenu();goToAdmin('service');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
     <span style="font-size:18px;">🛠️</span><span>서비스 관리</span>
   </button>
-  <button class="more-menu-item" onclick="closeMoreMenu();goToAdmin('settings');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
+  <button class="more-menu-item" id="moreItemAdmin" onclick="closeMoreMenu();goToAdmin('settings');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
     <span style="font-size:18px;">⚙️</span><span>관리자 설정</span>
   </button>
   <button class="more-menu-item" onclick="closeMoreMenu();switchTab(6);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;">
@@ -2151,4 +2152,45 @@
 </div><!-- /app-layout -->
 
 
+
+<!-- ★ 진단용 임시 코드 — 원인 확인 후 제거 예정 ★ -->
+<script>
+(function() {
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      var vw = window.innerWidth;
+      var docW = document.documentElement.scrollWidth;
+      var bodyW = document.body.scrollWidth;
+      var scrollLeft = window.scrollX || window.pageXOffset || 0;
+      var lines = [];
+      lines.push('viewport: ' + vw);
+      lines.push('doc.scrollW: ' + docW);
+      lines.push('body.scrollW: ' + bodyW);
+      lines.push('scrollX: ' + scrollLeft);
+      lines.push('');
+      var all = document.querySelectorAll('body *');
+      var over = [];
+      for (var i = 0; i < all.length; i++) {
+        var el = all[i];
+        if (el.offsetParent === null && el.tagName !== 'BODY') continue;
+        var rect = el.getBoundingClientRect();
+        if (rect.right > vw + 1 || rect.left < -1) {
+          var tag = el.tagName.toLowerCase();
+          var id = el.id ? '#' + el.id : '';
+          var cls = (typeof el.className === 'string' && el.className) ? '.' + el.className.split(' ').filter(function(c){return c}).slice(0,2).join('.') : '';
+          over.push(tag + id + cls + ' [L:' + Math.round(rect.left) + ' R:' + Math.round(rect.right) + ' W:' + Math.round(rect.width) + ']');
+        }
+      }
+      if (over.length > 0) {
+        lines.push('🐛 viewport 초과/음수 위치 요소:');
+        lines.push(over.slice(0, 10).join('\n\n'));
+      } else {
+        lines.push('✅ viewport 초과 요소 없음');
+      }
+      alert(lines.join('\n'));
+    }, 1500);
+  });
+})();
+</script>
+<!-- ★ 진단 코드 끝 ★ -->
 </body></html>
