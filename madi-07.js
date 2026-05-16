@@ -238,8 +238,8 @@ function renderSessionList() {
       + '<span style="font-size:15px;font-weight:700;color:' + cColor + ';">' + escHtml(cName) + '</span>'
       + '<div style="display:flex;align-items:center;gap:6px;">'
       + '<span style="font-size:12px;color:#64748b;">📅 ' + s.date + '</span>'
-      + '<button class="btn-ghost" style="padding:7px 10px;font-size:11px;" onclick="editSessionDate(' + s.id + ')">✏️</button>'
-      + (canDo('deleteSession') ? '<button class="btn-del" style="padding:7px 12px;font-size:11px;" onclick="deleteSession(' + s.id + ')">삭제</button>' : '')
+      + '<button class="btn-ghost" style="padding:7px 10px;font-size:11px;" onclick="editSessionDate(' + Number(s.id) + ')">✏️</button>'
+      + (canDo('deleteSession') ? '<button class="btn-del" style="padding:7px 12px;font-size:11px;" onclick="deleteSession(' + Number(s.id) + ')">삭제</button>' : '')
       + '</div></div>'
       // 목표 달성도
       + goalHtml
