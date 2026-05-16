@@ -510,12 +510,18 @@ function renderDayGrid() {
   if (dayScheds.length === 0) {
     html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">일정이 없습니다.</div>';
   } else {
-    var tableW = Math.min(therapists.length * 140 + 50, window.innerWidth - 32);
-    html += '<table style="width:' + tableW + 'px;border-collapse:collapse;font-size:11px;table-layout:fixed;margin:0 auto;">';
-    // 컬럼 너비 균등 분배
-    var colW = Math.floor(100 / (therapists.length + 1));
-    html += '<colgroup><col style="width:44px;">';
-    therapists.forEach(function(){ html += '<col>'; });
+    // 치료사 컬럼 최소 너비 보장 (모바일 가독성) + 가로 스크롤 컨테이너로 래핑
+    var COL_W_TEACHER = 110;  // 치료사 1명당 컬럼 너비
+    var COL_W_TIME    = 50;   // 시간 컬럼 너비
+    var tableW = COL_W_TIME + therapists.length * COL_W_TEACHER;
+    // 스크롤 가능 신호용 페이드 그림자를 위해 position:relative 래퍼로 감쌈
+    // 외부 래퍼: 페이드 그림자용 (position:relative만, overflow는 풀어줌 — 가로 스크롤 막지 않기 위해)
+    html += '<div style="position:relative;max-width:100%;width:100%;">';
+    // 내부 스크롤 컨테이너: overflow-x:auto + overscroll-behavior-x:contain(스크롤이 부모로 전파되지 않게) + touch-action 명시
+    html += '<div style="width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;border-radius:8px;border:1px solid #e2e8f0;">';
+    html += '<table style="width:' + tableW + 'px;min-width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;">';
+    html += '<colgroup><col style="width:' + COL_W_TIME + 'px;">';
+    therapists.forEach(function(){ html += '<col style="width:' + COL_W_TEACHER + 'px;">'; });
     html += '</colgroup>';
     // 헤더: 시간 + 치료사 컬럼
     html += '<thead><tr>'
@@ -551,10 +557,23 @@ function renderDayGrid() {
       });
       html += '</tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
+    // 스크롤 가능 표시용 우측 페이드 (치료사가 5명 초과일 때만)
+    if (therapists.length > 4) {
+      html += '<div style="position:absolute;top:0;right:0;width:28px;height:100%;'
+        + 'background:linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.92));'
+        + 'pointer-events:none;border-radius:0 8px 8px 0;"></div>';
+    }
+    html += '</div>'; // relative 래퍼 닫기
   }
 
-  html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)" style="margin-top:10px;">+</button></div>';
+  // 시간표 하단에 큰 일정 추가 버튼 (한 손 조작 친화적)
+  html += '<button onclick="openSchedModal(\'' + dateStr + '\',null)" '
+    + 'style="width:100%;margin-top:12px;padding:14px;background:var(--mint);'
+    + 'color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;'
+    + 'cursor:pointer;box-shadow:0 2px 8px rgba(14,165,160,0.25);'
+    + 'touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);">'
+    + '+ 이 날에 일정 추가</button></div>';
 
   document.getElementById('dayGrid').innerHTML = html;
   renderSessionListForPeriod([dateStr]);
