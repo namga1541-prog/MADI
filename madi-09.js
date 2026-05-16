@@ -367,7 +367,7 @@ function checkUpcomingSessionBriefing() {
     + '<div style="width:36px;height:36px;border-radius:50%;background:var(--mint2);display:flex;align-items:center;justify-content:center;font-size:18px;">🔔</div>'
     + '<div>'
     + '<div style="font-size:13px;font-weight:700;color:var(--navy);">' + diff + '분 후 세션 시작</div>'
-    + '<div style="font-size:12px;color:var(--mint);font-weight:600;">' + escHtml(child.name) + ' · ' + sched.startTime + (sched.teacher ? ' · ' + sched.teacher : '') + '</div>'
+    + '<div style="font-size:12px;color:var(--mint);font-weight:600;">' + escHtml(child.name) + ' · ' + escHtml(sched.startTime) + (sched.teacher ? ' · ' + escHtml(sched.teacher) : '') + '</div>'
     + '</div></div>'
     + '<button onclick="document.getElementById(\'preSessionBriefingCard\').remove()" style="background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;padding:4px;">✕</button>'
     + '</div>'
@@ -453,8 +453,7 @@ function downloadWordDoc(name) {
 
 // ─────── 기능 5: 월간 포트폴리오 ───────
 function generatePortfolio() {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('portfolioChild').value);
   var month = document.getElementById('portfolioMonth').value;
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
@@ -617,8 +616,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress) {
 
 // ─────── 기능 6: 자연어 검색 ───────
 function naturalSearch() {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var query = document.getElementById('searchQuery').value.trim();
   if (!query) { showToast('질문을 입력해주세요.'); return; }
   if (sessionDB.length === 0) { showToast('세션 기록이 없습니다.'); return; }
@@ -664,8 +662,7 @@ function naturalSearch() {
 
 // ─────── 기능 7: 부모 FAQ 답변 ───────
 function generateFAQ() {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('faqChild').value);
   var question = document.getElementById('faqQuestion').value.trim();
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
