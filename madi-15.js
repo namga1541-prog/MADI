@@ -278,6 +278,12 @@ function renderParentNotifList(rows) {
   var badgeEl = document.getElementById('parentNotifBadge');
   if (!card || !listEl || !badgeEl) return;
 
+  // 캐시 갱신: openParentNotif에서 type 기반 탭 이동에 사용 (전체 rows 보존)
+  window._parentNotifCache = {};
+  rows.forEach(function(n){
+    window._parentNotifCache[n.id] = { type: n.type, link: n.link };
+  });
+
   var unread = rows.filter(function(n){ return !n.read_at; });
   // 미확인 0건이면 카드 숨김
   if (unread.length === 0) {
