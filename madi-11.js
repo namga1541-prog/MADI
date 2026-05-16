@@ -319,8 +319,7 @@ function parseAgeToMonths(ageStr) {
 
 // ── 통합 자동 계산 함수 ──
 function autoCalcAssessScores() {
-  var apiKey = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('assessChild').value);
   if (!childId) { showToast('아동을 먼저 선택해주세요.'); return; }
   var child   = childDB.find(function(c) { return c.id === childId; });
@@ -458,7 +457,7 @@ function autoCalcAssessScores() {
     var el = document.getElementById('af_' + f.key);
     return el && el.value === '';
   });
-  if (missingFields.length > 0 && apiKey) {
+  if (missingFields.length > 0 && getApiKeyOrAlert()) {
     var btn = document.getElementById('autoCalcBtn');
     if (btn.dataset.busy === '1') return;
     btn.dataset.busy = '1';
@@ -630,7 +629,7 @@ function addAssessment(opts) {
   }
 
   assessmentDB.push({
-    id: Date.now() + Math.floor(Math.random() * 1000), childId: childId, date: date,
+    id: generateClientId(), childId: childId, date: date,
     testName: testName, typeKey: typeVal,
     scores: scores, memo: memo
   });
@@ -699,8 +698,7 @@ function deleteAssessment(id) {
 
 function generateAssessReport() {
   if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
-  var apiKey  = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('assessChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   var child = childDB.find(function(c) { return c.id === childId; });
@@ -839,8 +837,7 @@ function generateAssessReport() {
 // ─────── 부모 교육 자료 ───────
 function generateParentEdu() {
   if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
-  var apiKey  = getApiKeyOrAlert();
-  if (!apiKey) return;
+  if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('eduChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
 
