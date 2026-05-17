@@ -472,18 +472,35 @@ function setupNetworkMonitor() {
   if (!navigator.onLine) showOfflineBanner();
 }
 
+// ★ 학부모 전용 UI 적용 (모바일/PC 분기)
 function applyParentUI() {
-  var staffTabs = document.querySelector('.tabs:not(#parentTabs)'); if (staffTabs) staffTabs.style.display = 'none';
-  var parentTabs = document.getElementById('parentTabs'); if (parentTabs) parentTabs.style.cssText = 'display: none !important;';
-  var sidebar = document.getElementById('appSidebar'); if (sidebar) sidebar.style.display = 'none';
-  var sidebarToggle = document.getElementById('sidebarToggleBtn'); if (sidebarToggle) sidebarToggle.style.display = 'none';
-  var breadcrumb = document.querySelector('.breadcrumb-bar'); if (breadcrumb) breadcrumb.style.display = 'none';
-  var deployBtn = document.getElementById('headerDeployBtn'); if (deployBtn) deployBtn.style.display = 'none';
-  document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) { if (!el.id.startsWith('parentPanel')) el.style.display = 'none'; });
-  _initParentSidebar();
+  var isMobile = window.innerWidth <= 767;
+  // 치료사 탭바 숨김
+  var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
+  if (staffTabs) staffTabs.style.display = 'none';
+  // ★ 모바일: parentTabs 탭바 표시 / PC: 좌측 사이드바 사용 → 탭바 숨김
+  var parentTabs = document.getElementById('parentTabs');
+  if (parentTabs) parentTabs.style.cssText = isMobile ? 'display:flex !important;' : 'display:none !important;';
+  // 기존 치료사 사이드바 숨김
+  var sidebar = document.getElementById('appSidebar');
+  if (sidebar) sidebar.style.display = 'none';
+  var sidebarToggle = document.getElementById('sidebarToggleBtn');
+  if (sidebarToggle) sidebarToggle.style.display = 'none';
+  var breadcrumb = document.querySelector('.breadcrumb-bar');
+  if (breadcrumb) breadcrumb.style.display = 'none';
+  var deployBtn = document.getElementById('headerDeployBtn');
+  if (deployBtn) deployBtn.style.display = 'none';
+  // 기존 탭 패널 모두 숨김
+  document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
+    if (!el.id.startsWith('parentPanel')) el.style.display = 'none';
+  });
+  // ★ PC에서만 좌측 사이드바 생성 (모바일은 상단 탭바 사용)
+  if (!isMobile) _initParentSidebar();
+  // 학부모 홈 탭 표시
   switchParentTab('home');
 }
 
+// 학부모 좌측 사이드바 시작 (최초 1회 생성, 이후 재사용)
 function _initParentSidebar() {
   var existing = document.getElementById('parentSidebar');
   if (existing) { existing.style.display = 'flex'; return; }
@@ -498,6 +515,7 @@ function _initParentSidebar() {
     '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>' +
     '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">' +
     '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
+  // body 대신 .app-layout 안에 삽입 → 헤더/배너 아래 flex로 자동 위치
   var _appLayout = document.querySelector('.app-layout');
   if (_appLayout) {
     _appLayout.insertBefore(sb, _appLayout.firstChild);
@@ -507,6 +525,7 @@ function _initParentSidebar() {
       'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
     );
   } else {
+    // fallback: position:fixed + 헤더 높이 동적 계산
     document.body.appendChild(sb);
     var _hdr = document.querySelector('.header');
     var _topPx = _hdr ? (_hdr.offsetTop + _hdr.offsetHeight) : 60;
@@ -524,13 +543,27 @@ function _initParentSidebar() {
   sb.querySelectorAll('.psb-label').forEach(function(el) { el.style.cssText = 'font-size:10px;font-weight:700;'; });
 }
 
+// ★ 학부모 UI 원복 — 다른 역할로 재로그인 시 호출
 function resetParentUI() {
   var psb = document.getElementById('parentSidebar'); if (psb) psb.style.display = 'none';
-  var staffTabs = document.querySelector('.tabs:not(#parentTabs)'); if (staffTabs) staffTabs.style.display = '';
-  var sidebar = document.getElementById('appSidebar'); if (sidebar) sidebar.style.display = '';
-  var sidebarToggle = document.getElementById('sidebarToggleBtn'); if (sidebarToggle) sidebarToggle.style.display = '';
-  var breadcrumb = document.querySelector('.breadcrumb-bar'); if (breadcrumb) breadcrumb.style.display = '';
-  document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) { if (!el.id.startsWith('parentPanel')) el.style.display = ''; });
+  // 치료사 탭바 복원
+  var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
+  if (staffTabs) staffTabs.style.display = '';
+  // ★ 학부모 탭바 인라인 스타일 원복 (CSS 기본값으로 복귀)
+  var parentTabs = document.getElementById('parentTabs');
+  if (parentTabs) parentTabs.style.cssText = '';
+  // 사이드바/토글/breadcrumb 복원
+  var sidebar = document.getElementById('appSidebar');
+  if (sidebar) sidebar.style.display = '';
+  var sidebarToggle = document.getElementById('sidebarToggleBtn');
+  if (sidebarToggle) sidebarToggle.style.display = '';
+  var breadcrumb = document.querySelector('.breadcrumb-bar');
+  if (breadcrumb) breadcrumb.style.display = '';
+  // 치료사 탭 패널 display 복원
+  document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
+    if (!el.id.startsWith('parentPanel')) el.style.display = '';
+  });
+  // 메인 영역 좌측 여백 원복
   var appMain = document.getElementById('appMain'); if (appMain) appMain.style.paddingLeft = '';
 }
 
