@@ -1,4 +1,3 @@
-
 // ─────── 상수 ───────
 var MODEL_HAIKU  = 'claude-haiku-4-5-20251001';
 var MODEL_SONNET = 'claude-sonnet-4-6';
@@ -85,11 +84,27 @@ function safeSetItem(key, value) {
 function supaFetch(path, method, body) {
   return fetchWithRetry(EDGE_URL + '/api', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + getToken()
+    },
     body: JSON.stringify({ path: path, method: method || 'GET', body: body || null })
-  }, { retries: 2, allowPostRetry: true, label: 'Supabase ' + (method || 'GET') + ' ' + path.split('?')[0] })
-  .then(function(r) {
-    if (!r.ok && r.status !== 200 && r.status !== 201) return r.text().then(function(t){ throw new Error(r.status + ': ' + t); });
+  }, {
+    retries: 2,
+    allowPostRetry: true,
+    label: 'Supabase ' + (method || 'GET') + ' ' + path.split('?')[0]
+  }).then(function(r) {
+    // ★ 401 = JWT 만료/위조 → 자동 로그아웃
+    if (r.status === 401 && typeof currentUser !== 'undefined' && currentUser) {
+      clearToken(); currentUser = null;
+      try { localStorage.removeItem('madi_user'); } catch(e) {}
+      if (typeof showToast === 'function') showToast('⚠️ 세션이 만료되었습니다. 다시 로그인해주세요.', { duration: 3000 });
+      setTimeout(function() { if (typeof showLoginScreen === 'function') showLoginScreen(); }, 1500);
+      throw new Error('401: 세션 만료');
+    }
+    if (!r.ok && r.status !== 200 && r.status !== 201) {
+      return r.text().then(function(t){ throw new Error(r.status + ': ' + t); });
+    }
     var ct = r.headers.get('content-type') || '';
     return ct.includes('json') ? r.json() : r.text();
   });
@@ -457,7 +472,6 @@ function setupNetworkMonitor() {
   if (!navigator.onLine) showOfflineBanner();
 }
 
-// ★ 학부모 전용 UI 적용 (좌측 사이드바 버전)
 function applyParentUI() {
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)'); if (staffTabs) staffTabs.style.display = 'none';
   var parentTabs = document.getElementById('parentTabs'); if (parentTabs) parentTabs.style.cssText = 'display: none !important;';
@@ -470,7 +484,6 @@ function applyParentUI() {
   switchParentTab('home');
 }
 
-// ★ 학부모 좌측 사이드바 — .app-layout flex child로 삽입 (헤더 아래 자동 위치)
 function _initParentSidebar() {
   var existing = document.getElementById('parentSidebar');
   if (existing) { existing.style.display = 'flex'; return; }
@@ -485,7 +498,6 @@ function _initParentSidebar() {
     '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>' +
     '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">' +
     '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
-  // ★ body 대신 .app-layout 안에 삽입 → 헤더/배너 아래 flex로 자동 위치
   var _appLayout = document.querySelector('.app-layout');
   if (_appLayout) {
     _appLayout.insertBefore(sb, _appLayout.firstChild);
@@ -495,7 +507,6 @@ function _initParentSidebar() {
       'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
     );
   } else {
-    // fallback: position:fixed + 헤더 높이 동적 계산
     document.body.appendChild(sb);
     var _hdr = document.querySelector('.header');
     var _topPx = _hdr ? (_hdr.offsetTop + _hdr.offsetHeight) : 60;
@@ -513,7 +524,6 @@ function _initParentSidebar() {
   sb.querySelectorAll('.psb-label').forEach(function(el) { el.style.cssText = 'font-size:10px;font-weight:700;'; });
 }
 
-// ★ 학부모 UI 원복 — 다른 역할로 재로그인 시 호출
 function resetParentUI() {
   var psb = document.getElementById('parentSidebar'); if (psb) psb.style.display = 'none';
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)'); if (staffTabs) staffTabs.style.display = '';
