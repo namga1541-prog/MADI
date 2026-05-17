@@ -279,10 +279,10 @@ function showLogoutMenu() {
     + 'box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:9999;min-width:160px;overflow:hidden;';
   menu.innerHTML =
     '<div style="padding:6px 0;">'
-    + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();showChangePasswordModal();"
+    + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();showChangePasswordModal();"'
     + ' style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 16px;border:none;background:none;font-size:13px;cursor:pointer;color:#1e293b;">🔑 비밀번호 변경</button>'
     + '<div style="height:1px;background:#f1f5f9;margin:2px 0;"></div>'
-    + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();doLogout();"
+    + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();doLogout();"'
     + ' style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 16px;border:none;background:none;font-size:13px;cursor:pointer;color:#ef4444;">🚪 로그아웃</button>'
     + '</div>';
   document.body.appendChild(menu);
@@ -692,17 +692,16 @@ function checkLoginBlocked(username) {
 function recordLoginFail(username) { if (!username) return; try { var data = _getLoginBlockData(username); data.attempts = (data.attempts||0)+1; if (data.attempts >= 5) data.blockedUntil = Date.now()+30*60*1000; localStorage.setItem('login_block_'+username, JSON.stringify(data)); } catch(e) {} }
 function recordLoginSuccess(username) { if (!username) return; try { localStorage.removeItem('login_block_'+username); } catch(e) {} }
 
-// ─────── ID 생성 유틸 ───────
+// ─────── ID 생성 유틸 (cowork #5 개선: 충돌 확률 1/10,000 → 1/1,000,000) ───────
 function generateClientId() {
-  var rnd;
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     var arr = new Uint32Array(1);
     crypto.getRandomValues(arr);
-    rnd = arr[0] % 10000;
-  } else {
-    rnd = Math.floor(Math.random() * 10000);
+    // 초 단위 타임스탬프(10자리) × 10^6 + 랜덤 6자리 → 16자리 숫자
+    // Number.MAX_SAFE_INTEGER(9.0×10^15) 범위 내 유지, DB 타입 호환
+    return Math.floor(Date.now() / 1000) * 1000000 + (arr[0] % 1000000);
   }
-  return Date.now() + rnd;
+  return Date.now() + Math.floor(Math.random() * 10000);
 }
 
 function applyUserUI() {
