@@ -109,7 +109,7 @@ function showPostSessionBriefing(sessionId) {
   if (!child) return;
 
   // 다음 예약 일정 찾기
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   var nextSched = scheduleDB
     .filter(function(s) { return s.childId === child.id && s.date > today; })
     .sort(function(a, b) { return a.date.localeCompare(b.date); })[0];
@@ -250,7 +250,7 @@ function checkAutoStagnation(childId) {
   if (stagnatedGoals.length === 0) return;
 
   // 이미 같은 알림을 표시했으면 스킵 (세션당 1회)
-  var alertKey = 'stag_' + childId + '_' + new Date().toISOString().slice(0,10);
+  var alertKey = 'stag_' + childId + '_' + getTodayKST();
   if (sessionStorage.getItem(alertKey)) return;
   sessionStorage.setItem(alertKey, '1');
 
@@ -300,8 +300,8 @@ function showStagnationAlert(childName, stagnatedGoals, childId) {
 // ─────── W6: 회기 전 브리핑 카드 ───────
 var _preBriefingShownKey = '';
 function checkUpcomingSessionBriefing() {
-  var now = new Date();
-  var today = now.toISOString().slice(0, 10);
+  var now = nowKST();
+  var today = ymd(now);
   var nowMin = now.getHours() * 60 + now.getMinutes();
 
   // 오늘 일정 중 5~30분 이내 시작하는 세션 탐색

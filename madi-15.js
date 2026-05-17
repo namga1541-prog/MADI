@@ -51,7 +51,7 @@ function loadParentHome() {
   // 알림 카드 먼저 로드 (홈 진입 시마다)
   loadParentNotifications();
   getMyChildInfo(function(childId, centerId) {
-    var today = new Date().toISOString().slice(0,10);
+    var today = getTodayKST();
 
     // 아동 이름 조회
     supaFetch('madi_children?id=eq.' + childId + '&select=data', 'GET')
@@ -183,7 +183,7 @@ function loadParentSched() {
 
   getMyChildInfo(function(childId, centerId) {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
-    var today = new Date().toISOString().slice(0,10);
+    var today = getTodayKST();
 
     supaFetch('madi_schedules?center_id=eq.' + centerId + '&order=id.asc', 'GET')
       .then(function(rows) {

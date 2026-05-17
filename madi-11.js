@@ -28,7 +28,7 @@ function onAssessChildChange() {
   var testDate = dateEl ? dateEl.value : '';
   // 검사일이 비어있으면 오늘 기준 (input에도 자동 채움 — 다음 자동저장 시 누락 방지)
   if (!testDate) {
-    testDate = new Date().toISOString().slice(0, 10);
+    testDate = getTodayKST();
     if (dateEl) dateEl.value = testDate;
   }
 

@@ -1,5 +1,5 @@
 function openBulkClosedDateModal(ids) {
-  var today = new Date().toISOString().slice(0,10);
+  var today = getTodayKST();
   var modal = document.getElementById('bulkClosedDateModal');
   if (!modal) return;
 
@@ -179,7 +179,7 @@ function toggleChildCard(id) {
 function openChildDetail(id) {
   var child = childDB.find(function(c) { return c.id === id; });
   if (!child) return;
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   var ss = sessionDB.filter(function(s) { return s.childId === id; })
     .sort(function(a,b){ return a.date<b.date?1:-1; });
   var allScheds = scheduleDB.filter(function(s) { return s.childId === id; })

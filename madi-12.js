@@ -682,7 +682,7 @@ function parseRowsToChildren(rows) {
     if (colBirth && row[colBirth]) {
       var bRaw = row[colBirth];
       if (bRaw instanceof Date) {
-        birth = bRaw.toISOString().slice(0, 10);
+        birth = ymd(bRaw);
       } else {
         var bStr = String(bRaw).replace(/[./ ]/g, '-').trim();
         var bNum = bStr.replace(/-/g, '');
@@ -863,7 +863,7 @@ function confirmImport() {
     sessionDB.push({
       id:      generateClientId(),
       childId: childId,
-      date:    s.date    || new Date().toISOString().slice(0, 10),
+      date:    s.date    || getTodayKST(),
       goals:   Array.isArray(s.goals) ? s.goals : [],
       memo:    s.memo    || '',
       aiNote:  ''
@@ -909,7 +909,7 @@ function init() {
   setupGlobalErrorHandler();
   maybeAutoBackup();
   loadApiUsage();
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   document.getElementById('sessionDate').value     = today;
   document.getElementById('portfolioMonth').value  = today.slice(0, 7);
   document.getElementById('assessDate').value      = today;
@@ -1433,7 +1433,7 @@ function macroHelp() {
 }
 
 function macroTodayBrief() {
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   var todayName = new Date().toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'short' });
   var todaySchedules = scheduleDB.filter(function(s) { return s.date === today; })
     .sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
@@ -1468,11 +1468,11 @@ function macroUnwritten() {
 }
 
 function macroWeeklyStatus() {
-  var now = new Date();
+  var now = nowKST();
   var dayOfWeek = now.getDay();
   var monday = new Date(now);
   monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  var mondayStr = monday.toISOString().slice(0, 10);
+  var mondayStr = ymd(monday);
 
   var weekSessions = sessionDB.filter(function(s) { return s.date >= mondayStr; });
   var weekSched    = scheduleDB.filter(function(s) { return s.date >= mondayStr; });
@@ -1487,8 +1487,8 @@ function macroWeeklyStatus() {
 }
 
 function macroTopProgress() {
-  var fourWeeksAgo = new Date(); fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
-  var cutoffStr = fourWeeksAgo.toISOString().slice(0, 10);
+  var fourWeeksAgo = nowKST(); fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+  var cutoffStr = ymd(fourWeeksAgo);
   var ranked = [];
   childDB.forEach(function(c) {
     var ss = sessionDB.filter(function(s) { return s.childId === c.id && s.date >= cutoffStr; })
@@ -1683,7 +1683,7 @@ function sendChat() {
 }
 
 function buildChatContext() {
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   var lines = ['📅 오늘: ' + today];
 
   if (currentUser) {
@@ -1692,10 +1692,10 @@ function buildChatContext() {
   }
   lines.push('👶 등록 아동: ' + childDB.length + '명');
 
-  var weekStart = new Date();
+  var weekStart = nowKST();
   var dayOfWeek = weekStart.getDay();
   weekStart.setDate(weekStart.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  var weekStartStr = weekStart.toISOString().slice(0, 10);
+  var weekStartStr = ymd(weekStart);
 
   var teachers = {};
   scheduleDB.forEach(function(s) {

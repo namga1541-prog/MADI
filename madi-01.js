@@ -2,6 +2,13 @@
 var MODEL_HAIKU  = 'claude-haiku-4-5-20251001';
 var MODEL_SONNET = 'claude-sonnet-4-6';
 
+/* ── KST(UTC+9) 날짜 유틸: 실행 환경 타임존과 무관하게 동작 ── */
+function toKST(d)      { return new Date(d.getTime() + d.getTimezoneOffset() * 60000 + 9 * 3600000); }
+function nowKST()      { return toKST(new Date()); }
+function ymd(d)        { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function getTodayKST() { return ymd(nowKST()); }
+function getMonthKST() { return getTodayKST().slice(0, 7); }
+
 var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };
 function canDo(perm) {
   if (!currentUser) return false;
@@ -525,8 +532,8 @@ function loadDarkMode() {
 function updateHeaderClock() {
   var timeEl = document.getElementById('clockTime'), nextEl = document.getElementById('clockNext');
   if (!timeEl || !nextEl) return;
-  var now = new Date(); timeEl.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  var today = now.toISOString().slice(0,10), nowMin = now.getHours()*60+now.getMinutes();
+  var now = nowKST(); timeEl.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  var today = ymd(now), nowMin = now.getHours()*60+now.getMinutes();
   var upcoming = (typeof scheduleDB !== 'undefined' ? scheduleDB : [])
     .filter(function(s){ if (s.date !== today || !s.startTime) return false; var p = s.startTime.split(':'); return parseInt(p[0])*60+parseInt(p[1]) >= nowMin; })
     .sort(function(a,b){ return a.startTime.localeCompare(b.startTime); });

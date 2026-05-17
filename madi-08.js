@@ -394,7 +394,7 @@ function renderIEP(p, childName) {
 
   // 장단기계획(IEP) 자동 저장
   var childId = parseInt(document.getElementById('iepChild').value) || 0;
-  var todayStr = new Date().toISOString().slice(0, 10);
+  var todayStr = getTodayKST();
   var record = {
     id: generateClientId(),
     childId: childId,
@@ -573,9 +573,9 @@ function renderEffectStats() {
     return;
   }
 
-  var today = new Date();
-  var thisMonth = today.toISOString().slice(0, 7);
-  var lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().slice(0, 7);
+  var today = nowKST();
+  var thisMonth = ymd(today).slice(0, 7);
+  var lastMonth = ymd(new Date(today.getFullYear(), today.getMonth() - 1, 1)).slice(0, 7);
 
   // 기본 통계
   var totalSessions = sessionDB.length;

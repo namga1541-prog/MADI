@@ -371,7 +371,7 @@ function closeChild(id) {
   if (!c) return;
   if (!confirm(c.name + ' 아동을 종결 처리할까요?\n종결 탭에서 다시 확인할 수 있어요.')) return;
   c.status = '종결';
-  c.closedAt = new Date().toISOString().slice(0,10);
+  c.closedAt = getTodayKST();
   saveChildren();
   renderChildGrid();
   showToast('🔒 ' + c.name + ' 종결 처리 완료');
@@ -440,7 +440,7 @@ function renderChildGrid() {
   }
   // 등록순은 기본 순서 유지
 
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   var totalCount = list.length;
   var totalPages = Math.max(1, Math.ceil(totalCount / CHILD_PAGE_SIZE));
   if (_childCurrentPage > totalPages) _childCurrentPage = totalPages;

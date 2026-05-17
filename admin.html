@@ -665,6 +665,13 @@
 var currentUser = null;
 var _madiToken  = null;
 
+/* ── KST(UTC+9) 날짜 유틸: 실행 환경 타임존과 무관하게 동작 ── */
+function toKST(d)      { return new Date(d.getTime() + d.getTimezoneOffset() * 60000 + 9 * 3600000); }
+function nowKST()      { return toKST(new Date()); }
+function ymd(d)        { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function getTodayKST() { return ymd(nowKST()); }
+function getMonthKST() { return getTodayKST().slice(0, 7); }
+
 (function() {
   var token   = localStorage.getItem('madi_token');
   var userStr = localStorage.getItem('madi_user');
@@ -1646,7 +1653,7 @@ function formatInviteExpiry(expiresAt) {
   if (!expiresAt) return { text:'♾️ 무기한', color:'var(--text2)', expired:false };
   var exp = new Date(expiresAt);
   if (isNaN(exp.getTime())) return { text:'', color:'var(--text2)', expired:false };
-  var now = new Date(); var diffMs = exp-now; var dateStr = exp.toISOString().slice(0,10);
+  var now = new Date(); var diffMs = exp-now; var dateStr = ymd(toKST(exp));
   if (diffMs<0) return { text:'⛔ 만료됨 ('+dateStr+')', color:'#ef4444', expired:true };
   var diffDays = Math.ceil(diffMs/(1000*60*60*24));
   if (diffDays<=3) return { text:'⚠️ '+diffDays+'일 남음 ('+dateStr+')', color:'#f59e0b', expired:false };
@@ -1959,7 +1966,7 @@ function getTeacherColor(n) {
 
 function renderOpsDashboard() {
   try {
-    var mo = (document.getElementById('dashMonth')||{}).value || new Date().toISOString().slice(0,7);
+    var mo = (document.getElementById('dashMonth')||{}).value || getMonthKST();
     var prev = (function(){ var d=new Date(mo+'-01'); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,7); })();
     var ac = typeof childDB !== 'undefined' ? childDB : [];
     var as = typeof sessionDB !== 'undefined' ? sessionDB : [];
@@ -2260,8 +2267,8 @@ function loadErrorLogs() {
   supaFetch(path, 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) { listEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:12px;">불러오기 실패</div>'; return; }
-      var today = new Date().toISOString().slice(0, 10);
-      var todayCount = rows.filter(function(r) { return (r.created_at || '').slice(0, 10) === today; }).length;
+      var today = getTodayKST();
+      var todayCount = rows.filter(function(r) { return r.created_at && ymd(toKST(new Date(r.created_at))) === today; }).length;
       var centers = [];
       rows.forEach(function(r) { if (r.center_id && centers.indexOf(r.center_id) === -1) centers.push(r.center_id); });
       if (statsEl) {

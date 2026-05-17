@@ -70,7 +70,7 @@ function formatInviteExpiry(expiresAt) {
   if (isNaN(exp.getTime())) return { text:'', color:'var(--text2)', expired:false };
   var now = new Date();
   var diffMs = exp - now;
-  var dateStr = exp.toISOString().slice(0,10);
+  var dateStr = ymd(toKST(exp));
   if (diffMs < 0) return { text:'⛔ 만료됨 (' + dateStr + ')', color:'#ef4444', expired:true };
   var diffDays = Math.ceil(diffMs / (1000*60*60*24));
   if (diffDays <= 3) return { text:'⚠️ ' + diffDays + '일 남음 (' + dateStr + ')', color:'#f59e0b', expired:false };
@@ -284,7 +284,7 @@ function showDashboard() {
 function renderDashboard() {
   var hp=document.getElementById('panelHome');
   if(!hp||!hp.classList.contains('active')) return;
-  var today=new Date(); var todayStr=today.toISOString().slice(0,10);
+  var today=nowKST(); var todayStr=ymd(today);
   var wd=['일','월','화','수','목','금','토']; var h=today.getHours();
   var gr=h<12?'오늘도 좋은 하루 시작해요':h<18?'즐거운 오후 되세요':'오늘 하루도 수고하셨어요';
   var em=h<12?'🌅':h<18?'☀️':'🌙';

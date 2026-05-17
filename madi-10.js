@@ -33,7 +33,7 @@ function escHtml(str) {
 // ─────── 미작성 세션 알림 ───────
 function getUnwrittenSessions() {
   if (scheduleDB.length === 0) return [];
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   var unwritten = [];
   scheduleDB.forEach(function(s) {
     if (s.date >= today) return;
@@ -223,7 +223,7 @@ function renderSchedView() {
 function renderMonthGrid() {
   var year  = schedCurrentDate.getFullYear();
   var month = schedCurrentDate.getMonth();
-  var today = new Date().toISOString().slice(0, 10);
+  var today = getTodayKST();
   document.getElementById('schedNavLabel').textContent = year + '년 ' + (month + 1) + '월';
   var firstDay = new Date(year, month, 1).getDay();
   var lastDate = new Date(year, month + 1, 0).getDate();
@@ -280,7 +280,7 @@ function renderWeekGrid() {
   var mondayOffset = (dow === 0) ? -6 : 1 - dow;
   var weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() + mondayOffset);
   var dayNames = ['월','화','수','목','금','토','일'];
-  var todayStr = new Date().toISOString().slice(0,10);
+  var todayStr = getTodayKST();
   var weekDates = [];
   for (var i = 0; i < 7; i++) {
     var dd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
@@ -494,7 +494,7 @@ function renderSessionListForPeriod(dates) {
     var year = schedCurrentDate.getFullYear();
     var month = schedCurrentDate.getMonth();
     var last = new Date(year, month+1, 0).getDate();
-    for (var d = 1; d <= last; d++) targetDates.push(new Date(year, month, d).toISOString().slice(0, 10));
+    for (var d = 1; d <= last; d++) targetDates.push(ymd(new Date(year, month, d)));
   }
   targetDates.forEach(function(date) {
     scheduleDB.filter(function(s){ return s.date === date; }).forEach(function(s) {
@@ -530,7 +530,7 @@ function openSchedModal(date, schedId) {
   overlay.innerHTML = '<div class="sched-modal">'
     + '<div class="sched-modal-title">📅 일정 추가</div>'
     + '<div class="form-group"><label class="form-label">아동</label><select class="form-input" id="schedChildSel">' + opts + '</select></div>'
-    + '<div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="schedDateInput" value="' + (date || new Date().toISOString().slice(0,10)) + '"></div>'
+    + '<div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="schedDateInput" value="' + (date || getTodayKST()) + '"></div>'
     + '<div class="form-row">'
     + '<div style="flex:1;"><label class="form-label">시작 시간</label><input class="form-input" type="time" id="schedStartTime" step="300" onclick="try{this.showPicker();}catch(e){}" oninput="autoCalcEndTime()"></div>'
     + '<div style="flex:1;"><label class="form-label">치료 시간(분)</label><input class="form-input" type="number" id="schedDuration" placeholder="예:40" min="5" max="180" oninput="autoCalcEndTime()"></div></div>'
@@ -581,9 +581,9 @@ function toggleRepeatOpt() {
     }
     var untilEl = document.getElementById('schedRepeatUntil');
     if (untilEl && !untilEl.value) {
-      var base = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
+      var base = dateVal ? new Date(dateVal + 'T00:00:00') : nowKST();
       base.setFullYear(base.getFullYear() + 5);
-      untilEl.value = base.toISOString().slice(0, 10);
+      untilEl.value = ymd(base);
     }
   }
 }
@@ -615,7 +615,7 @@ function saveSchedFromModal() {
     while (cur <= end) {
       if (selDays.indexOf(cur.getDay()) > -1) {
         entries.push({ id: Date.now() + idx * 1000, groupId: groupId, childId: childId,
-          date: cur.toISOString().slice(0, 10), startTime: startTime, duration: duration,
+          date: ymd(cur), startTime: startTime, duration: duration,
           endTime: endTime, note: note, teacher: teacher.trim() });
         idx++;
       }
@@ -706,7 +706,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   }
   var html = '<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
-  var todayStr = new Date().toISOString().slice(0,10);
+  var todayStr = getTodayKST();
   html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;position:sticky;left:0;z-index:3;">아동</th>';
   weekDates.forEach(function(w) {
     var bg  = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';

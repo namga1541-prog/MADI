@@ -381,7 +381,7 @@ function autoBackup() {
   // 데이터가 아예 없으면 백업 스킵
   if ((childDB || []).length === 0 && (sessionDB || []).length === 0) return Promise.resolve();
 
-  var dateKey = new Date().toISOString().slice(0, 10);
+  var dateKey = getTodayKST();
   var snapshot = buildBackupSnapshot();
   var record = Object.assign({ id: dateKey, createdAt: Date.now() }, snapshot);
 
@@ -406,7 +406,7 @@ function pruneOldBackups() {
 
 function maybeAutoBackup() {
   var last = localStorage.getItem('madi_last_backup');
-  var todayKey = new Date().toISOString().slice(0, 10);
+  var todayKey = getTodayKST();
   if (last === todayKey) return; // 오늘 이미 백업
   // 약간 늦게 실행 (앱 로드 방해 안 하기)
   setTimeout(function() { autoBackup(); }, 5000);
