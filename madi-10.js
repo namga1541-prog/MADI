@@ -232,16 +232,13 @@ function renderMonthGrid() {
     return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
   }
   for (var i = 0; i < firstDay; i++) {
-    var pd = new Date(year, month, -(firstDay - i - 1));
-    cells.push({ date: toLocal(pd), other: true });
+    cells.push({ date: toLocal(new Date(year, month, -(firstDay - i - 1))), other: true });
   }
   for (var d = 1; d <= lastDate; d++) {
-    var dt = new Date(year, month, d);
-    cells.push({ date: toLocal(dt), other: false });
+    cells.push({ date: toLocal(new Date(year, month, d)), other: false });
   }
   while (cells.length % 7 !== 0) {
-    var nd = new Date(year, month + 1, cells.length - firstDay - lastDate + 1);
-    cells.push({ date: toLocal(nd), other: true });
+    cells.push({ date: toLocal(new Date(year, month + 1, cells.length - firstDay - lastDate + 1)), other: true });
   }
   renderTeacherFilter();
   var html = '';
@@ -251,9 +248,7 @@ function renderMonthGrid() {
     var dayScheds = _schedTeacherFilter === '전체' ? allScheds
       : allScheds.filter(function(s){ return s.teacher === _schedTeacherFilter; });
     var isToday = cell.date === today;
-    var clickFn = 'switchToDay(\'' + cell.date + '\')';
-    html += '<div class="month-cell' + (isToday?' today':'') + (cell.other?' other-month':'') + '" onclick="' + clickFn + '">'
-      + '<span class="month-date-num">' + parseInt(cell.date.slice(8)) + '</span>';
+    html += '<div class="month-cell' + (isToday?' today':'') + (cell.other?' other-month':'') + '" onclick="switchToDay(\'' + cell.date + '\')">' + '<span class="month-date-num">' + parseInt(cell.date.slice(8)) + '</span>';
     var shown = dayScheds.slice(0, 3);
     var extra = dayScheds.length - shown.length;
     var hiddenByFilter = allScheds.length - dayScheds.length;
@@ -309,7 +304,7 @@ function renderWeekGrid() {
     if (wgElRef && wgElRef.parentNode) wgElRef.parentNode.insertBefore(toggleWrap, wgElRef);
   }
   toggleWrap.innerHTML =
-    '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='therapist'?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👩\u200d⚕️ 치료사 기준</button>'
+    '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='therapist'?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='child'&&!_weekDupOnly?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=true;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekDupOnly?'background:#f97316;color:#fff;font-weight:700;border-color:#f97316;':'background:#fff;color:#64748b;') + '">🔴 중복 수업만</button>';
   var allWeekScheds = scheduleDB.filter(function(s) { return weekDates.some(function(w){ return w.str === s.date; }); });
@@ -347,11 +342,10 @@ function renderWeekGrid() {
         } else {
           var items = cells.map(function(s) {
             var child = childDB.find(function(c){ return c.id === s.childId; });
-            var cname = child ? escHtml(child.name) : '?';
             var time  = (s.startTime||s.time||'').slice(0,5);
             return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
-              + '<span style="font-weight:700;">' + cname + '</span></div>';
+              + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span></div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
         }
@@ -376,15 +370,13 @@ function renderDayGrid() {
 
   var allScheds = scheduleDB.filter(function(s) { return s.date === dateStr; })
     .sort(function(a, b) {
-      var ta = a.startTime || a.time || '';
-      var tb = b.startTime || b.time || '';
-      return ta < tb ? -1 : ta > tb ? 1 : 0;
+      return (a.startTime||a.time||'') < (b.startTime||b.time||'') ? -1 : 1;
     });
   var dayScheds = _schedTeacherFilter === '전체' ? allScheds
     : allScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
 
   var wgEl = document.getElementById('dayGrid');
-  if (wgEl) { wgEl.style.display='block'; wgEl.style.width='100%'; wgEl.style.minWidth='0'; }
+  if (wgEl) { wgEl.style.display = 'block'; wgEl.style.width = '100%'; wgEl.style.minWidth = '0'; }
 
   var isMobile = window.innerWidth < 768;
   var html = '<div style="width:100%;">';
@@ -413,9 +405,9 @@ function renderDayGrid() {
       scheds.forEach(function(s, idx) {
         var child = childDB.find(function(c){ return c.id === s.childId; });
         var cname = child ? escHtml(child.name) : '?';
-        var time = (s.startTime||s.time||'').slice(0,5);
+        var time = (s.startTime || s.time || '').slice(0, 5);
         var type = escHtml(s.type || '언어재활');
-        var border = idx < scheds.length-1 ? 'border-bottom:1px solid #f1f5f9;' : '';
+        var border = idx < scheds.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
         html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;' + border + 'background:white;" onclick="openEditSchedModal(\'' + s.id + '\')">'
           + '<div style="font-size:12px;color:var(--text2);min-width:40px;font-weight:600;font-variant-numeric:tabular-nums;">' + time + '</div>'
           + '<div style="width:3px;height:36px;border-radius:2px;background:' + color + ';flex-shrink:0;"></div>'
@@ -452,7 +444,8 @@ function renderDayGrid() {
       }
       var rawMm = parseInt(rawTime.slice(0,2))*60 + parseInt(rawTime.slice(3,5));
       var closestTime = stdTimes.reduce(function(best, t) {
-        return Math.abs(parseInt(t.slice(0,2))*60+parseInt(t.slice(3,5))-rawMm) < Math.abs(parseInt(best.slice(0,2))*60+parseInt(best.slice(3,5))-rawMm) ? t : best;
+        return Math.abs(parseInt(t.slice(0,2))*60 + parseInt(t.slice(3,5)) - rawMm)
+             < Math.abs(parseInt(best.slice(0,2))*60 + parseInt(best.slice(3,5)) - rawMm) ? t : best;
       }, stdTimes[0]);
       groups[closestTime].push(s);
     });
@@ -466,19 +459,18 @@ function renderDayGrid() {
     });
     html += '</tr></thead><tbody>';
     groupOrder.forEach(function(timeKey, ri) {
-      var rowBg = ri%2===0?'#ffffff':'#f8fafc';
+      var rowBg = ri % 2 === 0 ? '#ffffff' : '#f8fafc';
       html += '<tr><td style="padding:5px 8px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:11px;background:#f8fafc;white-space:nowrap;vertical-align:top;">' + escHtml(timeKey) + '</td>';
       therapists.forEach(function(t) {
-        var cell = groups[timeKey].filter(function(s){ return (s.therapist||s.teacher||'')===t; });
-        if (cell.length===0) {
+        var cell = groups[timeKey].filter(function(s){ return (s.therapist||s.teacher||'') === t; });
+        if (cell.length === 0) {
           html += '<td style="padding:5px 8px;border:1px solid #e2e8f0;background:' + rowBg + ';height:52px;"></td>';
         } else {
           var color = getTeacherColor(t);
           var items = cell.map(function(s) {
-            var child = childDB.find(function(c){ return c.id===s.childId; });
-            var cname = child ? escHtml(child.name) : '?';
-            var type = escHtml(s.type||'');
-            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">' + '<span style="font-weight:700;">' + cname + '</span>' + (type?'<br><span style="color:#64748b;font-size:10px;">' + type + '</span>':'') + '</div>';
+            var child = childDB.find(function(c){ return c.id === s.childId; });
+            var type = escHtml(s.type || '');
+            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">' + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:5px 8px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
         }
@@ -502,26 +494,26 @@ function renderSessionListForPeriod(dates) {
     var year = schedCurrentDate.getFullYear();
     var month = schedCurrentDate.getMonth();
     var last = new Date(year, month+1, 0).getDate();
-    for (var d = 1; d <= last; d++) targetDates.push(new Date(year,month,d).toISOString().slice(0,10));
+    for (var d = 1; d <= last; d++) targetDates.push(new Date(year, month, d).toISOString().slice(0, 10));
   }
   targetDates.forEach(function(date) {
-    scheduleDB.filter(function(s){ return s.date===date; }).forEach(function(s) {
-      var child = childDB.find(function(c){ return c.id===s.childId; });
-      var hasNote = sessionDB.some(function(ss){ return ss.childId===s.childId && ss.date===s.date; });
-      all.push({ date:date, child:child, sched:s, hasNote:hasNote });
+    scheduleDB.filter(function(s){ return s.date === date; }).forEach(function(s) {
+      var child = childDB.find(function(c){ return c.id === s.childId; });
+      var hasNote = sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+      all.push({ date: date, child: child, sched: s, hasNote: hasNote });
     });
   });
-  if (all.length===0) { el.innerHTML='<div class="empty"><p>이 기간에 일정이 없습니다.</p></div>'; return; }
+  if (all.length === 0) { el.innerHTML = '<div class="empty"><p>이 기간에 일정이 없습니다.</p></div>'; return; }
   var html = '';
-  all.slice(0,30).forEach(function(item) {
+  all.slice(0, 30).forEach(function(item) {
     html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">'
-      + '<div><div style="font-size:13px;font-weight:700;">' + escHtml(item.child?item.child.name:'?') + '</div>'
+      + '<div><div style="font-size:13px;font-weight:700;">' + escHtml(item.child ? item.child.name : '?') + '</div>'
       + '<div style="font-size:11px;color:var(--text2);">📅 ' + item.date
-      + (item.sched.startTime?' '+item.sched.startTime.slice(0,5):'')
-      + (item.sched.endTime?'~'+item.sched.endTime.slice(0,5):'') + '</div></div>'
+      + (item.sched.startTime ? ' ' + item.sched.startTime.slice(0,5) : '')
+      + (item.sched.endTime ? '~' + item.sched.endTime.slice(0,5) : '') + '</div></div>'
       + '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;'
-      + (item.hasNote?'background:#f0fdf4;color:#15803d':'background:#fef2f2;color:#dc2626') + '">'
-      + (item.hasNote?'✅ 기록완료':'⚠️ 미작성') + '</span></div>';
+      + (item.hasNote ? 'background:#f0fdf4;color:#15803d' : 'background:#fef2f2;color:#dc2626') + '">'
+      + (item.hasNote ? '✅ 기록완료' : '⚠️ 미작성') + '</span></div>';
   });
   el.innerHTML = html;
 }
@@ -529,267 +521,302 @@ function renderSessionListForPeriod(dates) {
 var _schedModalDate = null;
 function openSchedModal(date, schedId) {
   _schedModalDate = date;
-  var opts = childDB.length===0?'<option value="">아동 없음</option>'
-    :childDB.map(function(c){ return '<option value="'+c.id+'">'+escHtml(c.name)+'</option>'; }).join('');
+  var opts = childDB.length === 0 ? '<option value="">아동 없음</option>'
+    : childDB.map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + '</option>'; }).join('');
   var overlay = document.createElement('div');
-  overlay.className='sched-modal-overlay'; overlay.id='schedModal';
-  overlay.onclick=function(e){ if(e.target===overlay) closeSchedModal(); };
-  overlay.innerHTML='<div class="sched-modal">'
-    +'<div class="sched-modal-title">📅 일정 추가</div>'
-    +'<div class="form-group"><label class="form-label">아동</label><select class="form-input" id="schedChildSel">'+opts+'</select></div>'
-    +'<div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="schedDateInput" value="'+(date||new Date().toISOString().slice(0,10))+'"></div>'
-    +'<div class="form-row"><div style="flex:1;"><label class="form-label">시작 시간</label><input class="form-input" type="time" id="schedStartTime" step="300" onclick="try{this.showPicker();}catch(e){}" oninput="autoCalcEndTime()"></div>'
-    +'<div style="flex:1;"><label class="form-label">치료 시간(분)</label><input class="form-input" type="number" id="schedDuration" placeholder="예:40" min="5" max="180" oninput="autoCalcEndTime()"></div></div>'
-    +'<div class="form-group"><label class="form-label">종료 시간 <span style="color:var(--mint);font-size:11px;">(자동 계산)</span></label><input class="form-input" type="time" id="schedEndTime" step="300" style="background:#f8fafc;color:var(--mint);font-weight:700;"></div>'
-    +'<div class="form-group"><label class="form-label">반복</label><select class="form-input" id="schedRepeat" onchange="toggleRepeatOpt()"><option value="none">반복 없음</option><option value="weekly">매주 반복</option></select></div>'
-    +'<div id="schedRepeatOpt" style="display:none;"><div class="form-group"><label class="form-label">반복 요일</label><div style="display:flex;gap:7px;margin-top:6px;flex-wrap:wrap;"><button type="button" class="day-chip" data-day="0" onclick="toggleDayChip(this)">일</button><button type="button" class="day-chip" data-day="1" onclick="toggleDayChip(this)">월</button><button type="button" class="day-chip" data-day="2" onclick="toggleDayChip(this)">화</button><button type="button" class="day-chip" data-day="3" onclick="toggleDayChip(this)">수</button><button type="button" class="day-chip" data-day="4" onclick="toggleDayChip(this)">목</button><button type="button" class="day-chip" data-day="5" onclick="toggleDayChip(this)">금</button><button type="button" class="day-chip" data-day="6" onclick="toggleDayChip(this)">토</button></div></div>'
-    +'<div class="form-group"><label class="form-label">반복 종료일 <span style="color:var(--mint);font-size:11px;">기본 5년</span></label><input class="form-input" type="date" id="schedRepeatUntil"></div></div>'
-    +'<div class="form-group"><label class="form-label">담당 선생님</label><select class="form-input" id="schedTeacher"><option value="">불러오는 중...</option></select></div>'
-    +'<div class="form-group"><label class="form-label">메모</label><input class="form-input" type="text" id="schedNote" placeholder="특이사항"></div>'
-    +'<button class="btn btn-primary" style="margin-top:4px;" onclick="saveSchedFromModal()">✅ 저장</button></div>';
+  overlay.className = 'sched-modal-overlay';
+  overlay.id = 'schedModal';
+  overlay.onclick = function(e){ if (e.target === overlay) closeSchedModal(); };
+  overlay.innerHTML = '<div class="sched-modal">'
+    + '<div class="sched-modal-title">📅 일정 추가</div>'
+    + '<div class="form-group"><label class="form-label">아동</label><select class="form-input" id="schedChildSel">' + opts + '</select></div>'
+    + '<div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="schedDateInput" value="' + (date || new Date().toISOString().slice(0,10)) + '"></div>'
+    + '<div class="form-row">'
+    + '<div style="flex:1;"><label class="form-label">시작 시간</label><input class="form-input" type="time" id="schedStartTime" step="300" onclick="try{this.showPicker();}catch(e){}" oninput="autoCalcEndTime()"></div>'
+    + '<div style="flex:1;"><label class="form-label">치료 시간(분)</label><input class="form-input" type="number" id="schedDuration" placeholder="예:40" min="5" max="180" oninput="autoCalcEndTime()"></div></div>'
+    + '<div class="form-group"><label class="form-label">종료 시간 <span style="color:var(--mint);font-size:11px;">(자동 계산)</span></label><input class="form-input" type="time" id="schedEndTime" step="300" style="background:#f8fafc;color:var(--mint);font-weight:700;"></div>'
+    + '<div class="form-group"><label class="form-label">반복</label><select class="form-input" id="schedRepeat" onchange="toggleRepeatOpt()"><option value="none">반복 없음</option><option value="weekly">매주 반복</option></select></div>'
+    + '<div id="schedRepeatOpt" style="display:none;">'
+    + '<div class="form-group"><label class="form-label">반복 요일</label><div style="display:flex;gap:7px;margin-top:6px;flex-wrap:wrap;">'
+    + '<button type="button" class="day-chip" data-day="0" onclick="toggleDayChip(this)">일</button>'
+    + '<button type="button" class="day-chip" data-day="1" onclick="toggleDayChip(this)">월</button>'
+    + '<button type="button" class="day-chip" data-day="2" onclick="toggleDayChip(this)">화</button>'
+    + '<button type="button" class="day-chip" data-day="3" onclick="toggleDayChip(this)">수</button>'
+    + '<button type="button" class="day-chip" data-day="4" onclick="toggleDayChip(this)">목</button>'
+    + '<button type="button" class="day-chip" data-day="5" onclick="toggleDayChip(this)">금</button>'
+    + '<button type="button" class="day-chip" data-day="6" onclick="toggleDayChip(this)">토</button>'
+    + '</div></div>'
+    + '<div class="form-group"><label class="form-label">반복 종료일 <span style="color:var(--mint);font-size:11px;">기본 5년</span></label><input class="form-input" type="date" id="schedRepeatUntil"></div>'
+    + '</div>'
+    + '<div class="form-group"><label class="form-label">담당 선생님</label><select class="form-input" id="schedTeacher"><option value="">불러오는 중...</option></select></div>'
+    + '<div class="form-group"><label class="form-label">메모</label><input class="form-input" type="text" id="schedNote" placeholder="특이사항"></div>'
+    + '<button class="btn btn-primary" style="margin-top:4px;" onclick="saveSchedFromModal()">✅ 저장</button></div>';
   document.body.appendChild(overlay);
   loadTeacherList(function() {
-    var sel=document.getElementById('schedTeacher');
-    if(sel) sel.innerHTML=buildTeacherOptions('');
+    var sel = document.getElementById('schedTeacher');
+    if (sel) sel.innerHTML = buildTeacherOptions('');
   });
   makeSearchable('schedChildSel');
 }
 
 function autoCalcEndTime() {
-  var st=document.getElementById('schedStartTime').value;
-  var dur=parseInt(document.getElementById('schedDuration').value);
-  var endEl=document.getElementById('schedEndTime');
-  if(!st||!dur||dur<=0||!endEl) return;
-  var p=st.split(':');
-  var total=parseInt(p[0])*60+parseInt(p[1])+dur;
-  endEl.value=String(Math.floor(total/60)%24).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+  var st = document.getElementById('schedStartTime').value;
+  var dur = parseInt(document.getElementById('schedDuration').value);
+  var endEl = document.getElementById('schedEndTime');
+  if (!st || !dur || dur <= 0 || !endEl) return;
+  var p = st.split(':');
+  var total = parseInt(p[0]) * 60 + parseInt(p[1]) + dur;
+  endEl.value = String(Math.floor(total/60)%24).padStart(2,'0') + ':' + String(total%60).padStart(2,'0');
 }
 
 function toggleRepeatOpt() {
-  var v=document.getElementById('schedRepeat').value;
-  var opt=document.getElementById('schedRepeatOpt');
-  opt.style.display=v==='none'?'none':'block';
-  if(v!=='none') {
-    var dateVal=document.getElementById('schedDateInput').value;
-    if(dateVal) {
-      var dow=new Date(dateVal+'T00:00:00').getDay();
-      document.querySelectorAll('.day-chip').forEach(function(c){ if(parseInt(c.dataset.day)===dow) c.classList.add('sel'); });
+  var v = document.getElementById('schedRepeat').value;
+  var opt = document.getElementById('schedRepeatOpt');
+  opt.style.display = v === 'none' ? 'none' : 'block';
+  if (v !== 'none') {
+    var dateVal = document.getElementById('schedDateInput').value;
+    if (dateVal) {
+      var dow = new Date(dateVal + 'T00:00:00').getDay();
+      document.querySelectorAll('.day-chip').forEach(function(c){ if (parseInt(c.dataset.day) === dow) c.classList.add('sel'); });
     }
-    var untilEl=document.getElementById('schedRepeatUntil');
-    if(untilEl&&!untilEl.value) {
-      var base=dateVal?new Date(dateVal+'T00:00:00'):new Date();
-      base.setFullYear(base.getFullYear()+5);
-      untilEl.value=base.toISOString().slice(0,10);
+    var untilEl = document.getElementById('schedRepeatUntil');
+    if (untilEl && !untilEl.value) {
+      var base = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
+      base.setFullYear(base.getFullYear() + 5);
+      untilEl.value = base.toISOString().slice(0, 10);
     }
   }
 }
 
 function toggleDayChip(btn) { btn.classList.toggle('sel'); }
-function closeSchedModal() { var m=document.getElementById('schedModal'); if(m) m.remove(); }
+function closeSchedModal() { var m = document.getElementById('schedModal'); if (m) m.remove(); }
 
 function saveSchedFromModal() {
-  var childId=parseInt(document.getElementById('schedChildSel').value);
-  var date=document.getElementById('schedDateInput').value;
-  var startTime=document.getElementById('schedStartTime').value;
-  var duration=parseInt(document.getElementById('schedDuration').value)||0;
-  var endTime=document.getElementById('schedEndTime').value;
-  var repeat=document.getElementById('schedRepeat').value;
-  var until=repeat!=='none'?document.getElementById('schedRepeatUntil').value:'';
-  var note=document.getElementById('schedNote').value.trim();
-  var teacher=(document.getElementById('schedTeacher')||{}).value||'';
-  if(!childId){ showToast('아동을 선택해주세요.'); return; }
-  if(!date){ showToast('날짜를 선택해주세요.'); return; }
-  var entries=[];
-  var groupId=Date.now();
-  if(repeat==='weekly'&&until&&until>=date) {
-    var selDays=[];
+  var childId   = parseInt(document.getElementById('schedChildSel').value);
+  var date      = document.getElementById('schedDateInput').value;
+  var startTime = document.getElementById('schedStartTime').value;
+  var duration  = parseInt(document.getElementById('schedDuration').value) || 0;
+  var endTime   = document.getElementById('schedEndTime').value;
+  var repeat    = document.getElementById('schedRepeat').value;
+  var until     = repeat !== 'none' ? document.getElementById('schedRepeatUntil').value : '';
+  var note      = document.getElementById('schedNote').value.trim();
+  var teacher   = (document.getElementById('schedTeacher') || {}).value || '';
+  if (!childId) { showToast('아동을 선택해주세요.'); return; }
+  if (!date)    { showToast('날짜를 선택해주세요.'); return; }
+  var entries = [];
+  var groupId = Date.now();
+  if (repeat === 'weekly' && until && until >= date) {
+    var selDays = [];
     document.querySelectorAll('.day-chip.sel').forEach(function(c){ selDays.push(parseInt(c.dataset.day)); });
-    if(selDays.length===0) selDays.push(new Date(date+'T00:00:00').getDay());
-    var cur=new Date(date+'T00:00:00');
-    var end=new Date(until+'T00:00:00');
-    var idx=0;
-    while(cur<=end) {
-      if(selDays.indexOf(cur.getDay())>-1) {
-        entries.push({id:Date.now()+idx*1000,groupId:groupId,childId:childId,date:cur.toISOString().slice(0,10),startTime:startTime,duration:duration,endTime:endTime,note:note,teacher:teacher.trim()});
+    if (selDays.length === 0) selDays.push(new Date(date + 'T00:00:00').getDay());
+    var cur = new Date(date + 'T00:00:00');
+    var end = new Date(until + 'T00:00:00');
+    var idx = 0;
+    while (cur <= end) {
+      if (selDays.indexOf(cur.getDay()) > -1) {
+        entries.push({ id: Date.now() + idx * 1000, groupId: groupId, childId: childId,
+          date: cur.toISOString().slice(0, 10), startTime: startTime, duration: duration,
+          endTime: endTime, note: note, teacher: teacher.trim() });
         idx++;
       }
-      cur.setDate(cur.getDate()+1);
+      cur.setDate(cur.getDate() + 1);
     }
   } else {
-    entries.push({id:Date.now()+Math.floor(Math.random()*1000),childId:childId,date:date,startTime:startTime,duration:duration,endTime:endTime,note:note,teacher:teacher.trim()});
+    entries.push({ id: Date.now() + Math.floor(Math.random() * 1000), childId: childId, date: date,
+      startTime: startTime, duration: duration, endTime: endTime, note: note, teacher: teacher.trim() });
   }
   entries.forEach(function(e){ scheduleDB.push(e); });
   saveSchedule(); closeSchedModal(); renderSchedView(); renderUnwrittenAlert();
-  showToast('✅ '+entries.length+'개 일정 추가!');
+  showToast('✅ ' + entries.length + '개 일정 추가!');
 }
 
 function openEditSchedModal(id) {
-  var s=scheduleDB.find(function(x){ return x.id===id; });
-  if(!s) return;
-  var child=childDB.find(function(c){ return c.id===s.childId; });
-  var hasGroup=s.groupId&&scheduleDB.filter(function(x){ return x.groupId===s.groupId&&x.date>=s.date; }).length>1;
-  var overlay=document.createElement('div');
-  overlay.className='sched-modal-overlay'; overlay.id='editSchedOverlay';
-  overlay.onclick=function(e){ if(e.target===overlay) overlay.remove(); };
-  overlay.innerHTML='<div class="sched-modal">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><div class="sched-modal-title" style="margin-bottom:0;">📅 일정 상세</div>'
-    +'<button onclick="document.getElementById(\'editSchedOverlay\').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;">✕</button></div>'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;">'
-    +'<div style="font-size:15px;font-weight:700;color:var(--mint);">'+escHtml(child?child.name:'?')+'</div>'
-    +(s.teacher?'<div style="font-size:12px;color:var(--text2);">👤 '+escHtml(s.teacher)+'</div>':'')+'</div>'
-    +'<div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="editSchedDate" value="'+escHtml(s.date||'')+'"></div>'
-    +'<div class="form-row"><div style="flex:1;"><label class="form-label">시작 시간</label><input class="form-input" type="time" id="editSchedStart" step="300" value="'+escHtml((s.startTime||s.time)||'')+'" onclick="try{this.showPicker();}catch(e){}"></div>'
-    +'<div style="flex:1;"><label class="form-label">치료 시간(분)</label><input class="form-input" type="number" id="editSchedDur" value="'+(s.duration||'')+'" min="5" max="180" placeholder="예:40"></div></div>'
-    +'<div class="form-group"><label class="form-label">담당 선생님</label><select class="form-input" id="editSchedTeacher">'+buildTeacherOptions(s.teacher||'')+'</select></div>'
-    +'<div class="form-group"><label class="form-label">메모</label><textarea class="form-input" id="editSchedNote" style="min-height:60px;">'+escHtml(s.note||'')+'</textarea></div>'
-    +'<div style="display:flex;gap:8px;margin-top:8px;">'
-    +'<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + id + '\')">📝 회기기록</button>'
-    +(currentUser&&currentUser.role==='admin'
-      ?'<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(\'' + id + '\')">💾 수정</button>'
-      +'<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + id + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>':'')
-    +'</div></div>';
+  var s = scheduleDB.find(function(x){ return x.id === id; });
+  if (!s) return;
+  var child = childDB.find(function(c){ return c.id === s.childId; });
+  var hasGroup = s.groupId && scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; }).length > 1;
+  var overlay = document.createElement('div');
+  overlay.className = 'sched-modal-overlay'; overlay.id = 'editSchedOverlay';
+  overlay.onclick = function(e){ if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = '<div class="sched-modal">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+    + '<div class="sched-modal-title" style="margin-bottom:0;">📅 일정 상세</div>'
+    + '<button onclick="document.getElementById(\'editSchedOverlay\').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;">✕</button></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;">'
+    + '<div style="font-size:15px;font-weight:700;color:var(--mint);">' + escHtml(child ? child.name : '?') + '</div>'
+    + (s.teacher ? '<div style="font-size:12px;color:var(--text2);">👤 ' + escHtml(s.teacher) + '</div>' : '') + '</div>'
+    + '<div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="editSchedDate" value="' + escHtml(s.date||'') + '"></div>'
+    + '<div class="form-row">'
+    + '<div style="flex:1;"><label class="form-label">시작 시간</label><input class="form-input" type="time" id="editSchedStart" step="300" value="' + escHtml((s.startTime||s.time)||'') + '" onclick="try{this.showPicker();}catch(e){}"></div>'
+    + '<div style="flex:1;"><label class="form-label">치료 시간(분)</label><input class="form-input" type="number" id="editSchedDur" value="' + (s.duration||'') + '" min="5" max="180" placeholder="예:40"></div></div>'
+    + '<div class="form-group"><label class="form-label">담당 선생님</label><select class="form-input" id="editSchedTeacher">' + buildTeacherOptions(s.teacher||'') + '</select></div>'
+    + '<div class="form-group"><label class="form-label">메모</label><textarea class="form-input" id="editSchedNote" style="min-height:60px;">' + escHtml(s.note||'') + '</textarea></div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;">'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + id + '\')">📝 회기기록</button>'
+    + (currentUser && currentUser.role === 'admin'
+      ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(\'' + id + '\')">💾 수정</button>'
+      + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + id + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
+    + '</div></div>';
   document.body.appendChild(overlay);
   loadTeacherList(function() {
-    var sel=document.getElementById('editSchedTeacher');
-    if(sel) sel.innerHTML=buildTeacherOptions(s.teacher||'');
+    var sel = document.getElementById('editSchedTeacher');
+    if (sel) sel.innerHTML = buildTeacherOptions(s.teacher||'');
   });
 }
 
 function goToSessionFromSched(schedId) {
-  var s=scheduleDB.find(function(x){ return x.id===schedId; });
-  if(!s) return;
-  var ol=document.getElementById('editSchedOverlay');
-  if(ol) ol.remove();
+  var s = scheduleDB.find(function(x){ return x.id === schedId; });
+  if (!s) return;
+  var ol = document.getElementById('editSchedOverlay');
+  if (ol) ol.remove();
   switchTab(2);
   setTimeout(function() {
-    var sel=document.getElementById('sessionChild');
-    if(sel) {
-      sel.value=s.childId;
-      if(sel._ssInp){ var ch=childDB.find(function(c){ return c.id===s.childId; }); sel._ssInp.value=ch?ch.name+' ('+ch.age+')':''; }
+    var sel = document.getElementById('sessionChild');
+    if (sel) {
+      sel.value = s.childId;
+      if (sel._ssInp) {
+        var ch = childDB.find(function(c){ return c.id === s.childId; });
+        sel._ssInp.value = ch ? ch.name + ' (' + ch.age + ')' : '';
+      }
       loadGoalRows(s.childId);
     }
-    if(s.date) document.getElementById('sessionDate').value=s.date;
-  },200);
+    if (s.date) document.getElementById('sessionDate').value = s.date;
+  }, 200);
 }
 
 function renderWeekGridByChild(weekDates, weekScheds) {
-  var wgEl=document.getElementById('weekGrid');
-  if(!wgEl) return;
-  wgEl.style.display='block'; wgEl.style.width='100%';
-  var childIds=[];
-  weekScheds.forEach(function(s){ if(s.childId&&childIds.indexOf(s.childId)<0) childIds.push(s.childId); });
-  if(_weekDupOnly) {
-    childIds=childIds.filter(function(cid){
-      return weekDates.some(function(w){ return weekScheds.filter(function(s){ return s.date===w.str&&s.childId===cid; }).length>=2; });
+  var wgEl = document.getElementById('weekGrid');
+  if (!wgEl) return;
+  wgEl.style.display = 'block'; wgEl.style.width = '100%';
+  var childIds = [];
+  weekScheds.forEach(function(s){ if (s.childId && childIds.indexOf(s.childId) < 0) childIds.push(s.childId); });
+  if (_weekDupOnly) {
+    childIds = childIds.filter(function(cid){
+      return weekDates.some(function(w){ return weekScheds.filter(function(s){ return s.date===w.str&&s.childId===cid; }).length >= 2; });
     });
   }
-  childIds.sort(function(a,b){
-    var ca=childDB.find(function(c){ return c.id===a; });
-    var cb=childDB.find(function(c){ return c.id===b; });
-    return (ca?ca.name:'') < (cb?cb.name:'') ? -1 : 1;
+  childIds.sort(function(a, b){
+    var ca = childDB.find(function(c){ return c.id===a; });
+    var cb = childDB.find(function(c){ return c.id===b; });
+    return (ca ? ca.name : '') < (cb ? cb.name : '') ? -1 : 1;
   });
-  if(childIds.length===0) {
-    wgEl.innerHTML='<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">'+(_weekDupOnly?'이번 주에 같은 날 중복 수업 아동이 없습니다.':'이번 주 일정이 없습니다.')+'</div>';
+  if (childIds.length === 0) {
+    wgEl.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">' + (_weekDupOnly ? '이번 주에 같은 날 중복 수업 아동이 없습니다.' : '이번 주 일정이 없습니다.') + '</div>';
     return;
   }
-  var html='<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
-  var todayStr=new Date().toISOString().slice(0,10);
-  html+='<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;position:sticky;left:0;z-index:3;">아동</th>';
-  weekDates.forEach(function(w){
-    var bg=w.isToday?'var(--mint2,#e0f7f6)':'#f8fafc';
-    var col=w.isToday?'var(--mint,#0ea5a0)':(w.isSun?'#ef4444':(w.isSat?'#3b82f6':'var(--text2)'));
-    html+='<th style="padding:6px 4px;background:'+bg+';border:1px solid #e2e8f0;color:'+col+';font-weight:700;text-align:center;cursor:pointer;" onclick="switchToDay(\'' + w.str + '\')">'+w.dayName+'<br><span style="font-size:12px;">'+w.day+'</span></th>';
+  var html = '<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
+  var todayStr = new Date().toISOString().slice(0,10);
+  html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;position:sticky;left:0;z-index:3;">아동</th>';
+  weekDates.forEach(function(w) {
+    var bg  = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
+    var col = w.isToday ? 'var(--mint,#0ea5a0)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
+    html += '<th style="padding:6px 4px;background:' + bg + ';border:1px solid #e2e8f0;color:' + col + ';font-weight:700;text-align:center;cursor:pointer;" onclick="switchToDay(\'' + w.str + '\')">' + w.dayName + '<br><span style="font-size:12px;">' + w.day + '</span></th>';
   });
-  html+='</tr></thead><tbody>';
-  childIds.forEach(function(childId){
-    var child=childDB.find(function(c){ return c.id===childId; });
-    var cname=child?escHtml(child.name):'?';
-    var cage=child?escHtml(child.age||'):'';
-    var ccolor=(child&&child.color)?child.color:'#0ea5a0';
-    html+='<tr><td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:'+ccolor+';background:'+ccolor+'10;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">'+cname+(cage?'<br><span style="font-size:9px;font-weight:400;color:var(--text2);">'+cage+'</span>':'')+'</td>';
-    weekDates.forEach(function(w){
-      var daySched=weekScheds.filter(function(s){ return s.date===w.str&&s.childId===childId; }).sort(function(a,b){ return ((a.startTime||a.time)||'')<((b.startTime||b.time)||'')?-1:1; });
-      if(daySched.length===0) {
-        html+='<td style="padding:4px;border:1px solid #e2e8f0;height:40px;"></td>';
+  html += '</tr></thead><tbody>';
+  childIds.forEach(function(childId) {
+    var child = childDB.find(function(c){ return c.id === childId; });
+    var cname = child ? escHtml(child.name) : '?';
+    var cage  = child ? escHtml(child.age || '') : '';
+    var ccolor = (child && child.color) ? child.color : '#0ea5a0';
+    html += '<tr><td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:' + ccolor + ';background:' + ccolor + '10;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">'
+      + cname + (cage ? '<br><span style="font-size:9px;font-weight:400;color:var(--text2);">' + cage + '</span>' : '') + '</td>';
+    weekDates.forEach(function(w) {
+      var daySched = weekScheds.filter(function(s){ return s.date===w.str && s.childId===childId; })
+        .sort(function(a,b){ return ((a.startTime||a.time)||'') < ((b.startTime||b.time)||'') ? -1 : 1; });
+      if (daySched.length === 0) {
+        html += '<td style="padding:4px;border:1px solid #e2e8f0;height:40px;"></td>';
       } else {
-        var items=daySched.map(function(s){
-          var t=s.therapist||s.teacher||'';
-          var tcolor=getTeacherColor(t);
-          var time=(s.startTime||s.time||'').slice(0,5);
-          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">'+(time?'<span style="color:var(--text2);font-size:10px;">'+time+'</span><br>':'')+'<span style="font-weight:700;color:'+tcolor+';background:'+tcolor+'15;border-radius:4px;padding:0 4px;">'+escHtml(t)+'</span></div>';
+        var items = daySched.map(function(s) {
+          var t = s.therapist || s.teacher || '';
+          var tcolor = getTeacherColor(t);
+          var time = (s.startTime||s.time||'').slice(0,5);
+          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">' + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '') + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">' + escHtml(t) + '</span></div>';
         }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
-        var bgStyle=daySched.length>=2?'background:#fff7ed;border:1px solid #fed7aa;':'border:1px solid #e2e8f0;';
-        html+='<td style="padding:4px 5px;'+bgStyle+'vertical-align:top;">'+items+'</td>';
+        var bgStyle = daySched.length >= 2 ? 'background:#fff7ed;border:1px solid #fed7aa;' : 'border:1px solid #e2e8f0;';
+        html += '<td style="padding:4px 5px;' + bgStyle + 'vertical-align:top;">' + items + '</td>';
       }
     });
-    html+='</tr>';
+    html += '</tr>';
   });
-  html+='</tbody></table></div>';
-  wgEl.innerHTML=html;
+  html += '</tbody></table></div>';
+  wgEl.innerHTML = html;
 }
 
 function confirmSchedDelete(id, hasGroup) {
-  var s=scheduleDB.find(function(x){ return x.id===id; });
-  if(!s) return;
-  if(!hasGroup) {
-    if(!confirm('이 일정을 삭제할까요?')) return;
-    var ol=document.getElementById('editSchedOverlay'); if(ol) ol.remove();
-    execSchedDelete(id,false); return;
+  var s = scheduleDB.find(function(x){ return x.id===id; });
+  if (!s) return;
+  if (!hasGroup) {
+    if (!confirm('이 일정을 삭제할까요?')) return;
+    var ol = document.getElementById('editSchedOverlay'); if (ol) ol.remove();
+    execSchedDelete(id, false); return;
   }
-  var delOv=document.createElement('div');
-  delOv.id='delSchedOverlay';
-  delOv.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;';
-  delOv.innerHTML='<div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:320px;">'
-    +'<div style="text-align:center;font-size:32px;margin-bottom:12px;">⚠️</div>'
-    +'<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:6px;">삭제하시겠습니까?</div>'
-    +'<div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:18px;">이후의 반복 일정도 삭제하시겠습니까?</div>'
-    +'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">'
-    +'<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--mint);border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="one" checked style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이번일정만</div></div></label>'
-    +'<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="future" style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이후 반복일정포함</div></div></label>'
-    +'</div><div style="display:flex;gap:8px;">'
-    +'<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove()">아니요</button>'
-    +'<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + id + '\')">네, 삭제하겠습니다</button>'
-    +'</div></div>';
+  var delOv = document.createElement('div');
+  delOv.id = 'delSchedOverlay';
+  delOv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;';
+  delOv.innerHTML = '<div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:320px;">'
+    + '<div style="text-align:center;font-size:32px;margin-bottom:12px;">⚠️</div>'
+    + '<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:6px;">삭제하시겠습니까?</div>'
+    + '<div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:18px;">이후의 반복 일정도 삭제하시겠습니까?</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">'
+    + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--mint);border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="one" checked style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이번일정만</div></div></label>'
+    + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="future" style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이후 반복일정포함</div></div></label>'
+    + '</div><div style="display:flex;gap:8px;">'
+    + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove()">아니요</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + id + '\')">네, 삭제하겠습니다</button>'
+    + '</div></div>';
   document.body.appendChild(delOv);
 }
 
 function execSchedDeleteChoice(id) {
-  var opt=document.querySelector('input[name="delOpt"]:checked');
-  var future=opt&&opt.value==='future';
-  var ol1=document.getElementById('editSchedOverlay'); var ol2=document.getElementById('delSchedOverlay');
-  if(ol1) ol1.remove(); if(ol2) ol2.remove();
-  execSchedDelete(id,future);
+  var opt = document.querySelector('input[name="delOpt"]:checked');
+  var future = opt && opt.value === 'future';
+  var ol1 = document.getElementById('editSchedOverlay');
+  var ol2 = document.getElementById('delSchedOverlay');
+  if (ol1) ol1.remove(); if (ol2) ol2.remove();
+  execSchedDelete(id, future);
 }
 
 function execSchedDelete(id, future) {
-  var s=scheduleDB.find(function(x){ return x.id===id; });
-  if(!s) return;
-  var toDeleteItems=future&&s.groupId?scheduleDB.filter(function(x){ return x.groupId===s.groupId&&x.date>=s.date; }):[s];
-  var toDeleteIds=toDeleteItems.map(function(x){ return x.id; });
-  var snapshot=toDeleteItems.map(function(x){ return Object.assign({},x); });
-  toDeleteIds.forEach(function(did){ supaFetch('madi_schedules?id=eq.'+did,'DELETE').catch(function(e){ console.warn('일정 삭제 실패 id='+did,e); }); });
-  scheduleDB=scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id)===-1; });
+  var s = scheduleDB.find(function(x){ return x.id === id; });
+  if (!s) return;
+  var toDeleteItems = future && s.groupId
+    ? scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; })
+    : [s];
+  var toDeleteIds = toDeleteItems.map(function(x){ return x.id; });
+  var snapshot = toDeleteItems.map(function(x){ return Object.assign({}, x); });
+  toDeleteIds.forEach(function(did){
+    supaFetch('madi_schedules?id=eq.' + did, 'DELETE').catch(function(e){ console.warn('일정 삭제 실패 id=' + did, e); });
+  });
+  scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1; });
   saveSchedule(); renderSchedView();
-  var cn=(childDB.find(function(c){ return c.id===s.childId; })||{}).name||'';
-  showToast('🗑️ '+(cn?cn+' ':'')+toDeleteIds.length+'개 일정 삭제됨',{
-    undo:function(){ snapshot.forEach(function(item){ scheduleDB.push(item); }); saveSchedule(); renderSchedView(); showToast('↩️ 일정이 복원되었습니다'); }
+  var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
+  showToast('🗑️ ' + (cn ? cn + ' ' : '') + toDeleteIds.length + '개 일정 삭제됨', {
+    undo: function(){
+      snapshot.forEach(function(item){ scheduleDB.push(item); });
+      saveSchedule(); renderSchedView();
+      showToast('↩️ 일정이 복원되었습니다');
+    }
   });
 }
 
 function saveEditSched(id) {
-  var idx=scheduleDB.findIndex(function(x){ return x.id===id; });
-  if(idx<0) return;
-  var date=(document.getElementById('editSchedDate')||{}).value||'';
-  var start=(document.getElementById('editSchedStart')||{}).value||'';
-  var dur=parseInt((document.getElementById('editSchedDur')||{}).value)||0;
-  var teacher=(document.getElementById('editSchedTeacher')||{}).value.trim();
-  var note=(document.getElementById('editSchedNote')||{}).value.trim();
-  var endTime='';
-  if(start&&dur){ var parts=start.split(':'); var mins=parseInt(parts[0])*60+parseInt(parts[1])+dur; endTime=String(Math.floor(mins/60)%24).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'); }
-  scheduleDB[idx]=Object.assign({},scheduleDB[idx],{date:date,startTime:start,duration:dur,endTime:endTime,teacher:teacher,note:note});
+  var idx = scheduleDB.findIndex(function(x){ return x.id === id; });
+  if (idx < 0) return;
+  var date    = (document.getElementById('editSchedDate')||{}).value || '';
+  var start   = (document.getElementById('editSchedStart')||{}).value || '';
+  var dur     = parseInt((document.getElementById('editSchedDur')||{}).value) || 0;
+  var teacher = (document.getElementById('editSchedTeacher')||{}).value.trim();
+  var note    = (document.getElementById('editSchedNote')||{}).value.trim();
+  var endTime = '';
+  if (start && dur) {
+    var parts = start.split(':');
+    var mins  = parseInt(parts[0]) * 60 + parseInt(parts[1]) + dur;
+    endTime = String(Math.floor(mins/60)%24).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
+  }
+  scheduleDB[idx] = Object.assign({}, scheduleDB[idx], { date:date, startTime:start, duration:dur, endTime:endTime, teacher:teacher, note:note });
   saveSchedule();
-  var ol=document.getElementById('editSchedOverlay'); if(ol) ol.remove();
+  var ol = document.getElementById('editSchedOverlay'); if (ol) ol.remove();
   renderSchedView();
   showToast('✅ 일정 수정 완료!');
 }
