@@ -538,19 +538,22 @@ function renderDayGrid() {
   if (dayScheds.length === 0) {
     html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">일정이 없습니다.</div>';
   } else {
-    var tableW = therapists.length * 120 + 60;
-    html += '<table style="width:' + tableW + 'px;border-collapse:collapse;font-size:11px;table-layout:fixed;margin:0 auto;">';
-    // 컬럼 너비 균등 분배
-    var colW = Math.floor(100 / (therapists.length + 1));
-    html += '<colgroup><col style="width:44px;">';
-    therapists.forEach(function(){ html += '<col>'; });
+    // 화면 너비 기준으로 컬럼 너비 동적 계산 (overflow 없이 화면에 맞춤)
+    var screenW = window.innerWidth || 360;
+    var usableW = screenW - 50; // 시간컬럼(44px) + 좌우여유(6px)
+    var colW = therapists.length > 0 ? Math.max(72, Math.floor(usableW / therapists.length)) : 120;
+    var tableW = colW * therapists.length + 50;
+    html += '<table style="width:' + tableW + 'px;max-width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;">';
+    // 컬럼 너비 명시
+    html += '<colgroup><col style="width:44px;min-width:44px;">';
+    therapists.forEach(function(){ html += '<col style="width:' + colW + 'px;">'; });
     html += '</colgroup>';
     // 헤더: 시간 + 치료사 컬럼
     html += '<thead><tr>'
-      + '<th style="padding:5px 6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:44px;min-width:44px;">시간</th>';
+      + '<th style="padding:5px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:44px;min-width:44px;">시간</th>';
     therapists.forEach(function(t) {
       var color = getTeacherColor(t);
-      html += '<th style="padding:5px 6px;background:' + color + '18;border:1px solid #e2e8f0;color:' + color + ';font-weight:700;white-space:nowrap;">' + escHtml(t) + '</th>';
+      html += '<th style="padding:5px 4px;background:' + color + '18;border:1px solid #e2e8f0;color:' + color + ';font-weight:700;word-break:keep-all;line-height:1.3;">' + escHtml(t) + '</th>';
     });
     html += '</tr></thead><tbody>';
 
@@ -558,11 +561,11 @@ function renderDayGrid() {
     groupOrder.forEach(function(timeKey, ri) {
       var rowBg = ri % 2 === 0 ? '#ffffff' : '#f8fafc';
       html += '<tr>';
-      html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:10px;background:#f8fafc;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">' + escHtml(timeKey) + '</td>';
+      html += '<td style="padding:4px 3px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:10px;background:#f8fafc;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">' + escHtml(timeKey) + '</td>';
       therapists.forEach(function(t) {
         var cell = groups[timeKey].filter(function(s){ return (s.therapist||s.teacher||'') === t; });
         if (cell.length === 0) {
-          html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + rowBg + ';height:48px;"></td>';
+          html += '<td style="padding:4px 3px;border:1px solid #e2e8f0;background:' + rowBg + ';height:48px;"></td>';
         } else {
           var color = getTeacherColor(t);
           var items = cell.map(function(s) {
@@ -570,11 +573,11 @@ function renderDayGrid() {
             var cname = child ? escHtml(child.name) : '?';
             var type = escHtml(s.type || '');
             return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">'
-              + '<span style="font-weight:700;">' + cname + '</span>'
+              + '<span style="font-weight:700;word-break:keep-all;">' + cname + '</span>'
               + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '')
               + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
-          html += '<td style="padding:4px 5px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
+          html += '<td style="padding:4px 3px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
         }
       });
       html += '</tr>';
