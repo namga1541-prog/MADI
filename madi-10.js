@@ -538,7 +538,7 @@ function renderDayGrid() {
   if (dayScheds.length === 0) {
     html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">일정이 없습니다.</div>';
   } else {
-    var tableW = Math.min(therapists.length * 140 + 50, window.innerWidth - 32);
+    var tableW = therapists.length * 120 + 60;
     html += '<table style="width:' + tableW + 'px;border-collapse:collapse;font-size:11px;table-layout:fixed;margin:0 auto;">';
     // 컬럼 너비 균등 분배
     var colW = Math.floor(100 / (therapists.length + 1));
