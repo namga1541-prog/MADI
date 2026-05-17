@@ -54,9 +54,9 @@ function loadParentHome() {
         });
       }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
-    // 다음 일정 조회
+    // 다음 일정 조회 (order=id.asc — date 컬럼 없음, 클라이언트에서 date 기준 재정렬)
     supaFetch('madi_schedules?center_id=eq.' + centerId
-      + '&order=date.asc&limit=20', 'GET')
+      + '&order=id.asc&limit=20', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) return;
         var upcoming = rows.filter(function(s) {
@@ -109,7 +109,15 @@ function loadParentHome() {
             }).join('');
           }
         }
-      }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
+      }).catch(function(e){
+        if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);
+        var _nEl=document.getElementById('parentNextSchedText');
+        var _wEl=document.getElementById('parentWeekSched');
+        var _sEl=document.getElementById('parentNextSchedSub');
+        if(_nEl) _nEl.textContent='일정 로드 실패';
+        if(_sEl) _sEl.textContent='';
+        if(_wEl) _wEl.textContent='';
+      });
 
     // 최근 리포트
     supaFetch('madi_sessions?center_id=eq.' + centerId
@@ -145,7 +153,8 @@ function loadParentSched() {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
     var today = new Date().toISOString().slice(0,10);
 
-    supaFetch('madi_schedules?center_id=eq.' + centerId + '&order=date.asc', 'GET')
+    // order=id.asc — date 컬럼 없음, 클라이언트 filter에서 date 기준 처리
+    supaFetch('madi_schedules?center_id=eq.' + centerId + '&order=id.asc', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) { el.innerHTML = '<div class="empty"><p>일정 없음</p></div>'; return; }
         var mine = rows.filter(function(s) {
@@ -326,11 +335,6 @@ function openParentNotif(notifId) {
     .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
   // 2. 링크 있으면 그 탭으로 이동
-  // 미래: notice/123 같은 deep link 지원 예정
-  // 지금은 type 기반으로 단순 라우팅
-  // 클릭한 알림의 type을 알아야 하므로 DOM에서 가져오기보다는
-  // 일단 공지는 공지 탭으로 이동
-  // (간단 구현: 현재 알림 데이터를 캐시해서 type 확인)
   if (window._parentNotifCache) {
     var n = window._parentNotifCache[notifId];
     if (n && n.type === 'notice') switchParentTab('notice');
