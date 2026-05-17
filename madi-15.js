@@ -24,7 +24,8 @@ function switchParentTab(tab) {
 }
 
 // ─── 내 아동 정보 가져오기 (공통) ───
-function getMyChildInfo(callback) {
+// onNoChild: 아동 미연결 시 호출되는 콜백 (온보딩용)
+function getMyChildInfo(callback, onNoChild) {
   if (!currentUser || currentUser.role !== 'parent') return;
   if (window._parentChildId) {
     callback(window._parentChildId, window._parentCenterId);
@@ -32,11 +33,17 @@ function getMyChildInfo(callback) {
   }
   supaFetch('madi_parent_children?parent_user_id=eq.' + currentUser.id + '&select=child_id,center_id', 'GET')
     .then(function(rows) {
-      if (!Array.isArray(rows) || rows.length === 0) return;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        if (typeof onNoChild === 'function') onNoChild();
+        return;
+      }
       window._parentChildId  = rows[0].child_id;
       window._parentCenterId = rows[0].center_id;
       callback(window._parentChildId, window._parentCenterId);
-    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
+    }).catch(function(e){
+      if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);
+      if (typeof onNoChild === 'function') onNoChild();
+    });
 }
 
 // ─── 홈 ───
@@ -57,7 +64,7 @@ function loadParentHome() {
         });
       }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
-    // 다음 일정 조회 (order=id.asc — date 콜럼 없음, 클라이언트에서 date 기준 재정렬)
+    // 다음 일정 조회
     supaFetch('madi_schedules?center_id=eq.' + centerId
       + '&order=id.asc&limit=20', 'GET')
       .then(function(rows) {
@@ -92,7 +99,6 @@ function loadParentHome() {
         if (nextEl) nextEl.textContent = dday + ' — ' + dateStr;
         if (subEl)  subEl.textContent  = (timeStr ? timeStr + ' · ' : '') + (next.therapist || next.teacher || '') + ' 선생님';
 
-        // 이번 주 일정
         var weekEnd = new Date(todayDate);
         weekEnd.setDate(weekEnd.getDate() + 7);
         var weekScheds = upcoming.filter(function(s) {
@@ -142,7 +148,30 @@ function loadParentHome() {
           + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">'
           + escHtml((latest.note||latest.aiNote||'').slice(0,30)) + '...</div>';
       }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
-  });
+  }, _showParentOnboarding);
+}
+
+// ★ 학부모 온보딩 카드 — 아동 미연결 시 표시
+function _showParentOnboarding() {
+  var homePanel = document.getElementById('parentPanelHome');
+  if (!homePanel) return;
+  if (document.getElementById('parentOnboardingCard')) return;
+  var card = document.createElement('div');
+  card.id = 'parentOnboardingCard';
+  card.className = 'card';
+  card.style.cssText = 'margin:16px;text-align:center;padding:32px 20px;';
+  card.innerHTML =
+    '<div style="font-size:48px;margin-bottom:16px;">🌱</div>'
+    + '<div style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px;">환영합니다!</div>'
+    + '<div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px;">'
+    + '담당 선생님이 아이 정보를 연결해드리면<br>'
+    + '일정과 치료 리포트를 확인하실 수 있습니다.<br><br>'
+    + '연결이 완료되면 알림으로 안내드립니다. 😊'
+    + '</div>'
+    + '<div style="background:#f0fdfa;border-radius:10px;padding:12px 16px;font-size:12px;color:#0f766e;">'
+    + '📞 연결이 늦어지는 경우 담당 센터에 문의해주세요.'
+    + '</div>';
+  homePanel.appendChild(card);
 }
 
 // ─── 일정 탭 ───
@@ -298,7 +327,6 @@ function renderParentNotifList(rows) {
   card.style.display = '';
   badgeEl.textContent = unread.length;
 
-  // 미확인 알림만 최대 3개 표시
   var show = unread.slice(0, 3);
   listEl.innerHTML = show.map(function(n){
     var icon = (n.type === 'notice') ? '📌'
@@ -318,7 +346,6 @@ function renderParentNotifList(rows) {
       +   '</div>'
       + '</div>';
   }).join('');
-  // ★ 이벤트 위임 — onclick 인라인 삽입 대신 클릭 리스너로 처리
   listEl.onclick = function(e) {
     var item = e.target.closest('[data-nid]');
     if (item) openParentNotif(item.getAttribute('data-nid'));
