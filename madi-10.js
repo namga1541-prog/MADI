@@ -541,7 +541,7 @@ function renderDayGrid() {
     // 화면 너비 기준으로 컬럼 너비 동적 계산 (overflow 없이 화면에 맞춤)
     var screenW = window.innerWidth || 360;
     var usableW = screenW - 50; // 시간컬럼(44px) + 좌우여유(6px)
-    var colW = therapists.length > 0 ? Math.max(72, Math.floor(usableW / therapists.length)) : 120;
+    var colW = therapists.length > 0 ? Math.max(44, Math.floor(usableW / therapists.length)) : 120;
     var tableW = colW * therapists.length + 50;
     html += '<table style="width:' + tableW + 'px;max-width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;">';
     // 컬럼 너비 명시
