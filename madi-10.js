@@ -371,7 +371,7 @@ function renderWeekGrid() {
   }
   toggleWrap.innerHTML =
     '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
-    + (_weekViewMode === 'therapist' ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
+    + (_weekViewMode === 'therapist' ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👩\u200d⚕️ 치료사 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
     + (_weekViewMode === 'child' && !_weekDupOnly ? 'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;' : 'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=true;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;'
@@ -418,7 +418,7 @@ function renderWeekGrid() {
     });
     html += '</tr></thead><tbody>';
 
-    // 날짜별 중복 아동 계산 (같은 날 2명 이상 치료사에게 있는 아동)
+    // 날짜별 중복 아동 계산
     var duplicateMap = {};
     weekDates.forEach(function(w) {
       var dayScheds = weekScheds.filter(function(s){ return s.date === w.str; });
@@ -489,7 +489,6 @@ function renderDayGrid() {
   var dayScheds = _schedTeacherFilter === '전체' ? allScheds
     : allScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
 
-  // weekGrid의 grid 레이아웃 해제 (테이블이 전체폭 차지하도록)
   var wgEl = document.getElementById('dayGrid');
   if (wgEl) {
     wgEl.style.display = 'block';
@@ -511,12 +510,10 @@ function renderDayGrid() {
     stdTimes.push(String(hh).padStart(2,'0') + ':' + String(mi).padStart(2,'0'));
   }
 
-  // groupOrder는 stdTimes 기반으로만 구성 (비표준 시간 행 생성 방지)
   var groups = {};
   var groupOrder = stdTimes.slice();
   groupOrder.forEach(function(t){ groups[t] = []; });
 
-  // 각 스케줄을 가장 가까운 stdTime에 배치
   dayScheds.forEach(function(s) {
     var rawTime = (s.startTime || s.time || '').slice(0, 5);
     if (!rawTime || rawTime.length < 5) {
@@ -524,7 +521,6 @@ function renderDayGrid() {
       groups['시간미정'].push(s); return;
     }
     var rawMm = parseInt(rawTime.slice(0,2)) * 60 + parseInt(rawTime.slice(3,5));
-    // 가장 가까운 stdTime 찾기 (동률이면 이른 시간)
     var closestTime = stdTimes.reduce(function(best, t) {
       var tMm   = parseInt(t.slice(0,2)) * 60 + parseInt(t.slice(3,5));
       var bestMm = parseInt(best.slice(0,2)) * 60 + parseInt(best.slice(3,5));
@@ -533,36 +529,32 @@ function renderDayGrid() {
     groups[closestTime].push(s);
   });
 
-  var html = '<div style="width:100%;">';
+  var html = '<div style="width:100%;overflow:hidden;">';
 
   if (dayScheds.length === 0) {
     html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">일정이 없습니다.</div>';
   } else {
-    // 컨테이너 실제 너비로 계산 (.card .content padding 자동 반영)
     // width:100% + table-layout:fixed → 컬럼 자동 균등 분배 (절대 잘림 없음)
     html += '<table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;">';
-    // 시간 컬럼만 44px 고정, 나머지는 자동 분배
     html += '<colgroup><col style="width:44px;">';
     therapists.forEach(function(){ html += '<col>'; });
     html += '</colgroup>';
-    // 헤더: 시간 + 치료사 컬럼
     html += '<thead><tr>'
-      + '<th style="padding:5px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:44px;min-width:44px;">시간</th>';
+      + '<th style="padding:5px 3px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);">시간</th>';
     therapists.forEach(function(t) {
       var color = getTeacherColor(t);
-      html += '<th style="padding:5px 4px;background:' + color + '18;border:1px solid #e2e8f0;color:' + color + ';font-weight:700;word-break:keep-all;line-height:1.3;">' + escHtml(t) + '</th>';
+      html += '<th style="padding:5px 3px;background:' + color + '18;border:1px solid #e2e8f0;color:' + color + ';font-weight:700;word-break:break-all;line-height:1.3;font-size:11px;">' + escHtml(t) + '</th>';
     });
     html += '</tr></thead><tbody>';
 
-    // 행: 시간대별
     groupOrder.forEach(function(timeKey, ri) {
       var rowBg = ri % 2 === 0 ? '#ffffff' : '#f8fafc';
       html += '<tr>';
-      html += '<td style="padding:4px 3px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:10px;background:#f8fafc;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">' + escHtml(timeKey) + '</td>';
+      html += '<td style="padding:4px 2px;border:1px solid #e2e8f0;font-weight:700;color:var(--text2);font-size:10px;background:#f8fafc;white-space:nowrap;vertical-align:top;">' + escHtml(timeKey) + '</td>';
       therapists.forEach(function(t) {
         var cell = groups[timeKey].filter(function(s){ return (s.therapist||s.teacher||'') === t; });
         if (cell.length === 0) {
-          html += '<td style="padding:4px 3px;border:1px solid #e2e8f0;background:' + rowBg + ';height:48px;"></td>';
+          html += '<td style="padding:4px 2px;border:1px solid #e2e8f0;background:' + rowBg + ';height:48px;"></td>';
         } else {
           var color = getTeacherColor(t);
           var items = cell.map(function(s) {
@@ -570,11 +562,11 @@ function renderDayGrid() {
             var cname = child ? escHtml(child.name) : '?';
             var type = escHtml(s.type || '');
             return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">'
-              + '<span style="font-weight:700;word-break:keep-all;">' + cname + '</span>'
+              + '<span style="font-weight:700;word-break:break-all;font-size:11px;">' + cname + '</span>'
               + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '')
               + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
-          html += '<td style="padding:4px 3px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
+          html += '<td style="padding:4px 2px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;overflow:hidden;">' + items + '</td>';
         }
       });
       html += '</tr>';
@@ -662,7 +654,7 @@ function openSchedModal(date, schedId) {
     + '<button type="button" class="day-chip" data-day="5" onclick="toggleDayChip(this)">금</button>'
     + '<button type="button" class="day-chip" data-day="6" onclick="toggleDayChip(this)">토</button>'
     + '</div></div>'
-    + '<div class="form-group"><label class="form-label">반복 종료일 <span style="color:var(--mint);font-size:11px;">기본 5년 — 특수한 경우만 수정 (예: 교육청 20회기)</span></label>'
+    + '<div class="form-group"><label class="form-label">반복 종료일 <span style="color:var(--mint);font-size:11px;">기본 5년</span></label>'
     + '<input class="form-input" type="date" id="schedRepeatUntil"></div>'
     + '</div>'
     + '<div class="form-group"><label class="form-label">담당 선생님</label>'
@@ -672,7 +664,6 @@ function openSchedModal(date, schedId) {
     + '<button class="btn btn-primary" style="margin-top:4px;" onclick="saveSchedFromModal()">✅ 저장</button>'
     + '</div>';
   document.body.appendChild(overlay);
-  // 선생님 목록 로드 후 select 채우기
   loadTeacherList(function() {
     var sel = document.getElementById('schedTeacher');
     if (sel) sel.innerHTML = buildTeacherOptions('');
@@ -695,7 +686,6 @@ function toggleRepeatOpt() {
   var opt = document.getElementById('schedRepeatOpt');
   opt.style.display = v === 'none' ? 'none' : 'block';
   if (v !== 'none') {
-    // 시작 날짜의 요일 자동 선택
     var dateVal = document.getElementById('schedDateInput').value;
     if (dateVal) {
       var dow = new Date(dateVal + 'T00:00:00').getDay();
@@ -703,7 +693,6 @@ function toggleRepeatOpt() {
         if (parseInt(c.dataset.day) === dow) c.classList.add('sel');
       });
     }
-    // 종료일 기본값: 시작일로부터 5년
     var untilEl = document.getElementById('schedRepeatUntil');
     if (untilEl && !untilEl.value) {
       var base = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
@@ -736,7 +725,7 @@ function saveSchedFromModal() {
   if (!date)    { showToast('날짜를 선택해주세요.'); return; }
 
   var entries = [];
-  var groupId = Date.now(); // 반복 그룹 식별자
+  var groupId = Date.now();
   if (repeat === 'weekly' && until && until >= date) {
     var selDays = [];
     document.querySelectorAll('.day-chip.sel').forEach(function(c) {
@@ -800,7 +789,7 @@ function openEditSchedModal(id) {
     + '<div class="form-group"><label class="form-label">담당 선생님</label>'
     + '<select class="form-input" id="editSchedTeacher">' + buildTeacherOptions(s.teacher||'') + '</select></div>'
     + '<div class="form-group"><label class="form-label">메모</label>'
-    + '<textarea class="form-input" id="editSchedNote" style="min-height:60px;" placeholder="특이사항 (예: 체험학습으로 인한 캔슬)">' + escHtml(s.note||'') + '</textarea></div>'
+    + '<textarea class="form-input" id="editSchedNote" style="min-height:60px;" placeholder="특이사항">' + escHtml(s.note||'') + '</textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:8px;">'
     + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + id + '\')">📝 회기기록</button>'
     + (currentUser && currentUser.role === 'admin'
@@ -809,7 +798,6 @@ function openEditSchedModal(id) {
       : '')
     + '</div></div>';
   document.body.appendChild(overlay);
-  // 선생님 목록 로드 후 select 업데이트
   loadTeacherList(function() {
     var sel = document.getElementById('editSchedTeacher');
     if (sel) sel.innerHTML = buildTeacherOptions(s.teacher||'');
@@ -842,16 +830,13 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   wgEl.style.display = 'block';
   wgEl.style.width = '100%';
 
-  // 아동 목록 수집 (일정에 등장하는 아동만)
   var childIds = [];
   weekScheds.forEach(function(s) {
     if (s.childId && childIds.indexOf(s.childId) < 0) childIds.push(s.childId);
   });
 
-  // 중복 수업 아동만 보기 필터 (_weekDupOnly)
   if (_weekDupOnly) {
     childIds = childIds.filter(function(cid) {
-      // 같은 날짜에 2개 이상 일정이 있는 아동만
       return weekDates.some(function(w) {
         var cnt = weekScheds.filter(function(s){ return s.date === w.str && s.childId === cid; }).length;
         return cnt >= 2;
@@ -859,7 +844,6 @@ function renderWeekGridByChild(weekDates, weekScheds) {
     });
   }
 
-  // 아동 이름 기준 정렬
   childIds.sort(function(a, b) {
     var ca = childDB.find(function(c){ return c.id === a; });
     var cb = childDB.find(function(c){ return c.id === b; });
@@ -876,7 +860,6 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   var html = '<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
 
-  // 날짜 헤더
   var todayStr = new Date().toISOString().slice(0,10);
   html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;position:sticky;left:0;z-index:3;">아동</th>';
   weekDates.forEach(function(w) {
@@ -887,7 +870,6 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   });
   html += '</tr></thead><tbody>';
 
-  // 아동별 행
   childIds.forEach(function(childId) {
     var child = childDB.find(function(c){ return c.id === childId; });
     var cname = child ? escHtml(child.name) : '?';
@@ -921,7 +903,6 @@ function renderWeekGridByChild(weekDates, weekScheds) {
             + escHtml(t) + '</span>'
             + '</div>';
         }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
-        // 같은 날 2명 이상이면 셀 배경 강조
         var bgStyle = daySched.length >= 2
           ? 'background:#fff7ed;border:1px solid #fed7aa;'
           : 'border:1px solid #e2e8f0;';
