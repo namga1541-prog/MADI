@@ -538,11 +538,11 @@ function renderDayGrid() {
   if (dayScheds.length === 0) {
     html += '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">일정이 없습니다.</div>';
   } else {
-    // 화면 너비 기준으로 컬럼 너비 동적 계산 (overflow 없이 화면에 맞춤)
-    var screenW = window.innerWidth || 360;
-    var usableW = screenW - 50; // 시간컬럼(44px) + 좌우여유(6px)
-    var colW = therapists.length > 0 ? Math.max(44, Math.floor(usableW / therapists.length)) : 120;
-    var tableW = colW * therapists.length + 50;
+    // 컨테이너 실제 너비로 계산 (.card .content padding 자동 반영)
+    var containerW = (wgEl && wgEl.offsetWidth > 0) ? wgEl.offsetWidth : (window.innerWidth - 72);
+    var usableW = containerW - 52; // 시간컬럼(44px) + 여유(8px)
+    var colW = therapists.length > 0 ? Math.floor(usableW / therapists.length) : 120;
+    var tableW = colW * therapists.length + 52;
     html += '<table style="width:' + tableW + 'px;max-width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;">';
     // 컬럼 너비 명시
     html += '<colgroup><col style="width:44px;min-width:44px;">';
