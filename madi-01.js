@@ -94,7 +94,6 @@ function supaFetch(path, method, body) {
     allowPostRetry: true,
     label: 'Supabase ' + (method || 'GET') + ' ' + path.split('?')[0]
   }).then(function(r) {
-    // ★ 401 = JWT 만료/위조 → 자동 로그아웃
     if (r.status === 401 && typeof currentUser !== 'undefined' && currentUser) {
       clearToken(); currentUser = null;
       try { localStorage.removeItem('madi_user'); } catch(e) {}
@@ -244,36 +243,133 @@ function getMadiLogoSVG(w, h) {
 
 document.addEventListener('DOMContentLoaded', function() {
   restoreSidebarState();
+
+  // SVG 로고 4곳 자동 주입 — 비활성화됨 (A7 base64 아이콘 사용을 위해 2026-05-12)
+  // var lpNav = document.querySelector('.lp-nav-logo-icon');
+  // if (lpNav) lpNav.innerHTML = getMadiLogoSVG(44, 44);
+  // document.querySelectorAll('.login-logo-icon').forEach(function(el) {
+  //   el.innerHTML = getMadiLogoSVG(34, 34);
+  // });
+  // var logoIcon = document.querySelector('.logo-icon');
+  // if (logoIcon) logoIcon.innerHTML = getMadiLogoSVG(22, 22);
+
+  // Enter 키 로그인 처리
   var pwInput = document.getElementById('loginPwInput');
   if (pwInput) pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
   var unInput = document.getElementById('loginUsernameInput');
-  if (unInput) unInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') { var pw = document.getElementById('loginPwInput'); if (pw) pw.focus(); } });
+  if (unInput) unInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') {
+      var pw = document.getElementById('loginPwInput');
+      if (pw) pw.focus();
+    }
+  });
 });
 
-function applyUserUI() {
-  if (!currentUser) return;
-  var headerUser = document.getElementById('headerUser'), headerUserName = document.getElementById('headerUserName'), headerUserBadge = document.getElementById('headerUserBadge');
-  if (!headerUser || !headerUserName || !headerUserBadge) return;
-  headerUserName.textContent = currentUser.name;
-  if (currentUser.role === 'parent') {
-    headerUserBadge.textContent = '학부모'; headerUserBadge.style.background = 'rgba(245,158,11,0.25)'; headerUserBadge.style.borderColor = 'rgba(245,158,11,0.5)';
-    applyParentUI();
-  } else {
-    headerUserBadge.textContent = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
-    if (typeof resetParentUI === 'function') resetParentUI();
-  }
-  headerUser.style.display = 'flex';
-  if (typeof updateSidebarAdminVisibility === 'function') updateSidebarAdminVisibility();
-}
-
+// ★ 헤더 사용자 클릭 드롭다운 (비밀번호 변경 / 로그아웃)
 function showLogoutMenu() {
-  if (confirm(currentUser.name + '님, 로그아웃 하시겠습니까?')) {
-    stopRealtime(); currentUser = null; clearToken(); localStorage.removeItem('madi_user');
-    childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
-    renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
-  }
+  var existing = document.getElementById('userDropdown');
+  if (existing) { existing.remove(); return; }
+  var headerUser = document.getElementById('headerUser');
+  var rect = headerUser ? headerUser.getBoundingClientRect() : { right: window.innerWidth - 12, bottom: 52 };
+  var rightOffset = window.innerWidth - rect.right;
+  var menu = document.createElement('div');
+  menu.id = 'userDropdown';
+  menu.style.cssText = 'position:fixed;top:' + (rect.bottom + 6) + 'px;right:' + rightOffset + 'px;'
+    + 'background:white;border:1px solid #e2e8f0;border-radius:12px;'
+    + 'box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:9999;min-width:160px;overflow:hidden;';
+  menu.innerHTML =
+    '<div style="padding:6px 0;">'
+    + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();showChangePasswordModal();"
+    + ' style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 16px;border:none;background:none;font-size:13px;cursor:pointer;color:#1e293b;">🔑 비밀번호 변경</button>'
+    + '<div style="height:1px;background:#f1f5f9;margin:2px 0;"></div>'
+    + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();doLogout();"
+    + ' style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 16px;border:none;background:none;font-size:13px;cursor:pointer;color:#ef4444;">🚪 로그아웃</button>'
+    + '</div>';
+  document.body.appendChild(menu);
+  setTimeout(function() {
+    document.addEventListener('click', function _closeDd(e) {
+      var d = document.getElementById('userDropdown');
+      if (d && !d.contains(e.target)) { d.remove(); document.removeEventListener('click', _closeDd); }
+    });
+  }, 10);
 }
 
+function doLogout() {
+  if (!confirm(currentUser.name + '님, 로그아웃 하시겠습니까?')) return;
+  stopRealtime(); currentUser = null; clearToken(); localStorage.removeItem('madi_user');
+  childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
+  renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
+}
+
+// ★ 비밀번호 변경 모달
+function showChangePasswordModal() {
+  var existing = document.getElementById('changePwModal');
+  if (existing) { existing.remove(); return; }
+  var overlay = document.createElement('div');
+  overlay.id = 'changePwModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML =
+    '<div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,0.2);">'
+    + '<div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:20px;">🔑 비밀번호 변경</div>'
+    + '<div style="margin-bottom:12px;">'
+    + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">현재 비밀번호</label>'
+    + '<input type="password" id="cpCurrent" class="form-input" placeholder="현재 비밀번호 입력" style="width:100%;box-sizing:border-box;">'
+    + '</div>'
+    + '<div style="margin-bottom:12px;">'
+    + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호</label>'
+    + '<input type="password" id="cpNew" class="form-input" placeholder="영문+숫자 8자 이상" style="width:100%;box-sizing:border-box;">'
+    + '</div>'
+    + '<div style="margin-bottom:16px;">'
+    + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호 확인</label>'
+    + '<input type="password" id="cpConfirm" class="form-input" placeholder="새 비밀번호 재입력" style="width:100%;box-sizing:border-box;" onkeydown="if(event.key===\'Enter\')submitChangePassword();">'
+    + '</div>'
+    + '<div id="cpError" style="font-size:12px;color:#ef4444;margin-bottom:12px;min-height:16px;word-break:break-word;"></div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button onclick="document.getElementById(\'changePwModal\').remove();" style="flex:1;padding:11px;border:1px solid #e2e8f0;border-radius:10px;background:white;font-size:14px;cursor:pointer;color:#64748b;">취소</button>'
+    + '<button id="cpSubmitBtn" onclick="submitChangePassword();" style="flex:1;padding:11px;border:none;border-radius:10px;background:#0ea5a0;color:white;font-size:14px;font-weight:700;cursor:pointer;">변경</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+  setTimeout(function() { var el = document.getElementById('cpCurrent'); if (el) el.focus(); }, 100);
+}
+
+function submitChangePassword() {
+  var current = (document.getElementById('cpCurrent') || {}).value || '';
+  var newPw   = (document.getElementById('cpNew') || {}).value || '';
+  var conf    = (document.getElementById('cpConfirm') || {}).value || '';
+  var errEl   = document.getElementById('cpError');
+  var btn     = document.getElementById('cpSubmitBtn');
+  if (!errEl || !btn) return;
+  errEl.textContent = '';
+  if (!current) { errEl.textContent = '현재 비밀번호를 입력해주세요.'; return; }
+  if (!newPw)   { errEl.textContent = '새 비밀번호를 입력해주세요.'; return; }
+  var pwErr = validatePasswordStrength(newPw);
+  if (pwErr) { errEl.textContent = pwErr; return; }
+  if (newPw !== conf)    { errEl.textContent = '새 비밀번호가 일치하지 않습니다.'; return; }
+  if (current === newPw) { errEl.textContent = '현재 비밀번호와 동일합니다.'; return; }
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '변경 중...';
+  fetchWithRetry(EDGE_URL + '/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+  }, { retries: 0, label: '비밀번호 변경' })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '변경';
+    if (data.error) { errEl.textContent = '❌ ' + data.error; return; }
+    var modal = document.getElementById('changePwModal');
+    if (modal) modal.remove();
+    showToast('✅ 비밀번호가 변경되었습니다.');
+  })
+  .catch(function() {
+    btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '변경';
+    errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  });
+}
+
+// ─────── Supabase DB 로드 / 저장 ───────
 function loadDBFromSupabase(silent) {
   if (!silent) showToast('📡 데이터 불러오는 중...');
   _optionsCacheKey = null;
@@ -472,16 +568,13 @@ function setupNetworkMonitor() {
   if (!navigator.onLine) showOfflineBanner();
 }
 
-// ★ 학부모 전용 UI 적용 (모바일/PC 분기)
+// ★ 학부모 전용 UI 적용
 function applyParentUI() {
   var isMobile = window.innerWidth <= 767;
-  // 치료사 탭바 숨김
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = 'none';
-  // ★ 모바일: parentTabs 탭바 표시 / PC: 좌측 사이드바 사용 → 탭바 숨김
   var parentTabs = document.getElementById('parentTabs');
   if (parentTabs) parentTabs.style.cssText = isMobile ? 'display:flex !important;' : 'display:none !important;';
-  // 기존 치료사 사이드바 숨김
   var sidebar = document.getElementById('appSidebar');
   if (sidebar) sidebar.style.display = 'none';
   var sidebarToggle = document.getElementById('sidebarToggleBtn');
@@ -490,90 +583,76 @@ function applyParentUI() {
   if (breadcrumb) breadcrumb.style.display = 'none';
   var deployBtn = document.getElementById('headerDeployBtn');
   if (deployBtn) deployBtn.style.display = 'none';
-  // ★ 학부모: 마로 AI 챗봇 숨김 (치료사 전용 기능)
   var floatBtn = document.getElementById('floatBtn');
   if (floatBtn) floatBtn.style.display = 'none';
   var chatWindow = document.getElementById('chatWindow');
   if (chatWindow) chatWindow.style.display = 'none';
-  // 기존 탭 패널 모두 숨김
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
     if (!el.id.startsWith('parentPanel')) el.style.display = 'none';
   });
-  // ★ PC에서만 좌측 사이드바 생성 (모바일은 상단 탭바 사용)
   if (!isMobile) _initParentSidebar();
-  // 학부모 홈 탭 표시
   switchParentTab('home');
 }
 
-// 학부모 좌측 사이드바 시작 (최초 1회 생성, 이후 재사용)
 function _initParentSidebar() {
   var existing = document.getElementById('parentSidebar');
   if (existing) { existing.style.display = 'flex'; return; }
   var sb = document.createElement('div');
   sb.id = 'parentSidebar';
   sb.innerHTML =
-    '<button id="ptBtnHome" class="psb-btn" onclick="switchParentTab(\'home\')">'
-    + '<span class="psb-icon">🏠</span><span class="psb-label">홈</span></button>'
-    + '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">'
-    + '<span class="psb-icon">📅</span><span class="psb-label">일정</span></button>'
-    + '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">'
-    + '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>'
-    + '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">'
-    + '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
-  // body 대신 .app-layout 안에 삽입 → 헤더/배너 아래 flex로 자동 위치
+    '<button id="ptBtnHome" class="psb-btn" onclick="switchParentTab(\'home\')">' +
+    '<span class="psb-icon">🏠</span><span class="psb-label">홈</span></button>' +
+    '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">' +
+    '<span class="psb-icon">📅</span><span class="psb-label">일정</span></button>' +
+    '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">' +
+    '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>' +
+    '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">' +
+    '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
   var _appLayout = document.querySelector('.app-layout');
   if (_appLayout) {
     _appLayout.insertBefore(sb, _appLayout.firstChild);
     sb.setAttribute('style',
-      'width:68px;display:flex;flex-direction:column;align-items:center;'
-      + 'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;'
-      + 'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
+      'width:68px;display:flex;flex-direction:column;align-items:center;' +
+      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
+      'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
     );
   } else {
-    // fallback: position:fixed + 헤더 높이 동적 계산
     document.body.appendChild(sb);
     var _hdr = document.querySelector('.header');
     var _topPx = _hdr ? (_hdr.offsetTop + _hdr.offsetHeight) : 60;
     sb.setAttribute('style',
-      'position:fixed !important;left:0 !important;top:' + _topPx + 'px !important;bottom:0 !important;'
-      + 'width:68px;display:flex !important;flex-direction:column;align-items:center;'
-      + 'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;'
-      + 'z-index:9000;box-shadow:2px 0 8px rgba(0,0,0,0.06);'
+      'position:fixed !important;left:0 !important;top:' + _topPx + 'px !important;bottom:0 !important;' +
+      'width:68px;display:flex !important;flex-direction:column;align-items:center;' +
+      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
+      'z-index:9000;box-shadow:2px 0 8px rgba(0,0,0,0.06);'
     );
   }
-  var _btnStyle = 'display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;'
-    + 'padding:10px 4px;border:none;background:none;border-radius:10px;cursor:pointer;color:#64748b;font-family:inherit;';
+  var _btnStyle = 'display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;' +
+    'padding:10px 4px;border:none;background:none;border-radius:10px;cursor:pointer;color:#64748b;font-family:inherit;';
   sb.querySelectorAll('button').forEach(function(btn) { btn.style.cssText = _btnStyle; });
   sb.querySelectorAll('.psb-icon').forEach(function(el) { el.style.cssText = 'font-size:20px;line-height:1;'; });
   sb.querySelectorAll('.psb-label').forEach(function(el) { el.style.cssText = 'font-size:10px;font-weight:700;'; });
 }
 
-// ★ 학부모 UI 원복 — 다른 역할로 재로그인 시 호출
 function resetParentUI() {
   var psb = document.getElementById('parentSidebar'); if (psb) psb.style.display = 'none';
-  // 치료사 탭바 복원
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = '';
-  // 학부모 탭바 인라인 스타일 원복
   var parentTabs = document.getElementById('parentTabs');
   if (parentTabs) parentTabs.style.cssText = '';
-  // 사이드바/토글/breadcrumb 복원
   var sidebar = document.getElementById('appSidebar');
   if (sidebar) sidebar.style.display = '';
   var sidebarToggle = document.getElementById('sidebarToggleBtn');
   if (sidebarToggle) sidebarToggle.style.display = '';
   var breadcrumb = document.querySelector('.breadcrumb-bar');
   if (breadcrumb) breadcrumb.style.display = '';
-  // 치료사 탭 패널 display 복원
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
     if (!el.id.startsWith('parentPanel')) el.style.display = '';
   });
-  // ★ 마로 AI 챗봇 원복
   var floatBtn = document.getElementById('floatBtn');
   if (floatBtn) floatBtn.style.display = '';
   var chatWindow = document.getElementById('chatWindow');
   if (chatWindow) chatWindow.style.display = '';
-  // 메인 영역 좌측 여백 원복
   var appMain = document.getElementById('appMain'); if (appMain) appMain.style.paddingLeft = '';
 }
 
@@ -612,8 +691,36 @@ function checkLoginBlocked(username) {
 }
 function recordLoginFail(username) { if (!username) return; try { var data = _getLoginBlockData(username); data.attempts = (data.attempts||0)+1; if (data.attempts >= 5) data.blockedUntil = Date.now()+30*60*1000; localStorage.setItem('login_block_'+username, JSON.stringify(data)); } catch(e) {} }
 function recordLoginSuccess(username) { if (!username) return; try { localStorage.removeItem('login_block_'+username); } catch(e) {} }
+
+// ─────── ID 생성 유틸 ───────
 function generateClientId() {
   var rnd;
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) { var arr = new Uint32Array(1); crypto.getRandomValues(arr); rnd = arr[0] % 10000; } else { rnd = Math.floor(Math.random() * 10000); }
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    var arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    rnd = arr[0] % 10000;
+  } else {
+    rnd = Math.floor(Math.random() * 10000);
+  }
   return Date.now() + rnd;
+}
+
+function applyUserUI() {
+  if (!currentUser) return;
+  var headerUser = document.getElementById('headerUser');
+  var headerUserName = document.getElementById('headerUserName');
+  var headerUserBadge = document.getElementById('headerUserBadge');
+  if (!headerUser || !headerUserName || !headerUserBadge) return;
+  headerUserName.textContent = currentUser.name;
+  if (currentUser.role === 'parent') {
+    headerUserBadge.textContent = '학부모';
+    headerUserBadge.style.background = 'rgba(245,158,11,0.25)';
+    headerUserBadge.style.borderColor = 'rgba(245,158,11,0.5)';
+    applyParentUI();
+  } else {
+    headerUserBadge.textContent = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
+    if (typeof resetParentUI === 'function') resetParentUI();
+  }
+  headerUser.style.display = 'flex';
+  if (typeof updateSidebarAdminVisibility === 'function') updateSidebarAdminVisibility();
 }
