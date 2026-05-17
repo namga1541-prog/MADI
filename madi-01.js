@@ -470,36 +470,47 @@ function applyParentUI() {
   switchParentTab('home');
 }
 
-// ★ 학부모 좌측 사이드바 초기화 — 인라인 스타일로 완전 처리 (CSS 파일/캐시 무관)
+// ★ 학부모 좌측 사이드바 — .app-layout flex child로 삽입 (헤더 아래 자동 위치)
 function _initParentSidebar() {
   var existing = document.getElementById('parentSidebar');
   if (existing) { existing.style.display = 'flex'; return; }
   var sb = document.createElement('div');
   sb.id = 'parentSidebar';
   sb.innerHTML =
-    '<button id="ptBtnHome" class="psb-btn" onclick="switchParentTab(\'home\')">'
-    + '<span class="psb-icon">🏠</span><span class="psb-label">홈</span></button>'
-    + '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">'
-    + '<span class="psb-icon">📅</span><span class="psb-label">일정</span></button>'
-    + '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">'
-    + '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>'
-    + '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">'
-    + '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
-  document.body.appendChild(sb);
-  // ★ position:fixed 포함 전체 스타일 인라인 직접 적용
-  sb.setAttribute('style',
-    'position:fixed !important;left:0 !important;top:52px !important;bottom:0 !important;' +
-    'width:68px;display:flex !important;flex-direction:column;align-items:center;' +
-    'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
-    'z-index:9000;box-shadow:2px 0 8px rgba(0,0,0,0.06);'
-  );
+    '<button id="ptBtnHome" class="psb-btn" onclick="switchParentTab(\'home\')">' +
+    '<span class="psb-icon">🏠</span><span class="psb-label">홈</span></button>' +
+    '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">' +
+    '<span class="psb-icon">📅</span><span class="psb-label">일정</span></button>' +
+    '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">' +
+    '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>' +
+    '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">' +
+    '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
+  // ★ body 대신 .app-layout 안에 삽입 → 헤더/배너 아래 flex로 자동 위치
+  var _appLayout = document.querySelector('.app-layout');
+  if (_appLayout) {
+    _appLayout.insertBefore(sb, _appLayout.firstChild);
+    sb.setAttribute('style',
+      'width:68px;display:flex;flex-direction:column;align-items:center;' +
+      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
+      'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
+    );
+  } else {
+    // fallback: position:fixed + 헤더 높이 동적 계산
+    document.body.appendChild(sb);
+    var _hdr = document.querySelector('.header');
+    var _topPx = _hdr ? (_hdr.offsetTop + _hdr.offsetHeight) : 60;
+    sb.setAttribute('style',
+      'position:fixed !important;left:0 !important;top:' + _topPx + 'px !important;bottom:0 !important;' +
+      'width:68px;display:flex !important;flex-direction:column;align-items:center;' +
+      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
+      'z-index:9000;box-shadow:2px 0 8px rgba(0,0,0,0.06);'
+    );
+  }
   var _btnStyle = 'display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;' +
     'padding:10px 4px;border:none;background:none;border-radius:10px;cursor:pointer;color:#64748b;font-family:inherit;';
   sb.querySelectorAll('button').forEach(function(btn) { btn.style.cssText = _btnStyle; });
   sb.querySelectorAll('.psb-icon').forEach(function(el) { el.style.cssText = 'font-size:20px;line-height:1;'; });
   sb.querySelectorAll('.psb-label').forEach(function(el) { el.style.cssText = 'font-size:10px;font-weight:700;'; });
-  var appMain = document.getElementById('appMain');
-  if (appMain) appMain.style.paddingLeft = '72px';
 }
 
 // ★ 학부모 UI 원복 — 다른 역할로 재로그인 시 호출
