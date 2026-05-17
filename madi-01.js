@@ -490,6 +490,11 @@ function applyParentUI() {
   if (breadcrumb) breadcrumb.style.display = 'none';
   var deployBtn = document.getElementById('headerDeployBtn');
   if (deployBtn) deployBtn.style.display = 'none';
+  // ★ 학부모: 마로 AI 챗봇 숨김 (치료사 전용 기능)
+  var floatBtn = document.getElementById('floatBtn');
+  if (floatBtn) floatBtn.style.display = 'none';
+  var chatWindow = document.getElementById('chatWindow');
+  if (chatWindow) chatWindow.style.display = 'none';
   // 기존 탭 패널 모두 숨김
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
     if (!el.id.startsWith('parentPanel')) el.style.display = 'none';
@@ -507,22 +512,22 @@ function _initParentSidebar() {
   var sb = document.createElement('div');
   sb.id = 'parentSidebar';
   sb.innerHTML =
-    '<button id="ptBtnHome" class="psb-btn" onclick="switchParentTab(\'home\')">' +
-    '<span class="psb-icon">🏠</span><span class="psb-label">홈</span></button>' +
-    '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">' +
-    '<span class="psb-icon">📅</span><span class="psb-label">일정</span></button>' +
-    '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">' +
-    '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>' +
-    '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">' +
-    '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
+    '<button id="ptBtnHome" class="psb-btn" onclick="switchParentTab(\'home\')">'
+    + '<span class="psb-icon">🏠</span><span class="psb-label">홈</span></button>'
+    + '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">'
+    + '<span class="psb-icon">📅</span><span class="psb-label">일정</span></button>'
+    + '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">'
+    + '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>'
+    + '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">'
+    + '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
   // body 대신 .app-layout 안에 삽입 → 헤더/배너 아래 flex로 자동 위치
   var _appLayout = document.querySelector('.app-layout');
   if (_appLayout) {
     _appLayout.insertBefore(sb, _appLayout.firstChild);
     sb.setAttribute('style',
-      'width:68px;display:flex;flex-direction:column;align-items:center;' +
-      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
-      'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
+      'width:68px;display:flex;flex-direction:column;align-items:center;'
+      + 'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;'
+      + 'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
     );
   } else {
     // fallback: position:fixed + 헤더 높이 동적 계산
@@ -530,14 +535,14 @@ function _initParentSidebar() {
     var _hdr = document.querySelector('.header');
     var _topPx = _hdr ? (_hdr.offsetTop + _hdr.offsetHeight) : 60;
     sb.setAttribute('style',
-      'position:fixed !important;left:0 !important;top:' + _topPx + 'px !important;bottom:0 !important;' +
-      'width:68px;display:flex !important;flex-direction:column;align-items:center;' +
-      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
-      'z-index:9000;box-shadow:2px 0 8px rgba(0,0,0,0.06);'
+      'position:fixed !important;left:0 !important;top:' + _topPx + 'px !important;bottom:0 !important;'
+      + 'width:68px;display:flex !important;flex-direction:column;align-items:center;'
+      + 'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;'
+      + 'z-index:9000;box-shadow:2px 0 8px rgba(0,0,0,0.06);'
     );
   }
-  var _btnStyle = 'display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;' +
-    'padding:10px 4px;border:none;background:none;border-radius:10px;cursor:pointer;color:#64748b;font-family:inherit;';
+  var _btnStyle = 'display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;'
+    + 'padding:10px 4px;border:none;background:none;border-radius:10px;cursor:pointer;color:#64748b;font-family:inherit;';
   sb.querySelectorAll('button').forEach(function(btn) { btn.style.cssText = _btnStyle; });
   sb.querySelectorAll('.psb-icon').forEach(function(el) { el.style.cssText = 'font-size:20px;line-height:1;'; });
   sb.querySelectorAll('.psb-label').forEach(function(el) { el.style.cssText = 'font-size:10px;font-weight:700;'; });
@@ -549,7 +554,7 @@ function resetParentUI() {
   // 치료사 탭바 복원
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = '';
-  // ★ 학부모 탭바 인라인 스타일 원복 (CSS 기본값으로 복귀)
+  // 학부모 탭바 인라인 스타일 원복
   var parentTabs = document.getElementById('parentTabs');
   if (parentTabs) parentTabs.style.cssText = '';
   // 사이드바/토글/breadcrumb 복원
@@ -563,6 +568,11 @@ function resetParentUI() {
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
     if (!el.id.startsWith('parentPanel')) el.style.display = '';
   });
+  // ★ 마로 AI 챗봇 원복
+  var floatBtn = document.getElementById('floatBtn');
+  if (floatBtn) floatBtn.style.display = '';
+  var chatWindow = document.getElementById('chatWindow');
+  if (chatWindow) chatWindow.style.display = '';
   // 메인 영역 좌측 여백 원복
   var appMain = document.getElementById('appMain'); if (appMain) appMain.style.paddingLeft = '';
 }
