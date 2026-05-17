@@ -901,3 +901,43 @@
       h1, h2, h3 { page-break-after: avoid; }
       .session-card, .child-card { page-break-inside: avoid; }
     }
+
+    /* ── 학부모 전용 좌측 사이드바 ── */
+    #parentSidebar {
+      position: fixed;
+      left: 0;
+      top: 52px;
+      bottom: 0;
+      width: 68px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 2px;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.06);
+    }
+    .psb-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      width: 56px;
+      padding: 10px 4px;
+      border: none;
+      background: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text2);
+      transition: background 0.15s, color 0.15s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .psb-btn:hover { background: var(--bg); color: var(--text); }
+    .psb-btn.active { background: var(--mint2); color: var(--mint); }
+    .psb-icon { font-size: 20px; line-height: 1; }
+    .psb-label { font-size: 10px; font-weight: 700; letter-spacing: -0.3px; }
+    body.dark-mode #parentSidebar { background: var(--navy2); border-right-color: var(--border); }
+    body.dark-mode .psb-btn:hover { background: var(--navy); }
+    body.dark-mode .psb-btn.active { background: rgba(14,165,160,0.2); color: var(--mint); }
