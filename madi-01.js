@@ -12,8 +12,6 @@ function canDo(perm) {
   return p[perm] !== false;
 }
 
-// 현재 사용자가 담당하는 아동인지 판별
-// 기준: 내가 작성한 세션이 있거나, 내 이름으로 등록된 일정이 있는 아동
 function isMyChild(childId) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin') return true;
@@ -28,7 +26,6 @@ function isMyChild(childId) {
 function applyPermissions() {
   if (!currentUser) return;
   var isAdminOrSuper = getRoleFlags().isAdminOrSuper;
-  // 설정/서비스 탭은 관리자·슈퍼관리자만
   var settingsBtn = document.getElementById('tabBtn5');
   if (settingsBtn) settingsBtn.style.display = isAdminOrSuper ? '' : 'none';
   var svcBtn = document.getElementById('tabBtn4');
@@ -38,18 +35,16 @@ function applyPermissions() {
     var aiSubBtn = document.getElementById('ptBtn_ai');
     if (aiSubBtn) aiSubBtn.style.display = 'none';
   }
-} // 기본값: 라이트(Haiku)
-// AI 모델 선택 (사용자가 서비스 관리 탭에서 변경 가능, 기본값 HAIKU)
+}
 function getAIModel() {
   try {
     var v = localStorage.getItem('madi_ai_model');
     if (v === 'sonnet') return MODEL_SONNET;
     if (v === 'haiku')  return MODEL_HAIKU;
   } catch (e) {}
-  return MODEL_HAIKU; // 기본값
+  return MODEL_HAIKU;
 }
 
-// 모델 선택 저장 + UI 동기화 + 토스트 (서비스 관리 탭에서 호출)
 function saveAIModelChoice(choice) {
   if (choice !== 'haiku' && choice !== 'sonnet') return;
   try { localStorage.setItem('madi_ai_model', choice); } catch (e) {}
@@ -58,24 +53,19 @@ function saveAIModelChoice(choice) {
   if (typeof showToast === 'function') showToast('✅ AI 모델이 ' + label + ' 으로 설정됐습니다');
 }
 
-// 현재 선택값에 따라 라디오 + 라벨 시각 동기화
 function updateAIModelUI() {
   var current = 'haiku';
   try {
     var v = localStorage.getItem('madi_ai_model');
     if (v === 'sonnet') current = 'sonnet';
   } catch (e) {}
-
   var haikuRadio   = document.getElementById('aiModelHaikuRadio');
   var sonnetRadio  = document.getElementById('aiModelSonnetRadio');
   var haikuLabel   = document.getElementById('aiModelHaikuLabel');
   var sonnetLabel  = document.getElementById('aiModelSonnetLabel');
   var currentLabel = document.getElementById('aiModelCurrentLabel');
-
   if (haikuRadio)  haikuRadio.checked  = (current === 'haiku');
   if (sonnetRadio) sonnetRadio.checked = (current === 'sonnet');
-
-  // 선택된 옵션 강조 (테두리 색)
   if (haikuLabel) {
     haikuLabel.style.borderColor = current === 'haiku'  ? '#0ea5a0' : 'var(--border)';
     haikuLabel.style.background  = current === 'haiku'  ? '#f0fdfa' : 'transparent';
@@ -95,8 +85,6 @@ var DISORDER_EMOJI = {
 };
 var CHILD_COLORS = ['#0ea5a0','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];
 
-// ─────── DB ───────
-// ─────── 선생님 색상 팔레트 ───────
 var TEACHER_COLORS = [
   '#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981',
   '#8b5cf6','#f97316','#06b6d4','#84cc16','#ec4899',
@@ -112,9 +100,8 @@ function getTeacherColor(name) {
   return _teacherColorMap[name];
 }
 
-// ─────── Supabase 설정 ───────
 var SUPA_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co';
-var CENTER_SESSION_INTERVAL = 40; // 기본값 40분
+var CENTER_SESSION_INTERVAL = 40;
 
 function loadCenterSessionInterval() {
   var cid = getCenterId();
@@ -127,15 +114,12 @@ function loadCenterSessionInterval() {
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 var EDGE_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';
-var _madiToken = null; // JWT 토큰 (메모리 캐시)
-// ★ 보안 강화: anon key 소스코드 제거 완료 (Edge Function --no-verify-jwt 적용 필요)
+var _madiToken = null;
 
-// JWT 토큰 관리
 function getToken()       { return _madiToken || localStorage.getItem('madi_token') || ''; }
 function setToken(t)      { _madiToken = t; localStorage.setItem('madi_token', t); }
 function clearToken()     { _madiToken = null; localStorage.removeItem('madi_token'); }
 
-// localStorage 안전 저장 — QuotaExceededError 대응 (5MB 한계 초과 시 데이터 손실 방지)
 function safeSetItem(key, value) {
   try {
     localStorage.setItem(key, value);
@@ -170,11 +154,8 @@ function supaFetch(path, method, body) {
   });
 }
 
-// ─────── 현재 로그인 사용자 ───────
 var currentUser = null;
 
-// 현재 사용자의 center_id 반환 헬퍼
-// SHA-256 해싱 (Web Crypto API — 브라우저 내장)
 function hashPassword(pw) {
   var enc = new TextEncoder();
   return crypto.subtle.digest('SHA-256', enc.encode(pw))
@@ -185,20 +166,17 @@ function hashPassword(pw) {
     });
 }
 
-// 현재 센터 ID 반환 — 로그인 안 됐으면 빈 문자열 (데이터 접근 차단)
 function getCenterId() {
   return (currentUser && currentUser.center_id) ? currentUser.center_id : '';
 }
 
-// center_id 필터 쿼리 파라미터 반환
 function centerFilter() {
-  if (currentUser && currentUser.role === 'admin') return 'center_id=not.is.null'; // 관리자는 전체 센터 조회
+  if (currentUser && currentUser.role === 'admin') return 'center_id=not.is.null';
   var cid = getCenterId();
-  if (!cid) return 'center_id=eq.INVALID'; // 로그인 전 데이터 접근 차단
+  if (!cid) return 'center_id=eq.INVALID';
   return 'center_id=eq.' + cid;
 }
 
-// ─────── 로그인 화면 ───────
 function showLanding() {
   var el = document.getElementById('landingScreen');
   if (el) el.style.display = 'flex';
@@ -217,12 +195,10 @@ function showLoginScreen() {
   document.getElementById('loginScreen').style.display = 'flex';
   loadUserList();
 }
-
 function hideLoginScreen() {
   document.getElementById('loginScreen').style.display = 'none';
   showDashboard();
 }
-
 function loadUserList() {
   var un  = document.getElementById('loginUsernameInput');
   var pw  = document.getElementById('loginPwInput');
@@ -238,9 +214,6 @@ function loadUserList() {
   }
 }
 
-// selectUser / backToUserList — 계정 목록 방식 폐지로 제거됨
-
-// ─────── 신규 가입 ───────
 var _inviteCheckTimer = null;
 function onInviteCodeInput() {
   if (_inviteCheckTimer) clearTimeout(_inviteCheckTimer);
@@ -255,7 +228,6 @@ function onInviteCodeInput() {
       .then(function(centers) {
         if (Array.isArray(centers) && centers.length > 0) {
           var c = centers[0];
-          // 만료 검증
           if (c.invite_expires_at) {
             var exp = new Date(c.invite_expires_at);
             if (!isNaN(exp.getTime()) && exp - new Date() < 0) {
@@ -271,9 +243,7 @@ function onInviteCodeInput() {
           label.textContent = '⚠️ 유효하지 않은 코드입니다';
         }
       })
-      .catch(function() {
-        label.textContent = '';
-      });
+      .catch(function() { label.textContent = ''; });
   }, 500);
 }
 
@@ -281,7 +251,6 @@ function showSignupScreen() {
   hideLanding();
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('signupScreen').style.display = 'flex';
-  // 입력 초기화
   ['signupInviteCode','signupName','signupUsername','signupPassword','signupPasswordConfirm'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.value = '';
@@ -303,66 +272,44 @@ function doSignup() {
   var errEl = document.getElementById('signupError');
   var btn   = document.getElementById('signupSubmitBtn');
   errEl.textContent = '';
-
   var inviteCode = (document.getElementById('signupInviteCode').value || '').trim().toUpperCase();
   var name       = (document.getElementById('signupName').value || '').trim();
   var username   = (document.getElementById('signupUsername').value || '').trim();
   var pw         = document.getElementById('signupPassword').value || '';
   var pwConfirm  = document.getElementById('signupPasswordConfirm').value || '';
-
-  // 1) 빈 칸 검사
   if (!inviteCode) { errEl.textContent = '초대 코드를 입력해주세요.'; return; }
   if (!name)       { errEl.textContent = '이름을 입력해주세요.'; return; }
   if (!username)   { errEl.textContent = '아이디를 입력해주세요.'; return; }
   if (!pw)         { errEl.textContent = '비밀번호를 입력해주세요.'; return; }
   if (!pwConfirm)  { errEl.textContent = '비밀번호 확인을 입력해주세요.'; return; }
-
-  // 2) 형식 검사
   if (username.length < 4) { errEl.textContent = '아이디는 4자 이상이어야 합니다.'; return; }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) { errEl.textContent = '아이디는 영문/숫자/언더바(_)만 사용 가능합니다.'; return; }
   var pwErr = validatePasswordStrength(pw);
   if (pwErr) { errEl.textContent = pwErr; return; }
   if (pw !== pwConfirm) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; return; }
-
-  // 진행 중 표시 + 더블클릭 차단
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '확인 중...';
-
-  // 3) 초대 코드 검증 (만료 포함)
   supaFetch('madi_centers?invite_code=eq.' + encodeURIComponent(inviteCode) + '&select=id,name,invite_expires_at', 'GET')
     .then(function(centers) {
-      if (!Array.isArray(centers) || centers.length === 0) {
-        throw new Error('유효하지 않은 초대 코드입니다.');
-      }
+      if (!Array.isArray(centers) || centers.length === 0) throw new Error('유효하지 않은 초대 코드입니다.');
       var center = centers[0];
-      // 만료 검증
       if (center.invite_expires_at) {
         var exp = new Date(center.invite_expires_at);
-        if (!isNaN(exp.getTime()) && exp - new Date() < 0) {
-          throw new Error('만료된 초대 코드입니다. 관리자에게 새 코드를 요청해주세요.');
-        }
+        if (!isNaN(exp.getTime()) && exp - new Date() < 0) throw new Error('만료된 초대 코드입니다. 관리자에게 새 코드를 요청해주세요.');
       }
-      // 4) 아이디 중복 검사
       return supaFetch('madi_users?username=eq.' + encodeURIComponent(username) + '&select=id', 'GET')
         .then(function(rows) {
-          if (Array.isArray(rows) && rows.length > 0) {
-            throw new Error('이미 사용 중인 아이디입니다.');
-          }
+          if (Array.isArray(rows) && rows.length > 0) throw new Error('이미 사용 중인 아이디입니다.');
           return center;
         });
     })
     .then(function(center) {
-      // 5) 비밀번호 해싱 후 INSERT
       return hashPassword(pw).then(function(hashed) {
         var newUser = {
-          id: generateClientId(),
-          username: username,
-          name: name,
-          password: hashed,
-          role: 'teacher',
-          center_id: center.id,
+          id: generateClientId(), username: username, name: name,
+          password: hashed, role: 'teacher', center_id: center.id,
           color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),
           permissions: { viewOtherChildren:true, deleteSession:true, useAI:true }
         };
@@ -371,25 +318,15 @@ function doSignup() {
       });
     })
     .then(function(result) {
-      // 6) 자동 로그인 — currentUser 세팅 + 메인 화면 진입
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '✨ 가입하기';
-      // 비밀번호 제외하고 currentUser에 저장
+      btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '✨ 가입하기';
       currentUser = {
-        id: result.user.id,
-        username: result.user.username,
-        name: result.user.name,
-        role: result.user.role,
-        color: result.user.color,
-        center_id: result.user.center_id,
-        permissions: result.user.permissions
+        id: result.user.id, username: result.user.username, name: result.user.name,
+        role: result.user.role, color: result.user.color,
+        center_id: result.user.center_id, permissions: result.user.permissions
       };
       try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); } catch(e) {}
-      // 가입 화면 + 로그인 화면 모두 숨김
       document.getElementById('signupScreen').style.display = 'none';
       hideLoginScreen();
-      // 메인 화면 초기화 (doLogin과 동일 흐름)
       if (typeof applyUserUI === 'function') applyUserUI();
       if (typeof applyRoleUI === 'function') applyRoleUI();
       if (typeof loadCenterApiKey === 'function') loadCenterApiKey();
@@ -399,9 +336,7 @@ function doSignup() {
       showToast('🎉 환영합니다, ' + result.user.name + ' ' + roleLabel + '! (' + result.center.name + ')');
     })
     .catch(function(err) {
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '✨ 가입하기';
+      btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '✨ 가입하기';
       errEl.textContent = '❌ ' + (err.message || '가입에 실패했습니다.');
     });
 }
@@ -413,37 +348,24 @@ function doLogin() {
   var btn = document.getElementById('loginSubmitBtn');
   var un = unEl ? unEl.value.trim() : '';
   var pw = pwEl ? pwEl.value : '';
-
   if (errEl) errEl.textContent = '';
   if (!un) { if (errEl) errEl.textContent = '아이디를 입력해주세요.'; return; }
   if (!pw) { if (errEl) errEl.textContent = '비밀번호를 입력해주세요.'; return; }
-
-  // 시도 차단 체크 (5회 실패 → 30분, 클라이언트 1차 방어)
   var blockMsg = checkLoginBlocked(un);
   if (blockMsg) { if (errEl) errEl.textContent = blockMsg; return; }
-
   if (btn) {
     if (btn.dataset.busy === '1') return;
-    btn.dataset.busy = '1';
-    btn.disabled = true;
-    btn.textContent = '로그인 중...';
+    btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '로그인 중...';
   }
-
   fetchWithRetry(EDGE_URL + '/login', {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: un, password: pw })
   }, { retries: 1, label: '로그인' })
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
-    if (data.error) {
-      recordLoginFail(un);
-      if (errEl) errEl.textContent = data.error;
-      return;
-    }
+    if (data.error) { recordLoginFail(un); if (errEl) errEl.textContent = data.error; return; }
     recordLoginSuccess(un);
     setToken(data.token);
     currentUser = data.user;
@@ -455,7 +377,6 @@ function doLogin() {
     loadCenterApiKey();
     loadDBFromSupabase();
     initRealtime();
-    // 세션 시간 단위 로드
     loadCenterSessionInterval();
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
@@ -463,9 +384,6 @@ function doLogin() {
   });
 }
 
-// 엔터키 로그인
-// ─────── 마디 로고 SVG 단일 관리 함수 ───────
-// 로고를 수정할 때 이 함수 하나만 고치면 4곳(헤더·랜딩·로그인·가입) 전체 반영됩니다.
 function getMadiLogoSVG(w, h) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="' + w + '" height="' + h + '">'
     + '<rect width="130" height="130" rx="28" fill="#e8f5f0"/>'
@@ -478,27 +396,12 @@ function getMadiLogoSVG(w, h) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  // 사이드바 접힘 상태 복원
   restoreSidebarState();
-
-  // SVG 로고 4곳 자동 주입 — 비활성화됨 (A7 base64 아이콘 사용을 위해 2026-05-12)
-  // var lpNav = document.querySelector('.lp-nav-logo-icon');
-  // if (lpNav) lpNav.innerHTML = getMadiLogoSVG(44, 44);
-  // document.querySelectorAll('.login-logo-icon').forEach(function(el) {
-  //   el.innerHTML = getMadiLogoSVG(34, 34);
-  // });
-  // var logoIcon = document.querySelector('.logo-icon');
-  // if (logoIcon) logoIcon.innerHTML = getMadiLogoSVG(22, 22);
-
-  // Enter 키 로그인 처리
   var pwInput = document.getElementById('loginPwInput');
   if (pwInput) pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
   var unInput = document.getElementById('loginUsernameInput');
   if (unInput) unInput.addEventListener('keydown', function(e){
-    if (e.key === 'Enter') {
-      var pw = document.getElementById('loginPwInput');
-      if (pw) pw.focus();
-    }
+    if (e.key === 'Enter') { var pw = document.getElementById('loginPwInput'); if (pw) pw.focus(); }
   });
 });
 
@@ -513,7 +416,7 @@ function applyUserUI() {
     headerUserBadge.textContent = '학부모';
     headerUserBadge.style.background = 'rgba(245,158,11,0.25)';
     headerUserBadge.style.borderColor = 'rgba(245,158,11,0.5)';
-    applyParentUI(); // 학부모 전용 UI 적용
+    applyParentUI();
   } else {
     headerUserBadge.textContent = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
     if (typeof resetParentUI === 'function') resetParentUI(); // ★ 학부모 UI 원복
@@ -535,10 +438,9 @@ function showLogoutMenu() {
   }
 }
 
-// ─────── Supabase DB 로드 / 저장 ───────
 function loadDBFromSupabase(silent) {
   if (!silent) showToast('📡 데이터 불러오는 중...');
-  _optionsCacheKey = null;  // 성능: 외부 데이터 로드 시 캐시 무효화
+  _optionsCacheKey = null;
   Promise.all([
     supaFetch('madi_children?'    + centerFilter() + '&select=id,data&order=id.asc'),
     supaFetch('madi_sessions?'    + centerFilter() + '&select=id,data&order=id.asc'),
@@ -554,12 +456,8 @@ function loadDBFromSupabase(silent) {
     var supaSe  = safeMap(results[1]);
     var supaSch = safeMap(results[2]);
     var supaAs  = safeMap(results[3]);
-
-    // ── Supabase 비어있고 로컬에 데이터 있으면 자동 마이그레이션 ──
     var localCh = [];
     try { localCh = JSON.parse(localStorage.getItem('cn3_children') || '[]'); } catch(e){}
-
-    // 부분동기화 감지: 서버 데이터가 로컬의 70% 미만이면 차단
     if (supaCh.length > 0 && localCh.length > 0 && supaCh.length < localCh.length * 0.7) {
       console.warn('[loadDB] 부분동기화 차단 — 서버:', supaCh.length, '/ 로컬:', localCh.length);
       showToast('⚠️ 서버 데이터 불일치 감지 — 로컬 데이터 유지');
@@ -575,40 +473,25 @@ function loadDBFromSupabase(silent) {
       saveChildren(); saveSessions(); saveSchedule(); saveAssess();
       showToast('☁️ 기존 데이터 ' + childDB.length + '명 → Supabase 자동 업로드 완료!');
     } else {
-      childDB      = supaCh;
-      sessionDB    = supaSe;
-      scheduleDB   = supaSch;
-      assessmentDB = supaAs;
-      if (silent) { /* 백그라운드 폴링 — 토스트 없음 */ }
+      childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
+      if (silent) {}
       else showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
     }
-
-    renderChildGrid();
-    populateChildSelects();
-    renderGoalRows();
-    renderSessionList();
-    renderUnwrittenAlert();
-    renderStaffCard();
+    renderChildGrid(); populateChildSelects(); renderGoalRows();
+    renderSessionList(); renderUnwrittenAlert(); renderStaffCard();
     if (typeof renderSchedView === 'function') renderSchedView();
     if (typeof renderDashboard === 'function') renderDashboard();
-    loadActivitiesFromSupa();
-    loadIEPFromSupa();
-    // 로그인 직후 공지 배너 자동 표시
-    setTimeout(function() {
-      if (typeof loadNotices === 'function') loadNotices();
-    }, 600);
+    loadActivitiesFromSupa(); loadIEPFromSupa();
+    setTimeout(function() { if (typeof loadNotices === 'function') loadNotices(); }, 600);
   }).catch(function(e) {
     console.error('loadDB 실패:', e);
     showToast('❌ 데이터 로드 실패 — 로컬 데이터로 표시합니다');
-    loadDB();
-    renderChildGrid();
-    populateChildSelects();
+    loadDB(); renderChildGrid(); populateChildSelects();
   });
 }
 
 function saveChildren() {
-  markMyChange();
-  _optionsCacheKey = null;
+  markMyChange(); _optionsCacheKey = null;
   safeSetItem('cn3_children', JSON.stringify(childDB));
   if (childDB.length === 0) return;
   var cid = getCenterId();
@@ -616,15 +499,12 @@ function saveChildren() {
   var batches = [];
   for (var i = 0; i < rows.length; i += 50) { batches.push(rows.slice(i, i + 50)); }
   batches.reduce(function(p, batch) {
-    return p.then(function() {
-      return supaFetch('madi_children?on_conflict=id', 'POST', batch);
-    });
+    return p.then(function() { return supaFetch('madi_children?on_conflict=id', 'POST', batch); });
   }, Promise.resolve()).catch(function(e) {
     console.error('아동 저장 실패:', e);
     showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요');
   });
 }
-// ─────── 저장 실패 메시지 헬퍼 ───────
 function getSaveErrMsg(e, label) {
   var msg = e && e.message ? e.message : '';
   if (!navigator.onLine) return label + ' 저장 실패 — 인터넷 연결을 확인해주세요';
@@ -632,10 +512,8 @@ function getSaveErrMsg(e, label) {
   if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1) return label + ' 저장 실패 — 서버 응답 없음, 잠시 후 재시도해주세요';
   return label + ' 저장 실패 — 잠시 후 다시 시도해주세요';
 }
-
 function saveSessions() {
-  markMyChange();
-  safeSetItem('cn3_sessions', JSON.stringify(sessionDB));
+  markMyChange(); safeSetItem('cn3_sessions', JSON.stringify(sessionDB));
   if (sessionDB.length === 0) return;
   var cid = getCenterId();
   var rows = sessionDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; });
@@ -646,8 +524,7 @@ function saveSessions() {
   }, Promise.resolve()).catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '세션')); });
 }
 function saveSchedule() {
-  markMyChange();
-  safeSetItem('cn3_schedule', JSON.stringify(scheduleDB));
+  markMyChange(); safeSetItem('cn3_schedule', JSON.stringify(scheduleDB));
   if (scheduleDB.length === 0) return;
   var cid = getCenterId();
   var rows = scheduleDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; });
@@ -658,8 +535,7 @@ function saveSchedule() {
   }, Promise.resolve()).catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '일정')); });
 }
 function saveAssess() {
-  markMyChange();
-  safeSetItem('cn3_assess', JSON.stringify(assessmentDB));
+  markMyChange(); safeSetItem('cn3_assess', JSON.stringify(assessmentDB));
   if (assessmentDB.length === 0) return;
   var cid = getCenterId();
   var rows = assessmentDB.map(function(a){ return { id: a.id, center_id: cid, data: a }; });
@@ -688,7 +564,6 @@ function saveIEP() {
   if (rows.length === 0) return;
   supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
-
 function loadIEPFromSupa() {
   supaFetch('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc', 'GET')
     .then(function(rows) {
@@ -700,17 +575,14 @@ function loadIEPFromSupa() {
         safeSetItem('cn3_iep', JSON.stringify(iepDB));
         renderIEPHistory(parseInt(document.getElementById('iepChild').value) || 0);
       }
-    })
-    .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
+    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
-
 function saveActivities() {
   safeSetItem('cn3_activities', JSON.stringify(activityDB));
   var cid = getCenterId();
   var rows = activityDB.map(function(a){ return Object.assign({}, a, { center_id: cid }); });
   supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
-
 function loadActivitiesFromSupa() {
   supaFetch('madi_activities?' + centerFilter() + '&order=id.asc', 'GET')
     .then(function(rows) {
@@ -719,15 +591,11 @@ function loadActivitiesFromSupa() {
         safeSetItem('cn3_activities', JSON.stringify(activityDB));
         renderActivityCatalog();
       }
-    })
-    .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
+    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
-// ─────── Toast ───────
-var toastTimer       = null;
-var toastForceTimer  = null; // 강제 숨김 타이머: 첫 표시 후 절대 리셋되지 않음
-var toastLocked      = false; // lock 중 다른 toast 차단 (배포완료 등 중요 메시지 보호)
-// ─────── 성능 최적화: debounce + 페이징 + 옵션 캐시 ───────
+var toastTimer = null, toastForceTimer = null, toastLocked = false;
+
 function debounce(fn, delay) {
   var timer = null;
   return function() {
@@ -736,18 +604,11 @@ function debounce(fn, delay) {
     timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
   };
 }
-
-// 아동 그리드 페이징
-var CHILD_PAGE_SIZE = 50;
-var _childCurrentPage = 1;
-
-// select 옵션 HTML 캐시
-var _optionsCacheKey = null;
-var _optionsCacheHtml = '';
+var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1;
+var _optionsCacheKey = null, _optionsCacheHtml = '';
 
 function showToast(msg, opts) {
   opts = opts || {};
-  // lock 중이면 새 toast 무시 (중요 메시지가 덮어써지는 것 방지)
   if (toastLocked && !opts.force) return;
   var el = document.getElementById('toast');
   if (opts.undo && typeof opts.undo === 'function') {
@@ -755,45 +616,28 @@ function showToast(msg, opts) {
     el.style.pointerEvents = 'auto';
     setTimeout(function() {
       var b = document.getElementById('toastUndoBtn');
-      if (b) b.onclick = function(e) {
-        e.stopPropagation();
-        opts.undo();
-        el.classList.remove('show');
-        toastLocked = false;
-      };
+      if (b) b.onclick = function(e) { e.stopPropagation(); opts.undo(); el.classList.remove('show'); toastLocked = false; };
     }, 0);
   } else {
-    el.textContent = msg;
-    el.style.pointerEvents = 'auto';
+    el.textContent = msg; el.style.pointerEvents = 'auto';
   }
-  // 클릭하면 즉시 닫기
   el.onclick = function() {
     el.classList.remove('show');
     clearTimeout(toastTimer); clearTimeout(toastForceTimer);
     toastTimer = null; toastForceTimer = null; toastLocked = false;
   };
-
-  // 토스트가 새로 표시되는 경우(이미 표시중이 아닐 때)만 강제 숨김 타이머 시작
-  // 이 타이머는 새 showToast 호출이 와도 절대 리셋되지 않음 → 최대 5초 보장
   var wasShowing = el.classList.contains('show');
   el.classList.add('show');
   if (!wasShowing) {
     clearTimeout(toastForceTimer);
     var maxDuration = opts.lock ? (opts.duration || 8000) : 5000;
-    toastForceTimer = setTimeout(function() {
-      el.classList.remove('show');
-      toastLocked = false;
-      toastForceTimer = null;
-    }, maxDuration);
+    toastForceTimer = setTimeout(function() { el.classList.remove('show'); toastLocked = false; toastForceTimer = null; }, maxDuration);
   }
-
-  // 짧은 자동 숨김 (덮어써질 수 있음, 일반 토스트의 자연스러운 표시 시간)
   clearTimeout(toastTimer);
   var duration = opts.duration || (opts.undo ? 5000 : 2500);
   if (opts.lock) toastLocked = true;
   toastTimer = setTimeout(function() { el.classList.remove('show'); toastLocked = false; }, duration);
 }
-// 탭 전환 후 돌아올 때 잔류 토스트 강제 숨김
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
     clearTimeout(toastTimer); clearTimeout(toastForceTimer);
@@ -803,23 +647,17 @@ document.addEventListener('visibilitychange', function() {
   }
 });
 
-// ─────── UX: 진동 피드백 (모바일) ───────
 function vibrate(pattern) {
-  try {
-    if (navigator.vibrate) navigator.vibrate(pattern || 30);
-  } catch(e) {}
+  try { if (navigator.vibrate) navigator.vibrate(pattern || 30); } catch(e) {}
 }
 
-// ─────── UX: 다크 모드 ───────
 function toggleDarkMode() {
   var isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('madi_dark', isDark ? '1' : '0');
-  // 메타 테마 컬러도 변경
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', isDark ? '#020617' : '#0ea5a0');
   showToast(isDark ? '🌙 다크 모드' : '☀️ 라이트 모드');
 }
-
 function loadDarkMode() {
   var saved = localStorage.getItem('madi_dark');
   if (saved === '1') {
@@ -829,18 +667,14 @@ function loadDarkMode() {
   }
 }
 
-// ─────── UX: 헤더 시계 + 다음 세션 카운트다운 ───────
 function updateHeaderClock() {
   var timeEl = document.getElementById('clockTime');
   var nextEl = document.getElementById('clockNext');
   if (!timeEl || !nextEl) return;
-
   var now = new Date();
   var hh = String(now.getHours()).padStart(2, '0');
   var mm = String(now.getMinutes()).padStart(2, '0');
   timeEl.textContent = hh + ':' + mm;
-
-  // 다음 세션 찾기 (오늘 일정 중 현재 시각 이후)
   var today = now.toISOString().slice(0, 10);
   var nowMin = now.getHours() * 60 + now.getMinutes();
   var upcoming = (typeof scheduleDB !== 'undefined' ? scheduleDB : [])
@@ -850,7 +684,6 @@ function updateHeaderClock() {
       return parseInt(parts[0]) * 60 + parseInt(parts[1]) >= nowMin;
     })
     .sort(function(a, b) { return a.startTime.localeCompare(b.startTime); });
-
   if (upcoming.length > 0) {
     var next = upcoming[0];
     var child = (typeof childDB !== 'undefined' ? childDB : []).find(function(c){ return c.id === next.childId; });
@@ -867,64 +700,42 @@ function updateHeaderClock() {
     nextEl.textContent = count > 0 ? '아동 ' + count + '명' : '오늘 일정 없음';
   }
 }
-
-// 1분마다 갱신 + 페이지 표시될 때마다 즉시 갱신
 var _clockTimer = null;
 function startHeaderClock() {
   updateHeaderClock();
   if (_clockTimer) clearInterval(_clockTimer);
   _clockTimer = setInterval(updateHeaderClock, 60000);
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) updateHeaderClock();
-  });
+  document.addEventListener('visibilitychange', function() { if (!document.hidden) updateHeaderClock(); });
 }
 
-// ─────── 공통 AI 호출 ───────
-// ─────── 견고함 보강: 재시도 + 오프라인 감지 ───────
 function fetchWithRetry(url, options, opts) {
   opts = opts || {};
   var maxRetries = opts.retries !== undefined ? opts.retries : 3;
   var baseDelay  = opts.delay   !== undefined ? opts.delay   : 1000;
   var label      = opts.label   || '요청';
   var onSlow     = opts.onSlow;
-
-  // POST는 멱등성 보장 안 됨 → 명시적 허용 시에만 재시도
-  if ((options.method || 'GET').toUpperCase() === 'POST' && !opts.allowPostRetry) {
-    maxRetries = 0;
-  }
-
+  if ((options.method || 'GET').toUpperCase() === 'POST' && !opts.allowPostRetry) maxRetries = 0;
   var attempt = 0;
-  var slowTimer = setTimeout(function() {
-    if (typeof onSlow === 'function') onSlow();
-  }, 5000);
-
+  var slowTimer = setTimeout(function() { if (typeof onSlow === 'function') onSlow(); }, 5000);
   function doFetch() {
     return fetch(url, options).then(function(res) {
-      // 5xx 또는 429는 재시도 대상
-      if ((res.status >= 500 || res.status === 429) && attempt < maxRetries) {
-        throw new Error('RETRY:' + res.status);
-      }
-      clearTimeout(slowTimer);
-      return res;
+      if ((res.status >= 500 || res.status === 429) && attempt < maxRetries) throw new Error('RETRY:' + res.status);
+      clearTimeout(slowTimer); return res;
     }).catch(function(err) {
       var isRetriable = err.message && err.message.startsWith('RETRY:');
       var isNetwork   = err.message && err.message.includes('Failed to fetch');
-
       if ((isRetriable || isNetwork) && attempt < maxRetries) {
         attempt++;
         var delay = baseDelay * Math.pow(2, attempt - 1);
         console.log('[' + label + '] 재시도 ' + attempt + '/' + maxRetries + ' (' + delay + 'ms 후)');
         return new Promise(function(resolve) { setTimeout(resolve, delay); }).then(doFetch);
       }
-      clearTimeout(slowTimer);
-      throw err;
+      clearTimeout(slowTimer); throw err;
     });
   }
-
   return doFetch();
 }
 
-// ─────── 오프라인 감지 ───────
 function setupNetworkMonitor() {
   function showOfflineBanner() {
     if (document.getElementById('offlineBanner')) return;
@@ -936,28 +747,19 @@ function setupNetworkMonitor() {
   }
   function hideOfflineBanner() {
     var b = document.getElementById('offlineBanner');
-    if (b) {
-      b.style.background = '#10b981';
-      b.innerHTML = '✅ 인터넷 연결 복구';
-      setTimeout(function() { b.remove(); }, 2500);
-    }
+    if (b) { b.style.background = '#10b981'; b.innerHTML = '✅ 인터넷 연결 복구'; setTimeout(function() { b.remove(); }, 2500); }
   }
   window.addEventListener('online',  hideOfflineBanner);
   window.addEventListener('offline', showOfflineBanner);
-  // 초기 상태 확인
   if (!navigator.onLine) showOfflineBanner();
 }
 
-
 // ★ 학부모 전용 UI 적용 (좌측 사이드바 버전)
 function applyParentUI() {
-  // 치료사 탭바 숨김
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = 'none';
-  // 상단 parentTabs 숨김 (좌측 사이드바로 대체)
   var parentTabs = document.getElementById('parentTabs');
   if (parentTabs) parentTabs.style.cssText = 'display: none !important;';
-  // 기존 치료사 사이드바 숨김
   var sidebar = document.getElementById('appSidebar');
   if (sidebar) sidebar.style.display = 'none';
   var sidebarToggle = document.getElementById('sidebarToggleBtn');
@@ -966,13 +768,10 @@ function applyParentUI() {
   if (breadcrumb) breadcrumb.style.display = 'none';
   var deployBtn = document.getElementById('headerDeployBtn');
   if (deployBtn) deployBtn.style.display = 'none';
-  // 기존 탭 패널 모두 숨김
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
     if (!el.id.startsWith('parentPanel')) el.style.display = 'none';
   });
-  // 학부모 전용 좌측 사이드바 생성/표시
   _initParentSidebar();
-  // 학부모 홈 탭 표시
   switchParentTab('home');
 }
 
@@ -996,53 +795,40 @@ function _initParentSidebar() {
     + '<span class="psb-icon">📢</span><span class="psb-label">공지</span>'
     + '</button>';
   document.body.appendChild(sb);
-  // 메인 콘텐츠 영역 좌측 여백 확보
+  sb.style.display = 'flex'; // ★ CSS 기본값 none → 생성 직후 즉시 표시
   var appMain = document.getElementById('appMain');
   if (appMain) appMain.style.paddingLeft = '72px';
 }
 
 // ★ 학부모 UI 원복 — 다른 역할로 재로그인 시 호출
 function resetParentUI() {
-  // 학부모 사이드바 숨김
   var psb = document.getElementById('parentSidebar');
   if (psb) psb.style.display = 'none';
-  // 치료사 탭바 복원
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = '';
-  // 사이드바/토글/breadcrumb 복원
   var sidebar = document.getElementById('appSidebar');
   if (sidebar) sidebar.style.display = '';
   var sidebarToggle = document.getElementById('sidebarToggleBtn');
   if (sidebarToggle) sidebarToggle.style.display = '';
   var breadcrumb = document.querySelector('.breadcrumb-bar');
   if (breadcrumb) breadcrumb.style.display = '';
-  // 치료사 탭 패널 display 복원
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
     if (!el.id.startsWith('parentPanel')) el.style.display = '';
   });
-  // 메인 영역 좌측 여백 원복
   var appMain = document.getElementById('appMain');
   if (appMain) appMain.style.paddingLeft = '';
 }
 
-// 학부모 대시보드 데이터 로드
 function loadParentDashboard() {
   if (!currentUser || currentUser.role !== 'parent') return;
-  // 내 아동 ID 목록 조회
   supaFetch('madi_parent_children?parent_user_id=eq.' + currentUser.id + '&select=child_id,center_id', 'GET')
     .then(function(links) {
       if (!Array.isArray(links) || links.length === 0) return;
-      var childId   = links[0].child_id;
-      var centerId  = links[0].center_id;
-      window._parentChildId   = childId;
-      window._parentCenterId  = centerId;
-      // 홈 카드에 내 아동 스케줄/리포트 표시 (추후 확장)
+      window._parentChildId  = links[0].child_id;
+      window._parentCenterId = links[0].center_id;
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
-
-// ─────── 글로벌 에러 핸들러 ───────
-// ─────── 상단 탭바 '더보기' 메뉴 ───────
 function toggleMoreMenu(e) {
   if (e) { e.stopPropagation(); }
   var menu = document.getElementById('moreMenu');
@@ -1053,19 +839,15 @@ function closeMoreMenu() {
   var menu = document.getElementById('moreMenu');
   if (menu) menu.style.display = 'none';
 }
-// 외부 클릭 시 메뉴 자동 닫기
 document.addEventListener('click', function(e) {
   var menu = document.getElementById('moreMenu');
   if (!menu || menu.style.display === 'none') return;
   var moreBtn = document.getElementById('tabBtnMore');
-  if (moreBtn && moreBtn.contains(e.target)) return;  // 더보기 버튼 자체 클릭은 toggle이 처리
-  if (menu.contains(e.target)) return;  // 메뉴 안 클릭은 닫지 않음 (개별 항목이 닫음)
+  if (moreBtn && moreBtn.contains(e.target)) return;
+  if (menu.contains(e.target)) return;
   closeMoreMenu();
 });
 
-// ─── 권한 체크 유틸 ───
-// 사용 예: var flags = getRoleFlags(); if (flags.isAdminOrSuper) { ... }
-// 향후 새 권한 체크는 이 헬퍼를 통해 일관되게 처리할 것
 function getRoleFlags(user) {
   user = user || (typeof currentUser !== 'undefined' ? currentUser : null);
   if (!user || !user.role) {
@@ -1073,33 +855,24 @@ function getRoleFlags(user) {
   }
   var r = user.role;
   return {
-    isAuth:         true,
-    isSuper:        r === 'superadmin',
-    isAdmin:        r === 'admin',
-    isTeacher:      r === 'teacher',
-    isParent:       r === 'parent',
+    isAuth: true, isSuper: r === 'superadmin', isAdmin: r === 'admin',
+    isTeacher: r === 'teacher', isParent: r === 'parent',
     isAdminOrSuper: r === 'admin' || r === 'superadmin'
   };
 }
 
-// ─── 비밀번호 정책 + 로그인 시도 차단 (cowork High #1, #2) ───
-// 정책: 8자 이상 + 영문 + 숫자 혼합
 function validatePasswordStrength(pw) {
   if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
   if (!/[a-zA-Z]/.test(pw)) return '비밀번호에 영문을 포함해주세요.';
   if (!/[0-9]/.test(pw))    return '비밀번호에 숫자를 포함해주세요.';
-  return null; // 통과
+  return null;
 }
 
-// 로그인 시도 차단 (5회 실패 → 30분 차단, 클라이언트 측 1차 방어)
-// 한계: localStorage 지우면 우회 가능 — 서버 측 차단이 본질
 function _getLoginBlockData(username) {
   try {
     var raw = localStorage.getItem('login_block_' + username);
     return raw ? JSON.parse(raw) : { attempts: 0, blockedUntil: 0 };
-  } catch(e) {
-    return { attempts: 0, blockedUntil: 0 };
-  }
+  } catch(e) { return { attempts: 0, blockedUntil: 0 }; }
 }
 function checkLoginBlocked(username) {
   if (!username) return null;
@@ -1115,9 +888,7 @@ function recordLoginFail(username) {
   try {
     var data = _getLoginBlockData(username);
     data.attempts = (data.attempts || 0) + 1;
-    if (data.attempts >= 5) {
-      data.blockedUntil = Date.now() + 30 * 60 * 1000; // 30분
-    }
+    if (data.attempts >= 5) data.blockedUntil = Date.now() + 30 * 60 * 1000;
     localStorage.setItem('login_block_' + username, JSON.stringify(data));
   } catch(e) {}
 }
@@ -1126,9 +897,6 @@ function recordLoginSuccess(username) {
   try { localStorage.removeItem('login_block_' + username); } catch(e) {}
 }
 
-// ─── ID 생성 유틸 (cowork High #5) ───
-// 자릿수 유지 + crypto 진짜 난수 + 충돌 1/10000 (기존 대비 10배 개선)
-// 진짜 해결: DB 컬럼 BIGINT 확인 후 Date.now()*1000+r 또는 UUID v4 (별도 트랙)
 function generateClientId() {
   var rnd;
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
