@@ -467,7 +467,7 @@ function doLogin() {
 // ─────── 마디 로고 SVG 단일 관리 함수 ───────
 // 로고를 수정할 때 이 함수 하나만 고치면 4곳(헤더·랜딩·로그인·가입) 전체 반영됩니다.
 function getMadiLogoSVG(w, h) {
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="' + w + '" height="' + h + '">' 
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="' + w + '" height="' + h + '">'
     + '<rect width="130" height="130" rx="28" fill="#e8f5f0"/>'
     + '<rect x="18" y="14" width="94" height="76" rx="18" fill="#2d6a4f"/>'
     + '<path d="M 26 90 L 16 112 L 52 90 Z" fill="#2d6a4f"/>'
@@ -516,6 +516,7 @@ function applyUserUI() {
     applyParentUI(); // 학부모 전용 UI 적용
   } else {
     headerUserBadge.textContent = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
+    if (typeof resetParentUI === 'function') resetParentUI(); // ★ 학부모 UI 원복
   }
   headerUser.style.display = 'flex';
   if (typeof updateSidebarAdminVisibility === 'function') updateSidebarAdminVisibility();
@@ -948,33 +949,80 @@ function setupNetworkMonitor() {
 }
 
 
-// 학부모 전용 UI 적용
+// ★ 학부모 전용 UI 적용 (좌측 사이드바 버전)
 function applyParentUI() {
-  // 치료사 탭바 숨기고 학부모 탭바 표시
+  // 치료사 탭바 숨김
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = 'none';
+  // 상단 parentTabs 숨김 (좌측 사이드바로 대체)
   var parentTabs = document.getElementById('parentTabs');
-  if (parentTabs) parentTabs.setAttribute('style', 'display: flex !important;');
-
-  // 사이드바 숨김 (학부모는 탭바만 사용)
+  if (parentTabs) parentTabs.style.cssText = 'display: none !important;';
+  // 기존 치료사 사이드바 숨김
   var sidebar = document.getElementById('appSidebar');
   if (sidebar) sidebar.style.display = 'none';
   var sidebarToggle = document.getElementById('sidebarToggleBtn');
   if (sidebarToggle) sidebarToggle.style.display = 'none';
   var breadcrumb = document.querySelector('.breadcrumb-bar');
   if (breadcrumb) breadcrumb.style.display = 'none';
-
-  // 배포 버튼 숨김
   var deployBtn = document.getElementById('headerDeployBtn');
   if (deployBtn) deployBtn.style.display = 'none';
-
   // 기존 탭 패널 모두 숨김
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
     if (!el.id.startsWith('parentPanel')) el.style.display = 'none';
   });
-
+  // 학부모 전용 좌측 사이드바 생성/표시
+  _initParentSidebar();
   // 학부모 홈 탭 표시
   switchParentTab('home');
+}
+
+// 학부모 좌측 사이드바 초기화 (최초 1회 생성, 이후 재사용)
+function _initParentSidebar() {
+  var existing = document.getElementById('parentSidebar');
+  if (existing) { existing.style.display = 'flex'; return; }
+  var sb = document.createElement('div');
+  sb.id = 'parentSidebar';
+  sb.innerHTML =
+    '<button id="ptBtnHome" class="psb-btn" onclick="switchParentTab(\'home\')">'
+    + '<span class="psb-icon">🏠</span><span class="psb-label">홈</span>'
+    + '</button>'
+    + '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">'
+    + '<span class="psb-icon">📅</span><span class="psb-label">일정</span>'
+    + '</button>'
+    + '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">'
+    + '<span class="psb-icon">📋</span><span class="psb-label">리포트</span>'
+    + '</button>'
+    + '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">'
+    + '<span class="psb-icon">📢</span><span class="psb-label">공지</span>'
+    + '</button>';
+  document.body.appendChild(sb);
+  // 메인 콘텐츠 영역 좌측 여백 확보
+  var appMain = document.getElementById('appMain');
+  if (appMain) appMain.style.paddingLeft = '72px';
+}
+
+// ★ 학부모 UI 원복 — 다른 역할로 재로그인 시 호출
+function resetParentUI() {
+  // 학부모 사이드바 숨김
+  var psb = document.getElementById('parentSidebar');
+  if (psb) psb.style.display = 'none';
+  // 치료사 탭바 복원
+  var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
+  if (staffTabs) staffTabs.style.display = '';
+  // 사이드바/토글/breadcrumb 복원
+  var sidebar = document.getElementById('appSidebar');
+  if (sidebar) sidebar.style.display = '';
+  var sidebarToggle = document.getElementById('sidebarToggleBtn');
+  if (sidebarToggle) sidebarToggle.style.display = '';
+  var breadcrumb = document.querySelector('.breadcrumb-bar');
+  if (breadcrumb) breadcrumb.style.display = '';
+  // 치료사 탭 패널 display 복원
+  document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
+    if (!el.id.startsWith('parentPanel')) el.style.display = '';
+  });
+  // 메인 영역 좌측 여백 원복
+  var appMain = document.getElementById('appMain');
+  if (appMain) appMain.style.paddingLeft = '';
 }
 
 // 학부모 대시보드 데이터 로드
