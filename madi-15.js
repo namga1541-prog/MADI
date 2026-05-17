@@ -1,6 +1,6 @@
-// ══════════════════════════════════════
+// ══════════════════════
 // madi-15.js — 학부모 포털 전용 로직
-// ══════════════════════════════════════
+// ══════════════════════
 
 var _parentCurrentTab = 'home';
 
@@ -10,9 +10,12 @@ function switchParentTab(tab) {
   var tabs = ['home','sched','report','notice'];
   tabs.forEach(function(t) {
     var panel = document.getElementById('parentPanel' + t.charAt(0).toUpperCase() + t.slice(1));
-    var btn   = document.getElementById('ptBtn' + t.charAt(0).toUpperCase() + t.slice(1));
     if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
-    if (btn)   btn.classList.toggle('active', t === tab);
+    // ★ 중복 ID 처리: parentTabs + 사이드바 버튼 모두 active 업데이트
+    var btnId = 'ptBtn' + t.charAt(0).toUpperCase() + t.slice(1);
+    document.querySelectorAll('[id="' + btnId + '"]').forEach(function(btn) {
+      btn.classList.toggle('active', t === tab);
+    });
   });
   if (tab === 'home')   loadParentHome();
   if (tab === 'sched')  loadParentSched();
@@ -54,7 +57,7 @@ function loadParentHome() {
         });
       }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
-    // 다음 일정 조회 (order=id.asc — date 컬럼 없음, 클라이언트에서 date 기준 재정렬)
+    // 다음 일정 조회 (order=id.asc — date 콜럼 없음, 클라이언트에서 date 기준 재정렬)
     supaFetch('madi_schedules?center_id=eq.' + centerId
       + '&order=id.asc&limit=20', 'GET')
       .then(function(rows) {
@@ -153,7 +156,6 @@ function loadParentSched() {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
     var today = new Date().toISOString().slice(0,10);
 
-    // order=id.asc — date 컬럼 없음, 클라이언트 filter에서 date 기준 처리
     supaFetch('madi_schedules?center_id=eq.' + centerId + '&order=id.asc', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) { el.innerHTML = '<div class="empty"><p>일정 없음</p></div>'; return; }
@@ -259,14 +261,12 @@ function loadParentNotice() {
   });
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════
 // 🔔 학부모 앱 내 알림 카드 (Phase 1A)
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════
 
-// 학부모용 미확인 알림 로드 + 렌더링
 function loadParentNotifications() {
   if (!currentUser || currentUser.role !== 'parent') return;
-  // 최근 10개 (읽음/미읽음 모두) - 미확인 우선 표시
   supaFetch('madi_notifications?user_id=eq.' + currentUser.id
     + '&order=created_at.desc&limit=10', 'GET')
     .then(function(rows) {
@@ -274,27 +274,23 @@ function loadParentNotifications() {
       renderParentNotifList(list);
     })
     .catch(function() {
-      // 조용히 실패 (알림은 비핵심 기능 - 본 화면은 정상 표시)
       var card = document.getElementById('parentNotifCard');
       if (card) card.style.display = 'none';
     });
 }
 
-// 알림 카드 렌더링 (미확인 1건 이상일 때만 카드 표시)
 function renderParentNotifList(rows) {
   var card    = document.getElementById('parentNotifCard');
   var listEl  = document.getElementById('parentNotifList');
   var badgeEl = document.getElementById('parentNotifBadge');
   if (!card || !listEl || !badgeEl) return;
 
-  // 캐시 갱신: openParentNotif에서 type 기반 탭 이동에 사용 (전체 rows 보존)
   window._parentNotifCache = {};
   rows.forEach(function(n){
     window._parentNotifCache[n.id] = { type: n.type, link: n.link };
   });
 
   var unread = rows.filter(function(n){ return !n.read_at; });
-  // 미확인 0건이면 카드 숨김
   if (unread.length === 0) {
     card.style.display = 'none';
     return;
@@ -311,30 +307,32 @@ function renderParentNotifList(rows) {
              : '🔔';
     var timeAgo = formatTimeAgo(n.created_at);
     return ''
-      + '<div onclick="openParentNotif(' + n.id + ')" style="cursor:pointer;padding:8px 4px;border-bottom:1px solid var(--border);">'
+      + '<div data-nid="' + n.id + '" style="cursor:pointer;padding:8px 4px;border-bottom:1px solid var(--border);">'
       +   '<div style="display:flex;align-items:start;gap:8px;">'
       +     '<div style="font-size:16px;line-height:1.4;">' + icon + '</div>'
       +     '<div style="flex:1;min-width:0;">'
-      +       '<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(n.title||'') + '</div>'
-      +       (n.body ? '<div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(n.body) + '</div>' : '')
+      +       '<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">' + escHtml(n.title||'') + '</div>'
+      +       (n.body ? '<div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">' + escHtml(n.body) + '</div>' : '')
       +       '<div style="font-size:11px;color:var(--text2);margin-top:4px;">' + timeAgo + '</div>'
       +     '</div>'
       +   '</div>'
       + '</div>';
   }).join('');
+  // ★ 이벤트 위임 — onclick 인라인 삽입 대신 클릭 리스너로 처리
+  listEl.onclick = function(e) {
+    var item = e.target.closest('[data-nid]');
+    if (item) openParentNotif(item.getAttribute('data-nid'));
+  };
 }
 
-// 알림 클릭 시: 읽음 처리 + 링크 이동 (있으면)
 function openParentNotif(notifId) {
-  // 1. 읽음 처리
   supaFetch('madi_notifications?id=eq.' + notifId,
     'PATCH', { read_at: new Date().toISOString() })
     .then(function(){
-      loadParentNotifications(); // 카드 갱신
+      loadParentNotifications();
     })
     .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);});
 
-  // 2. 링크 있으면 그 탭으로 이동
   if (window._parentNotifCache) {
     var n = window._parentNotifCache[notifId];
     if (n && n.type === 'notice') switchParentTab('notice');
@@ -343,7 +341,6 @@ function openParentNotif(notifId) {
   }
 }
 
-// 모두 읽음 처리
 function markAllNotifRead() {
   if (!currentUser || currentUser.role !== 'parent') return;
   supaFetch('madi_notifications?user_id=eq.' + currentUser.id + '&read_at=is.null',
@@ -355,7 +352,6 @@ function markAllNotifRead() {
     .catch(function(e){ showToast('❌ 처리 실패: ' + (e.message||'')); });
 }
 
-// "~분 전 / ~시간 전" 표시 헬퍼
 function formatTimeAgo(isoTs) {
   if (!isoTs) return '';
   var ms = Date.now() - new Date(isoTs).getTime();
