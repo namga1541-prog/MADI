@@ -454,6 +454,8 @@
       /* 주간뷰 가로 스크롤 허용 */
       #weekViewWrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
       .week-grid { min-width:480px; }
+      /* 일일뷰 가로 스크롤 허용 */
+      #dayViewWrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
       /* 점수 레이블 너비 축소 */
       .score-label { width:72px; font-size:11px; }
       /* 검사 점수 2열 */
