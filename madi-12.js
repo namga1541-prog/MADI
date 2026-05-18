@@ -269,74 +269,34 @@ var SW_LINES = [
 ];
 var SW_CODE = SW_LINES.join(String.fromCharCode(10));
 
-// 메모리 캐시: 페이지 로드 시 IndexedDB에서 사전 로드 (배포 시 user activation 보존 위해 sync 접근 필수)
-var _ghTokenCache = '';
+// ─────── GitHub 배포 — Edge Function 프록시 방식 ───────
+// GitHub PAT 는 클라이언트에 저장하지 않음.
+// 대신 Supabase Edge Function /github-deploy 를 통해 서버사이드에서 처리.
+// 이전에 IndexedDB/localStorage 에 저장된 토큰이 있으면 마이그레이션 시 자동 삭제.
 
-function getGithubToken() {
-  // sync 반환 — showDirectoryPicker는 user activation 소실 방지로 await 불가
-  return _ghTokenCache || '';
-}
-
-function _preloadGithubToken() {
-  // 백그라운드 로드 — 결과 안 기다림
-  _openMadiDB().then(function(db) {
-    return new Promise(function(resolve) {
-      var tx  = db.transaction('handles', 'readonly');
-      var req = tx.objectStore('handles').get('gh_token');
-      req.onsuccess = function() {
-        _ghTokenCache = req.result || '';
-        resolve();
-      };
-      req.onerror = function() { resolve(); };
-    });
-  }).catch(function(e) {
-    if (window.console && console.warn) console.warn('[gh_token preload fail]', e && e.message);
-  });
-}
-
-function _saveGithubToken(token) {
-  _ghTokenCache = token; // 메모리 캐시 즉시 갱신 (영속 저장은 백그라운드)
-  // 기존 localStorage 잔재가 있으면 제거 (1회성 청소)
+function _cleanupLegacyGithubToken() {
+  // 구버전 토큰 잔재 제거 (1회성 마이그레이션)
   try { localStorage.removeItem('madi_gh_token'); } catch(e) {}
-  return _openMadiDB().then(function(db) {
-    return new Promise(function(resolve, reject) {
-      var tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').put(token, 'gh_token');
-      tx.oncomplete = resolve;
-      tx.onerror    = function() { reject(tx.error); };
-    });
-  });
+  _openMadiDB().then(function(db) {
+    var tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').delete('gh_token');
+  }).catch(function() {});
 }
 
-function _deleteGithubToken() {
-  _ghTokenCache = ''; // 캐시도 즉시 초기화
-  return _openMadiDB().then(function(db) {
-    return new Promise(function(resolve) {
-      var tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').delete('gh_token');
-      tx.oncomplete = resolve;
-      tx.onerror    = resolve; // cleanup 용도라 실패해도 OK
-    });
-  });
-}
-
-function deployFileToGitHub(token, filename, textContent, commitMsg) {
-  var apiBase = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + filename;
-  var headers  = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
-  var b64      = btoa(unescape(encodeURIComponent(textContent)));
-
-  return fetch(apiBase, { headers: headers })
-    .then(function(r) { return r.json(); })
-    .then(function(info) {
-      var body = { message: commitMsg, content: b64 };
-      if (info.sha) body.sha = info.sha;
-      return fetch(apiBase, { method: 'PUT', headers: headers, body: JSON.stringify(body) });
+function deployFileViaProxy(filename, textContent, commitMsg) {
+  return fetch(EDGE_URL + '/github-deploy', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({
+      action: 'deploy',
+      files:  [{ name: filename, content: textContent, commitMsg: commitMsg }]
     })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      if (res.content && res.content.sha) return res;
-      throw new Error(res.message || filename + ' 업로드 실패');
+  }).then(function(r) {
+    return r.json().then(function(data) {
+      if (!r.ok || !data.ok) throw new Error(data.error || filename + ' 업로드 실패');
+      return data;
     });
+  });
 }
 
 // ─────── 배포 대상 파일 자동 스캔 ───────
@@ -386,15 +346,16 @@ function gitBlobSha(content) {
   });
 }
 
-// ─────── GitHub Pages 빌드 상태 폴링 ───────
-// 배포 후 자동으로 빌드 진행 상황을 확인하여 사용자에게 알림
-function pollGithubPagesBuild(token, deployStartTs) {
+// ─────── GitHub Pages 빌드 상태 폴링 (Edge Function 프록시) ───────
+function pollGithubPagesBuild(deployStartTs) {
   var attempts    = 0;
-  var MAX_TRY     = 30;     // 최대 30회 (5초 간격 = 약 2분 30초)
+  var MAX_TRY     = 30;
   var INTERVAL_MS = 5000;
   function poll() {
-    return fetch('https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/pages/builds/latest', {
-      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' }
+    return fetch(EDGE_URL + '/github-deploy', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ action: 'poll', deployStartTs: deployStartTs })
     })
     .then(function(res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -403,7 +364,6 @@ function pollGithubPagesBuild(token, deployStartTs) {
     .then(function(build) {
       attempts++;
       var buildTs = build.created_at ? new Date(build.created_at).getTime() : 0;
-      // 이번 배포 이후의 빌드인지 확인 (이전 빌드는 무시)
       if (buildTs < deployStartTs) {
         if (attempts >= MAX_TRY) { showToast('⏰ 빌드 시작 대기 시간 초과', { duration: 5000 }); return; }
         return new Promise(function(r){ setTimeout(r, INTERVAL_MS); }).then(poll);
@@ -414,31 +374,21 @@ function pollGithubPagesBuild(token, deployStartTs) {
         var err = (build.error && build.error.message) || '알 수 없는 오류';
         showToast('❌ GitHub Pages 빌드 실패: ' + err, { duration: 9000 });
       } else {
-        // queued, building → 계속 폴링
         if (attempts >= MAX_TRY) { showToast('⏰ 빌드 진행 중 — 잠시 후 사이트 확인', { duration: 5000 }); return; }
         return new Promise(function(r){ setTimeout(r, INTERVAL_MS); }).then(poll);
       }
     })
     .catch(function(e) {
-      // 폴링 실패는 배포 자체 실패가 아니므로 조용히 한 번만 알림
       showToast('⚠️ 빌드 상태 확인 불가: ' + (e.message || '네트워크 오류'), { duration: 5000 });
     });
   }
-  // 첫 폴링은 5초 후 (GitHub이 빌드 큐에 등록할 시간 확보)
   setTimeout(poll, 5000);
 }
 
 function deployToGitHub() {
-  var token = getGithubToken(); // sync — user activation 보존
-  if (!token) {
-    var t = prompt('GitHub Token을 입력하세요:\n(한 번 입력하면 저장됩니다)');
-    if (!t) return;
-    token = t.trim();
-    // fire-and-forget — await하면 user activation이 소실되어 showDirectoryPicker가 차단됨
-    _saveGithubToken(token).catch(function(e) {
-      if (window.console && console.warn) console.warn('[gh_token save fail]', e && e.message);
-    });
-  }
+  // GitHub PAT 는 서버(Edge Function)에서 관리 — 클라이언트 불필요
+  // 구버전 IndexedDB 토큰 잔재 정리
+  _cleanupLegacyGithubToken();
 
   var btn = document.getElementById('headerDeployBtn');
   if (!btn) return;
@@ -558,14 +508,14 @@ function deployToGitHub() {
           else if (fi.name === 'admin.html') msg = '마디 관리자 업데이트 — ' + commitTime;
           else if (fi.name === 'madi.css')   msg = '마디 CSS 업데이트 — ' + commitTime;
           else                                msg = '마디 JS 업데이트 — ' + commitTime;
-          return deployFileToGitHub(token, fi.name, fi.content, msg);
+          return deployFileViaProxy(fi.name, fi.content, msg);
         });
       }, Promise.resolve());
     })
     .then(function() {
       // sw.js는 항상 업로드 (캐시 갱신 보장)
       showToast('📡 sw.js 업로드 중... (' + TOTAL_FILES + '/' + TOTAL_FILES + ')');
-      return deployFileToGitHub(token, GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
+      return deployFileViaProxy(GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
     })
     .then(function() {
       btn.dataset.busy = '';
@@ -580,7 +530,7 @@ function deployToGitHub() {
         }
       } catch(e) {}
       // GitHub Pages 빌드 상태 자동 폴링 (5초 후 시작)
-      pollGithubPagesBuild(token, deployStartTs);
+      pollGithubPagesBuild(deployStartTs);
     })
     .catch(function(e) {
       btn.dataset.busy = '';
@@ -588,10 +538,6 @@ function deployToGitHub() {
       btn.textContent = '🚀 배포';
       if (e.message === 'USER_CANCEL') {
         showToast('배포 취소됨');
-      } else if (e.message && e.message.includes('Bad credentials')) {
-        _deleteGithubToken();
-        try { localStorage.removeItem('madi_gh_token'); } catch(ee) {}
-        showToast('❌ Token 오류 — 다시 눌러 재입력해주세요.');
       } else {
         showToast('❌ 배포 실패: ' + (e.message || '오류'));
       }
@@ -1764,5 +1710,5 @@ function buildChatContext() {
 }
 
 // ─── 모듈 초기화 ───
-// 배포 버튼 클릭 시 user activation 보존을 위해, IndexedDB의 GitHub 토큰을 미리 메모리에 캐시
-_preloadGithubToken();
+// 구버전 GitHub 토큰 잔재 제거 (IndexedDB/localStorage)
+_cleanupLegacyGithubToken();

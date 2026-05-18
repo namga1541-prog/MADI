@@ -1,3 +1,5 @@
+import bcrypt from "npm:bcryptjs@2.4.3"
+
 // 허용 Origin 목록 — 프로덕션 도메인 + 로컬 개발
 const ALLOWED_ORIGINS = new Set([
   'https://namga1541-prog.github.io', // GitHub Pages 프로덕션
@@ -242,6 +244,21 @@ Deno.serve(async (req: Request) => {
       } else if (method === 'PATCH' || method === 'DELETE') {
         finalPath = path + (path.includes('?') ? '&' : '?') + 'center_id=eq.' + centerId
       }
+    }
+
+    // ════════════════════════════════════════════════════════
+    // ★ madi_users POST — 비밀번호 bcrypt 해싱 (신규 가입)
+    //   클라이언트가 SHA-256 hex(64자)를 보내면 서버에서 bcrypt 로 재해싱
+    // ════════════════════════════════════════════════════════
+    if (tableName === 'madi_users' && method === 'POST' && body) {
+      const rows = Array.isArray(body) ? body : [body]
+      await Promise.all(rows.map(async (row: Record<string, unknown>) => {
+        const pw = row.password
+        if (typeof pw === 'string' && pw.length === 64 && /^[0-9a-f]+$/.test(pw)) {
+          // SHA-256 hex 감지 → bcrypt 로 업그레이드
+          row.password = await bcrypt.hash(pw, 12)
+        }
+      }))
     }
 
     const url = SUPA_URL + '/rest/v1/' + finalPath
