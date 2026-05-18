@@ -22,12 +22,12 @@ ALTER TABLE madi_lounge_comments  ADD COLUMN IF NOT EXISTS author_id text;
 -- ───────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION madi_my_center_id()
 RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT center_id FROM madi_users WHERE id = auth.uid()::text
+  SELECT center_id FROM madi_users WHERE id = auth.uid()
 $$;
 
 CREATE OR REPLACE FUNCTION madi_my_role()
 RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT role FROM madi_users WHERE id = auth.uid()::text
+  SELECT role FROM madi_users WHERE id = auth.uid()
 $$;
 
 
