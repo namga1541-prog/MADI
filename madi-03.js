@@ -117,6 +117,7 @@ function regenInviteCode() {
   var expiryLabel = days === 0 ? '무기한' : days + '일 유효';
   if (!confirm('초대 코드를 재발급할까요? (' + expiryLabel + ')\n기존 코드는 사용 불가가 됩니다.')) return;
   var cid = getCenterId();
+  if (!cid) { showToast('⚠️ 센터 정보를 찾을 수 없습니다.'); return; }
   var newCode = cid.toUpperCase() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
   var payload = { invite_code: newCode };
   if (days > 0) {
@@ -299,7 +300,8 @@ function renderDashboard() {
   var em=h<12?'🌅':h<18?'☀️':'🌙';
   var nm=(currentUser&&currentUser.name)||'';
   var wel=document.getElementById('dashWelcome'); var dt=document.getElementById('dashDate');
-  var _roleLabel = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
+  var _role = (currentUser && currentUser.role) || '';
+  var _roleLabel = _role === 'superadmin' ? '대장님 👑' : _role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
   if(wel) wel.textContent=gr+', '+nm+' '+_roleLabel+'! '+em;
   if(dt) dt.textContent=todayStr.replace(/-/g,'.')+'('+wd[today.getDay()]+')';
   // 오늘의 일정

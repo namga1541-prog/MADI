@@ -1,10 +1,10 @@
 var inputMode = 0;
 function setInputMode(m) {
   inputMode = m;
-  document.getElementById('modeBtn0').classList[m === 0 ? 'add' : 'remove']('active');
-  document.getElementById('modeBtn1').classList[m === 1 ? 'add' : 'remove']('active');
-  document.getElementById('directMode').style.display = m === 0 ? 'block' : 'none';
-  document.getElementById('aiMode').style.display = m === 1 ? 'block' : 'none';
+  var mb0 = document.getElementById('modeBtn0'); if (mb0) mb0.classList[m === 0 ? 'add' : 'remove']('active');
+  var mb1 = document.getElementById('modeBtn1'); if (mb1) mb1.classList[m === 1 ? 'add' : 'remove']('active');
+  var dm = document.getElementById('directMode'); if (dm) dm.style.display = m === 0 ? 'block' : 'none';
+  var am = document.getElementById('aiMode');    if (am) am.style.display = m === 1 ? 'block' : 'none';
 }
 
 // ─────── 음성 입력 ───────
