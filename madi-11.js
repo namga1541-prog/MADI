@@ -672,7 +672,7 @@ function renderAssessmentList() {
   if (!el) return;
   var list = assessmentDB.filter(function(a) { return !childId || a.childId === childId; })
     .sort(function(a,b) { return b.date < a.date ? -1 : 1; });
-  if (list.length === 0) { el.innerHTML = '<div class="empty"><p>검사 결과가 없습니다.</p></div>'; return; }
+  if (list.length === 0) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>검사 결과가 없습니다.</p></div>'; return; }
   var html = '';
   list.forEach(function(a) {
     html += '<div class="test-card">'
@@ -692,6 +692,7 @@ function deleteAssessment(id) {
     return;
   }
   showConfirm('이 검사 결과를 삭제할까요?', function() {
+    var backup = assessmentDB.find(function(a) { return a.id === id; });
     supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-11 deleteAssessment]',e&&e.message);
       showToast('❌ 검사결과 삭제 실패 — 다시 시도해주세요');
@@ -699,7 +700,16 @@ function deleteAssessment(id) {
     assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
     saveAssess();
     renderAssessmentList();
-    showToast('🗑️ 삭제됨');
+    showToast('🗑️ 검사결과 삭제됨', {
+      undo: function() {
+        if (!backup) return;
+        var payload = Object.assign({}, backup);
+        delete payload.id;
+        supaFetch('madi_assessments', 'POST', [payload])
+          .then(function() { if (typeof loadAssess === 'function') loadAssess(); renderAssessmentList(); showToast('↩️ 복원됨'); })
+          .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });
+      }
+    });
   });
 }
 

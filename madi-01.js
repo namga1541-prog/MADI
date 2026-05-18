@@ -8,6 +8,8 @@ function nowKST()      { return toKST(new Date()); }
 function ymd(d)        { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function getTodayKST() { return ymd(nowKST()); }
 function getMonthKST() { return getTodayKST().slice(0, 7); }
+/** 'YYYY-MM-DD' → 'YYYY년 M월 D일' (한국 표기) */
+function fmtDateKR(s) { if (!s) return ''; var p = s.split('-'); return p[0] + '년 ' + parseInt(p[1]) + '월 ' + parseInt(p[2]) + '일'; }
 
 var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };
 function canDo(perm) {

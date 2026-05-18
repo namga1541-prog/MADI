@@ -1,3 +1,4 @@
+var _bcEscHandler = null;
 function openBulkClosedDateModal(ids) {
   var today = getTodayKST();
   var modal = document.getElementById('bulkClosedDateModal');
@@ -31,6 +32,9 @@ function openBulkClosedDateModal(ids) {
 
   modal.dataset.ids = JSON.stringify(ids);
   modal.style.display = 'flex';
+  if (_bcEscHandler) document.removeEventListener('keydown', _bcEscHandler);
+  _bcEscHandler = function(e) { if (e.key === 'Escape') closeBulkClosedDateModal(); };
+  document.addEventListener('keydown', _bcEscHandler);
 }
 
 function toggleBcdReasonEtc() {
@@ -44,6 +48,7 @@ function toggleBcdReasonEtc() {
 function closeBulkClosedDateModal() {
   var modal = document.getElementById('bulkClosedDateModal');
   if (modal) { modal.style.display = 'none'; modal.dataset.ids = ''; }
+  if (_bcEscHandler) { document.removeEventListener('keydown', _bcEscHandler); _bcEscHandler = null; }
 }
 
 function confirmBulkClosedDate() {

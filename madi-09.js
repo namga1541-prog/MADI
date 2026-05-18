@@ -95,10 +95,16 @@ function saveActivity() {
 
 function deleteActivity(id) {
   showConfirm('이 활동 자료를 삭제할까요?', function() {
+    var backup = activityDB.find(function(a) { return a.id === id; });
     activityDB = activityDB.filter(function(a) { return a.id !== id; });
     saveActivities();
     renderActivityCatalog();
-    showToast('🗑️ 삭제됨');
+    showToast('🗑️ 활동 자료 삭제됨', {
+      undo: function() {
+        if (backup) { activityDB.push(backup); saveActivities(); renderActivityCatalog(); }
+        showToast('↩️ 복원됨');
+      }
+    });
   });
 }
 

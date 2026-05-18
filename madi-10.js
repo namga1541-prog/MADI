@@ -658,6 +658,12 @@ function openEditSchedModal(id) {
       + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + id + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
     + '</div></div>';
   document.body.appendChild(overlay);
+  var _editEsc = function(e) {
+    var ol = document.getElementById('editSchedOverlay');
+    if (!ol) { document.removeEventListener('keydown', _editEsc); return; }
+    if (e.key === 'Escape') { ol.remove(); document.removeEventListener('keydown', _editEsc); }
+  };
+  document.addEventListener('keydown', _editEsc);
   loadTeacherList(function() {
     var sel = document.getElementById('editSchedTeacher');
     if (sel) sel.innerHTML = buildTeacherOptions(s.teacher||'');
@@ -768,6 +774,12 @@ function confirmSchedDelete(id, hasGroup) {
     + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + id + '\')">네, 삭제하겠습니다</button>'
     + '</div></div>';
   document.body.appendChild(delOv);
+  var _delEsc = function(e) {
+    var ol = document.getElementById('delSchedOverlay');
+    if (!ol) { document.removeEventListener('keydown', _delEsc); return; }
+    if (e.key === 'Escape') { ol.remove(); document.removeEventListener('keydown', _delEsc); }
+  };
+  document.addEventListener('keydown', _delEsc);
 }
 
 function execSchedDeleteChoice(id) {
