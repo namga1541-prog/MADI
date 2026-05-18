@@ -300,6 +300,7 @@ function editSessionDate(id) {
 
 // ─────── 삭제 확인 모달 ───────
 var _dcmCallback = null;
+var _dcmEscHandler = null;
 function showDeleteConfirm(title, subtitle, keyword, onConfirm) {
   _dcmCallback = onConfirm;
   document.getElementById('dcmTitle').textContent = title;
@@ -311,6 +312,9 @@ function showDeleteConfirm(title, subtitle, keyword, onConfirm) {
   btn.style.opacity = '0.4';
   var modal = document.getElementById('deleteConfirmModal');
   modal.style.display = 'flex';
+  if (_dcmEscHandler) document.removeEventListener('keydown', _dcmEscHandler);
+  _dcmEscHandler = function(e) { if (e.key === 'Escape') closeDcmModal(); };
+  document.addEventListener('keydown', _dcmEscHandler);
   setTimeout(function(){ document.getElementById('dcmInput').focus(); }, 200);
 }
 function checkDcmInput() {
@@ -324,6 +328,7 @@ function checkDcmInput() {
 function closeDcmModal() {
   document.getElementById('deleteConfirmModal').style.display = 'none';
   _dcmCallback = null;
+  if (_dcmEscHandler) { document.removeEventListener('keydown', _dcmEscHandler); _dcmEscHandler = null; }
 }
 function executeDcm() {
   if (_dcmCallback) _dcmCallback();

@@ -519,7 +519,16 @@ function deleteIEPRecord(id) {
       showToast('❌ 장단기계획 삭제 실패 — 다시 시도해주세요');
     });
     renderIEPHistory(childId);
-    showToast('🗑️ 장단기계획(IEP) 기록 삭제됨');
+    showToast('🗑️ 장단기계획(IEP) 기록 삭제됨', {
+      undo: function() {
+        if (!r) return;
+        var payload = Object.assign({}, r);
+        delete payload.id;
+        supaFetch('madi_iep_history', 'POST', [payload])
+          .then(function() { if (typeof loadIEP === 'function') loadIEP(); renderIEPHistory(childId); showToast('↩️ 복원됨'); })
+          .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });
+      }
+    });
   });
 }
 
