@@ -66,13 +66,12 @@ function loadParentHome() {
 
     // 다음 일정 조회
     supaFetch('madi_schedules?center_id=eq.' + centerId
-      + '&order=id.asc&limit=20', 'GET')
+      + '&child_id=eq.' + childId + '&order=id.asc&limit=20', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) return;
         var upcoming = rows.filter(function(s) {
           var data = s.data || s;
-          var cid = data.childId || data.child_id;
-          return String(cid) === String(childId) && (data.date || s.date) >= today;
+          return (data.date || s.date) >= today;
         }).sort(function(a,b) {
           return (a.data||a).date < (b.data||b).date ? -1 : 1;
         });
@@ -185,12 +184,12 @@ function loadParentSched() {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
     var today = getTodayKST();
 
-    supaFetch('madi_schedules?center_id=eq.' + centerId + '&order=id.asc&limit=200', 'GET')
+    supaFetch('madi_schedules?center_id=eq.' + centerId + '&child_id=eq.' + childId + '&order=id.asc&limit=50', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) { el.innerHTML = '<div class="empty"><p>일정 없음</p></div>'; return; }
         var mine = rows.filter(function(s) {
           var d = s.data || s;
-          return String(d.childId || d.child_id) === String(childId) && (d.date || s.date) >= today;
+          return (d.date || s.date) >= today;
         });
         if (mine.length === 0) {
           el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>예정된 치료 일정이 없습니다</p></div>';
