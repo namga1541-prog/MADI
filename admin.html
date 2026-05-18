@@ -712,7 +712,7 @@ var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6
 function getToken()  { return _madiToken || localStorage.getItem('madi_token') || ''; }
 function getCenterId()    { return (currentUser && currentUser.center_id) ? currentUser.center_id : ''; }
 function centerFilter()   {
-  if (currentUser && currentUser.role === 'admin') return 'center_id=not.is.null';
+  if (currentUser && currentUser.role === 'superadmin') return 'center_id=not.is.null';
   var cid = getCenterId();
   return cid ? 'center_id=eq.' + cid : 'center_id=eq.INVALID';
 }
@@ -1552,7 +1552,7 @@ function renderProgramList() {
 }
 
 function loadTeacherList() {
-  supaFetch('madi_users?select=id,name,role,prog_types&order=name.asc', 'GET')
+  supaFetch('madi_users?' + centerFilter() + '&select=id,name,role,prog_types&order=name.asc', 'GET')
     .then(function(rows) {
       _staffCache = (rows || []).filter(function(u){ return u.name; });
       var sel = document.getElementById('progTeacherSel');

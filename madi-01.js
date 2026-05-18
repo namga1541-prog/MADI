@@ -124,7 +124,7 @@ function hashPassword(pw) {
 }
 function getCenterId() { return (currentUser && currentUser.center_id) ? currentUser.center_id : ''; }
 function centerFilter() {
-  if (currentUser && currentUser.role === 'admin') return 'center_id=not.is.null';
+  if (currentUser && currentUser.role === 'superadmin') return 'center_id=not.is.null';
   var cid = getCenterId();
   return cid ? 'center_id=eq.' + cid : 'center_id=eq.INVALID';
 }

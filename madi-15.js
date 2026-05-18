@@ -185,7 +185,7 @@ function loadParentSched() {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
     var today = getTodayKST();
 
-    supaFetch('madi_schedules?center_id=eq.' + centerId + '&order=id.asc', 'GET')
+    supaFetch('madi_schedules?center_id=eq.' + centerId + '&order=id.asc&limit=200', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) { el.innerHTML = '<div class="empty"><p>일정 없음</p></div>'; return; }
         var mine = rows.filter(function(s) {

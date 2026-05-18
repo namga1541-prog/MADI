@@ -207,7 +207,7 @@ function buildTeacherOptions(selectedName) {
 
 function loadTeacherList(callback) {
   if (_teacherList.length > 0) { if (callback) callback(); return; }
-  supaFetch('madi_users?select=name,role&order=name.asc')
+  supaFetch('madi_users?' + centerFilter() + '&select=name,role&order=name.asc')
     .then(function(users) {
       if (Array.isArray(users)) _teacherList = users.filter(function(u){ return u.name; });
       if (callback) callback();
