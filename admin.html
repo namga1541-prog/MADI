@@ -127,6 +127,12 @@
     .btn-ghost:hover { border-color:var(--mint); color:var(--mint); }
     .btn-del { background:#fee2e2; color:var(--red); border:none; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; cursor:pointer; min-height:32px; touch-action:manipulation; }
     .btn-outline { background:var(--white); border:2px solid var(--mint); color:var(--mint); border-radius:11px; padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer; min-height:40px; touch-action:manipulation; }
+    .confirm-ov { position:fixed;inset:0;background:rgba(0,0,0,0.48);z-index:10002;display:flex;align-items:center;justify-content:center;padding:20px; }
+    .confirm-box { background:var(--white);border-radius:14px;padding:24px 20px 16px;max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);animation:confirmIn 0.15s ease; }
+    @keyframes confirmIn { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+    .confirm-msg { font-size:15px;line-height:1.65;color:var(--text);margin:0 0 20px;word-break:keep-all; }
+    .confirm-btns { display:flex;gap:8px;justify-content:flex-end; }
+    .confirm-btns .btn { min-width:72px; }
     .empty { text-align:center; padding:30px 16px; color:#cbd5e1; }
     .empty-icon { font-size:38px; margin-bottom:8px; }
     .empty p { font-size:13px; line-height:1.6; }
@@ -761,6 +767,31 @@ function supaFetch(path, method, body) {
 function escHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showConfirm(msg, onOk, opts) {
+  opts = opts || {};
+  var okLabel     = opts.okLabel     || '확인';
+  var cancelLabel = opts.cancelLabel || '취소';
+  var danger      = opts.danger !== false;
+  var ov = document.createElement('div');
+  ov.className = 'confirm-ov';
+  ov.innerHTML = '<div class="confirm-box" role="alertdialog" aria-modal="true">'
+    + '<p class="confirm-msg">' + escHtml(msg).replace(/\n/g,'<br>') + '</p>'
+    + '<div class="confirm-btns">'
+    + '<button class="btn btn-ghost confirm-cancel">' + escHtml(cancelLabel) + '</button>'
+    + '<button class="btn ' + (danger ? 'btn-del' : 'btn-primary') + ' confirm-ok">' + escHtml(okLabel) + '</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  function close() { if (ov.parentNode) document.body.removeChild(ov); document.removeEventListener('keydown', _onKey); }
+  function _onKey(e) {
+    if (e.key === 'Escape') { close(); if (opts.onCancel) opts.onCancel(); }
+  }
+  ov.querySelector('.confirm-cancel').onclick = function() { close(); if (opts.onCancel) opts.onCancel(); };
+  ov.querySelector('.confirm-ok').onclick = function() { close(); onOk(); };
+  ov.addEventListener('click', function(e) { if (e.target === ov) { close(); if (opts.onCancel) opts.onCancel(); } });
+  document.addEventListener('keydown', _onKey);
+  setTimeout(function() { var b = ov.querySelector('.confirm-ok'); if (b) b.focus(); }, 50);
 }
 
 function hashPassword(pw) {
@@ -1676,13 +1707,12 @@ async function saveNotice() {
     loadNotices();
   } catch(e) { showToast('❌ 저장 실패: '+(e.message||'')); }
 }
-async function deleteNotice(id) {
-  if (!confirm('이 공지를 삭제할까요?')) return;
-  try {
-    await supaFetch('madi_notices?id=eq.'+encodeURIComponent(id),'DELETE');
-    showToast('🗑️ 공지가 삭제됐습니다');
-    loadNotices();
-  } catch(e) { showToast('❌ 삭제 실패: '+(e.message||'')); }
+function deleteNotice(id) {
+  showConfirm('이 공지를 삭제할까요?', function() {
+    supaFetch('madi_notices?id=eq.'+encodeURIComponent(id),'DELETE')
+      .then(function() { showToast('🗑️ 공지가 삭제됐습니다'); loadNotices(); })
+      .catch(function(e) { showToast('❌ 삭제 실패: '+(e.message||'')); });
+  });
 }
 
 // ── 센터 관리 ──
@@ -1727,10 +1757,11 @@ function removeStaffAccountFromBtn(btn) { removeStaffAccount(btn.dataset.uid, bt
 function resetStaffPasswordFromBtn(btn) { resetStaffPassword(btn.dataset.uid, btn.dataset.uname); }
 
 function removeStaffAccount(id, name) {
-  if (!confirm(name+' 선생님 계정을 삭제할까요?')) return;
-  supaFetch('madi_users?id=eq.'+id,'DELETE')
-    .then(function(){ showToast('🗑️ '+name+' 계정 삭제됨'); loadStaffMgmtList(); })
-    .catch(function(err){ showToast('❌ 삭제 실패: '+escHtml(err.message||'오류')); });
+  showConfirm(name+' 선생님 계정을 삭제할까요?', function() {
+    supaFetch('madi_users?id=eq.'+id,'DELETE')
+      .then(function(){ showToast('🗑️ '+name+' 계정 삭제됨'); loadStaffMgmtList(); })
+      .catch(function(err){ showToast('❌ 직원 삭제 실패 — 다시 시도해주세요'); });
+  });
 }
 
 function resetStaffPassword(id, name) {
@@ -1747,18 +1778,20 @@ function resetStaffPassword(id, name) {
     var pwErr = validatePasswordStrength(newPw);
     if (pwErr) { showToast('⚠️ ' + pwErr); return; }
   }
-  if (!confirm(name + ' 선생님의 비밀번호를 재설정합니다.\n\n임시 비번: ' + newPw + '\n\n진행할까요?')) return;
-  hashPassword(newPw)
-    .then(function(hashed) {
-      return supaFetch('madi_users?id=eq.' + id, 'PATCH', { password: hashed });
-    })
-    .then(function() {
-      showToast('🔑 ' + name + ' 비밀번호 재설정 완료');
-      alert('✅ 비밀번호 재설정 완료\n\n' + name + ' 선생님께 다음 임시 비밀번호를 안내해주세요:\n\n  ▶ ' + newPw + '\n\n⚠️ 이 화면을 닫으면 비밀번호를 다시 볼 수 없습니다.\n선생님은 로그인 후 본인이 직접 변경하시는 것을 권장합니다.');
-    })
-    .catch(function(err) {
-      showToast('❌ 재설정 실패: ' + escHtml(err.message || '오류'));
-    });
+  showConfirm(name + ' 선생님의 비밀번호를 재설정합니다.\n\n임시 비번: ' + newPw + '\n\n진행할까요?', function() {
+    hashPassword(newPw)
+      .then(function(hashed) {
+        return supaFetch('madi_users?id=eq.' + id, 'PATCH', { password: hashed });
+      })
+      .then(function() {
+        showToast('🔑 ' + name + ' 비밀번호 재설정 완료');
+        showConfirm('✅ 비밀번호 재설정 완료\n\n' + name + ' 선생님께 다음 임시 비밀번호를 안내해주세요:\n\n  ▶ ' + newPw + '\n\n⚠️ 이 화면을 닫으면 비밀번호를 다시 볼 수 없습니다.',
+          function(){}, { danger: false, okLabel: '확인', cancelLabel: '닫기' });
+      })
+      .catch(function(err) {
+        showToast('❌ 재설정 실패: ' + escHtml(err.message || '오류'));
+      });
+  }, { danger: false, okLabel: '재설정' });
 }
 
 // ── API 키 관리 ──
@@ -1846,7 +1879,7 @@ function regenInviteCode() {
   var days = daysSel ? parseInt(daysSel.value, 10) : 30;
   if (isNaN(days)) days = 30;
   var expiryLabel = days === 0 ? '무기한' : days + '일 유효';
-  if (!confirm('초대 코드를 재발급할까요? (' + expiryLabel + ')\n기존 코드는 사용 불가가 됩니다.')) return;
+  showConfirm('초대 코드를 재발급할까요? (' + expiryLabel + ')\n기존 코드는 사용 불가가 됩니다.', function() {
   var cid     = getCenterId();
   var newCode = (cid || 'CENTER').toUpperCase().slice(0, 8) + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
   var payload = { invite_code: newCode };
@@ -1870,6 +1903,7 @@ function regenInviteCode() {
       showToast('✅ 재발급 완료: ' + newCode);
     })
     .catch(function(err) { showToast('❌ 재발급 실패: ' + escHtml(err.message || '오류')); });
+  }, { danger: false, okLabel: '재발급' });
 }
 
 // ── 직원 추가 ──
@@ -2351,13 +2385,14 @@ function loadErrorLogs() {
 }
 
 function clearOldErrorLogs() {
-  if (!confirm('30일 이상 된 오류 로그를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.')) return;
   if (!currentUser || currentUser.role !== 'superadmin') { showToast('⚠️ 슈퍼어드민만 가능합니다'); return; }
-  var cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-  supaFetch('madi_error_logs?created_at=lt.' + cutoff.toISOString(), 'DELETE')
-    .then(function() { showToast('🗑️ 30일 이상 오류 로그 삭제 완료'); loadErrorLogs(); })
-    .catch(function() { showToast('❌ 삭제 실패'); });
+  showConfirm('30일 이상 된 오류 로그를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.', function() {
+    var cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    supaFetch('madi_error_logs?created_at=lt.' + cutoff.toISOString(), 'DELETE')
+      .then(function() { showToast('🗑️ 30일 이상 오류 로그 삭제 완료'); loadErrorLogs(); })
+      .catch(function() { showToast('❌ 삭제 실패'); });
+  });
 }
 
 // ══════════════════════════════════════════════

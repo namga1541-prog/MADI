@@ -480,7 +480,10 @@ function autoCalcAssessScores() {
           if(n){n.style.display='block';n.textContent='⚠️ AI 추정값 포함 — 공식 규준집으로 확인하세요';}
         }
       })
-      .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-11]',e&&e.message);})
+      .catch(function(e) {
+        if(window.console&&console.warn)console.warn('[madi-11 autoCalc]',e&&e.message);
+        showToast('❌ 자동 계산 실패 — 다시 시도해주세요');
+      })
       .finally(function(){ var btn=document.getElementById('autoCalcBtn');if(btn){btn.dataset.busy='';btn.disabled=false;btn.textContent='🤖 원점수 → 등가연령·백분위 자동 계산';} });
   } else {
     var b2 = document.getElementById('autoCalcBtn');
@@ -688,12 +691,16 @@ function deleteAssessment(id) {
     showToast('⚠️ 검사 삭제 권한이 없습니다');
     return;
   }
-  if (!confirm('이 검사 결과를 삭제할까요?')) return;
-  supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-11]',e&&e.message);});
-  assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
-  saveAssess();
-  renderAssessmentList();
-  showToast('🗑️ 삭제됨');
+  showConfirm('이 검사 결과를 삭제할까요?', function() {
+    supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(e) {
+      if(window.console&&console.warn)console.warn('[madi-11 deleteAssessment]',e&&e.message);
+      showToast('❌ 검사결과 삭제 실패 — 다시 시도해주세요');
+    });
+    assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
+    saveAssess();
+    renderAssessmentList();
+    showToast('🗑️ 삭제됨');
+  });
 }
 
 function generateAssessReport() {

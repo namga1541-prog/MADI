@@ -294,14 +294,14 @@ function saveGlobalNotice() {
 // 공지 삭제
 function deleteGlobalNotice(id) {
   if (!currentUser || currentUser.role !== 'superadmin') { showToast('❌ 슈퍼어드민만 삭제할 수 있습니다'); return; }
-  if (!confirm('이 공지를 삭제할까요? 모든 센터에서 사라집니다.')) return;
-
-  return supaFetch('madi_global_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
-    .then(function() {
-      showToast('🗑️ 공지가 삭제됐습니다');
-      loadGlobalNotices();
-    })
-    .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  showConfirm('이 공지를 삭제할까요? 모든 센터에서 사라집니다.', function() {
+    supaFetch('madi_global_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
+      .then(function() {
+        showToast('🗑️ 공지가 삭제됐습니다');
+        loadGlobalNotices();
+      })
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -483,14 +483,14 @@ function deleteCenterNotice(id) {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
     showToast('❌ 삭제 권한이 없습니다'); return;
   }
-  if (!confirm('이 공지를 삭제할까요?')) return;
-
-  return supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
-    .then(function() {
-      showToast('🗑️ 공지가 삭제됐습니다');
-      loadCenterNotices();
-    })
-    .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  showConfirm('이 공지를 삭제할까요?', function() {
+    supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
+      .then(function() {
+        showToast('🗑️ 공지가 삭제됐습니다');
+        loadCenterNotices();
+      })
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -746,16 +746,16 @@ function saveLoungePost() {
 }
 
 function deleteLoungePost(id) {
-  if (!confirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.')) return;
-
-  supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
-    .then(function() {
-      showToast('🗑️ 글이 삭제됐습니다');
-      loadLoungePosts();
-    })
-    .catch(function(err) {
-      showToast('⚠️ 삭제 실패: ' + (err.message || ''));
-    });
+  showConfirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.', function() {
+    supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
+      .then(function() {
+        showToast('🗑️ 글이 삭제됐습니다');
+        loadLoungePosts();
+      })
+      .catch(function(err) {
+        showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+      });
+  });
 }
 
 // ───────── 라운지 댓글 (6단계) ─────────
@@ -883,16 +883,16 @@ function saveComment(postId) {
 }
 
 function deleteComment(postId, commentId) {
-  if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
-
-  supaFetch('madi_lounge_comments?id=eq.' + commentId, 'DELETE')
-    .then(function() {
-      showToast('🗑️ 댓글이 삭제됐습니다');
-      loadComments(postId);
-    })
-    .catch(function(err) {
-      showToast('⚠️ 삭제 실패: ' + (err.message || ''));
-    });
+  showConfirm('이 댓글을 삭제하시겠습니까?', function() {
+    supaFetch('madi_lounge_comments?id=eq.' + commentId, 'DELETE')
+      .then(function() {
+        showToast('🗑️ 댓글이 삭제됐습니다');
+        loadComments(postId);
+      })
+      .catch(function(err) {
+        showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+      });
+  });
 }
 
 // ═══════════════════════════════════════════════════════════

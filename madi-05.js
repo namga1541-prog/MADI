@@ -342,9 +342,12 @@ function deleteChild(id) {
   }
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) return;
-  if (!confirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?')) return;
+  showConfirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?', function() {
   // Supabase 삭제
-  supaFetch('madi_children?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
+  supaFetch('madi_children?id=eq.' + id, 'DELETE').catch(function(e) {
+    if(window.console&&console.warn)console.warn('[madi-05 deleteChild]',e&&e.message);
+    showToast('❌ 아동 삭제 실패 — 네트워크를 확인해주세요');
+  });
   var sessIds = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
   if (sessIds.length > 0) supaFetch('madi_sessions?id=in.(' + sessIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
   var schedIds = scheduleDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
@@ -363,30 +366,33 @@ function deleteChild(id) {
   if (typeof saveIEP === 'function') saveIEP();
   renderChildGrid();
   showToast('🗑️ 삭제 완료 (세션·일정 포함)');
+  }); // showConfirm
 }
 
 // 아동 종결 처리
 function closeChild(id) {
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) return;
-  if (!confirm(c.name + ' 아동을 종결 처리할까요?\n종결 탭에서 다시 확인할 수 있어요.')) return;
-  c.status = '종결';
-  c.closedAt = getTodayKST();
-  saveChildren();
-  renderChildGrid();
-  showToast('🔒 ' + c.name + ' 종결 처리 완료');
+  showConfirm(c.name + ' 아동을 종결 처리할까요?\n종결 탭에서 다시 확인할 수 있어요.', function() {
+    c.status = '종결';
+    c.closedAt = getTodayKST();
+    saveChildren();
+    renderChildGrid();
+    showToast('🔒 ' + c.name + ' 종결 처리 완료');
+  }, { danger: false, okLabel: '종결' });
 }
 
 // 아동 재등록 (종결 → 등록)
 function reopenChild(id) {
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) return;
-  if (!confirm(c.name + ' 아동을 다시 등록 상태로 변경할까요?')) return;
-  c.status = '등록';
-  delete c.closedAt;
-  saveChildren();
-  renderChildGrid();
-  showToast('↩️ ' + c.name + ' 재등록 완료');
+  showConfirm(c.name + ' 아동을 다시 등록 상태로 변경할까요?', function() {
+    c.status = '등록';
+    delete c.closedAt;
+    saveChildren();
+    renderChildGrid();
+    showToast('↩️ ' + c.name + ' 재등록 완료');
+  }, { danger: false, okLabel: '재등록' });
 }
 
 function renderChildGrid() {
@@ -738,8 +744,9 @@ function bulkChangeStatus(newStatus) {
     openBulkClosedDateModal(ids);
     return;
   }
-  if (!confirm(ids.length + '명을 [' + newStatus + ']로 변경할까요?')) return;
-  applyBulkStatus(ids, newStatus, null);
+  showConfirm(ids.length + '명을 [' + newStatus + ']로 변경할까요?', function() {
+    applyBulkStatus(ids, newStatus, null);
+  }, { danger: false, okLabel: '변경' });
 }
 
 // 실제 일괄 상태 적용 (ids 배열, 새 상태, 종결일 또는 null, 종결 사유)

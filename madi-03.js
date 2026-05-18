@@ -115,7 +115,7 @@ function regenInviteCode() {
   var days = daysSel ? parseInt(daysSel.value, 10) : 30;
   if (isNaN(days)) days = 30;
   var expiryLabel = days === 0 ? '무기한' : days + '일 유효';
-  if (!confirm('초대 코드를 재발급할까요? (' + expiryLabel + ')\n기존 코드는 사용 불가가 됩니다.')) return;
+  showConfirm('초대 코드를 재발급할까요? (' + expiryLabel + ')\n기존 코드는 사용 불가가 됩니다.', function() {
   var cid = getCenterId();
   if (!cid) { showToast('⚠️ 센터 정보를 찾을 수 없습니다.'); return; }
   var newCode = cid.toUpperCase() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
@@ -141,6 +141,7 @@ function regenInviteCode() {
     }).catch(function(err) {
       showToast('❌ 재발급 실패: ' + escHtml(err.message || '오류'));
     });
+  }, { danger: false, okLabel: '재발급' });
 }
 
 function addStaffAccount() {
@@ -208,14 +209,15 @@ function removeStaffAccountFromBtn(btn) {
 }
 
 function removeStaffAccount(id, name) {
-  if (!confirm(name + ' 선생님 계정을 삭제할까요?')) return;
-  supaFetch('madi_users?id=eq.' + id, 'DELETE')
-    .then(function() {
-      showToast('🗑️ ' + name + ' 계정 삭제됨');
-      loadStaffMgmtList();
-    }).catch(function(err) {
-      showToast('❌ 삭제 실패: ' + escHtml(err.message || '오류'));
-    });
+  showConfirm(name + ' 선생님 계정을 삭제할까요?', function() {
+    supaFetch('madi_users?id=eq.' + id, 'DELETE')
+      .then(function() {
+        showToast('🗑️ ' + name + ' 계정 삭제됨');
+        loadStaffMgmtList();
+      }).catch(function(err) {
+        showToast('❌ 삭제 실패: ' + escHtml(err.message || '오류'));
+      });
+  });
 }
 
 // ── 관리자 페이지 이동 (TASK-008: admin.html 분리) ──
@@ -775,15 +777,16 @@ async function fanoutSessionNotification(session) {
   }
 }
 
-async function deleteNotice(id) {
-  if (!confirm('이 공지를 삭제할까요?')) return;
-  try {
-    await supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'DELETE');
-    showToast('🗑️ 공지가 삭제됐습니다');
-    loadNotices();
-  } catch(e) {
-    showToast('❌ 삭제 실패: ' + (e.message||''));
-  }
+function deleteNotice(id) {
+  showConfirm('이 공지를 삭제할까요?', function() {
+    supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
+      .then(function() {
+        showToast('🗑️ 공지가 삭제됐습니다');
+        loadNotices();
+      }).catch(function(e) {
+        showToast('❌ 삭제 실패: ' + (e.message||''));
+      });
+  });
 }
 
 // ─── 서비스관리 ───

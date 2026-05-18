@@ -71,10 +71,10 @@ function confirmBulkClosedDate() {
     return c ? c.name : '?';
   });
   var preview = names.slice(0, 3).join(', ') + (names.length > 3 ? ' 외 ' + (names.length - 3) + '명' : '');
-  if (!confirm(ids.length + '명을 종결 처리합니다.\n\n' + preview + '\n\n종결일: ' + date + '\n사유: ' + reason + '\n\n되돌릴 수 없습니다. 계속하시겠습니까?')) return;
-
-  closeBulkClosedDateModal();
-  applyBulkStatus(ids, '종결', date, reason);
+  showConfirm(ids.length + '명을 종결 처리합니다.\n\n' + preview + '\n\n종결일: ' + date + '\n사유: ' + reason + '\n\n되돌릴 수 없습니다. 계속하시겠습니까?', function() {
+    closeBulkClosedDateModal();
+    applyBulkStatus(ids, '종결', date, reason);
+  }, { okLabel: '종결 처리' });
 }
 
 function setChildStatus(status, btn) {

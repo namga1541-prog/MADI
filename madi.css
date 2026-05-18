@@ -6,6 +6,27 @@
       --border:#e2e8f0; --radius:14px; --shadow:0 2px 14px rgba(0,0,0,0.07);
       --card-bg:#fff; --input-bg:#fff; --input-border:#cbd5e1;
     }
+    /* ── 커스텀 Confirm 모달 ── */
+    .confirm-ov {
+      position:fixed; inset:0; background:rgba(0,0,0,0.48);
+      z-index:10002; display:flex; align-items:center; justify-content:center; padding:20px;
+    }
+    .confirm-box {
+      background:var(--white); border-radius:var(--radius);
+      padding:24px 20px 16px; max-width:340px; width:100%;
+      box-shadow:0 8px 32px rgba(0,0,0,0.2); animation:confirmIn 0.15s ease;
+    }
+    @keyframes confirmIn {
+      from { transform:scale(0.92); opacity:0; }
+      to   { transform:scale(1);    opacity:1; }
+    }
+    .confirm-msg {
+      font-size:15px; line-height:1.65; color:var(--text);
+      margin:0 0 20px; word-break:keep-all;
+    }
+    .confirm-btns { display:flex; gap:8px; justify-content:flex-end; }
+    .confirm-btns .btn { min-width:72px; }
+
     /* iOS 자동 줌 방지: 모바일에서 입력 폰트 최소 16px */
     @media (max-width: 768px) {
       input:not([type="checkbox"]):not([type="radio"]),
