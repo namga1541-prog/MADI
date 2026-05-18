@@ -147,7 +147,7 @@ function switchBoardTab(name) {
   if (!name) return;
   currentBoardTab = name;
 
-  ['global', 'center', 'lounge'].forEach(function(n) {
+  ['global', 'center', 'lounge', 'library'].forEach(function(n) {
     var btn = document.getElementById('bdBtn_' + n);
     if (btn) btn.classList.remove('active');
     var pnl = document.getElementById('bdPanel_' + n);
@@ -159,9 +159,10 @@ function switchBoardTab(name) {
   var activePnl = document.getElementById('bdPanel_' + name);
   if (activePnl) activePnl.style.display = 'block';
 
-  if      (name === 'global') renderGlobalNotices();
-  else if (name === 'center') renderCenterNotices();
-  else if (name === 'lounge') renderLounge();
+  if      (name === 'global')  renderGlobalNotices();
+  else if (name === 'center')  renderCenterNotices();
+  else if (name === 'lounge')  renderLounge();
+  else if (name === 'library') renderLibrary();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -529,13 +530,13 @@ function filterLoungePosts(posts, user) {
 function visibilityMeta(vis) {
   if (vis === 'private_super') return { label: '1:1 슈퍼관리자', icon: '🔒', color: '#8b5cf6', bg: '#ede9fe' };
   if (vis === 'private_admin') return { label: '1:1 센터장', icon: '🔒', color: '#0ea5a0', bg: '#e0f7f6' };
-  return { label: '라운지', icon: '📢', color: '#3b82f6', bg: '#dbeafe' };
+  return { label: '고객센터', icon: '📢', color: '#3b82f6', bg: '#dbeafe' };
 }
 
 function loadLoungePosts() {
   var ui = document.getElementById('bdPanel_lounge');
   if (!ui) return;
-  ui.innerHTML = '<div class="loading"><div class="spinner"></div><p>라운지 글을 불러오는 중...</p></div>';
+  ui.innerHTML = '<div class="loading"><div class="spinner"></div><p>고객센터 글을 불러오는 중...</p></div>';
 
   // admin/superadmin은 다른 센터 글까지 봐야 하므로 limit 넉넉하게
   supaFetch('madi_lounge_posts?select=*&order=created_at.desc&limit=100', 'GET')
@@ -565,18 +566,18 @@ function renderLoungeUI() {
   var visOpts = [];
   if (role === 'teacher') {
     visOpts = [
-      { val: 'center',        label: '📢 라운지 (센터 모두에게 공개)' },
+      { val: 'center',        label: '📢 고객센터 (센터 모두에게 공개)' },
       { val: 'private_super', label: '🔒 1:1 슈퍼관리자에게' },
       { val: 'private_admin', label: '🔒 1:1 센터장에게' }
     ];
   } else if (role === 'admin') {
     visOpts = [
-      { val: 'center',        label: '📢 라운지 (센터 모두에게 공개)' },
+      { val: 'center',        label: '📢 고객센터 (센터 모두에게 공개)' },
       { val: 'private_super', label: '🔒 1:1 슈퍼관리자에게' }
     ];
   } else if (role === 'superadmin') {
     visOpts = [
-      { val: 'center',        label: '📢 라운지 (모든 센터 공통)' }
+      { val: 'center',        label: '📢 고객센터 (모든 센터 공통)' }
     ];
   }
   var visOptHtml = visOpts.map(function(o) {
@@ -586,7 +587,7 @@ function renderLoungeUI() {
   // 작성 폼
   var formHtml = visOpts.length === 0 ? '' :
       '<div class="card" style="margin-bottom:16px;">'
-    + '<div class="card-title"><div class="card-title-left">✏️ 라운지 글 작성</div></div>'
+    + '<div class="card-title"><div class="card-title-left">✏️ 고객센터 글 작성</div></div>'
     + '<div style="display:flex;flex-direction:column;gap:10px;">'
     + '<select id="loungeVisibility" class="form-input" style="font-size:14px;">' + visOptHtml + '</select>'
     + '<input type="text" id="loungeTitle" class="form-input" placeholder="제목 (100자 이내)" maxlength="100">'
@@ -856,4 +857,152 @@ function deleteComment(postId, commentId) {
     .catch(function(err) {
       showToast('⚠️ 삭제 실패: ' + (err.message || ''));
     });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 📚 자료실
+// ═══════════════════════════════════════════════════════════
+var _libraryFiles = []; // 자료 첨부 File 객체 배열 (최대 5개)
+
+var LIBRARY_CATEGORIES = ['조음·음운', '언어발달', '유창성', '인지·학습', '부모교육', '평가도구', '기타'];
+
+function renderLibrary() {
+  var el = document.getElementById('bdLibraryContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><p>자료실을 불러오는 중...</p></div>';
+
+  supaFetch('madi_lounge_posts?visibility=eq.resource&order=created_at.desc&limit=200', 'GET')
+    .then(function(data) {
+      _renderLibraryUI(data || []);
+    })
+    .catch(function(err) {
+      el.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+    });
+}
+
+function _renderLibraryUI(posts) {
+  var el = document.getElementById('bdLibraryContent');
+  if (!el) return;
+  var user = currentUser || {};
+  var canWrite = user.role === 'teacher' || user.role === 'admin' || user.role === 'superadmin';
+
+  // 카테고리 필터 상태
+  var activeCat = window._libActiveCat || '';
+
+  var catHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">'
+    + '<button onclick="setLibCat(\'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===''?'var(--mint)':'var(--border)')+';background:'+(activeCat===''?'var(--mint)':'var(--card)')+';color:'+(activeCat===''?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">전체</button>'
+    + LIBRARY_CATEGORIES.map(function(c) {
+        return '<button onclick="setLibCat(\''+c+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+c+'</button>';
+      }).join('')
+    + '</div>';
+
+  var formHtml = '';
+  if (canWrite) {
+    formHtml = '<div class="card" style="margin-bottom:16px;">'
+      + '<div class="card-title"><div class="card-title-left">📤 자료 올리기</div></div>'
+      + '<div style="display:flex;flex-direction:column;gap:10px;">'
+      + '<select id="libCategory" class="form-input" style="font-size:14px;">'
+      + LIBRARY_CATEGORIES.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('')
+      + '</select>'
+      + '<input type="text" id="libTitle" class="form-input" placeholder="자료 제목 (필수)" maxlength="100">'
+      + '<textarea id="libContent" class="form-input" placeholder="자료 설명 (선택)" rows="3" style="resize:vertical;font-family:inherit;"></textarea>'
+      + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
+      + '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 파일 첨부 (이미지·PDF, 최대 5개)</div>'
+      + '<input type="file" id="libFileInput" accept="image/*,application/pdf" multiple style="font-size:12px;" onchange="onLibFilesChange(this)">'
+      + '<div id="libFilePreview" style="margin-top:6px;"></div>'
+      + '</div>'
+      + '<button class="btn btn-primary" onclick="saveLibraryPost()" style="font-size:14px;">📚 자료 등록</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  var filtered = activeCat ? posts.filter(function(p){ return (p.note||'') === activeCat; }) : posts;
+
+  var listHtml = '';
+  if (!filtered.length) {
+    listHtml = '<div class="empty"><div class="empty-icon">📭</div><p>등록된 자료가 없습니다.</p></div>';
+  } else {
+    listHtml = filtered.map(function(p) {
+      var canDel = user.role === 'superadmin' || p.author_id === user.id;
+      var imgs = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [];
+      var dt = p.created_at ? new Date(p.created_at).toLocaleDateString('ko-KR') : '';
+      return '<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);">'
+        + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
+        + '<div style="min-width:0;flex:1;">'
+        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'
+        + '<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--mint2);color:var(--mint);font-weight:700;">' + escHtml(p.note||'기타') + '</span>'
+        + '<span style="font-size:13px;font-weight:700;">' + escHtml(p.title||'') + '</span>'
+        + '</div>'
+        + (p.content ? '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;white-space:pre-wrap;">' + escHtml(p.content) + '</div>' : '')
+        + (imgs.length ? renderImageThumbs(imgs) : '')
+        + '<div style="font-size:11px;color:var(--text2);margin-top:6px;">' + escHtml(p.author_name||'') + ' · ' + dt + '</div>'
+        + '</div>'
+        + (canDel ? '<button onclick="deleteLibraryPost(\''+p.id+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  el.innerHTML = '<div class="card"><div class="card-title"><div class="card-title-left">📚 자료실</div><span style="font-size:11px;color:var(--text2);">언어치료 자료 공유</span></div>'
+    + catHtml + '</div>'
+    + formHtml
+    + '<div id="libPostList">' + listHtml + '</div>';
+}
+
+function setLibCat(cat) {
+  window._libActiveCat = cat;
+  renderLibrary();
+}
+
+function onLibFilesChange(input) {
+  _libraryFiles = [];
+  var preview = document.getElementById('libFilePreview');
+  if (!input.files || !input.files.length) { if (preview) preview.innerHTML = ''; return; }
+  Array.from(input.files).slice(0, 5).forEach(function(f) { _libraryFiles.push(f); });
+  if (preview) preview.innerHTML = _libraryFiles.map(function(f){ return '<div style="font-size:12px;color:var(--text2);">📄 '+escHtml(f.name)+'</div>'; }).join('');
+}
+
+function saveLibraryPost() {
+  var titleEl   = document.getElementById('libTitle');
+  var contentEl = document.getElementById('libContent');
+  var catEl     = document.getElementById('libCategory');
+  if (!titleEl || !titleEl.value.trim()) { showToast('⚠️ 자료 제목을 입력해주세요'); return; }
+
+  var title   = titleEl.value.trim();
+  var content = contentEl ? contentEl.value.trim() : '';
+  var cat     = catEl ? catEl.value : '기타';
+  var user    = currentUser || {};
+
+  var uploadAll = _libraryFiles.length
+    ? Promise.all(_libraryFiles.map(function(f){ return uploadBoardImage(f, 'library'); }))
+    : Promise.resolve([]);
+
+  showToast('⏳ 자료 등록 중...');
+  uploadAll.then(function(urls) {
+    var post = {
+      id:          Date.now() + Math.floor(Math.random()*1000),
+      center_id:   user.center_id || null,
+      visibility:  'resource',
+      title:       title,
+      content:     content,
+      note:        cat,
+      author_id:   user.id,
+      author_name: user.name || user.username,
+      images:      JSON.stringify(urls)
+    };
+    return supaFetch('madi_lounge_posts', 'POST', post);
+  }).then(function() {
+    _libraryFiles = [];
+    showToast('✅ 자료가 등록됐습니다');
+    renderLibrary();
+  }).catch(function(err) {
+    showToast('⚠️ 등록 실패: ' + (err.message || ''));
+  });
+}
+
+function deleteLibraryPost(id) {
+  if (!confirm('이 자료를 삭제하시겠습니까?')) return;
+  supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
+    .then(function() { showToast('🗑️ 자료 삭제됨'); renderLibrary(); })
+    .catch(function(err) { showToast('⚠️ 삭제 실패: ' + (err.message||'')); });
 }

@@ -821,4 +821,160 @@ function saveEditSched(id) {
   showToast('✅ 일정 수정 완료!');
 }
 
+// ─────── 일정 내보내기 ───────
+function openScheduleExportModal() {
+  var modal = document.getElementById('schedExportModal');
+  if (!modal) return;
+
+  // 기본 날짜: 이번 달 1일 ~ 말일
+  var today = new Date();
+  var y = today.getFullYear(), m = today.getMonth();
+  var firstDay = new Date(y, m, 1);
+  var lastDay  = new Date(y, m + 1, 0);
+  function fmt(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  var fromEl = document.getElementById('exportDateFrom');
+  var toEl   = document.getElementById('exportDateTo');
+  if (fromEl) fromEl.value = fmt(firstDay);
+  if (toEl)   toEl.value   = fmt(lastDay);
+
+  // 선생님 필터 옵션 채우기
+  var sel = document.getElementById('exportTeacherFilter');
+  if (sel) {
+    var teachers = [];
+    (scheduleDB || []).forEach(function(s) { if (s.teacher && teachers.indexOf(s.teacher) === -1) teachers.push(s.teacher); });
+    teachers.sort();
+    sel.innerHTML = '<option value="">전체</option>'
+      + teachers.map(function(t){ return '<option value="'+escHtml(t)+'">'+escHtml(t)+'</option>'; }).join('');
+    if (currentUser && currentUser.role !== 'superadmin' && currentUser.role !== 'admin') {
+      sel.value = currentUser.name || '';
+    }
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeScheduleExportModal() {
+  var modal = document.getElementById('schedExportModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _getExportRows() {
+  var from    = (document.getElementById('exportDateFrom') || {}).value || '';
+  var to      = (document.getElementById('exportDateTo')   || {}).value || '';
+  var teacher = (document.getElementById('exportTeacherFilter') || {}).value || '';
+  if (!from || !to) { showToast('⚠️ 날짜 범위를 선택해주세요'); return null; }
+  if (from > to)    { showToast('⚠️ 종료일이 시작일보다 앞입니다'); return null; }
+
+  var rows = (scheduleDB || []).filter(function(s) {
+    return s.date >= from && s.date <= to && (!teacher || s.teacher === teacher);
+  }).sort(function(a, b) {
+    var d = (a.date||'').localeCompare(b.date||'');
+    return d !== 0 ? d : ((a.startTime||'') < (b.startTime||'') ? -1 : 1);
+  });
+
+  if (!rows.length) { showToast('⚠️ 해당 기간에 일정이 없습니다'); return null; }
+  return rows.map(function(s) {
+    var child = (childDB || []).find(function(c){ return c.id === s.childId; });
+    return {
+      날짜:        s.date || '',
+      시작시간:    (s.startTime || '').slice(0, 5),
+      종료시간:    (s.endTime   || '').slice(0, 5),
+      이용자:      child ? child.name : '',
+      선생님:      s.teacher || '',
+      프로그램유형: child ? (child.type || '') : '',
+      바우처:      child ? (child.voucherType || '일반') : '',
+      메모:        s.note || ''
+    };
+  });
+}
+
+function exportSchedule(format) {
+  var rows = _getExportRows();
+  if (!rows) return;
+  var from = document.getElementById('exportDateFrom').value;
+  var to   = document.getElementById('exportDateTo').value;
+  var label = from + '~' + to;
+
+  if (format === 'excel') {
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.json_to_sheet(rows);
+    // 컬럼 너비
+    ws['!cols'] = [
+      {wch:12},{wch:8},{wch:8},{wch:12},{wch:10},{wch:14},{wch:8},{wch:24}
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, '일정');
+    XLSX.writeFile(wb, '아이마디아이_일정_' + label + '.xlsx');
+    showToast('✅ 엑셀 파일이 저장됐습니다');
+    closeScheduleExportModal();
+
+  } else if (format === 'pdf') {
+    _printSchedule(rows, label);
+
+  } else if (format === 'hwp') {
+    _exportScheduleRtf(rows, label);
+  }
+}
+
+function _printSchedule(rows, label) {
+  var html = '<html><head><meta charset="utf-8"><title>일정표 ' + label + '</title>'
+    + '<style>'
+    + 'body{font-family:"맑은 고딕","Malgun Gothic",sans-serif;font-size:12px;padding:20px;}'
+    + 'h2{font-size:16px;margin-bottom:12px;}'
+    + 'table{width:100%;border-collapse:collapse;}'
+    + 'th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;}'
+    + 'th{background:#e8f5f0;font-weight:700;}'
+    + 'tr:nth-child(even){background:#f9fafb;}'
+    + '@media print{@page{margin:15mm;}}'
+    + '</style></head><body>'
+    + '<h2>📅 일정표 (' + label + ')</h2>'
+    + '<table><thead><tr>'
+    + '<th>날짜</th><th>시작</th><th>종료</th><th>이용자</th><th>선생님</th><th>프로그램유형</th><th>바우처</th><th>메모</th>'
+    + '</tr></thead><tbody>'
+    + rows.map(function(r) {
+        return '<tr><td>'+r.날짜+'</td><td>'+r.시작시간+'</td><td>'+r.종료시간+'</td>'
+          +'<td>'+r.이용자+'</td><td>'+r.선생님+'</td><td>'+r.프로그램유형+'</td>'
+          +'<td>'+r.바우처+'</td><td>'+r.메모+'</td></tr>';
+      }).join('')
+    + '</tbody></table>'
+    + '<p style="font-size:10px;color:#999;margin-top:12px;">출력일: ' + new Date().toLocaleDateString('ko-KR') + ' | 아이마디아이</p>'
+    + '</body></html>';
+
+  var win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { showToast('⚠️ 팝업 차단을 해제하고 다시 시도해주세요'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function(){ win.print(); }, 400);
+  closeScheduleExportModal();
+}
+
+function _exportScheduleRtf(rows, label) {
+  // RTF 형식 — 한글(HWP) 에서 열기 가능
+  var lines = [
+    '{\\rtf1\\ansi\\ansicpg949\\deff0',
+    '{\\fonttbl{\\f0\\fnil\\fcharset129 \\\'b8\\\'cb\\\'c0\\\'ba \\\'b0\\\'ed\\\'b5\\\'f1;}}',
+    '\\f0\\fs22',
+    '\\b \\u51068?\\u35519?\\ud45c (' + label + ')\\b0\\par',
+    '\\par',
+    '{\\trowd'
+  ];
+
+  // 단순 탭 구분 텍스트로 생성 (HWP에서 열면 표 복사 가능)
+  var header = '날짜\t시작시간\t종료시간\t이용자\t선생님\t프로그램유형\t바우처\t메모';
+  var body = rows.map(function(r){
+    return [r.날짜, r.시작시간, r.종료시간, r.이용자, r.선생님, r.프로그램유형, r.바우처, r.메모].join('\t');
+  }).join('\n');
+
+  var content = '일정표 (' + label + ')\r\n\r\n' + header + '\r\n' + body + '\r\n\r\n출력일: ' + new Date().toLocaleDateString('ko-KR') + ' | 아이마디아이';
+  var blob = new Blob(['﻿' + content], { type: 'text/plain;charset=utf-8' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = '아이마디아이_일정_' + label + '_한글용.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💡 .txt 파일을 한글(HWP)에서 열어 표로 변환하세요');
+  closeScheduleExportModal();
+}
+
 // ─────── 표준화 검사 ───────
