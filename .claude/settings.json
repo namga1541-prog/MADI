@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=$(echo \"$TOOL_INPUT\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get(\\\"file_path\\\",d.get(\\\"path\\\",\\\"\\\")))\" 2>/dev/null); if [[ \"$FILE\" == *.js ]]; then node --check \"$FILE\" 2>&1 && echo \"[JS 검증] OK: $FILE\" || echo \"[JS 검증] ❌ 문법 오류: $FILE\"; fi'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'echo \"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"; echo \"📋 변경된 파일\"; git -C \"$(git rev-parse --show-toplevel 2>/dev/null)\" diff --name-only HEAD 2>/dev/null | head -20; echo \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"'"
+          }
+        ]
+      }
+    ]
+  }
+}
