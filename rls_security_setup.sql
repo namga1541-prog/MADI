@@ -22,12 +22,12 @@ ALTER TABLE madi_lounge_comments  ADD COLUMN IF NOT EXISTS author_id text;
 -- ───────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION madi_my_center_id()
 RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT center_id FROM madi_users WHERE id = auth.uid()
+  SELECT center_id FROM madi_users WHERE id = auth.uid()::text
 $$;
 
 CREATE OR REPLACE FUNCTION madi_my_role()
 RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT role FROM madi_users WHERE id = auth.uid()
+  SELECT role FROM madi_users WHERE id = auth.uid()::text
 $$;
 
 
@@ -231,14 +231,14 @@ CREATE POLICY "madi_parent_children_select" ON madi_parent_children FOR SELECT
 USING (
   madi_my_role() = 'superadmin'
   OR center_id = madi_my_center_id()
-  OR parent_user_id = auth.uid()
+  OR parent_user_id = auth.uid()::text
 );
 
 DROP POLICY IF EXISTS "madi_parent_children_insert" ON madi_parent_children;
 CREATE POLICY "madi_parent_children_insert" ON madi_parent_children FOR INSERT
 WITH CHECK (
   madi_my_role() IN ('superadmin', 'admin')
-  OR parent_user_id = auth.uid()
+  OR parent_user_id = auth.uid()::text
 );
 
 DROP POLICY IF EXISTS "madi_parent_children_delete" ON madi_parent_children;
