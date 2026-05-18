@@ -646,7 +646,7 @@ function resetParentUI() {
   var staffTabs = document.querySelector('.tabs:not(#parentTabs)');
   if (staffTabs) staffTabs.style.display = '';
   var parentTabs = document.getElementById('parentTabs');
-  if (parentTabs) parentTabs.style.cssText = '';
+  if (parentTabs) { parentTabs.style.cssText = ''; parentTabs.style.display = 'none'; }
   var sidebar = document.getElementById('appSidebar');
   if (sidebar) sidebar.style.display = '';
   var sidebarToggle = document.getElementById('sidebarToggleBtn');
