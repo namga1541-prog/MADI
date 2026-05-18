@@ -107,13 +107,19 @@
 
     .card { background:var(--white); border-radius:var(--radius); padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
     .card-title { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
-    .card-title-left { display:flex; align-items:center; gap:6px; }
+    .card-title-left { display:flex; align-items:center; gap:6px; flex:1; min-width:0; }
     .form-group { margin-bottom:10px; }
     .form-label { font-size:12px; font-weight:700; color:var(--text2); margin-bottom:5px; display:block; }
     .form-input { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:16px; font-family:'Noto Sans KR',sans-serif; color:var(--text); transition:border-color 0.15s; background:white; box-sizing:border-box; }
     .form-input:focus { outline:none; border-color:var(--mint); }
-    select.form-input { appearance:none; -webkit-appearance:none; background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; }
+    select.form-input { appearance:none; -webkit-appearance:none; padding-right:32px; background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; }
     textarea.form-input { resize:vertical; min-height:80px; }
+    /* 카드 헤더용 컴팩트 날짜·선택 컨트롤 */
+    .card-sel { padding:5px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; font-family:'Noto Sans KR',sans-serif; color:var(--text); background:#f8fafc; cursor:pointer; outline:none; flex-shrink:0; transition:border-color 0.15s; }
+    .card-sel:focus { border-color:var(--mint); }
+    select.card-sel { appearance:none; -webkit-appearance:none; padding-right:28px; background:#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 8px center; }
+    body.dark-mode .card-sel { background-color:var(--input-bg); border-color:var(--input-border); color:var(--text); }
+    body.dark-mode select.card-sel { background-color:var(--input-bg); }
     .form-row { display:flex; gap:8px; margin-bottom:10px; }
     .btn { display:block; width:100%; padding:13px; border-radius:11px; font-size:15px; font-weight:700; border:none; cursor:pointer; touch-action:manipulation; min-height:44px; margin-top:10px; }
     .btn-primary { background:linear-gradient(135deg,var(--mint),#06b6d4); color:#fff; box-shadow:0 4px 12px rgba(14,165,160,0.3); }
@@ -214,7 +220,7 @@
     <div class="card" style="border:2px solid #0ea5a0;">
       <div class="card-title">
         <div class="card-title-left" style="color:#0ea5a0;">📊 운영 현황 대시보드</div>
-        <input type="month" id="dashMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderOpsDashboard()">
+        <input type="month" id="dashMonth" class="card-sel" onchange="renderOpsDashboard()">
       </div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;">
         <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);text-align:center;"><div style="font-size:22px;font-weight:900;color:#0ea5a0;" id="kpiNewChildren">-</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">이번 달 신규</div></div>
@@ -230,7 +236,7 @@
     <div class="card">
       <div class="card-title">
         <div class="card-title-left">👩‍🏫 선생님별 통계</div>
-        <select id="svcStaffMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderStaffStats()"></select>
+        <select id="svcStaffMonth" class="card-sel" onchange="renderStaffStats()"></select>
       </div>
       <div id="staffStatsList"></div>
       <div id="staffChartWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
@@ -243,7 +249,7 @@
     <div class="card">
       <div class="card-title">
         <div class="card-title-left">👩‍🏫 선생님별 이용자 현황</div>
-        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="renderTeacherChildMap()">🔄</button>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 12px;" onclick="renderTeacherChildMap()">🔄</button>
       </div>
       <div id="teacherChildMap"><div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">로딩 중...</div></div>
     </div>
@@ -253,8 +259,8 @@
       <div class="card-title">
         <div class="card-title-left">🧾 월별 정산 요약</div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <input type="month" id="settlMonth" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderSettlement()">
-          <button class="btn-ghost" onclick="exportSettlementExcel()" style="font-size:12px;padding:6px 12px;white-space:nowrap;">📥 엑셀</button>
+          <input type="month" id="settlMonth" class="card-sel" onchange="renderSettlement()">
+          <button class="btn-ghost" onclick="exportSettlementExcel()" style="font-size:12px;padding:7px 12px;white-space:nowrap;">📥 엑셀</button>
         </div>
       </div>
       <div id="settlSummary" style="font-size:12px;color:var(--text2);padding:4px 0 8px;"></div>
@@ -269,7 +275,7 @@
     <div class="card" id="myLicenseAdminSection" style="border:2px solid var(--mint);">
       <div class="card-title">
         <div class="card-title-left" style="color:var(--mint);">🔑 내 라이선스</div>
-        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="loadMyLicense()">🔄 새로고침</button>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 12px;" onclick="loadMyLicense()">🔄 새로고침</button>
       </div>
       <div id="myLicenseCard" style="margin-bottom:14px;min-height:48px;">
         <div style="text-align:center;color:var(--text2);font-size:13px;padding:12px;">불러오는 중...</div>
@@ -337,7 +343,7 @@
     <div class="card">
       <div class="card-title">
         <div class="card-title-left">📋 프로그램 목록</div>
-        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="loadPrograms()">🔄 새로고침</button>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 12px;" onclick="loadPrograms()">🔄 새로고침</button>
       </div>
       <div id="programList"><div style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">로딩 중...</div></div>
     </div>
@@ -378,12 +384,12 @@
           <button id="svcModeRangeBtn" onclick="setSvcMode('range')" style="padding:6px 14px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--text2);">📆 상세기간</button>
         </div>
         <div id="svcMonthWrap">
-          <input type="month" id="intSvcMonth" class="form-input" style="padding:7px 10px;font-size:13px;margin-bottom:0;" onchange="renderIntegratedSvc()">
+          <input type="month" id="intSvcMonth" class="card-sel" onchange="renderIntegratedSvc()">
         </div>
         <div id="svcRangeWrap" style="display:none;gap:6px;align-items:center;flex-wrap:wrap;">
-          <input type="date" id="intSvcFrom" class="form-input" style="padding:7px 10px;font-size:13px;margin-bottom:0;width:140px;" onchange="renderIntegratedSvc()">
+          <input type="date" id="intSvcFrom" class="card-sel" onchange="renderIntegratedSvc()">
           <span style="color:var(--text2);font-size:13px;">~</span>
-          <input type="date" id="intSvcTo" class="form-input" style="padding:7px 10px;font-size:13px;margin-bottom:0;width:140px;" onchange="renderIntegratedSvc()">
+          <input type="date" id="intSvcTo" class="card-sel" onchange="renderIntegratedSvc()">
         </div>
       </div>
       <div class="svc-filter-row" style="margin-bottom:14px;">
@@ -399,7 +405,7 @@
     <div class="card">
       <div class="card-title">
         <div class="card-title-left">📆 일일 서비스 관리</div>
-        <input type="date" id="svcDate" class="form-input" style="width:auto;padding:6px 10px;font-size:13px;margin-bottom:0;" onchange="renderDailyService()">
+        <input type="date" id="svcDate" class="card-sel" onchange="renderDailyService()">
       </div>
       <div class="svc-filter-row">
         <select id="dSvcChild" class="form-input svc-filter-sel" onchange="renderDailyService()"><option value="">이용자 전체</option></select>
@@ -432,7 +438,7 @@
         <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">현재 초대 코드</div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span id="inviteCodeDisplay" style="font-size:18px;font-weight:700;color:#8b5cf6;font-family:'Courier New',monospace;letter-spacing:1px;">------</span>
-          <button class="btn-ghost" style="font-size:11px;padding:5px 12px;" onclick="copyInviteCode()">📋 복사</button>
+          <button class="btn-ghost" style="font-size:11px;padding:7px 12px;" onclick="copyInviteCode()">📋 복사</button>
         </div>
         <div id="inviteExpiryDisplay" style="font-size:11px;margin-top:8px;"></div>
       </div>
@@ -618,7 +624,7 @@
     <div class="card" id="licHistorySuperadminSection" style="border:2px solid #f59e0b;">
       <div class="card-title">
         <div class="card-title-left" style="color:#d97706;">📋 발급 이력</div>
-        <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="loadLicenseList()">🔄 새로고침</button>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 12px;" onclick="loadLicenseList()">🔄 새로고침</button>
       </div>
       <div id="licenseListEl">
         <div style="text-align:center;color:var(--text2);font-size:13px;padding:16px;">불러오는 중...</div>
