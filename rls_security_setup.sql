@@ -10,11 +10,10 @@
 
 
 -- ───────────────────────────────────────────────────────────────────
--- 0. 스키마 보완
---    madi_lounge_comments 에 author_id 컬럼 추가 (없으면)
---    madi_lounge_posts 의 author_id 는 자료실 기능에서 이미 추가됨
+-- 0. 스키마 보완 — author_id 컬럼 추가 (없으면)
 -- ───────────────────────────────────────────────────────────────────
-ALTER TABLE madi_lounge_comments ADD COLUMN IF NOT EXISTS author_id text;
+ALTER TABLE madi_lounge_posts     ADD COLUMN IF NOT EXISTS author_id text;
+ALTER TABLE madi_lounge_comments  ADD COLUMN IF NOT EXISTS author_id text;
 
 
 -- ───────────────────────────────────────────────────────────────────
