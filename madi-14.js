@@ -562,94 +562,127 @@ function renderLoungeUI() {
   var role = user.role;
   var posts = filterLoungePosts(loungePostsDB, user);
 
-  // 역할별 작성 가능 visibility 옵션
-  var visOpts = [];
-  if (role === 'teacher') {
-    visOpts = [
-      { val: 'center',        label: '📢 고객센터 (센터 모두에게 공개)' },
-      { val: 'private_super', label: '🔒 1:1 슈퍼관리자에게' },
-      { val: 'private_admin', label: '🔒 1:1 센터장에게' }
-    ];
-  } else if (role === 'admin') {
-    visOpts = [
-      { val: 'center',        label: '📢 고객센터 (센터 모두에게 공개)' },
-      { val: 'private_super', label: '🔒 1:1 슈퍼관리자에게' }
-    ];
+  // ── 작성 폼 ──
+  var formHtml = '';
+  if (role === 'teacher' || role === 'admin') {
+    var recipOpts = role === 'teacher'
+      ? '<option value="private_admin">📋 센터장에게 건의</option>'
+        + '<option value="private_super">📋 슈퍼관리자에게 건의</option>'
+      : '<option value="private_super">📋 슈퍼관리자에게 건의</option>';
+
+    formHtml = '<div class="card" style="margin-bottom:16px;border:1.5px solid var(--mint2);">'
+      + '<div class="card-title"><div class="card-title-left">✉️ 건의 / 문의하기</div></div>'
+      + '<div style="display:flex;flex-direction:column;gap:10px;">'
+      + '<div>'
+      +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">수신자</label>'
+      +   '<select id="loungeVisibility" class="form-input" style="font-size:14px;">' + recipOpts + '</select>'
+      + '</div>'
+      + '<div>'
+      +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">제목</label>'
+      +   '<input type="text" id="loungeTitle" class="form-input" placeholder="건의 제목을 입력해주세요" maxlength="100" style="margin-bottom:0;">'
+      + '</div>'
+      + '<div>'
+      +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">내용</label>'
+      +   '<textarea id="loungeContent" class="form-input" placeholder="건의 내용을 자세히 적어주세요..." rows="5" style="resize:vertical;font-family:inherit;margin-bottom:0;"></textarea>'
+      + '</div>'
+      + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
+      +   '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 이미지 첨부 (최대 3장, 선택)</div>'
+      +   '<input type="file" id="loungeImgInput" accept="image/*" multiple style="font-size:12px;" onchange="onLoungeImagesChange(this)">'
+      +   '<div id="loungeImgPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;"></div>'
+      + '</div>'
+      + '<button class="btn btn-primary" onclick="saveLoungePost()" style="font-size:14px;">📨 건의 보내기</button>'
+      + '</div>'
+      + '</div>';
   } else if (role === 'superadmin') {
-    visOpts = [
-      { val: 'center',        label: '📢 고객센터 (모든 센터 공통)' }
-    ];
+    // 슈퍼관리자는 작성 폼 없음 — 받은 건의만 열람/답변
+    formHtml = '<div style="background:var(--mint2);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--mint);font-weight:600;">'
+      + '📞 모든 센터의 건의·문의를 수신합니다. 댓글로 답변해주세요.</div>';
   }
-  var visOptHtml = visOpts.map(function(o) {
-    return '<option value="' + o.val + '">' + o.label + '</option>';
-  }).join('');
 
-  // 작성 폼
-  var formHtml = visOpts.length === 0 ? '' :
-      '<div class="card" style="margin-bottom:16px;">'
-    + '<div class="card-title"><div class="card-title-left">✏️ 고객센터 글 작성</div></div>'
-    + '<div style="display:flex;flex-direction:column;gap:10px;">'
-    + '<select id="loungeVisibility" class="form-input" style="font-size:14px;">' + visOptHtml + '</select>'
-    + '<input type="text" id="loungeTitle" class="form-input" placeholder="제목 (100자 이내)" maxlength="100">'
-    + '<textarea id="loungeContent" class="form-input" placeholder="내용을 입력하세요..." rows="4" style="resize:vertical;font-family:inherit;"></textarea>'
-    + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
-    + '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 이미지 첨부 (최대 3장, 선택)</div>'
-    + '<input type="file" id="loungeImgInput" accept="image/*" multiple style="font-size:12px;" onchange="onLoungeImagesChange(this)">'
-    + '<div id="loungeImgPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;"></div>'
-    + '</div>'
-    + '<button class="btn btn-primary" onclick="saveLoungePost()" style="font-size:14px;">📝 작성하기</button>'
-    + '</div>'
-    + '</div>';
+  // ── 글 목록 ──
+  // 관리자: 받은 건의 / 내가 보낸 건의 구분
+  var listHtml = '';
+  if (role === 'admin') {
+    var received = posts.filter(function(p){ return p.visibility === 'private_admin' && p.author_name !== user.name; });
+    var sent     = posts.filter(function(p){ return p.author_name === user.name; });
 
-  // 글 목록
-  var listHtml = posts.length === 0
-    ? '<div style="text-align:center;padding:40px 20px;color:var(--text2);font-size:13px;">아직 등록된 글이 없습니다.</div>'
-    : posts.map(function(p) { return renderLoungePostCard(p, user); }).join('');
+    listHtml += '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;margin-top:4px;">📥 받은 건의 (' + received.length + ')</div>';
+    listHtml += received.length
+      ? received.map(function(p){ return renderInquiryCard(p, user); }).join('')
+      : '<div style="text-align:center;padding:24px;color:var(--text2);font-size:13px;background:var(--bg);border-radius:10px;margin-bottom:12px;">받은 건의가 없습니다.</div>';
+
+    listHtml += '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;margin-top:16px;">📤 내가 보낸 건의 (' + sent.length + ')</div>';
+    listHtml += sent.length
+      ? sent.map(function(p){ return renderInquiryCard(p, user); }).join('')
+      : '<div style="text-align:center;padding:24px;color:var(--text2);font-size:13px;background:var(--bg);border-radius:10px;">보낸 건의가 없습니다.</div>';
+  } else {
+    listHtml = posts.length === 0
+      ? '<div style="text-align:center;padding:40px 20px;color:var(--text2);font-size:13px;">등록된 건의가 없습니다.</div>'
+      : posts.map(function(p){ return renderInquiryCard(p, user); }).join('');
+  }
 
   ui.innerHTML = formHtml + '<div style="display:flex;flex-direction:column;gap:10px;">' + listHtml + '</div>';
 }
 
-function renderLoungePostCard(post, user) {
+function renderInquiryCard(post, user) {
   var canDelete = (user && (user.role === 'superadmin' || post.author_name === user.name));
-  var meta = visibilityMeta(post.visibility);
-  var roleBadge = post.author_role === 'superadmin' ? '👑 슈퍼관리자' :
+  var isMine    = user && post.author_name === user.name;
+
+  // 수신자 배지
+  var toLabel = post.visibility === 'private_super' ? '👑 슈퍼관리자' :
+                post.visibility === 'private_admin'  ? '🎯 센터장' : '📢 전체';
+  var toColor = post.visibility === 'private_super' ? '#d97706' :
+                post.visibility === 'private_admin'  ? '#0ea5a0' : '#3b82f6';
+  var toBg    = post.visibility === 'private_super' ? '#fef3c7' :
+                post.visibility === 'private_admin'  ? '#e0f7f6' : '#dbeafe';
+
+  // 발신자 표시
+  var fromLabel = post.author_role === 'superadmin' ? '👑 슈퍼관리자' :
                   post.author_role === 'admin'      ? '🎯 센터장'    : '👤 선생님';
 
-  // 슈퍼어드민이 다른 센터 글 보는 경우 센터 이름 표시
+  // 센터 이름 (슈퍼관리자용)
   var centerBadge = '';
   if (user && user.role === 'superadmin' && post.center_id) {
     var centerName = (centersByIdCache && centersByIdCache[post.center_id]) || post.center_id;
-    centerBadge = ' · <span style="font-size:11px;color:var(--text2);">🏢 ' + escHtml(centerName) + '</span>';
+    centerBadge = '<span style="font-size:11px;color:var(--text2);margin-left:6px;">🏢 ' + escHtml(centerName) + '</span>';
   }
 
-  // 시간 표시
   var when = '';
   try {
     if (post.created_at) {
       var d = new Date(post.created_at);
       when = d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
-  } catch (e) { when = ''; }
+  } catch (e) {}
 
   var deleteBtn = canDelete
-    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(\'' + post.id + '\')">🗑️ 삭제</button>'
+    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(\'' + post.id + '\')">삭제</button>'
     : '';
 
-  return '<div class="card" style="border-left:4px solid ' + meta.color + ';">'
-    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">'
-    + '<div style="flex:1;min-width:0;">'
-    +   '<span style="display:inline-block;font-size:11px;color:' + meta.color + ';font-weight:700;background:' + meta.bg + ';padding:3px 9px;border-radius:10px;">' + meta.icon + ' ' + meta.label + '</span>'
-    +   '<div style="margin-top:6px;font-size:12px;color:var(--text2);">'
-    +     '<span style="font-weight:600;color:var(--text);">' + escHtml(post.author_name || '익명') + '</span> · ' + roleBadge + centerBadge + ' · ' + when
+  return '<div class="card" style="border-left:4px solid ' + toColor + ';margin-bottom:4px;">'
+    // 헤더: 발신→수신 / 날짜 / 삭제
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;">'
+    +   '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">'
+    +     (isMine ? '' : '<span style="font-size:12px;font-weight:700;color:var(--text);">' + escHtml(post.author_name||'') + '</span>')
+    +     '<span style="font-size:11px;color:var(--text2);">' + fromLabel + '</span>'
+    +     centerBadge
+    +     '<span style="font-size:11px;color:var(--text2);">→</span>'
+    +     '<span style="font-size:11px;font-weight:700;color:' + toColor + ';background:' + toBg + ';padding:2px 8px;border-radius:10px;">' + toLabel + '</span>'
+    +     (isMine ? '<span style="font-size:10px;color:var(--mint);background:var(--mint2);padding:2px 7px;border-radius:8px;font-weight:700;">내가 보낸 건의</span>' : '')
+    +   '</div>'
+    +   '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
+    +     '<span style="font-size:11px;color:var(--text2);">' + when + '</span>'
+    +     deleteBtn
     +   '</div>'
     + '</div>'
-    + deleteBtn
-    + '</div>'
+    // 제목
     + '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">' + escHtml(post.title || '') + '</div>'
-    + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:10px;">' + escHtml(post.content) + '</div>' : '')
+    // 내용
+    + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;margin-bottom:10px;padding:10px 12px;background:var(--bg);border-radius:8px;">' + escHtml(post.content) + '</div>' : '')
     + (post.image_urls && post.image_urls.length ? renderImageThumbs(post.image_urls) : '')
-    + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:8px;">'
-    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + meta.color + ';border-color:' + meta.color + ';" onclick="toggleComments(\'' + post.id + '\')">💬 댓글 <span id="commentCount_' + post.id + '"></span></button>'
+    // 댓글 (답변)
+    + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:4px;">'
+    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + toColor + ';border-color:' + toColor + ';" onclick="toggleComments(\'' + post.id + '\')">💬 답변 <span id="commentCount_' + post.id + '"></span></button>'
     +   '<div id="commentArea_' + post.id + '" style="display:none;margin-top:10px;"></div>'
     + '</div>'
     + '</div>';
