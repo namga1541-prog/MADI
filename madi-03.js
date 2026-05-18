@@ -280,6 +280,15 @@ function showDashboard() {
   syncSidebarActive(-1);
   updateBreadcrumb(-1);
   renderDashboard();
+  // admin.html 사이드 네비에서 전달된 대상 탭 1회 소비 (goToAppTab)
+  try {
+    var _pendingTab = localStorage.getItem('madi_pending_tab');
+    if (_pendingTab !== null) {
+      localStorage.removeItem('madi_pending_tab');
+      var _ptIdx = parseInt(_pendingTab, 10);
+      if (!isNaN(_ptIdx) && typeof switchTab === 'function') switchTab(_ptIdx);
+    }
+  } catch (e) {}
 }
 function renderDashboard() {
   var hp=document.getElementById('panelHome');

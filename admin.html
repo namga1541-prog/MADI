@@ -175,11 +175,11 @@
 <!-- ── 사이드 네비 ── -->
 <nav class="admin-sidenav" id="adminSidenav">
   <div style="font-size:11px;font-weight:700;color:#94a3b8;padding:4px 12px 8px;letter-spacing:0.5px;">서비스관리</div>
-  <a onclick="goBack();setTimeout(function(){switchTab(0);},100)">📅 캘린더</a>
-  <a onclick="goBack();setTimeout(function(){switchTab(1);},100)">👶 아동 관리</a>
-  <a onclick="goBack();setTimeout(function(){switchTab(2);},100)">📋 보고서</a>
-  <a onclick="goBack();setTimeout(function(){switchTab(3);},100)">📁 성장기록</a>
-  <a onclick="goBack();setTimeout(function(){switchTab(7);},100)">📌 게시판</a>
+  <a onclick="goToAppTab(0)">📅 캘린더</a>
+  <a onclick="goToAppTab(1)">👶 아동 관리</a>
+  <a onclick="goToAppTab(2)">📋 보고서</a>
+  <a onclick="goToAppTab(3)">📁 성장기록</a>
+  <a onclick="goToAppTab(7)">📌 게시판</a>
   <div class="nav-divider"></div>
   <a onclick="window.location.href='admin.html?tab=service'" id="sideService" class="active">🛠 서비스 관리</a>
   <a onclick="window.location.href='admin.html?tab=settings'" id="sideSettings" style="display:none;">⚙️ 관리자설정</a>
@@ -842,6 +842,37 @@ function showAdminTab(tab) {
 }
 
 function goBack() { window.location.href = 'index.html'; }
+
+// 앱으로 돌아가며 특정 탭으로 이동 (관리자 사이드 네비)
+// admin.html 은 madi-*.js 를 로드하지 않으므로 switchTab 직접 호출 불가 →
+// localStorage 로 대상 탭을 전달하고, 메인 앱(showDashboard)이 1회 소비한다.
+function goToAppTab(n) {
+  try { localStorage.setItem('madi_pending_tab', String(n)); } catch (e) {}
+  window.location.href = 'index.html';
+}
+
+// ── AI 모델 설정 (madi-01.js 와 동일 동작: localStorage 'madi_ai_model' 공유) ──
+function saveAIModelChoice(choice) {
+  if (choice !== 'haiku' && choice !== 'sonnet') return;
+  try { localStorage.setItem('madi_ai_model', choice); } catch (e) {}
+  updateAIModelUI();
+  var label = choice === 'sonnet' ? '🎯 Sonnet 4.6 (임상 추론·정밀)' : '⚡ Haiku 4.5 (빠름·저렴)';
+  if (typeof showToast === 'function') showToast('✅ AI 모델이 ' + label + ' 으로 설정됐습니다');
+}
+function updateAIModelUI() {
+  var current = 'haiku';
+  try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') current = 'sonnet'; } catch (e) {}
+  var haikuRadio = document.getElementById('aiModelHaikuRadio');
+  var sonnetRadio = document.getElementById('aiModelSonnetRadio');
+  var haikuLabel = document.getElementById('aiModelHaikuLabel');
+  var sonnetLabel = document.getElementById('aiModelSonnetLabel');
+  var currentLabel = document.getElementById('aiModelCurrentLabel');
+  if (haikuRadio)  haikuRadio.checked  = (current === 'haiku');
+  if (sonnetRadio) sonnetRadio.checked = (current === 'sonnet');
+  if (haikuLabel) { haikuLabel.style.borderColor = current === 'haiku' ? '#0ea5a0' : 'var(--border)'; haikuLabel.style.background = current === 'haiku' ? '#f0fdfa' : 'transparent'; }
+  if (sonnetLabel) { sonnetLabel.style.borderColor = current === 'sonnet' ? '#8b5cf6' : 'var(--border)'; sonnetLabel.style.background = current === 'sonnet' ? '#faf5ff' : 'transparent'; }
+  if (currentLabel) { currentLabel.textContent = '현재: ' + (current === 'sonnet' ? '🎯 Sonnet' : '⚡ Haiku'); currentLabel.style.color = current === 'sonnet' ? '#7c3aed' : '#047857'; }
+}
 
 // ══════════════════════════════
 // 3. 데이터베이스
@@ -1928,6 +1959,7 @@ window.addEventListener('DOMContentLoaded', function() {
   loadAdminData();
   loadPrograms();
   loadTeacherList();
+  updateAIModelUI();
   var urlTab = new URLSearchParams(window.location.search).get('tab') || 'service';
   showAdminTab(urlTab);
   var settingsTabBtn = document.getElementById('adminTabSettings');
