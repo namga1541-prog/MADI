@@ -513,8 +513,9 @@ function deployToGitHub() {
                     + '⏸️ 마지막 배포 이후 내용이 변경된 파일이 없습니다.' + NL
                     + '(SHA-1 해시 비교 — 저장만 했고 내용 동일한 파일은 자동 제외됨)' + NL + NL
                     + '그래도 ' + valid.length + '개 파일을 모두 배포하시겠습니까?';
-            if (!confirm(msg)) throw new Error('USER_CANCEL');
-            willUpload = valid;
+            return new Promise(function(res, rej) {
+              showConfirm(msg, res, { danger: false, okLabel: '배포', onCancel: function() { rej(new Error('USER_CANCEL')); } });
+            }).then(function() { willUpload = valid; });
           } else {
             willUpload = changed;
           }
@@ -530,15 +531,18 @@ function deployToGitHub() {
             unchanged.forEach(function(f) { lines.push('  · ' + f.name); });
           }
           lines.push('', '+ sw.js (자동 캐시 갱신)', '', '진행하시겠습니까?');
-          if (!confirm(lines.join(NL))) throw new Error('USER_CANCEL');
-
-          FILES_TO_UPLOAD = willUpload;
-          TOTAL_FILES     = willUpload.length + 1;
-          // 모든 파일의 SHA 맵 (다음 배포 시 비교용으로 유지)
-          var allShas = {};
-          valid.forEach(function(f){ allShas[f.name] = f.sha; });
-          FILES_TO_UPLOAD.allShas = allShas;
-          return willUpload;
+          var _finalMsg = lines.join(NL);
+          var _finalUpload = willUpload;
+          return new Promise(function(res, rej) {
+            showConfirm(_finalMsg, res, { danger: false, okLabel: '배포', onCancel: function() { rej(new Error('USER_CANCEL')); } });
+          }).then(function() {
+            FILES_TO_UPLOAD = _finalUpload;
+            TOTAL_FILES     = _finalUpload.length + 1;
+            var allShas = {};
+            valid.forEach(function(f){ allShas[f.name] = f.sha; });
+            FILES_TO_UPLOAD.allShas = allShas;
+            return _finalUpload;
+          });
         });
       });
     })

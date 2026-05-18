@@ -509,14 +509,18 @@ function downloadIEPPDFById(id) {
 }
 
 function deleteIEPRecord(id) {
-  if (!confirm('이 장단기계획(IEP) 기록을 삭제할까요?')) return;
-  var r = iepDB.find(function(x){ return x.id === id; });
-  var childId = r ? r.childId : 0;
-  iepDB = iepDB.filter(function(x){ return x.id !== id; });
-  saveIEP();
-  supaFetch('madi_iep_history?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-08]',e&&e.message);});
-  renderIEPHistory(childId);
-  showToast('🗑️ 장단기계획(IEP) 기록 삭제됨');
+  showConfirm('이 장단기계획(IEP) 기록을 삭제할까요?', function() {
+    var r = iepDB.find(function(x){ return x.id === id; });
+    var childId = r ? r.childId : 0;
+    iepDB = iepDB.filter(function(x){ return x.id !== id; });
+    saveIEP();
+    supaFetch('madi_iep_history?id=eq.' + id, 'DELETE').catch(function(e) {
+      if(window.console&&console.warn)console.warn('[madi-08 deleteIEP]',e&&e.message);
+      showToast('❌ 장단기계획 삭제 실패 — 다시 시도해주세요');
+    });
+    renderIEPHistory(childId);
+    showToast('🗑️ 장단기계획(IEP) 기록 삭제됨');
+  });
 }
 
 function downloadIEPPDF(childName) {

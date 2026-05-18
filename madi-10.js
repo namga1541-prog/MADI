@@ -747,9 +747,11 @@ function confirmSchedDelete(id, hasGroup) {
   var s = scheduleDB.find(function(x){ return x.id===id; });
   if (!s) return;
   if (!hasGroup) {
-    if (!confirm('이 일정을 삭제할까요?')) return;
-    var ol = document.getElementById('editSchedOverlay'); if (ol) ol.remove();
-    execSchedDelete(id, false); return;
+    showConfirm('이 일정을 삭제할까요?', function() {
+      var ol = document.getElementById('editSchedOverlay'); if (ol) ol.remove();
+      execSchedDelete(id, false);
+    });
+    return;
   }
   var delOv = document.createElement('div');
   delOv.id = 'delSchedOverlay';

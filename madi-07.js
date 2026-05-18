@@ -342,7 +342,10 @@ function deleteSession(id) {
     '삭제된 세션은 복구할 수 없습니다.\n' + (backup.date || '') + ' 세션 기록이 삭제됩니다.',
     '세션삭제확인',
     function() {
-      supaFetch('madi_sessions?id=eq.' + id, 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-07]',e&&e.message);});
+      supaFetch('madi_sessions?id=eq.' + id, 'DELETE').catch(function(e) {
+        if(window.console&&console.warn)console.warn('[madi-07 deleteSession]',e&&e.message);
+        showToast('❌ 세션 삭제 실패 — 다시 시도해주세요');
+      });
       sessionDB = sessionDB.filter(function(s) { return s.id !== id; });
       saveSessions();
       renderSessionList();
@@ -352,7 +355,10 @@ function deleteSession(id) {
           sessionDB.push(backup);
           saveSessions();
           var row = Object.assign({}, backup);
-          supaFetch('madi_sessions', 'POST', [row]).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-07]',e&&e.message);});
+          supaFetch('madi_sessions', 'POST', [row]).catch(function(e) {
+            if(window.console&&console.warn)console.warn('[madi-07 undoSession]',e&&e.message);
+            showToast('❌ 복원 실패 — 다시 시도해주세요');
+          });
           renderSessionList();
           renderChildGrid();
           showToast('↩️ 세션 복원됨');

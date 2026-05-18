@@ -302,10 +302,11 @@ function showLogoutMenu() {
 }
 
 function doLogout() {
-  if (!confirm(currentUser.name + '님, 로그아웃 하시겠습니까?')) return;
-  stopRealtime(); currentUser = null; clearToken(); localStorage.removeItem('madi_user');
-  childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
-  renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
+  showConfirm(currentUser.name + '님, 로그아웃 하시겠습니까?', function() {
+    stopRealtime(); currentUser = null; clearToken(); localStorage.removeItem('madi_user');
+    childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
+    renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
+  }, { danger: false, okLabel: '로그아웃' });
 }
 
 // ★ 비밀번호 변경 모달
@@ -486,6 +487,32 @@ function loadActivitiesFromSupa() {
   supaFetch('madi_activities?' + centerFilter() + '&order=id.asc', 'GET')
     .then(function(rows) { if (Array.isArray(rows) && rows.length > 0) { activityDB = rows; safeSetItem('cn3_activities', JSON.stringify(activityDB)); renderActivityCatalog(); } })
     .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
+}
+
+// ── 커스텀 confirm 모달 (브라우저 confirm 대체) ──
+function showConfirm(msg, onOk, opts) {
+  opts = opts || {};
+  var okLabel     = opts.okLabel     || '확인';
+  var cancelLabel = opts.cancelLabel || '취소';
+  var danger      = opts.danger !== false;
+  var ov = document.createElement('div');
+  ov.className = 'confirm-ov';
+  ov.innerHTML = '<div class="confirm-box" role="alertdialog" aria-modal="true">'
+    + '<p class="confirm-msg">' + escHtml(msg).replace(/\n/g,'<br>') + '</p>'
+    + '<div class="confirm-btns">'
+    + '<button class="btn btn-ghost confirm-cancel">' + escHtml(cancelLabel) + '</button>'
+    + '<button class="btn ' + (danger ? 'btn-del' : 'btn-primary') + ' confirm-ok">' + escHtml(okLabel) + '</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  function close() { if (ov.parentNode) document.body.removeChild(ov); document.removeEventListener('keydown', _onKey); }
+  function _onKey(e) {
+    if (e.key === 'Escape') { close(); if (opts.onCancel) opts.onCancel(); }
+  }
+  ov.querySelector('.confirm-cancel').onclick = function() { close(); if (opts.onCancel) opts.onCancel(); };
+  ov.querySelector('.confirm-ok').onclick = function() { close(); onOk(); };
+  ov.addEventListener('click', function(e) { if (e.target === ov) { close(); if (opts.onCancel) opts.onCancel(); } });
+  document.addEventListener('keydown', _onKey);
+  setTimeout(function() { var b = ov.querySelector('.confirm-ok'); if (b) b.focus(); }, 50);
 }
 
 var toastTimer = null, toastForceTimer = null, toastLocked = false;

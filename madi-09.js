@@ -94,11 +94,12 @@ function saveActivity() {
 }
 
 function deleteActivity(id) {
-  if (!confirm('이 활동 자료를 삭제할까요?')) return;
-  activityDB = activityDB.filter(function(a) { return a.id !== id; });
-  saveActivities();
-  renderActivityCatalog();
-  showToast('🗑️ 삭제됨');
+  showConfirm('이 활동 자료를 삭제할까요?', function() {
+    activityDB = activityDB.filter(function(a) { return a.id !== id; });
+    saveActivities();
+    renderActivityCatalog();
+    showToast('🗑️ 삭제됨');
+  });
 }
 
 // ─────── W6: 회기 후 자동 브리핑 모달 ───────

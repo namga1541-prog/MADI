@@ -102,11 +102,12 @@ function estimateCost() {
 }
 
 function resetApiUsage() {
-  if (!confirm('API 사용량 통계를 초기화할까요?')) return;
-  apiUsage = { calls: 0, inputTokens: 0, outputTokens: 0, byModel: {} };
-  saveApiUsage();
-  renderDebugInfo();
-  showToast('🔄 API 사용량 초기화됨');
+  showConfirm('API 사용량 통계를 초기화할까요?', function() {
+    apiUsage = { calls: 0, inputTokens: 0, outputTokens: 0, byModel: {} };
+    saveApiUsage();
+    renderDebugInfo();
+    showToast('🔄 API 사용량 초기화됨');
+  }, { danger: false });
 }
 
 // 에러 로그 저장
@@ -146,10 +147,11 @@ function getErrorLog() {
 }
 
 function clearErrorLog() {
-  if (!confirm('에러 로그를 모두 삭제할까요?')) return;
-  sessionStorage.removeItem('madi_error_log');
-  renderDebugInfo();
-  showToast('🗑️ 에러 로그 삭제됨');
+  showConfirm('에러 로그를 모두 삭제할까요?', function() {
+    sessionStorage.removeItem('madi_error_log');
+    renderDebugInfo();
+    showToast('🗑️ 에러 로그 삭제됨');
+  });
 }
 
 // 디버그 정보 카드 렌더
@@ -413,9 +415,14 @@ function maybeAutoBackup() {
 
 // ─────── 백업 복원 ───────
 function restoreFromBackup(id) {
-  if (!confirm('⚠️ 백업 ' + id + ' 으로 복원하시겠습니까?\n\n현재 모든 데이터가 백업으로 덮어써집니다.\n복원 직전 자동으로 현재 상태도 백업됩니다.')) return;
-  if (!confirm('정말 진행하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+  showConfirm('⚠️ 백업 ' + id + ' 으로 복원하시겠습니까?\n\n현재 모든 데이터가 백업으로 덮어써집니다.\n복원 직전 자동으로 현재 상태도 백업됩니다.', function() {
+    showConfirm('정말 진행하시겠습니까? 이 작업은 되돌릴 수 없습니다.', function() {
+      _execRestoreFromBackup(id);
+    }, { danger: true, okLabel: '복원' });
+  }, { danger: true });
+}
 
+function _execRestoreFromBackup(id) {
   // 1. 현재 상태를 안전 백업
   var safetyKey = 'safety_' + Date.now();
   var safetySnapshot = buildBackupSnapshot();
@@ -426,34 +433,32 @@ function restoreFromBackup(id) {
   }).then(function(backup) {
     if (!backup || !backup.data) throw new Error('백업 데이터가 손상되었습니다.');
 
+    function applyBackup() {
+      // 모든 DB 교체
+      childDB      = backup.data.children    || [];
+      sessionDB    = backup.data.sessions    || [];
+      scheduleDB   = backup.data.schedule    || [];
+      assessmentDB = backup.data.assessments || [];
+      activityDB   = backup.data.activities  || [];
+      iepDB        = backup.data.iep         || [];
+      _optionsCacheKey = null;  // 성능: 캐시 무효화
+      // 로컬 저장
+      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
+      saveActivities(); saveIEP();
+      // 화면 갱신
+      renderChildGrid(); populateChildSelects(); renderSessionList();
+      if (typeof renderSchedView === 'function') renderSchedView();
+      showToast('✅ 백업 ' + id + ' 으로 복원 완료!');
+      setTimeout(function() { renderBackupList(); }, 500);
+    }
+
     // 무결성 검증
     var json = JSON.stringify(backup.data);
     if (backup.checksum && quickHash(json) !== backup.checksum) {
-      if (!confirm('⚠️ 백업 무결성 검증 실패. 그래도 복원하시겠습니까?')) return;
+      showConfirm('⚠️ 백업 무결성 검증 실패. 그래도 복원하시겠습니까?', applyBackup, { danger: true });
+    } else {
+      applyBackup();
     }
-
-    // 모든 DB 교체
-    childDB      = backup.data.children    || [];
-    sessionDB    = backup.data.sessions    || [];
-    scheduleDB   = backup.data.schedule    || [];
-    assessmentDB = backup.data.assessments || [];
-    activityDB   = backup.data.activities  || [];
-    iepDB        = backup.data.iep         || [];
-
-    _optionsCacheKey = null;  // 성능: 캐시 무효화
-
-    // 로컬 저장
-    saveChildren(); saveSessions(); saveSchedule(); saveAssess();
-    saveActivities(); saveIEP();
-
-    // 화면 갱신
-    renderChildGrid();
-    populateChildSelects();
-    renderSessionList();
-    if (typeof renderSchedView === 'function') renderSchedView();
-
-    showToast('✅ 백업 ' + id + ' 으로 복원 완료!');
-    setTimeout(function() { renderBackupList(); }, 500);
   }).catch(function(err) {
     showToast('❌ 복원 실패: ' + err.message);
   });
@@ -496,10 +501,11 @@ function renderBackupList() {
 }
 
 function deleteBackupConfirm(id) {
-  if (!confirm('백업 ' + id + ' 을 삭제할까요?')) return;
-  deleteBackup(id).then(function() {
-    showToast('🗑️ 백업 삭제됨');
-    renderBackupList();
+  showConfirm('백업 ' + id + ' 을 삭제할까요?', function() {
+    deleteBackup(id).then(function() {
+      showToast('🗑️ 백업 삭제됨');
+      renderBackupList();
+    });
   });
 }
 
