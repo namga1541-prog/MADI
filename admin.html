@@ -808,9 +808,7 @@ function maskApiKey(key) {
 }
 
 function validatePasswordStrength(pw) {
-  if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다';
-  if (!/[a-zA-Z]/.test(pw)) return '영문자를 포함해야 합니다';
-  if (!/[0-9]/.test(pw)) return '숫자를 포함해야 합니다';
+  if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다';
   return null;
 }
 
@@ -1765,7 +1763,7 @@ function removeStaffAccount(id, name) {
 }
 
 function resetStaffPassword(id, name) {
-  var newPw = prompt(name + ' 선생님의 새 비밀번호를 입력하세요\n(8자 이상 영문+숫자)\n\n💡 빈 칸으로 두면 안전한 비밀번호가 자동 생성됩니다.');
+  var newPw = prompt(name + ' 선생님의 새 비밀번호를 입력하세요\n(4자 이상)\n\n💡 빈 칸으로 두면 안전한 비밀번호가 자동 생성됩니다.');
   if (newPw === null) return;
   newPw = (newPw || '').trim();
   if (!newPw) {

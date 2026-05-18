@@ -327,7 +327,7 @@ function showChangePasswordModal() {
     + '</div>'
     + '<div style="margin-bottom:12px;">'
     + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호</label>'
-    + '<input type="password" id="cpNew" class="form-input" placeholder="영문+숫자 8자 이상" style="width:100%;box-sizing:border-box;">'
+    + '<input type="password" id="cpNew" class="form-input" placeholder="4자 이상" style="width:100%;box-sizing:border-box;">'
     + '</div>'
     + '<div style="margin-bottom:16px;">'
     + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호 확인</label>'
@@ -714,9 +714,7 @@ function getRoleFlags(user) {
   return { isAuth:true, isSuper:r==='superadmin', isAdmin:r==='admin', isTeacher:r==='teacher', isParent:r==='parent', isAdminOrSuper:r==='admin'||r==='superadmin' };
 }
 function validatePasswordStrength(pw) {
-  if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
-  if (!/[a-zA-Z]/.test(pw)) return '비밀번호에 영문을 포함해주세요.';
-  if (!/[0-9]/.test(pw))    return '비밀번호에 숫자를 포함해주세요.';
+  if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
   return null;
 }
 function _getLoginBlockData(username) { try { var raw = localStorage.getItem('login_block_' + username); return raw ? JSON.parse(raw) : { attempts: 0, blockedUntil: 0 }; } catch(e) { return { attempts: 0, blockedUntil: 0 }; } }
