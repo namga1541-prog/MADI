@@ -1037,8 +1037,9 @@ function saveLibraryPost() {
 }
 
 function deleteLibraryPost(id) {
-  if (!confirm('이 자료를 삭제하시겠습니까?')) return;
-  supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
-    .then(function() { showToast('🗑️ 자료 삭제됨'); renderLibrary(); })
-    .catch(function(err) { showToast('⚠️ 삭제 실패: ' + (err.message||'')); });
+  showConfirm('이 자료를 삭제할까요?', function() {
+    supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
+      .then(function() { showToast('🗑️ 자료 삭제됨'); renderLibrary(); })
+      .catch(function(err) { showToast('❌ 삭제 실패 — 다시 시도해주세요'); });
+  });
 }

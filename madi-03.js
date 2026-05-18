@@ -111,6 +111,10 @@ function copyInviteCode() {
 }
 
 function regenInviteCode() {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+    showToast('⚠️ 관리자만 초대 코드를 재발급할 수 있습니다');
+    return;
+  }
   var daysSel = document.getElementById('inviteExpiryDays');
   var days = daysSel ? parseInt(daysSel.value, 10) : 30;
   if (isNaN(days)) days = 30;

@@ -1,7 +1,21 @@
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type, x-client-info, apikey',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// 허용 Origin 목록 — 프로덕션 도메인 + 로컬 개발
+const ALLOWED_ORIGINS = new Set([
+  'https://namga1541-prog.github.io', // GitHub Pages 프로덕션
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  // file:// → Origin: null (로컬 파일 실행 배포용)
+  'null',
+])
+
+function makeCORS(origin: string | null): Record<string, string> {
+  const o = origin ?? 'null'
+  const acao = ALLOWED_ORIGINS.has(o) ? o : 'https://namga1541-prog.github.io'
+  return {
+    'Access-Control-Allow-Origin':  acao,
+    'Access-Control-Allow-Headers': 'authorization, content-type, x-client-info, apikey',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  }
 }
 
 async function verifyJwt(token: string, secret: string) {
@@ -34,9 +48,19 @@ const ALLOWED_TABLES = [
   'madi_parent_children', 'madi_push_subscriptions', 'madi_licenses', 'madi_error_logs', 'madi_notifications'
 ]
 
-// 관리자 전용 테이블
+// 관리자 이상만 모든 조작 가능
 const ADMIN_ONLY_TABLES = [
-  'madi_users', 'madi_centers', 'madi_settings', 'madi_error_logs'
+  'madi_users', 'madi_centers', 'madi_settings', 'madi_error_logs', 'madi_licenses',
+]
+
+// 읽기는 전체 허용, 쓰기(POST·PATCH·DELETE)는 admin 이상만
+const ADMIN_WRITE_TABLES = [
+  'madi_notices', 'madi_programs',
+]
+
+// 읽기는 전체 허용, 쓰기는 superadmin만
+const SUPERADMIN_WRITE_TABLES = [
+  'madi_global_notices',
 ]
 
 // 전역 테이블 (center_id 컬럼 없음)
@@ -63,6 +87,7 @@ const PARENT_CHILD_FILTER_TABLES = [
 ]
 
 Deno.serve(async (req: Request) => {
+  const CORS = makeCORS(req.headers.get('origin'))
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   const JWT_SECRET = Deno.env.get('MADI_JWT_SECRET')
@@ -96,6 +121,18 @@ Deno.serve(async (req: Request) => {
     // 관리자 전용 테이블 체크
     if (ADMIN_ONLY_TABLES.includes(tableName) && user.role !== 'admin' && user.role !== 'superadmin') {
       return new Response(JSON.stringify({ error: '관리자 권한이 필요합니다' }), { status: 403, headers: CORS })
+    }
+
+    // 관리자만 쓰기 가능 테이블 (GET은 허용)
+    if (ADMIN_WRITE_TABLES.includes(tableName) && method && method !== 'GET'
+        && user.role !== 'admin' && user.role !== 'superadmin') {
+      return new Response(JSON.stringify({ error: '관리자만 수정할 수 있습니다' }), { status: 403, headers: CORS })
+    }
+
+    // 슈퍼관리자만 쓰기 가능 테이블 (GET은 허용)
+    if (SUPERADMIN_WRITE_TABLES.includes(tableName) && method && method !== 'GET'
+        && user.role !== 'superadmin') {
+      return new Response(JSON.stringify({ error: '슈퍼관리자만 수정할 수 있습니다' }), { status: 403, headers: CORS })
     }
 
     // 학부모 쓰기 차단

@@ -249,7 +249,173 @@ USING (
 
 
 -- ───────────────────────────────────────────────────────────────────
--- 6. 검증 쿼리 (실행 후 확인용)
+-- 6. 누락 테이블 RLS (defense-in-depth)
+--    Edge Function이 service_role로 호출하므로 RLS는 우회되지만
+--    Supabase Dashboard 직접 접근 또는 anon key 노출 시 방어선 역할
+-- ───────────────────────────────────────────────────────────────────
+
+-- madi_users — 같은 센터 사용자만 조회, 본인만 수정
+ALTER TABLE madi_users ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_users_select" ON madi_users;
+CREATE POLICY "madi_users_select" ON madi_users FOR SELECT
+USING (
+  madi_my_role() = 'superadmin'
+  OR center_id = madi_my_center_id()
+  OR id = auth.uid()
+);
+
+DROP POLICY IF EXISTS "madi_users_insert" ON madi_users;
+CREATE POLICY "madi_users_insert" ON madi_users FOR INSERT
+WITH CHECK (madi_my_role() IN ('superadmin', 'admin') OR id = auth.uid());
+
+DROP POLICY IF EXISTS "madi_users_update" ON madi_users;
+CREATE POLICY "madi_users_update" ON madi_users FOR UPDATE
+USING (madi_my_role() = 'superadmin' OR center_id = madi_my_center_id() OR id = auth.uid());
+
+DROP POLICY IF EXISTS "madi_users_delete" ON madi_users;
+CREATE POLICY "madi_users_delete" ON madi_users FOR DELETE
+USING (madi_my_role() IN ('superadmin', 'admin') AND center_id = madi_my_center_id());
+
+
+-- madi_centers — 본인 센터만 접근
+ALTER TABLE madi_centers ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_centers_select" ON madi_centers;
+CREATE POLICY "madi_centers_select" ON madi_centers FOR SELECT
+USING (madi_my_role() = 'superadmin' OR id = madi_my_center_id());
+
+DROP POLICY IF EXISTS "madi_centers_update" ON madi_centers;
+CREATE POLICY "madi_centers_update" ON madi_centers FOR UPDATE
+USING (madi_my_role() = 'superadmin' OR (id = madi_my_center_id() AND madi_my_role() = 'admin'));
+
+DROP POLICY IF EXISTS "madi_centers_insert" ON madi_centers;
+CREATE POLICY "madi_centers_insert" ON madi_centers FOR INSERT
+WITH CHECK (madi_my_role() = 'superadmin');
+
+DROP POLICY IF EXISTS "madi_centers_delete" ON madi_centers;
+CREATE POLICY "madi_centers_delete" ON madi_centers FOR DELETE
+USING (madi_my_role() = 'superadmin');
+
+
+-- madi_settings — admin 이상만 접근
+ALTER TABLE madi_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_settings_select" ON madi_settings;
+CREATE POLICY "madi_settings_select" ON madi_settings FOR SELECT
+USING (madi_my_role() = 'superadmin' OR (center_id = madi_my_center_id() AND madi_my_role() = 'admin'));
+
+DROP POLICY IF EXISTS "madi_settings_insert" ON madi_settings;
+CREATE POLICY "madi_settings_insert" ON madi_settings FOR INSERT
+WITH CHECK (madi_my_role() = 'superadmin' OR (center_id = madi_my_center_id() AND madi_my_role() = 'admin'));
+
+DROP POLICY IF EXISTS "madi_settings_update" ON madi_settings;
+CREATE POLICY "madi_settings_update" ON madi_settings FOR UPDATE
+USING (madi_my_role() = 'superadmin' OR (center_id = madi_my_center_id() AND madi_my_role() = 'admin'));
+
+DROP POLICY IF EXISTS "madi_settings_delete" ON madi_settings;
+CREATE POLICY "madi_settings_delete" ON madi_settings FOR DELETE
+USING (madi_my_role() = 'superadmin' OR (center_id = madi_my_center_id() AND madi_my_role() = 'admin'));
+
+
+-- madi_notices — 센터 내 전체 조회, 쓰기는 admin 이상만
+ALTER TABLE madi_notices ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_notices_select" ON madi_notices;
+CREATE POLICY "madi_notices_select" ON madi_notices FOR SELECT
+USING (madi_my_role() = 'superadmin' OR center_id = madi_my_center_id());
+
+DROP POLICY IF EXISTS "madi_notices_insert" ON madi_notices;
+CREATE POLICY "madi_notices_insert" ON madi_notices FOR INSERT
+WITH CHECK (madi_my_role() IN ('superadmin', 'admin') AND center_id = madi_my_center_id());
+
+DROP POLICY IF EXISTS "madi_notices_update" ON madi_notices;
+CREATE POLICY "madi_notices_update" ON madi_notices FOR UPDATE
+USING (madi_my_role() IN ('superadmin', 'admin') AND center_id = madi_my_center_id());
+
+DROP POLICY IF EXISTS "madi_notices_delete" ON madi_notices;
+CREATE POLICY "madi_notices_delete" ON madi_notices FOR DELETE
+USING (madi_my_role() IN ('superadmin', 'admin') AND center_id = madi_my_center_id());
+
+
+-- madi_global_notices — 전체 조회, 쓰기는 superadmin만
+ALTER TABLE madi_global_notices ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_global_notices_select" ON madi_global_notices;
+CREATE POLICY "madi_global_notices_select" ON madi_global_notices FOR SELECT
+USING (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "madi_global_notices_insert" ON madi_global_notices;
+CREATE POLICY "madi_global_notices_insert" ON madi_global_notices FOR INSERT
+WITH CHECK (madi_my_role() = 'superadmin');
+
+DROP POLICY IF EXISTS "madi_global_notices_update" ON madi_global_notices;
+CREATE POLICY "madi_global_notices_update" ON madi_global_notices FOR UPDATE
+USING (madi_my_role() = 'superadmin');
+
+DROP POLICY IF EXISTS "madi_global_notices_delete" ON madi_global_notices;
+CREATE POLICY "madi_global_notices_delete" ON madi_global_notices FOR DELETE
+USING (madi_my_role() = 'superadmin');
+
+
+-- madi_error_logs — admin 이상만 조회, 삽입은 인증된 사용자
+ALTER TABLE madi_error_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_error_logs_select" ON madi_error_logs;
+CREATE POLICY "madi_error_logs_select" ON madi_error_logs FOR SELECT
+USING (madi_my_role() IN ('superadmin', 'admin'));
+
+DROP POLICY IF EXISTS "madi_error_logs_insert" ON madi_error_logs;
+CREATE POLICY "madi_error_logs_insert" ON madi_error_logs FOR INSERT
+WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "madi_error_logs_delete" ON madi_error_logs;
+CREATE POLICY "madi_error_logs_delete" ON madi_error_logs FOR DELETE
+USING (madi_my_role() = 'superadmin');
+
+
+-- madi_notifications — 본인 알림만 조회/삭제
+ALTER TABLE madi_notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_notifications_select" ON madi_notifications;
+CREATE POLICY "madi_notifications_select" ON madi_notifications FOR SELECT
+USING (madi_my_role() = 'superadmin' OR user_id = auth.uid()::text);
+
+DROP POLICY IF EXISTS "madi_notifications_insert" ON madi_notifications;
+CREATE POLICY "madi_notifications_insert" ON madi_notifications FOR INSERT
+WITH CHECK (madi_my_role() IN ('superadmin', 'admin') OR user_id = auth.uid()::text);
+
+DROP POLICY IF EXISTS "madi_notifications_update" ON madi_notifications;
+CREATE POLICY "madi_notifications_update" ON madi_notifications FOR UPDATE
+USING (user_id = auth.uid()::text);
+
+DROP POLICY IF EXISTS "madi_notifications_delete" ON madi_notifications;
+CREATE POLICY "madi_notifications_delete" ON madi_notifications FOR DELETE
+USING (madi_my_role() = 'superadmin' OR user_id = auth.uid()::text);
+
+
+-- madi_licenses — superadmin만 접근
+ALTER TABLE madi_licenses ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "madi_licenses_select" ON madi_licenses;
+CREATE POLICY "madi_licenses_select" ON madi_licenses FOR SELECT
+USING (madi_my_role() = 'superadmin' OR center_id = madi_my_center_id());
+
+DROP POLICY IF EXISTS "madi_licenses_insert" ON madi_licenses;
+CREATE POLICY "madi_licenses_insert" ON madi_licenses FOR INSERT
+WITH CHECK (madi_my_role() = 'superadmin');
+
+DROP POLICY IF EXISTS "madi_licenses_update" ON madi_licenses;
+CREATE POLICY "madi_licenses_update" ON madi_licenses FOR UPDATE
+USING (madi_my_role() = 'superadmin');
+
+DROP POLICY IF EXISTS "madi_licenses_delete" ON madi_licenses;
+CREATE POLICY "madi_licenses_delete" ON madi_licenses FOR DELETE
+USING (madi_my_role() = 'superadmin');
+
+
+-- ───────────────────────────────────────────────────────────────────
+-- 7. 검증 쿼리 (실행 후 확인용)
 -- ───────────────────────────────────────────────────────────────────
 -- 활성화된 RLS 테이블 확인:
 -- SELECT tablename, rowsecurity FROM pg_tables
