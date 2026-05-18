@@ -2261,7 +2261,13 @@ function copyParentNewInfo() {
     + '아래 주소에서 로그인해주세요.\n'
     + window.location.origin + window.location.pathname.replace('admin.html','index.html');
   navigator.clipboard.writeText(msg)
-    .then(function() { showToast('📋 카톡 전송용 메시지 복사됨'); })
+    .then(function() {
+      showToast('📋 카톡 전송용 메시지 복사됨');
+      // 복사 완료 즉시 평문 비밀번호 메모리·DOM에서 소거
+      if (_lastCreatedParent) { _lastCreatedParent.password = ''; }
+      var pwEl = document.getElementById('parentNewResultPw');
+      if (pwEl) pwEl.textContent = '(복사됨 — 보안을 위해 삭제)';
+    })
     .catch(function() { showToast('❌ 복사 실패'); });
 }
 

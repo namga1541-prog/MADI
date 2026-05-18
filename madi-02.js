@@ -233,8 +233,7 @@ function copyErrorLog() {
       showToast('📋 디버그 정보 복사됨 — 붙여넣기로 전달하세요');
     });
   } else {
-    showToast('클립보드 미지원 — 콘솔에 출력합니다');
-    console.log(text);
+    showToast('클립보드 미지원 — 설정 > 디버그 화면을 캡처해 전달해주세요');
   }
 }
 
@@ -389,7 +388,7 @@ function autoBackup() {
     .then(pruneOldBackups)
     .then(function() {
       localStorage.setItem('madi_last_backup', dateKey);
-      console.log('[자동 백업] ' + dateKey + ' 저장됨 (' + Math.round(snapshot.size/1024) + 'KB)');
+      if (window.console && console.debug) console.debug('[자동 백업] ' + dateKey + ' 저장됨 (' + Math.round(snapshot.size/1024) + 'KB)');
     })
     .catch(function(err) {
       console.error('[자동 백업 실패]', err);

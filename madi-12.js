@@ -995,14 +995,14 @@ function initPWA() {
     // 1차 시도: 배포된 ./sw.js (GitHub Pages 환경)
     navigator.serviceWorker.register('./sw.js')
       .then(function(reg) {
-        console.log('[마디 PWA] sw.js 등록 성공 — 오프라인 캐싱 활성화:', reg.scope);
+        if (window.console && console.debug) console.debug('[마디 PWA] sw.js 등록 성공');
       })
       .catch(function() {
         // 2차 시도: Blob URL (로컈 개발 / sw.js 미배포 환경)
         var swBlob = new Blob([SW_CODE], { type: 'text/javascript' });
         var swUrl  = URL.createObjectURL(swBlob);
         navigator.serviceWorker.register(swUrl)
-          .then(function() { console.log('[마디 PWA] Blob URL SW 등록 (폴백)'); })
+          .then(function() { if (window.console && console.debug) console.debug('[마디 PWA] Blob URL SW 등록 (폴백)'); })
           .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-12]',e&&e.message);});
       });
   }

@@ -556,7 +556,7 @@ function fetchWithRetry(url, options, opts) {
       clearTimeout(slowTimer); return res;
     }).catch(function(err) {
       var isRetriable = err.message && err.message.startsWith('RETRY:'), isNetwork = err.message && err.message.includes('Failed to fetch');
-      if ((isRetriable || isNetwork) && attempt < maxRetries) { attempt++; var delay = baseDelay * Math.pow(2, attempt-1); console.log('['+label+'] 재시도 '+attempt+'/'+maxRetries+' ('+delay+'ms 후)'); return new Promise(function(resolve){ setTimeout(resolve,delay); }).then(doFetch); }
+      if ((isRetriable || isNetwork) && attempt < maxRetries) { attempt++; var delay = baseDelay * Math.pow(2, attempt-1); if (window.console && console.debug) console.debug('['+label.split('?')[0]+'] 재시도 '+attempt+'/'+maxRetries); return new Promise(function(resolve){ setTimeout(resolve,delay); }).then(doFetch); }
       clearTimeout(slowTimer); throw err;
     });
   }
