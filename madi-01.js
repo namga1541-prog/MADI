@@ -226,15 +226,14 @@ function doLogin() {
   if (errEl) errEl.textContent = '';
   if (!un) { if (errEl) errEl.textContent = '아이디를 입력해주세요.'; return; }
   if (!pw) { if (errEl) errEl.textContent = '비밀번호를 입력해주세요.'; return; }
-  var blockMsg = checkLoginBlocked(un); if (blockMsg) { if (errEl) errEl.textContent = blockMsg; return; }
   if (btn) { if (btn.dataset.busy === '1') return; btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '로그인 중...'; }
   fetchWithRetry(EDGE_URL + '/login', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: un, password: pw }) }, { retries: 1, label: '로그인' })
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
-    if (data.error) { recordLoginFail(un); if (errEl) errEl.textContent = data.error; return; }
+    if (data.error) { if (errEl) errEl.textContent = data.error; return; }
     // 토큰은 서버가 httpOnly 쿠키로 발급 — 클라이언트는 user 정보만 저장
-    recordLoginSuccess(un); currentUser = data.user;
+    currentUser = data.user;
     localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', un);
     hideLoginScreen(); applyUserUI(); applyRoleUI(); loadCenterApiKey(); loadDBFromSupabase(); initRealtime(); loadCenterSessionInterval();
   }).catch(function() {
@@ -721,14 +720,6 @@ function validatePasswordStrength(pw) {
   if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
   return null;
 }
-function _getLoginBlockData(username) { try { var raw = localStorage.getItem('login_block_' + username); return raw ? JSON.parse(raw) : { attempts: 0, blockedUntil: 0 }; } catch(e) { return { attempts: 0, blockedUntil: 0 }; } }
-function checkLoginBlocked(username) {
-  if (!username) return null; var data = _getLoginBlockData(username);
-  if (data.blockedUntil && data.blockedUntil > Date.now()) return '로그인 시도가 너무 많습니다. ' + Math.ceil((data.blockedUntil - Date.now()) / 60000) + '분 후 다시 시도해주세요.';
-  return null;
-}
-function recordLoginFail(username) { if (!username) return; try { var data = _getLoginBlockData(username); data.attempts = (data.attempts||0)+1; if (data.attempts >= 5) data.blockedUntil = Date.now()+30*60*1000; localStorage.setItem('login_block_'+username, JSON.stringify(data)); } catch(e) {} }
-function recordLoginSuccess(username) { if (!username) return; try { localStorage.removeItem('login_block_'+username); } catch(e) {} }
 
 // ─────── ID 생성 유틸 (cowork #5 개선: 충돌 확률 1/10,000 → 1/1,000,000) ───────
 function generateClientId() {
