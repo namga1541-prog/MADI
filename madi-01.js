@@ -395,13 +395,7 @@ function loadDBFromSupabase(silent) {
     function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; }); }
     var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
     var localCh = []; try { localCh = JSON.parse(localStorage.getItem('cn3_children') || '[]'); } catch(e){}
-    if (supaCh.length > 0 && localCh.length > 0 && supaCh.length < localCh.length * 0.7) {
-      console.warn('[loadDB] 부분동기화 차단'); showToast('⚠️ 서버 데이터 불일치 감지 — 로컬 데이터 유지');
-      childDB = localCh;
-      try { sessionDB = JSON.parse(localStorage.getItem('cn3_sessions') || '[]'); } catch(e){ sessionDB=[]; }
-      try { scheduleDB = JSON.parse(localStorage.getItem('cn3_schedule') || '[]'); } catch(e){ scheduleDB=[]; }
-      try { assessmentDB = JSON.parse(localStorage.getItem('cn3_assess') || '[]'); } catch(e){ assessmentDB=[]; }
-    } else if (supaCh.length === 0 && localCh.length > 0) {
+    if (supaCh.length === 0 && localCh.length > 0) {
       childDB = localCh;
       try { sessionDB = JSON.parse(localStorage.getItem('cn3_sessions') || '[]'); } catch(e){ sessionDB=[]; }
       try { scheduleDB = JSON.parse(localStorage.getItem('cn3_schedule') || '[]'); } catch(e){ scheduleDB=[]; }
