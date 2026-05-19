@@ -1743,7 +1743,7 @@ function loadStaffMgmtList() {
         return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;gap:8px;">'
           +'<div style="min-width:0;flex:1;"><span style="font-size:13px;font-weight:700;">'+escHtml(u.name)+'</span>'
           +'<span style="font-size:11px;color:var(--text2);margin-left:6px;">@'+escHtml(u.username)+'</span>'
-          +'<span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:'+(u.role==='superadmin'?'#fef3c7':(u.role==='admin'?'var(--mint2)':'#f1f5f9'))+';color:'+(u.role==='superadmin'?'#d97706':(u.role==='admin'?'var(--mint)':'var(--text2)'))+';\">'+(u.role==='superadmin'?'슈퍼관리자':(u.role==='admin'?'관리자':'선생님'))+'</span></div>'
+          +'<span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:'+(u.role==='superadmin'?'#fef3c7':(u.role==='admin'?'var(--mint2)':(u.role==='parent'?'#fce7f3':'#f1f5f9')))+';color:'+(u.role==='superadmin'?'#d97706':(u.role==='admin'?'var(--mint)':(u.role==='parent'?'#be185d':'var(--text2)')))+';\">'+(u.role==='superadmin'?'슈퍼관리자':(u.role==='admin'?'관리자':(u.role==='parent'?'학부모':'선생님')))+'</span></div>'
           + actionButtons
           +'</div>';
       }).join('');
