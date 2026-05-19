@@ -527,7 +527,10 @@ function callClaude(system, user, maxTokens, model) {
     onSlow: function() { showToast('🐢 응답이 늦어지고 있습니다... 잠시만 기다려주세요'); }
   })
   .then(function(res) {
-    if (!res.ok) return res.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + res.status); });
+    if (!res.ok) return res.json().then(function(e) {
+      var msg = e.error ? (typeof e.error === 'string' ? e.error : (e.error.message || JSON.stringify(e.error))) : ('HTTP ' + res.status);
+      throw new Error(msg);
+    }).catch(function(err) { if (err.message) throw err; throw new Error('HTTP ' + res.status); });
     return res.json();
   })
   .then(function(data) {

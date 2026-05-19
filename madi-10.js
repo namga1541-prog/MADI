@@ -888,15 +888,15 @@ function _getExportRows() {
 
   if (!rows.length) { showToast('⚠️ 해당 기간에 일정이 없습니다'); return null; }
   return rows.map(function(s) {
-    var child = (childDB || []).find(function(c){ return c.id === s.childId; });
+    var child = (childDB || []).find(function(c){ return String(c.id) === String(s.childId); });
     return {
       날짜:        s.date || '',
       시작시간:    (s.startTime || '').slice(0, 5),
       종료시간:    (s.endTime   || '').slice(0, 5),
-      이용자:      child ? child.name : '',
+      이용자:      child ? (child.name || '') : ('ID:' + s.childId),
       선생님:      s.teacher || '',
-      프로그램유형: child ? (child.type || '') : '',
-      바우처:      child ? (child.voucherType || '일반') : '',
+      프로그램유형: child ? (child.type || child.program || '') : '',
+      바우처:      child ? (child.voucherType || '일반') : '일반',
       메모:        s.note || ''
     };
   });

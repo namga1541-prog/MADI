@@ -685,9 +685,8 @@ function getTodayKST() { return ymd(nowKST()); }
 function getMonthKST() { return getTodayKST().slice(0, 7); }
 
 (function() {
-  var token   = localStorage.getItem('madi_token');
   var userStr = localStorage.getItem('madi_user');
-  if (!token || !userStr) {
+  if (!userStr) {
     window.location.replace('index.html');
     return;
   }
@@ -699,7 +698,7 @@ function getMonthKST() { return getTodayKST().slice(0, 7); }
       return;
     }
     currentUser = user;
-    _madiToken  = token;
+    _madiToken  = localStorage.getItem('madi_token') || '';
   } catch(e) {
     window.location.replace('index.html');
   }
@@ -748,12 +747,12 @@ function fetchWithRetry(url, options, opts) {
 
 // supaFetch — apikey 헤더 제거 (보안)
 function supaFetch(path, method, body) {
+  var headers = { 'Content-Type': 'application/json' };
+  var tok = getToken(); if (tok) headers['Authorization'] = 'Bearer ' + tok;
   return fetchWithRetry(EDGE_URL + '/api', {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': 'Bearer ' + getToken()
-    },
+    credentials: 'include',
+    headers: headers,
     body: JSON.stringify({ path: path, method: method || 'GET', body: body || null })
   }, { retries: 2, allowPostRetry: true }).then(function(r) {
     if (!r.ok && r.status !== 200 && r.status !== 201) {
