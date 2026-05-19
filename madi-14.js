@@ -12,11 +12,9 @@ function uploadBoardImage(file, folder) {
       var base64 = e.target.result.split(',')[1]; // data:mime;base64,<여기>
       var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
       fetch(EDGE_URL + '/upload-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': 'Bearer ' + getToken()
-        },
+        method:      'POST',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           file:     base64,
           mimeType: file.type || 'application/octet-stream',

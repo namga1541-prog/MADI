@@ -53,10 +53,30 @@
 - `sw.js` 캐시 버전은 pre-commit 훅이 자동 갱신 (수동 변경 불필요)
 - 변경 후 반드시 강제 새로고침 안내 (Ctrl+Shift+R)
 
+### Edge Function 배포
+- **반드시 `--no-verify-jwt` 플래그 포함** — 없으면 Supabase 미들웨어가 모든 요청을 401로 차단
+  ```
+  supabase functions deploy <name> --project-ref ujxdhafzjyrglaclarwe --no-verify-jwt
+  ```
+- 배포 후 엔드포인트 직접 호출로 동작 확인 필수
+
 ### 금지 사항
 - `npm install`, `package.json` 의존성 추가 금지 (정적 사이트)
 - `console.log` 운영 코드에 추가 금지
 - Supabase anon key를 소스에 하드코딩 금지
+
+## DB 스키마 (검증된 컬럼)
+
+Edge Function이나 SQL에서 컬럼을 참조할 때는 아래 목록 기준으로 확인할 것.
+존재하지 않는 컬럼을 select에 포함하면 PostgREST가 400을 반환하고, 에러 메시지가 인증 실패처럼 보일 수 있음.
+
+| 테이블 | 컬럼 |
+|--------|------|
+| `madi_users` | `id`, `username`, `name`, `password`, `role`, `center_id`, `color`, `permissions` |
+| `madi_parent_children` | `parent_user_id`, `child_id` |
+| `madi_centers` | `id` (PK, center_id로 사용) |
+
+> 위 목록에 없는 컬럼을 추가하려면 코드와 DB 스키마를 동시에 수정해야 함.
 
 ## 테스트
 ```bash

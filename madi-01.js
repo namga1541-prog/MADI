@@ -81,9 +81,11 @@ function loadCenterSessionInterval() {
 }
 var EDGE_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';
 var _madiToken = null;
-function getToken()   { return _madiToken || localStorage.getItem('madi_token') || ''; }
-function setToken(t)  { _madiToken = t; localStorage.setItem('madi_token', t); }
-function clearToken() { _madiToken = null; localStorage.removeItem('madi_token'); }
+// 토큰은 인메모리에만 보관 — localStorage 저장 금지 (XSS 탈취 방지)
+// 페이지 새로고침 후에는 httpOnly 쿠키로 서버 인증이 자동 처리됨
+function getToken()   { return _madiToken || ''; }
+function setToken(t)  { _madiToken = t; }
+function clearToken() { _madiToken = null; }
 
 function safeSetItem(key, value) {
   try { localStorage.setItem(key, value); return true; }
@@ -93,10 +95,8 @@ function safeSetItem(key, value) {
 function supaFetch(path, method, body) {
   return fetchWithRetry(EDGE_URL + '/api', {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': 'Bearer ' + getToken()
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ path: path, method: method || 'GET', body: body || null })
   }, {
     retries: 2,
@@ -226,14 +226,14 @@ function doLogin() {
   if (errEl) errEl.textContent = '';
   if (!un) { if (errEl) errEl.textContent = '아이디를 입력해주세요.'; return; }
   if (!pw) { if (errEl) errEl.textContent = '비밀번호를 입력해주세요.'; return; }
-  var blockMsg = checkLoginBlocked(un); if (blockMsg) { if (errEl) errEl.textContent = blockMsg; return; }
   if (btn) { if (btn.dataset.busy === '1') return; btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '로그인 중...'; }
-  fetchWithRetry(EDGE_URL + '/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: un, password: pw }) }, { retries: 1, label: '로그인' })
+  fetchWithRetry(EDGE_URL + '/login', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: un, password: pw }) }, { retries: 1, label: '로그인' })
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
-    if (data.error) { recordLoginFail(un); if (errEl) errEl.textContent = data.error; return; }
-    recordLoginSuccess(un); setToken(data.token); currentUser = data.user;
+    if (data.error) { if (errEl) errEl.textContent = data.error; return; }
+    // 토큰은 서버가 httpOnly 쿠키로 발급 — 클라이언트는 user 정보만 저장
+    currentUser = data.user;
     localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', un);
     hideLoginScreen(); applyUserUI(); applyRoleUI(); loadCenterApiKey(); loadDBFromSupabase(); initRealtime(); loadCenterSessionInterval();
   }).catch(function() {
@@ -305,6 +305,8 @@ function showLogoutMenu() {
 
 function doLogout() {
   showConfirm(currentUser.name + '님, 로그아웃 하시겠습니까?', function() {
+    // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
+    fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
     stopRealtime(); currentUser = null; clearToken(); localStorage.removeItem('madi_user');
     childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
     renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
@@ -362,7 +364,8 @@ function submitChangePassword() {
   btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '변경 중...';
   fetchWithRetry(EDGE_URL + '/change-password', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ currentPassword: current, newPassword: newPw })
   }, { retries: 0, label: '비밀번호 변경' })
   .then(function(r) { return r.json(); })
@@ -717,14 +720,6 @@ function validatePasswordStrength(pw) {
   if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
   return null;
 }
-function _getLoginBlockData(username) { try { var raw = localStorage.getItem('login_block_' + username); return raw ? JSON.parse(raw) : { attempts: 0, blockedUntil: 0 }; } catch(e) { return { attempts: 0, blockedUntil: 0 }; } }
-function checkLoginBlocked(username) {
-  if (!username) return null; var data = _getLoginBlockData(username);
-  if (data.blockedUntil && data.blockedUntil > Date.now()) return '로그인 시도가 너무 많습니다. ' + Math.ceil((data.blockedUntil - Date.now()) / 60000) + '분 후 다시 시도해주세요.';
-  return null;
-}
-function recordLoginFail(username) { if (!username) return; try { var data = _getLoginBlockData(username); data.attempts = (data.attempts||0)+1; if (data.attempts >= 5) data.blockedUntil = Date.now()+30*60*1000; localStorage.setItem('login_block_'+username, JSON.stringify(data)); } catch(e) {} }
-function recordLoginSuccess(username) { if (!username) return; try { localStorage.removeItem('login_block_'+username); } catch(e) {} }
 
 // ─────── ID 생성 유틸 (cowork #5 개선: 충돌 확률 1/10,000 → 1/1,000,000) ───────
 function generateClientId() {

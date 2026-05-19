@@ -512,10 +512,8 @@ function deleteBackupConfirm(id) {
 function callClaude(system, user, maxTokens, model) {
   return fetchWithRetry(EDGE_URL + '/ai-proxy', {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': 'Bearer ' + getToken()
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model:      model || MODEL_HAIKU,
       max_tokens: maxTokens || 1500,

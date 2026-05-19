@@ -285,8 +285,9 @@ function _cleanupLegacyGithubToken() {
 
 function deployFileViaProxy(filename, textContent, commitMsg) {
   return fetch(EDGE_URL + '/github-deploy', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    method:      'POST',
+    credentials: 'include',
+    headers:     { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       action: 'deploy',
       files:  [{ name: filename, content: textContent, commitMsg: commitMsg }]
@@ -353,8 +354,9 @@ function pollGithubPagesBuild(deployStartTs) {
   var INTERVAL_MS = 5000;
   function poll() {
     return fetch(EDGE_URL + '/github-deploy', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      method:      'POST',
+      credentials: 'include',
+      headers:     { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'poll', deployStartTs: deployStartTs })
     })
     .then(function(res) {
@@ -870,12 +872,15 @@ function init() {
   // 마이그레이션: 기존 사용자 localStorage 잔재 자동 정리
   try { localStorage.removeItem('cn3_apikey'); } catch(e) {}
 
-  var savedUser  = localStorage.getItem('madi_user');
-  var savedToken = localStorage.getItem('madi_token');
-  if (savedUser && savedToken) {
+  // httpOnly 쿠키 보안 마이그레이션: localStorage 잔재 토큰 정리
+  try { localStorage.removeItem('madi_token'); } catch(e) {}
+
+  var savedUser = localStorage.getItem('madi_user');
+  // 토큰은 httpOnly 쿠키에만 존재 — savedUser만 있으면 세션 복원
+  // (쿠키가 만료됐다면 첫 API 호출 시 401 → 자동 로그인 화면 전환)
+  if (savedUser) {
     try {
       currentUser = JSON.parse(savedUser);
-      _madiToken  = savedToken;
       applyUserUI();
       applyRoleUI();
       loadCenterApiKey();
@@ -883,12 +888,11 @@ function init() {
       loadDBFromSupabase();
       initRealtime();
     } catch(e) {
-      clearToken();
+      currentUser = null;
       localStorage.removeItem('madi_user');
       showLanding();
     }
   } else {
-    clearToken();
     localStorage.removeItem('madi_user');
     loadDB();
     renderChildGrid();
@@ -1593,11 +1597,9 @@ function sendChat() {
   var messages = chatHistory.slice(0, -1).slice(-8).concat([{ role: 'user', content: text }]);
 
   fetchWithRetry(EDGE_URL + '/ai-proxy', {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': 'Bearer ' + getToken()
-    },
+    method:      'POST',
+    credentials: 'include',
+    headers:     { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 600, system: SYSTEM, messages: messages })
   }, {
     retries: 2,
