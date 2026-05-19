@@ -7,8 +7,7 @@ const PW = process.env.TEST_PASSWORD || '';
 async function goToLogin(page) {
   await page.goto('/MADI/');
   await page.evaluate(() => {
-    localStorage.removeItem('madi_token');
-    localStorage.removeItem('madi_user');
+    localStorage.removeItem('madi_user'); // madi_token은 httpOnly 쿠키로 이전됨
   });
   await page.reload();
   await expect(page.locator('#landingScreen')).toBeVisible({ timeout: 10000 });
