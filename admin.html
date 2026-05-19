@@ -1813,14 +1813,32 @@ function saveCenterApiKey() {
   if (!key.startsWith('sk-ant')) { showToast('❌ 유효한 Anthropic API 키를 입력해주세요 (sk-ant-로 시작)'); return; }
   var statusEl = document.getElementById('centerKeyStatus');
   if (statusEl) statusEl.innerHTML='<span style="color:var(--text2);">저장 중...</span>';
-  supaFetch('madi_settings','POST',[{ key:'api_key', value:key }])
-    .then(function(){
-      if (statusEl) statusEl.innerHTML='<span style="color:var(--green);">✅ 저장 완료: '+maskApiKey(key)+'</span>';
-      showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
-    }).catch(function(err){
-      if (statusEl) statusEl.innerHTML='<span style="color:var(--red);">❌ 저장 실패: '+escHtml(err.message||'오류')+'</span>';
-      showToast('❌ 저장 실패');
-    });
+  var cid = getCenterId();
+  var doSave = function(records) {
+    return supaFetch('madi_settings','POST', records)
+      .then(function(){
+        if (statusEl) statusEl.innerHTML='<span style="color:var(--green);">✅ 저장 완료: '+maskApiKey(key)+'</span>';
+        showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
+      }).catch(function(err){
+        if (statusEl) statusEl.innerHTML='<span style="color:var(--red);">❌ 저장 실패: '+escHtml(err.message||'오류')+'</span>';
+        showToast('❌ 저장 실패');
+      });
+  };
+  if (cid) {
+    // admin: /api가 center_id를 자동 주입하므로 그대로 저장
+    doSave([{ key:'api_key', value:key }]);
+  } else {
+    // superadmin(center_id 없음): 전체 센터 목록 조회 후 각 센터에 저장
+    supaFetch('madi_centers?select=id','GET')
+      .then(function(centers){
+        if (!Array.isArray(centers)||!centers.length) throw new Error('등록된 센터 없음');
+        var records = centers.map(function(c){ return { key:'api_key', value:key, center_id:c.id }; });
+        return doSave(records);
+      }).catch(function(err){
+        if (statusEl) statusEl.innerHTML='<span style="color:var(--red);">❌ 저장 실패: '+escHtml(err.message||'오류')+'</span>';
+        showToast('❌ 저장 실패');
+      });
+  }
 }
 function toggleCenterKeyVisibility() {
   var input = document.getElementById('centerApiKeyInput');
