@@ -53,6 +53,11 @@
 - `sw.js` 캐시 버전은 pre-commit 훅이 자동 갱신 (수동 변경 불필요)
 - 변경 후 반드시 강제 새로고침 안내 (Ctrl+Shift+R)
 
+### 자동 커밋·푸시 (필수)
+- **모든 코드 수정 작업 완료 후 별도 언급 없어도 반드시** `git add -A && git commit && git push origin main` 실행
+- worktree에서 작업 시: worktree 커밋 → main에 cherry-pick → push 순서로 진행
+- 사용자가 명시적으로 "커밋하지 마" 라고 하지 않는 한 항상 자동 배포까지 완료
+
 ### Edge Function 배포
 - **반드시 `--no-verify-jwt` 플래그 포함** — 없으면 Supabase 미들웨어가 모든 요청을 401로 차단
   ```
