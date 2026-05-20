@@ -634,7 +634,8 @@ function addAssessment(opts) {
   assessmentDB.push({
     id: generateClientId(), childId: childId, date: date,
     testName: testName, typeKey: typeVal,
-    scores: scores, memo: memo
+    scores: scores, memo: memo,
+    user_id: (currentUser && currentUser.id) || null
   });
   saveAssess();
   renderAssessmentList();

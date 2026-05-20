@@ -134,6 +134,8 @@ function onCommentImageChange(postId, input) {
 
 // 현재 활성 서브탭 (global / center / lounge)
 var currentBoardTab = 'global';
+// 비동기 응답이 도착했을 때 사용자가 이미 다른 탭으로 옮겼는지 판별하는 토큰
+var _boardLoadGen = 0;
 
 // 데이터 캐시 (단계별로 채워나감)
 var globalNoticesDB = [];
@@ -151,6 +153,7 @@ function initBoard() {
 // 서브탭 전환
 function switchBoardTab(name) {
   if (!name) return;
+  _boardLoadGen++;            // 이전 탭의 비동기 응답을 무효화
   currentBoardTab = name;
 
   ['global', 'center', 'lounge', 'library'].forEach(function(n) {
@@ -185,8 +188,10 @@ function renderGlobalNotices() {
 
 // Supabase에서 공지 목록 조회 (pinned 우선, 최신순, 최대 100개)
 function loadGlobalNotices() {
+  var gen = _boardLoadGen;
   return supaFetch('madi_global_notices?order=pinned.desc,created_at.desc&limit=100', 'GET')
     .then(function(rows) {
+      if (gen !== _boardLoadGen) return; // 사용자가 이미 다른 탭으로 이동함
       globalNoticesDB = Array.isArray(rows) ? rows : [];
       renderGlobalNoticeUI();
     })
@@ -350,8 +355,10 @@ function loadCenterNotices() {
           + '&order=pinned.desc,created_at.desc&limit=100';
   }
 
+  var gen = _boardLoadGen;
   return supaFetch(query, 'GET')
     .then(function(rows) {
+      if (gen !== _boardLoadGen) return;
       centerNoticesDB = Array.isArray(rows) ? rows : [];
       renderCenterNoticeUI();
     })
@@ -551,12 +558,17 @@ function loadLoungePosts() {
   if (_loungeUser.role !== 'superadmin' && _loungeUser.center_id) {
     _loungePath += '&center_id=eq.' + encodeURIComponent(_loungeUser.center_id);
   }
+  var gen = _boardLoadGen;
   supaFetch(_loungePath, 'GET')
     .then(function(data) {
+      if (gen !== _boardLoadGen) return;
       loungePostsDB = data || [];
       // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
       if (currentUser && currentUser.role === 'superadmin') {
-        loadCentersByIdCache().finally(function() { renderLoungeUI(); });
+        loadCentersByIdCache().finally(function() {
+          if (gen !== _boardLoadGen) return;
+          renderLoungeUI();
+        });
       } else {
         renderLoungeUI();
       }

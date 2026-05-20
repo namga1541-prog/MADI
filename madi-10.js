@@ -177,7 +177,8 @@ function renderTeacherFilter() {
   ['전체'].concat(teachers).forEach(function(t) {
     var color = t === '전체' ? 'var(--mint)' : getTeacherColor(t);
     var active = _schedTeacherFilter === t;
-    html += '<button onclick="setTeacherFilter(\'' + escHtml(t) + '\')" style="padding:5px 12px;border-radius:20px;border:2px solid ' + color + ';background:' + (active ? color : 'white') + ';color:' + (active ? 'white' : color) + ';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">'
+    // 따옴표 포함 이름이 inline onclick 을 깨뜨리지 않도록 data-* 사용
+    html += '<button data-teacher="' + escHtml(t) + '" onclick="setTeacherFilter(this.getAttribute(\'data-teacher\'))" style="padding:5px 12px;border-radius:20px;border:2px solid ' + color + ';background:' + (active ? color : 'white') + ';color:' + (active ? 'white' : color) + ';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">'
       + (t === '전체' ? '전체' : escHtml(t)) + '</button>';
   });
   bar.innerHTML = html;
@@ -561,11 +562,14 @@ function openSchedModal(date, schedId) {
 
 function autoCalcEndTime() {
   var st = document.getElementById('schedStartTime').value;
-  var dur = parseInt(document.getElementById('schedDuration').value);
+  var dur = parseInt(document.getElementById('schedDuration').value, 10);
   var endEl = document.getElementById('schedEndTime');
   if (!st || !dur || dur <= 0 || !endEl) return;
+  if (!/^\d{1,2}:\d{2}$/.test(st)) return; // 형식 검증
   var p = st.split(':');
-  var total = parseInt(p[0]) * 60 + parseInt(p[1]) + dur;
+  var h = parseInt(p[0], 10), m = parseInt(p[1], 10);
+  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return;
+  var total = h * 60 + m + dur;
   endEl.value = String(Math.floor(total/60)%24).padStart(2,'0') + ':' + String(total%60).padStart(2,'0');
 }
 

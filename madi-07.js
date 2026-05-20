@@ -289,7 +289,12 @@ function editSessionDate(id) {
     if (newDate !== null) showToast('❌ 날짜 형식을 확인해주세요 (예: 2026-04-29)');
     return;
   }
-  if (isNaN(new Date(newDate).getTime())) {
+  // 거짓 날짜 차단: new Date('2026-02-30') 은 3/2 로 자동 보정되므로 라운드트립 검증
+  var parsed = new Date(newDate + 'T00:00:00');
+  if (isNaN(parsed.getTime())
+      || parsed.getFullYear() !== parseInt(newDate.slice(0,4), 10)
+      || (parsed.getMonth() + 1) !== parseInt(newDate.slice(5,7), 10)
+      || parsed.getDate() !== parseInt(newDate.slice(8,10), 10)) {
     showToast('❌ 유효하지 않은 날짜입니다'); return;
   }
   s.date = newDate;
