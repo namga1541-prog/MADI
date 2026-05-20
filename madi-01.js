@@ -88,8 +88,21 @@ function setToken(t)  { _madiToken = t; }
 function clearToken() { _madiToken = null; }
 
 function safeSetItem(key, value) {
+  // 보안 보강 — cn3_* (아동·세션·일정·평가·IEP·활동) PII 캐시는 localStorage 에 저장하지 않음.
+  // 모든 데이터는 Supabase + 인메모리로만 운용. DevTools / 공유 기기에서 PII 평문 노출 방지.
+  if (typeof key === 'string' && key.indexOf('cn3_') === 0) return true;
   try { localStorage.setItem(key, value); return true; }
   catch (e) { console.error('localStorage 저장 실패:', key, e); if (e && e.name === 'QuotaExceededError') showToast('⚠️ 로컬 저장 공간 부족 — 데이터는 서버에 안전하게 저장됩니다'); return false; }
+}
+
+// 옛 cn3_* 잔존 캐시를 일소 — 로그인 직후 호출
+function _purgeLegacyCnCache() {
+  try {
+    for (var i = localStorage.length - 1; i >= 0; i--) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('cn3_') === 0) localStorage.removeItem(k);
+    }
+  } catch(e) {}
 }
 
 function supaFetch(path, method, body) {
@@ -254,6 +267,7 @@ function doLogin() {
     // 토큰은 서버가 httpOnly 쿠키로 발급 — 클라이언트는 user 정보만 저장
     currentUser = data.user;
     localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', un);
+    _purgeLegacyCnCache(); // 이전 사용자의 cn3_* PII 잔존 데이터 일소
     hideLoginScreen(); applyUserUI(); applyRoleUI(); loadCenterApiKey(); loadDBFromSupabase(); initRealtime(); loadCenterSessionInterval();
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
@@ -440,18 +454,9 @@ function loadDBFromSupabase(silent) {
   ]).then(function(results) {
     function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; }); }
     var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
-    var localCh = []; try { localCh = JSON.parse(localStorage.getItem('cn3_children') || '[]'); } catch(e){}
-    if (supaCh.length === 0 && localCh.length > 0) {
-      childDB = localCh;
-      try { sessionDB = JSON.parse(localStorage.getItem('cn3_sessions') || '[]'); } catch(e){ sessionDB=[]; }
-      try { scheduleDB = JSON.parse(localStorage.getItem('cn3_schedule') || '[]'); } catch(e){ scheduleDB=[]; }
-      try { assessmentDB = JSON.parse(localStorage.getItem('cn3_assess') || '[]'); } catch(e){ assessmentDB=[]; }
-      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
-      showToast('☁️ 기존 데이터 ' + childDB.length + '명 → Supabase 자동 업로드 완료!');
-    } else {
-      childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
-      if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
-    }
+    // cn3_* localStorage 마이그레이션 분기 제거 — 보안 보강으로 PII 평문 캐시 폐지
+    childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
+    if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
     renderChildGrid(); populateChildSelects(); renderGoalRows(); renderSessionList(); renderUnwrittenAlert(); renderStaffCard();
     if (typeof renderSchedView === 'function') renderSchedView();
     if (typeof renderDashboard === 'function') renderDashboard();
@@ -502,12 +507,8 @@ function saveAssess() {
 
 var childDB = [], sessionDB = [], scheduleDB = [], assessmentDB = [], activityDB = [], iepDB = [];
 function loadDB() {
-  try { childDB      = JSON.parse(localStorage.getItem('cn3_children')   || '[]'); } catch(e){ childDB=[]; }
-  try { sessionDB    = JSON.parse(localStorage.getItem('cn3_sessions')   || '[]'); } catch(e){ sessionDB=[]; }
-  try { scheduleDB   = JSON.parse(localStorage.getItem('cn3_schedule')   || '[]'); } catch(e){ scheduleDB=[]; }
-  try { assessmentDB = JSON.parse(localStorage.getItem('cn3_assess')     || '[]'); } catch(e){ assessmentDB=[]; }
-  try { activityDB   = JSON.parse(localStorage.getItem('cn3_activities') || '[]'); } catch(e){ activityDB=[]; }
-  try { iepDB        = JSON.parse(localStorage.getItem('cn3_iep')        || '[]'); } catch(e){ iepDB=[]; }
+  // cn3_* localStorage 캐시 비활성 — PII 평문 저장 금지. 인메모리로 시작, loadDBFromSupabase 가 채움.
+  childDB = []; sessionDB = []; scheduleDB = []; assessmentDB = []; activityDB = []; iepDB = [];
 }
 function saveIEP() {
   safeSetItem('cn3_iep', JSON.stringify(iepDB));
