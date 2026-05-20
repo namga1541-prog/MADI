@@ -127,6 +127,34 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: '인증이 필요합니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
   }
 
+  // ── 세션 무효화 검증 ──
+  // 비밀번호 변경 후 발급된 토큰만 유효. 토큰의 iat 가 password_changed_at 보다 이전이면 거부.
+  try {
+    const tokenIat = Number(user.iat || 0)
+    if (tokenIat > 0) {
+      const pwdRes = await fetch(
+        SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub)) + '&select=password_changed_at',
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+      )
+      if (pwdRes.ok) {
+        const r = await pwdRes.json() as Array<{ password_changed_at?: string }>
+        const pwAtStr = r && r[0] ? r[0].password_changed_at : null
+        if (pwAtStr) {
+          const pwAt = Math.floor(new Date(pwAtStr).getTime() / 1000)
+          // 1초 여유 — 동일 초 발급된 토큰은 유효 (clock skew 보정)
+          if (tokenIat + 1 < pwAt) {
+            return new Response(
+              JSON.stringify({ error: '비밀번호가 변경되어 세션이 만료되었습니다. 다시 로그인해주세요.' }),
+              { status: 401, headers: CORS }
+            )
+          }
+        }
+      }
+    }
+  } catch (_) {
+    // 검증 실패는 무시 (DB 일시 오류 시 사용자 차단 X — 다른 보안 계층이 막음)
+  }
+
   try {
     const reqBody = await req.json() as { path: string; method?: string; body?: unknown }
     const { method, body } = reqBody
