@@ -1880,6 +1880,69 @@
     .lp-ai-item div { font-size:13px; color:rgba(255,255,255,0.85); line-height:1.6; }
     .lp-ai-item b { display:block; font-size:14px; font-weight:800; color:white; margin-bottom:3px; }
 
+    /* ④-A AI 실제 사용 화면 (Mock-up) */
+    .lp-section-ai-demo { background:white; }
+    .lp-demo-row { display:grid; grid-template-columns:1fr 1.3fr; gap:50px; align-items:center; margin-bottom:80px; }
+    .lp-demo-row:last-child { margin-bottom:0; }
+    .lp-demo-row-reverse { direction:rtl; }
+    .lp-demo-row-reverse > * { direction:ltr; }
+    .lp-demo-text { padding:0 10px; }
+    .lp-demo-num { display:inline-block; font-size:13px; font-weight:900; color:var(--mint); background:#e0f7f6; padding:4px 12px; border-radius:20px; margin-bottom:14px; letter-spacing:0.5px; }
+    .lp-demo-text h3 { font-size:clamp(20px,2.8vw,28px); font-weight:900; color:#0f2942; margin:0 0 12px; line-height:1.3; letter-spacing:-0.3px; }
+    .lp-demo-text p { font-size:14.5px; color:#475569; line-height:1.75; margin:0 0 16px; }
+    .lp-demo-text ul { list-style:none; padding:0; margin:0; }
+    .lp-demo-text li { font-size:13.5px; color:#334155; padding:6px 0 6px 24px; position:relative; line-height:1.55; }
+    .lp-demo-text li::before { content:"✓"; position:absolute; left:0; top:6px; color:var(--mint); font-weight:900; font-size:14px; }
+
+    /* Mock 윈도우 (브라우저 프레임) */
+    .lp-mock-window { background:white; border-radius:14px; overflow:hidden; box-shadow:0 18px 48px rgba(14,41,66,0.18), 0 4px 16px rgba(14,41,66,0.08); border:1px solid #e2e8f0; }
+    .lp-mock-bar { display:flex; align-items:center; gap:6px; padding:11px 14px; background:#f1f5f9; border-bottom:1px solid #e2e8f0; }
+    .lp-mock-dot { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
+    .lp-dot-r { background:#fc615d; }
+    .lp-dot-y { background:#fdbe40; }
+    .lp-dot-g { background:#34c84a; }
+    .lp-mock-url { flex:1; text-align:center; font-size:12px; color:#475569; font-weight:600; background:white; border-radius:6px; padding:4px 10px; margin:0 8px; border:1px solid #e2e8f0; }
+    .lp-mock-body { padding:18px 20px; background:#fafdfc; }
+
+    /* Mock 콘텐츠 공통 */
+    .lp-mock-header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:14px; }
+    .lp-mock-pill { display:inline-block; font-size:12px; font-weight:700; color:#0f2942; background:white; padding:5px 11px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:4px; }
+    .lp-mock-subtitle { font-size:11px; color:#64748b; line-height:1.5; }
+    .lp-mock-badge-ai { font-size:10.5px; font-weight:800; color:white; background:linear-gradient(135deg,#0ea5a0,#22c9c3); padding:4px 9px; border-radius:8px; flex-shrink:0; box-shadow:0 2px 8px rgba(14,165,160,0.25); white-space:nowrap; }
+
+    .lp-mock-card { background:white; border-radius:10px; padding:12px 14px; margin-bottom:10px; border:1px solid #e8f5f4; box-shadow:0 1px 3px rgba(0,0,0,0.03); }
+    .lp-mock-card-ai { background:linear-gradient(135deg,#f0fdfa,#fafdfc); border-color:#bae6e3; }
+    .lp-mock-card-sub { background:white; border-radius:8px; padding:10px 12px; border:1px solid #e8f5f4; }
+    .lp-mock-card-label { font-size:11px; font-weight:800; color:#0f2942; margin-bottom:6px; letter-spacing:0.3px; }
+    .lp-mock-card-text { font-size:12.5px; color:#334155; line-height:1.65; }
+    .lp-mock-card-text b { color:#0f2942; }
+    .lp-mock-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+    .lp-mock-strategy { font-size:12px; color:#334155; padding:6px 0; display:flex; gap:8px; align-items:center; line-height:1.5; }
+    .lp-mock-tag { font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; background:#e0f7f6; color:var(--mint); flex-shrink:0; white-space:nowrap; }
+
+    /* Mock 차트 */
+    .lp-mock-chart { background:white; border-radius:10px; padding:14px; border:1px solid #e8f5f4; margin-bottom:10px; }
+    .lp-mock-bar-row { display:flex; align-items:center; gap:10px; padding:5px 0; }
+    .lp-mock-bar-label { width:80px; font-size:11.5px; font-weight:700; color:#334155; flex-shrink:0; }
+    .lp-mock-bar-track { flex:1; height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+    .lp-mock-bar-fill { height:100%; border-radius:4px; transition:width 0.4s; }
+    .lp-bar-ok { background:linear-gradient(90deg,#0ea5a0,#22c9c3); }
+    .lp-bar-warn { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .lp-mock-bar-val { font-size:11.5px; font-weight:800; color:#0f2942; width:24px; text-align:right; flex-shrink:0; }
+
+    /* Mock 메시지 */
+    .lp-mock-msg { background:white; border-radius:10px; padding:14px 16px; border:1px solid #e8f5f4; margin-bottom:10px; }
+    .lp-mock-msg p { font-size:12.5px; color:#334155; line-height:1.75; margin:0 0 8px; }
+    .lp-mock-msg p:last-child { margin-bottom:0; }
+    .lp-mock-msg b { color:#0f2942; }
+    .lp-mock-msg-tip { background:#fefce8; border:1px solid #fde68a; border-radius:8px; padding:10px 12px; margin-top:10px; }
+    .lp-mock-msg-tip-title { font-size:11.5px; font-weight:800; color:#854d0e; margin-bottom:6px; }
+    .lp-mock-msg-tip-item { font-size:12px; color:#451a03; line-height:1.7; padding:1px 0; }
+
+    .lp-mock-foot { display:flex; justify-content:flex-end; gap:8px; padding-top:10px; }
+    .lp-mock-btn-sec { padding:7px 14px; font-size:11.5px; font-weight:700; border:1px solid #cbd5e1; background:white; color:#475569; border-radius:7px; cursor:default; }
+    .lp-mock-btn-pri { padding:7px 14px; font-size:11.5px; font-weight:700; border:none; background:linear-gradient(135deg,#0ea5a0,#22c9c3); color:white; border-radius:7px; cursor:default; box-shadow:0 2px 8px rgba(14,165,160,0.25); }
+
     /* ⑤ 역할 카드 */
     .lp-section-roles { background:#fafdfc; }
     .lp-role-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
@@ -1966,6 +2029,9 @@
       .lp-final-cta-box{ padding:42px 26px; }
       .lp-footer-inner { grid-template-columns:1fr; gap:30px; }
       .lp-footer-cols  { grid-template-columns:repeat(3,1fr); gap:18px; }
+      .lp-demo-row, .lp-demo-row-reverse { grid-template-columns:1fr; gap:24px; margin-bottom:60px; direction:ltr; }
+      .lp-demo-text    { padding:0; text-align:center; }
+      .lp-demo-text ul { display:inline-block; text-align:left; }
     }
     @media (max-width:560px) {
       .lp-pain-grid    { grid-template-columns:1fr; max-width:360px; margin:0 auto; }
