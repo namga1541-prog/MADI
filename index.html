@@ -95,7 +95,7 @@
 ════════════════════════════════════ -->
 <div id="landingScreen" style="display:none;">
 
-  <!-- 상단 네비게이션 -->
+  <!-- ═══════════════ 상단 네비게이션 ═══════════════ -->
   <nav class="lp-nav">
     <div class="lp-nav-logo">
       <div class="lp-nav-logo-icon"><div class="madi-icon" style="width:44px;height:44px;border-radius:12px;"></div></div>
@@ -107,57 +107,325 @@
     </div>
   </nav>
 
-  <!-- 히어로 섹션 -->
+  <!-- ═══════════════ ① 히어로 ═══════════════ -->
   <section class="lp-hero">
     <div class="lp-badge">🧠 언어치료 특화 AI · 아동 발달 관리 APP</div>
     <h1>세션 기록부터 보고서까지<br><em>아이마디가 함께합니다</em></h1>
     <p>아동 발달 전문가의 반복 업무를 줄이고<br>아이와 함께하는 시간을 늘려드립니다.</p>
+    <div class="lp-hero-cta">
+      <button class="lp-btn-signup lp-btn-large" onclick="hideLanding(); showSignupScreen();">✨ 무료로 시작하기</button>
+      <button class="lp-btn-login lp-btn-large" onclick="hideLanding(); showLoginScreen();">로그인</button>
+    </div>
+    <div class="lp-hero-note">신용카드 등록 없이 1분 만에 시작 · 학부모 무료 초대</div>
   </section>
 
-  <!-- 기능 카드 6개 -->
-  <div class="lp-features">
-
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:#e0f7f6;">📋</div>
-      <h3>스마트 세션 관리</h3>
-      <p>일정·출결·바우처를 한 화면에서. 상태 변경 한 번으로 정산까지 자동 계산됩니다.</p>
+  <!-- ═══════════════ ② 현장 고민 (Pain Points) ═══════════════ -->
+  <section class="lp-section lp-section-pain">
+    <div class="lp-section-inner">
+      <h2 class="lp-section-title">이런 고민, <em>매일 반복</em>되지 않나요?</h2>
+      <p class="lp-section-sub">언어치료 현장의 반복 업무, 더는 혼자 짊어지지 마세요.</p>
+      <div class="lp-pain-grid">
+        <div class="lp-pain-card">
+          <div class="lp-pain-emoji">😩</div>
+          <h4>퇴근 후에도 끝나지 않는 일</h4>
+          <p>세션 기록·IEP·평가 보고서를 매일 야근으로 메우는 일상</p>
+        </div>
+        <div class="lp-pain-card">
+          <div class="lp-pain-emoji">📂</div>
+          <h4>흩어진 아이 정보</h4>
+          <p>엑셀·메모장·종이 차트에 분산된 발달 기록, 매번 다시 찾는 시간</p>
+        </div>
+        <div class="lp-pain-card">
+          <div class="lp-pain-emoji">📞</div>
+          <h4>매번 다시 만드는 상담 자료</h4>
+          <p>학부모 상담 때마다 기록을 일일이 모으고 정리하는 부담</p>
+        </div>
+        <div class="lp-pain-card">
+          <div class="lp-pain-emoji">📋</div>
+          <h4>복잡한 바우처·정산</h4>
+          <p>일정·출결·결제까지 손으로 맞춰야 하는 행정 업무</p>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:#ede9fe;">🧠</div>
-      <h3>AI 장단기계획 자동생성</h3>
-      <p>세션 기록을 바탕으로 IEP 초안을 AI가 작성합니다. 전문가는 검토·수정만 하면 됩니다.</p>
+  <!-- ═══════════════ ③ 기능 카드 6개 ═══════════════ -->
+  <section class="lp-section lp-section-features">
+    <div class="lp-section-inner">
+      <h2 class="lp-section-title">한 곳에서 <em>모든 운영</em>이 끝납니다</h2>
+      <p class="lp-section-sub">언어치료 센터에 필요한 6가지 핵심 기능을 한 화면에.</p>
+
+      <div class="lp-features">
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon" style="background:#e0f7f6;">📋</div>
+          <h3>스마트 세션 관리</h3>
+          <p>일정·출결·바우처를 한 화면에서. 상태 변경 한 번으로 정산까지 자동 계산됩니다.</p>
+        </div>
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon" style="background:#ede9fe;">🧠</div>
+          <h3>AI 장단기계획 자동생성</h3>
+          <p>세션 기록을 바탕으로 IEP 초안을 AI가 작성합니다. 전문가는 검토·수정만 하면 됩니다.</p>
+        </div>
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon" style="background:#fef9c3;">📊</div>
+          <h3>발달 추이 통계</h3>
+          <p>회차별 발달 추이와 효과 지표를 시각화합니다. 정체기 자동 감지로 빠른 개입을 돕습니다.</p>
+        </div>
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon" style="background:#fce7f3;">🎯</div>
+          <h3>활동 카탈로그</h3>
+          <p>분야·연령별로 검증된 활동을 모았습니다. 세션 준비 시간을 대폭 줄여드립니다.</p>
+        </div>
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon" style="background:#dbeafe;">📝</div>
+          <h3>평가 보고서 자동화</h3>
+          <p>감각통합·K-DST 평가 결과를 양식에 맞춰 자동 생성. 검사 종류도 직접 추가 가능합니다.</p>
+        </div>
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon" style="background:#d1fae5;">🌱</div>
+          <h3>학부모 맞춤 포트폴리오</h3>
+          <p>세션 기록·발달 추이·평가 결과를 학부모가 한눈에. 상담 자료 준비가 한순간에 끝납니다.</p>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:#fef9c3;">📊</div>
-      <h3>발달 추이 통계</h3>
-      <p>회차별 발달 추이와 효과 지표를 시각화합니다. 정체기 자동 감지로 빠른 개입을 돕습니다.</p>
+  <!-- ═══════════════ ④ AI 자동화 강조 ═══════════════ -->
+  <section class="lp-section lp-section-ai">
+    <div class="lp-section-inner">
+      <div class="lp-ai-box">
+        <div class="lp-ai-emoji">🤖</div>
+        <h2>AI가 <em>대신 써드립니다</em></h2>
+        <p class="lp-ai-sub">Claude Haiku 4.5 · Sonnet 4.6 — 빠른 속도와 정밀 추론 중 선택</p>
+        <div class="lp-ai-list">
+          <div class="lp-ai-item"><span class="lp-ai-ic">📝</span><div><b>IEP 장단기 계획 초안</b>세션 기록을 학습해 목표·중재 전략을 자동 작성</div></div>
+          <div class="lp-ai-item"><span class="lp-ai-ic">📊</span><div><b>표준화 검사 해석</b>K-DST·감통·PRES·REVT 결과를 양식에 맞춰 보고서로</div></div>
+          <div class="lp-ai-item"><span class="lp-ai-ic">💬</span><div><b>학부모 상담 초안</b>아이별 발달 진행 상황을 부모가 이해할 말로 풀어냄</div></div>
+          <div class="lp-ai-item"><span class="lp-ai-ic">🎯</span><div><b>맞춤 활동 추천</b>발달 추이·연령에 맞는 활동을 활동 카탈로그에서 추천</div></div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:#fce7f3;">🎯</div>
-      <h3>활동 카탈로그</h3>
-      <p>분야·연령별로 검증된 활동을 모았습니다. 세션 준비 시간을 대폭 줄여드립니다.</p>
+  <!-- ═══════════════ ⑤ 3가지 역할 ═══════════════ -->
+  <section class="lp-section lp-section-roles">
+    <div class="lp-section-inner">
+      <h2 class="lp-section-title">한 시스템, <em>세 가지 시점</em></h2>
+      <p class="lp-section-sub">선생님·센터장·학부모가 같은 데이터를 각자의 화면에서 봅니다.</p>
+      <div class="lp-role-grid">
+        <div class="lp-role-card lp-role-teacher">
+          <div class="lp-role-icon">👩‍⚕️</div>
+          <h3>선생님</h3>
+          <p>세션 기록 · 활동 카탈로그 · AI 보고서로 수업 준비와 행정을 한 화면에서.</p>
+          <ul>
+            <li>오늘 일정·아동별 메모</li>
+            <li>AI 보고서 검토·확정</li>
+            <li>평가 결과 입력·시각화</li>
+          </ul>
+        </div>
+        <div class="lp-role-card lp-role-admin">
+          <div class="lp-role-icon">🎯</div>
+          <h3>센터장</h3>
+          <p>일정·정산·선생님 관리·통계까지. 센터 운영을 한눈에 통제하세요.</p>
+          <ul>
+            <li>월별 정산·바우처 매출</li>
+            <li>선생님 권한·일정 관리</li>
+            <li>센터 전체 발달 통계</li>
+          </ul>
+        </div>
+        <div class="lp-role-card lp-role-parent">
+          <div class="lp-role-icon">👨‍👩‍👧</div>
+          <h3>학부모</h3>
+          <p>아이의 세션 기록과 성장 추이를 언제든 확인. 가정 연계가 자연스럽게.</p>
+          <ul>
+            <li>세션별 활동·메모 열람</li>
+            <li>발달 추이 그래프</li>
+            <li>가정 연계 가이드</li>
+          </ul>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:#dbeafe;">📝</div>
-      <h3>평가 보고서 자동화</h3>
-      <p>감각통합·K-DST 평가 결과를 양식에 맞춰 자동 생성. 검사 종류도 직접 추가 가능합니다.</p>
+  <!-- ═══════════════ ⑥ 사용 흐름 4단계 ═══════════════ -->
+  <section class="lp-section lp-section-flow">
+    <div class="lp-section-inner">
+      <h2 class="lp-section-title"><em>4단계</em>로 시작합니다</h2>
+      <p class="lp-section-sub">설치도, 별도 서버도 필요 없습니다. 브라우저만 있으면 끝.</p>
+      <div class="lp-flow-grid">
+        <div class="lp-flow-card">
+          <div class="lp-flow-num">1</div>
+          <h4>초대 코드로 가입</h4>
+          <p>센터장이 받은 초대 코드 한 줄이면 가입 완료</p>
+        </div>
+        <div class="lp-flow-arrow">→</div>
+        <div class="lp-flow-card">
+          <div class="lp-flow-num">2</div>
+          <h4>아동 등록</h4>
+          <p>아이 정보·바우처·일정을 한 번에 입력</p>
+        </div>
+        <div class="lp-flow-arrow">→</div>
+        <div class="lp-flow-card">
+          <div class="lp-flow-num">3</div>
+          <h4>세션 기록 · AI 자동 생성</h4>
+          <p>기록만 입력하면 IEP·보고서는 AI가 알아서</p>
+        </div>
+        <div class="lp-flow-arrow">→</div>
+        <div class="lp-flow-card">
+          <div class="lp-flow-num">4</div>
+          <h4>학부모에게 공유</h4>
+          <p>한 번의 클릭으로 가정 연계 자료 발송</p>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:#d1fae5;">🌱</div>
-      <h3>학부모 맞춤 포트폴리오</h3>
-      <p>세션 기록·발달 추이·평가 결과를 학부모가 한눈에. 상담 자료 준비가 한순간에 끝납니다.</p>
+  <!-- ═══════════════ ⑦ 숫자로 보는 아이마디 ═══════════════ -->
+  <section class="lp-section lp-section-stats">
+    <div class="lp-section-inner">
+      <h2 class="lp-section-title">숫자로 보는 <em>아이마디</em></h2>
+      <div class="lp-stats-grid">
+        <div class="lp-stat-card">
+          <div class="lp-stat-num">8+</div>
+          <div class="lp-stat-label">표준 평가 양식<br><span>K-DST · 감통 · PRES · REVT · U-TAP …</span></div>
+        </div>
+        <div class="lp-stat-card">
+          <div class="lp-stat-num">2종</div>
+          <div class="lp-stat-label">AI 모델 선택<br><span>Haiku 4.5 · Sonnet 4.6</span></div>
+        </div>
+        <div class="lp-stat-card">
+          <div class="lp-stat-num">4역할</div>
+          <div class="lp-stat-label">맞춤 권한 체계<br><span>선생님·센터장·학부모·슈퍼관리자</span></div>
+        </div>
+        <div class="lp-stat-card">
+          <div class="lp-stat-num">실시간</div>
+          <div class="lp-stat-label">동기화<br><span>여러 기기·다른 선생님 동시 작업</span></div>
+        </div>
+      </div>
     </div>
+  </section>
 
-  </div>
+  <!-- ═══════════════ ⑧ 보안과 신뢰 ═══════════════ -->
+  <section class="lp-section lp-section-security">
+    <div class="lp-section-inner">
+      <h2 class="lp-section-title">아동 정보, <em>가장 안전하게</em></h2>
+      <p class="lp-section-sub">PIPA(개인정보 보호법) 준수를 목표로 한 보안 설계.<br>업계 표준 + 매주 보안 강화.</p>
+      <div class="lp-security-grid">
+        <div class="lp-security-card">
+          <div class="lp-security-icon">🔐</div>
+          <h4>세션 무효화</h4>
+          <p>비밀번호 변경 즉시 모든 기기 자동 로그아웃</p>
+        </div>
+        <div class="lp-security-card">
+          <div class="lp-security-icon">🔑</div>
+          <h4>bcrypt 비밀번호 해시</h4>
+          <p>cost 12 + lazy migration. 평문 비밀번호 미저장</p>
+        </div>
+        <div class="lp-security-card">
+          <div class="lp-security-icon">🛡️</div>
+          <h4>행 단위 권한 (RLS)</h4>
+          <p>타 센터·타 학부모 데이터 접근 원천 차단</p>
+        </div>
+        <div class="lp-security-card">
+          <div class="lp-security-icon">📜</div>
+          <h4>전체 감사 로그</h4>
+          <p>21개 트리거로 모든 핵심 작업 자동 기록</p>
+        </div>
+        <div class="lp-security-card">
+          <div class="lp-security-icon">🌐</div>
+          <h4>CSP · SRI 적용</h4>
+          <p>XSS·악성 스크립트 주입 방지</p>
+        </div>
+        <div class="lp-security-card">
+          <div class="lp-security-icon">📊</div>
+          <h4>일일 보안 다이제스트</h4>
+          <p>관리자에게 매일 활동 요약 자동 발송</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <!-- 푸터 -->
-  <footer class="lp-footer">
-    © 2026 마디(Madi) · 언어가 자라는 곳
+  <!-- ═══════════════ ⑨ FAQ ═══════════════ -->
+  <section class="lp-section lp-section-faq">
+    <div class="lp-section-inner lp-section-inner-narrow">
+      <h2 class="lp-section-title">자주 묻는 <em>질문</em></h2>
+      <div class="lp-faq-list">
+        <details class="lp-faq-item">
+          <summary>학부모는 어떻게 접속하나요?</summary>
+          <p>센터에서 발급하는 학부모 초대 링크로 가입합니다. 학부모는 자신의 자녀 정보만 볼 수 있고, 다른 아동의 정보는 RLS(행 단위 보호) 정책으로 원천 차단됩니다.</p>
+        </details>
+        <details class="lp-faq-item">
+          <summary>기존 엑셀 자료를 옮길 수 있나요?</summary>
+          <p>아동 정보·일정·바우처는 일괄 가져오기를 지원할 예정입니다. 현재는 슈퍼관리자의 일대일 마이그레이션 지원으로 데이터를 옮겨드립니다.</p>
+        </details>
+        <details class="lp-faq-item">
+          <summary>설치가 필요한가요?</summary>
+          <p>아니요. 브라우저(Chrome·Safari·Edge)만 있으면 바로 사용 가능합니다. PWA로 모바일 홈 화면에 설치하면 앱처럼 쓸 수 있습니다.</p>
+        </details>
+        <details class="lp-faq-item">
+          <summary>AI 사용료는 별도인가요?</summary>
+          <p>센터별 일정 사용량은 기본 포함입니다. 추가 사용 시 사용량 기반 과금으로 운영됩니다. 슈퍼관리자 화면에서 토큰 사용량을 실시간으로 모니터링할 수 있습니다.</p>
+        </details>
+        <details class="lp-faq-item">
+          <summary>아동 개인정보는 안전한가요?</summary>
+          <p>PIPA 기준을 목표로 한 보안 설계입니다. bcrypt 해시·JWT·RLS·감사 로그·CSP/SRI 등 다층 방어를 적용했으며, 매주 보안 점검을 진행합니다.</p>
+        </details>
+        <details class="lp-faq-item">
+          <summary>여러 선생님이 동시에 작업할 수 있나요?</summary>
+          <p>네. Supabase 실시간 동기화로 여러 기기·여러 사용자가 같은 데이터를 동시에 보고 수정할 수 있습니다.</p>
+        </details>
+        <details class="lp-faq-item">
+          <summary>해지·환불은 어떻게 되나요?</summary>
+          <p>언제든 해지 가능합니다. 결제 후 7일 이내 사용 이력이 없으면 전액 환불, 이후 일할 계산 환불을 지원합니다. 자세한 정책은 도입 상담 시 안내드립니다.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ⑩ 최종 CTA ═══════════════ -->
+  <section class="lp-section lp-section-final-cta">
+    <div class="lp-section-inner">
+      <div class="lp-final-cta-box">
+        <h2>오늘부터, <em>아이와 함께하는 시간</em>이 늘어납니다</h2>
+        <p>가입은 1분. 신용카드 정보 없이 시작하세요.</p>
+        <div class="lp-final-cta-btns">
+          <button class="lp-btn-signup lp-btn-large" onclick="hideLanding(); showSignupScreen();">✨ 무료로 시작하기</button>
+          <button class="lp-btn-login lp-btn-large" onclick="hideLanding(); showLoginScreen();">이미 계정이 있어요</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 푸터 ═══════════════ -->
+  <footer class="lp-footer-full">
+    <div class="lp-footer-inner">
+      <div class="lp-footer-brand">
+        <div class="lp-footer-logo">
+          <div class="madi-icon" style="width:36px;height:36px;border-radius:10px;"></div>
+          <span>아이마디</span>
+        </div>
+        <p>언어가 자라는 곳</p>
+      </div>
+      <div class="lp-footer-cols">
+        <div class="lp-footer-col">
+          <h5>서비스</h5>
+          <a href="#" onclick="hideLanding(); showSignupScreen(); return false;">무료로 시작하기</a>
+          <a href="#" onclick="hideLanding(); showLoginScreen(); return false;">로그인</a>
+        </div>
+        <div class="lp-footer-col">
+          <h5>지원</h5>
+          <a href="mailto:namga1541@gmail.com">문의하기</a>
+          <a href="#" onclick="return false;">개인정보 처리방침</a>
+          <a href="#" onclick="return false;">서비스 이용약관</a>
+        </div>
+        <div class="lp-footer-col">
+          <h5>회사</h5>
+          <p>마디 (Madi)</p>
+          <p>언어치료 센터 관리 SaaS</p>
+        </div>
+      </div>
+    </div>
+    <div class="lp-footer-bottom">© 2026 마디(Madi) · 언어가 자라는 곳</div>
   </footer>
 
 </div>
