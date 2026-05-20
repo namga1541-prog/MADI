@@ -626,26 +626,23 @@ function closeNoticeBanner() {
 
 // ─── 공지사항 ───
 var noticeDB = [];
-async function loadNotices() {
+function loadNotices() {
   var listEl = document.getElementById('noticeList');
   if (!currentUser) {
     if (listEl) listEl.innerHTML = '<div class="empty"><p>로그인 후 확인하세요.</p></div>';
     return;
   }
-  // listEl 없어도 배너용 데이터는 로드 (홈 탭에서도 배너 표시 가능)
   if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div>';
-  try {
-    var centerId = encodeURIComponent(currentUser.center_id || '');
-    var data = await supaFetch(
-      'madi_notices?center_id=eq.' + centerId + '&order=pinned.desc,created_at.desc&limit=50',
-      'GET'
-    );
-    noticeDB = Array.isArray(data) ? data : [];
-    if (listEl) renderNoticeList();       // 게시판 목록은 listEl 있을 때만
-    startNoticeBanner(noticeDB);          // 배너는 항상 업데이트
-  } catch(e) {
-    if (listEl) listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + escHtml(e.message||'') + '</small></p></div>';
-  }
+  var centerId = encodeURIComponent(currentUser.center_id || '');
+  return supaFetch('madi_notices?center_id=eq.' + centerId + '&order=pinned.desc,created_at.desc&limit=50', 'GET')
+    .then(function(data) {
+      noticeDB = Array.isArray(data) ? data : [];
+      if (listEl) renderNoticeList();
+      startNoticeBanner(noticeDB);
+    })
+    .catch(function(e) {
+      if (listEl) listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + escHtml(e.message||'') + '</small></p></div>';
+    });
 }
 function renderNoticeList() {
   var listEl = document.getElementById('noticeList');
@@ -678,45 +675,39 @@ function renderNoticeList() {
   }).join('');
   listEl.innerHTML = html;
 }
-async function saveNotice() {
+function saveNotice() {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) return;
   var title   = (document.getElementById('noticeTitle')   || {value:''}).value.trim();
   var content = (document.getElementById('noticeContent') || {value:''}).value.trim();
   var ntype   = (document.getElementById('noticeType')    || {value:'info'}).value;
   if (!title || !content) { showToast('⚠️ 제목과 내용을 모두 입력해 주세요'); return; }
-  try {
-    var saved = await supaFetch('madi_notices', 'POST', [{
-      center_id: currentUser.center_id,
-      notice_type: ntype,
-      pinned: ntype !== 'info',
-      title: title,
-      content: content,
-      author_name: currentUser.name
-    }]);
+  return supaFetch('madi_notices', 'POST', [{
+    center_id: currentUser.center_id,
+    notice_type: ntype,
+    pinned: ntype !== 'info',
+    title: title,
+    content: content,
+    author_name: currentUser.name
+  }]).then(function(saved) {
     document.getElementById('noticeTitle').value = '';
     document.getElementById('noticeContent').value = '';
     showToast('✅ 공지가 등록됐습니다');
     loadNotices();
-    // 🔔 알림 자동 생성: 이 센터에 연결된 모든 학부모에게
     fanoutNoticeNotifications(saved, title, ntype);
-  } catch(e) {
+  }).catch(function(e) {
     showToast('❌ 저장 실패: ' + (e.message||''));
-  }
+  });
 }
 
 // 공지 등록 시 학부모 전체에게 알림 row 자동 생성 (Phase 1A)
-async function fanoutNoticeNotifications(savedNotice, title, ntype) {
-  try {
-    // 1. 이 센터 학부모 user_id 목록 조회
-    var parents = await supaFetch(
-      'madi_users?center_id=eq.' + encodeURIComponent(currentUser.center_id||'')
-        + '&role=eq.parent&select=id',
-      'GET'
-    );
+function fanoutNoticeNotifications(savedNotice, title, ntype) {
+  return supaFetch(
+    'madi_users?center_id=eq.' + encodeURIComponent(currentUser.center_id||'')
+      + '&role=eq.parent&select=id',
+    'GET'
+  ).then(function(parents) {
     if (!Array.isArray(parents) || parents.length === 0) return;
-    // 2. 공지 ID 가져오기 (POST 응답이 배열로 return)
     var noticeId = Array.isArray(savedNotice) && savedNotice[0] ? savedNotice[0].id : null;
-    // 3. 알림 row 일괄 생성
     var icon = ntype === 'imp' ? '🚨' : (ntype === 'pin' ? '📍' : '📌');
     var rows = parents.map(function(p){
       return {
@@ -728,33 +719,26 @@ async function fanoutNoticeNotifications(savedNotice, title, ntype) {
         link: noticeId ? ('notice/' + noticeId) : null
       };
     });
-    await supaFetch('madi_notifications', 'POST', rows);
-    // 알림 발송은 백그라운드 작업이라 사용자에게 별도 토스트 없이 조용히 완료
-  } catch(e) {
-    // 공지는 이미 저장됐으므로 알림 실패해도 사용자에게 부정적 메시지 안 띄움
-    // 디버깅용으로만 콘솔 로그
+    return supaFetch('madi_notifications', 'POST', rows);
+  }).catch(function(e) {
     if (window.console && console.warn) console.warn('[fanout fail]', e.message||e);
-  }
+  });
 }
 
 // 세션 저장 시 해당 아동의 학부모에게 알림 row 자동 생성 (Phase 1A - session 통합)
-async function fanoutSessionNotification(session) {
-  try {
-    if (!session || !session.childId) return;
-    var cid = (currentUser && currentUser.center_id)
-              || (typeof getCenterId === 'function' ? getCenterId() : '');
-    if (!cid) return;
+function fanoutSessionNotification(session) {
+  if (!session || !session.childId) return;
+  var cid = (currentUser && currentUser.center_id)
+            || (typeof getCenterId === 'function' ? getCenterId() : '');
+  if (!cid) return;
 
-    // 1. child_id로 학부모 user_id 조회 (한 아동에 학부모 여러 명 가능)
-    var parents = await supaFetch(
-      'madi_parent_children?child_id=eq.' + encodeURIComponent(session.childId)
-        + '&center_id=eq.' + encodeURIComponent(cid)
-        + '&select=parent_user_id',
-      'GET'
-    );
+  return supaFetch(
+    'madi_parent_children?child_id=eq.' + encodeURIComponent(session.childId)
+      + '&center_id=eq.' + encodeURIComponent(cid)
+      + '&select=parent_user_id',
+    'GET'
+  ).then(function(parents) {
     if (!Array.isArray(parents) || parents.length === 0) return;
-
-    // 2. 본문: 목표수 + 평균점수 (옵션 A: 세션 자체 정보)
     var goals = Array.isArray(session.goals) ? session.goals : [];
     var scores = goals.map(function(g){ return typeof g.score === 'number' ? g.score : null; })
                       .filter(function(s){ return s !== null; });
@@ -765,8 +749,6 @@ async function fanoutSessionNotification(session) {
     if (goals.length > 0) bodyParts.push('목표 ' + goals.length + '개');
     if (avg !== null)     bodyParts.push('평균 ' + avg + '%');
     var bodyText = bodyParts.length > 0 ? bodyParts.join(' · ') : null;
-
-    // 3. 알림 row 일괄 생성 (학부모마다 하나씩)
     var rows = parents.map(function(p){
       return {
         user_id: p.parent_user_id,
@@ -777,10 +759,10 @@ async function fanoutSessionNotification(session) {
         link: session.id ? ('session/' + session.id) : null
       };
     });
-    await supaFetch('madi_notifications', 'POST', rows);
-  } catch(e) {
+    return supaFetch('madi_notifications', 'POST', rows);
+  }).catch(function(e) {
     if (window.console && console.warn) console.warn('[fanoutSession fail]', e.message||e);
-  }
+  });
 }
 
 function deleteNotice(id) {

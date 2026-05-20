@@ -342,6 +342,7 @@ USING (madi_my_role() IN ('superadmin', 'admin') AND center_id = madi_my_center_
 ALTER TABLE madi_global_notices ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "madi_global_notices_select" ON madi_global_notices;
+-- 의도적 전체 공개(인증 사용자 한정): 전체 공지는 모든 센터의 모든 사용자가 봐야 하는 안내문이므로 센터별 격리 없이 노출한다
 CREATE POLICY "madi_global_notices_select" ON madi_global_notices FOR SELECT
 USING (auth.uid() IS NOT NULL);
 

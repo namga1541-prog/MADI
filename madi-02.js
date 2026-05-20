@@ -134,9 +134,10 @@ function pushErrorLog(entry) {
       url:        location.pathname,
       ts:         entry.ts
     };
+    // ES5 호환: .finally() 미지원 환경 대비 — .then/.catch 양쪽에서 플래그 해제
     supaFetch('madi_error_logs', 'POST', [payload])
-      .catch(function() {}) // 의도적 무음: 에러 로그 전송 자체의 실패에 warn 찍으면 무한 루프 위험
-      .finally(function() { window._errorLogSending = false; });
+      .then(function() { window._errorLogSending = false; },
+            function() { window._errorLogSending = false; }); // 의도적 무음: 에러 로그 전송 자체의 실패에 warn 찍으면 무한 루프 위험
   } catch(e) {
     window._errorLogSending = false;
   }
