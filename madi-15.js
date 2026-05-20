@@ -472,6 +472,7 @@ function parentLookup() {
 
   fetch(EDGE_URL + '/parent-auth', {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'lookup', phone: phone })
   })
@@ -544,10 +545,11 @@ function parentSignup() {
   btn.disabled = true;
   btn.textContent = '⏳ 가입 중...';
 
-  var childIds = _parentSignupMatchedChildren.map(function(c) { return c.id; });
+  var childIds = _parentSignupMatchedChildren.map(function(c) { return c.childId; });
 
   fetch(EDGE_URL + '/parent-auth', {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       action: 'signup',

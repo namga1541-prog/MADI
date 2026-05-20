@@ -745,7 +745,7 @@ function saveLoungePost() {
 
 function deleteLoungePost(id) {
   showConfirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.', function() {
-    supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
+    supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
       .then(function() {
         showToast('🗑️ 글이 삭제됐습니다');
         loadLoungePosts();
@@ -832,11 +832,11 @@ function renderComments(postId) {
   // 작성 폼
   var formHtml = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'
     + '<div style="display:flex;gap:6px;">'
-    + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeypress="if(event.key===\'Enter\') saveComment(' + postId + ')">'
+    + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeydown="if(event.key===\'Enter\'&&!event.isComposing) saveComment(\'' + postId + '\')">'
     + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(\'' + postId + '\')">📝 등록</button>'
     + '</div>'
     + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;">'
-    + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(' + postId + ',this)"></label>'
+    + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(\'' + postId + '\',this)"></label>'
     + '</div>';
 
   area.innerHTML = listHtml + formHtml;
@@ -882,7 +882,7 @@ function saveComment(postId) {
 
 function deleteComment(postId, commentId) {
   showConfirm('이 댓글을 삭제하시겠습니까?', function() {
-    supaFetch('madi_lounge_comments?id=eq.' + commentId, 'DELETE')
+    supaFetch('madi_lounge_comments?id=eq.' + encodeURIComponent(commentId), 'DELETE')
       .then(function() {
         showToast('🗑️ 댓글이 삭제됐습니다');
         loadComments(postId);
@@ -1036,7 +1036,7 @@ function saveLibraryPost() {
 
 function deleteLibraryPost(id) {
   showConfirm('이 자료를 삭제할까요?', function() {
-    supaFetch('madi_lounge_posts?id=eq.' + id, 'DELETE')
+    supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
       .then(function() { showToast('🗑️ 자료 삭제됨'); renderLibrary(); })
       .catch(function(err) { showToast('❌ 삭제 실패 — 다시 시도해주세요'); });
   });

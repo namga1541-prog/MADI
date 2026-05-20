@@ -698,7 +698,7 @@ function getMonthKST() { return getTodayKST().slice(0, 7); }
       return;
     }
     currentUser = user;
-    _madiToken  = localStorage.getItem('madi_token') || '';
+    _madiToken  = ''; // httpOnly 쿠키로 전환됨 — localStorage 토큰 미사용
   } catch(e) {
     window.location.replace('index.html');
   }
@@ -714,7 +714,7 @@ var GITHUB_OWNER = 'namga1541-prog';
 var GITHUB_REPO  = 'MADI';
 var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316','#06b6d4','#84cc16','#ec4899'];
 
-function getToken()  { return _madiToken || localStorage.getItem('madi_token') || ''; }
+function getToken()  { return _madiToken || ''; } // httpOnly 쿠키로 전환됨
 function getCenterId()    { return (currentUser && currentUser.center_id) ? currentUser.center_id : ''; }
 function centerFilter()   {
   if (currentUser && currentUser.role === 'superadmin') return 'center_id=not.is.null';

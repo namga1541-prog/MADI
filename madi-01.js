@@ -205,16 +205,35 @@ function doSignup() {
     })
     .then(function(result) {
       btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '✨ 가입하기';
-      currentUser = { id: result.user.id, username: result.user.username, name: result.user.name, role: result.user.role, color: result.user.color, center_id: result.user.center_id, permissions: result.user.permissions };
-      try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); } catch(e) {}
-      document.getElementById('signupScreen').style.display = 'none'; hideLoginScreen();
-      if (typeof applyUserUI === 'function') applyUserUI();
-      if (typeof applyRoleUI === 'function') applyRoleUI();
-      if (typeof loadCenterApiKey === 'function') loadCenterApiKey();
-      if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase();
-      if (typeof initRealtime === 'function') initRealtime();
-      var roleLabel = result.user.role === 'superadmin' ? '대장님 👑' : result.user.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
-      showToast('🎉 환영합니다, ' + result.user.name + ' ' + roleLabel + '! (' + result.center.name + ')');
+      // 가입 직후 /login 으로 httpOnly 쿠키 발급 (쿠키 없으면 모든 API가 401)
+      return fetch(EDGE_URL + '/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: result.user.username, password: pw })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(loginData) {
+        currentUser = (loginData && loginData.user) ? loginData.user
+          : { id: result.user.id, username: result.user.username, name: result.user.name, role: result.user.role, color: result.user.color, center_id: result.user.center_id, permissions: result.user.permissions };
+        try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', result.user.username); } catch(e) {}
+        document.getElementById('signupScreen').style.display = 'none'; hideLoginScreen();
+        if (typeof applyUserUI === 'function') applyUserUI();
+        if (typeof applyRoleUI === 'function') applyRoleUI();
+        if (typeof loadCenterApiKey === 'function') loadCenterApiKey();
+        if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase();
+        if (typeof initRealtime === 'function') initRealtime();
+        var roleLabel = currentUser.role === 'superadmin' ? '대장님 👑' : currentUser.role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
+        showToast('🎉 환영합니다, ' + currentUser.name + ' ' + roleLabel + '! (' + result.center.name + ')');
+      })
+      .catch(function() {
+        // /login 실패해도 가입 자체는 완료 — 로그인 화면에서 수동 로그인 유도
+        document.getElementById('signupScreen').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+        var unEl = document.getElementById('loginUsernameInput');
+        if (unEl) unEl.value = result.user.username;
+        showToast('✅ 가입 완료! 비밀번호를 입력해 로그인해주세요');
+      });
     })
     .catch(function(err) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '✨ 가입하기'; errEl.textContent = '❌ ' + (err.message || '가입에 실패했습니다.'); });
 }
@@ -304,6 +323,7 @@ function showLogoutMenu() {
 }
 
 function doLogout() {
+  if (!currentUser) { showLoginScreen(); return; }
   showConfirm(currentUser.name + '님, 로그아웃 하시겠습니까?', function() {
     // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
     fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
