@@ -269,6 +269,8 @@ function doLogin() {
     localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', un);
     _purgeLegacyCnCache(); // 이전 사용자의 cn3_* PII 잔존 데이터 일소
     hideLoginScreen(); applyUserUI(); applyRoleUI(); loadCenterApiKey(); loadDBFromSupabase(); initRealtime(); loadCenterSessionInterval();
+    // 로그인 직후 마디 업데이트 팝업 표시 (대시보드 렌더 후 약간의 딜레이)
+    setTimeout(function(){ if (typeof showLoginUpdatePopup === 'function') showLoginUpdatePopup(); }, 500);
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
@@ -369,6 +371,80 @@ function doLogout() {
     }
     renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
   }, { danger: false, okLabel: '로그아웃' });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🔔 로그인 업데이트 팝업
+// ═══════════════════════════════════════════════════════════
+// 슈퍼어드민이 madi_global_notices 에서 show_as_login_popup=true 로 지정한 글 1개를
+// 로그인 직후 모달로 표시. '하루동안 열지 않음' 체크 시 글 단위 24h dismiss.
+// 학부모(role=parent)는 표시 대상 제외.
+function showLoginUpdatePopup() {
+  if (!currentUser) return;
+  if (currentUser.role === 'parent') return;
+  if (document.getElementById('loginUpdatePopup')) return; // 중복 방지
+
+  supaFetch('madi_global_notices?show_as_login_popup=eq.true&order=created_at.desc&limit=1', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) return; // 활성 팝업 없음
+      var n = rows[0];
+      // 글 단위 dismiss 확인
+      var dismissKey = 'madi_update_popup_dismiss_' + n.id;
+      var until = parseInt(localStorage.getItem(dismissKey) || '0', 10);
+      if (until && Date.now() < until) return; // 24h 이내 → 표시 안 함
+      _renderLoginUpdatePopup(n, dismissKey);
+    })
+    .catch(function() { /* 조용히 실패 (네트워크 오류는 토스트로 사용자 흐름 방해 안 함) */ });
+}
+
+function _renderLoginUpdatePopup(n, dismissKey) {
+  var overlay = document.createElement('div');
+  overlay.id = 'loginUpdatePopup';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  var title   = escHtml(n.title || '마디 공지');
+  var content = escHtml(n.content || '');
+
+  overlay.innerHTML =
+      '<div style="background:white;border-radius:14px;width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
+    +   // 헤더: 제목 + 우상단 X
+        '<div style="position:relative;padding:20px 24px 14px;border-bottom:1px solid #e2e8f0;">'
+    +     '<div style="text-align:center;font-size:16px;font-weight:700;color:#1e293b;padding:0 28px;">' + title + '</div>'
+    +     '<button id="lupClose1" aria-label="닫기" style="position:absolute;top:14px;right:14px;width:28px;height:28px;border:none;background:transparent;font-size:20px;color:#94a3b8;cursor:pointer;line-height:1;padding:0;">×</button>'
+    +   '</div>'
+    +   // 본문 (스크롤 가능)
+        '<div style="padding:18px 24px;overflow-y:auto;flex:1;font-size:14px;color:#334155;line-height:1.7;white-space:pre-wrap;word-break:break-word;">'
+    +     content
+    +   '</div>'
+    +   // 푸터: 좌측 체크박스 + 우측 닫기
+        '<div style="padding:14px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">'
+    +     '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#475569;cursor:pointer;">'
+    +       '<input type="checkbox" id="lupDontShow" style="width:14px;height:14px;cursor:pointer;margin:0;">'
+    +       '<span>하루동안 이 창을 열지 않음</span>'
+    +     '</label>'
+    +     '<button id="lupClose2" style="padding:8px 20px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer;">닫기</button>'
+    +   '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+
+  function _dismiss() {
+    var cb = document.getElementById('lupDontShow');
+    if (cb && cb.checked) {
+      // 24h 후 만료 시각 저장
+      var until = Date.now() + 24 * 60 * 60 * 1000;
+      try { localStorage.setItem(dismissKey, String(until)); } catch (e) {}
+    }
+    overlay.remove();
+    document.removeEventListener('keydown', _onKey);
+  }
+  function _onKey(e) { if (e.key === 'Escape') _dismiss(); }
+
+  document.getElementById('lupClose1').addEventListener('click', _dismiss);
+  document.getElementById('lupClose2').addEventListener('click', _dismiss);
+  // 바깥 클릭 시 닫힘 (체크박스 상태 반영)
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) _dismiss(); });
+  document.addEventListener('keydown', _onKey);
 }
 
 // ★ 비밀번호 변경 모달

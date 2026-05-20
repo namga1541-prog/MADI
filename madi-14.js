@@ -226,6 +226,10 @@ function renderGlobalNoticeUI() {
       + '</select>'
       + '<input id="bdGlobalTitle" class="form-input" placeholder="제목 (필수)" maxlength="200" style="font-size:13px;padding:8px;">'
       + '<textarea id="bdGlobalContent" class="form-input" rows="3" placeholder="본문 (필수)" style="font-size:13px;padding:8px;resize:vertical;"></textarea>'
+      + '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#0c4a6e;cursor:pointer;padding:4px 2px;">'
+      +   '<input type="checkbox" id="bdGlobalAsPopup" style="width:14px;height:14px;cursor:pointer;margin:0;">'
+      +   '<span>🔔 로그인 팝업으로 표시 <span style="color:#64748b;font-weight:normal;">(한 번에 하나만 — 이전 팝업 자동 해제)</span></span>'
+      + '</label>'
       + '<button class="btn btn-primary" onclick="saveGlobalNotice()" style="font-size:13px;padding:10px;">💾 등록</button>'
       + '</div></div>';
   }
@@ -253,18 +257,34 @@ function renderGlobalNoticeCard(n, isSuperAdmin) {
     typeBadge   = '<span style="background:#e0f2fe;color:#0c4a6e;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">📢 일반</span>';
     borderColor = '#0ea5a0';
   }
-  var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
-  var deleteBtn = isSuperAdmin
-    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(\'' + n.id + '\')">삭제</button>'
+  // 로그인 팝업 활성 배지 (모든 사용자에게 보임)
+  var popupBadge = n.show_as_login_popup
+    ? '<span style="background:#fef9c3;color:#854d0e;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;border:1px solid #facc15;">🔔 로그인 팝업</span>'
     : '';
+  var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
+
+  // 슈퍼어드민: 팝업 토글 + 삭제 버튼
+  var adminBtns = '';
+  if (isSuperAdmin) {
+    var togglLabel = n.show_as_login_popup ? '🔕 팝업 해제' : '🔔 팝업으로 표시';
+    var togglBg    = n.show_as_login_popup ? '#fef9c3' : '#f1f5f9';
+    var togglCol   = n.show_as_login_popup ? '#854d0e' : '#475569';
+    adminBtns =
+        '<button onclick="togglePopupNotice(\'' + n.id + '\',' + (n.show_as_login_popup ? 'true' : 'false') + ')" '
+      +   'style="padding:5px 10px;font-size:11px;font-weight:700;background:' + togglBg + ';color:' + togglCol + ';border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;margin-right:4px;">'
+      +   togglLabel
+      + '</button>'
+      + '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(\'' + n.id + '\')">삭제</button>';
+  }
 
   return '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap;">'
     +   '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
     +     typeBadge
+    +     popupBadge
     +     '<span style="font-size:14px;font-weight:700;color:#1e293b;">' + escHtml(n.title || '') + '</span>'
     +   '</div>'
-    +   deleteBtn
+    +   '<div style="display:flex;gap:4px;flex-shrink:0;">' + adminBtns + '</div>'
     + '</div>'
     + (n.content ? '<div style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin:8px 0 6px;">' + escHtml(n.content) + '</div>' : '')
     + '<div style="font-size:11px;color:#64748b;margin-top:6px;">👤 ' + escHtml(n.author_name || '익명') + ' · ' + escHtml(when) + '</div>'
@@ -278,6 +298,8 @@ function saveGlobalNotice() {
   var title   = (document.getElementById('bdGlobalTitle')   || {value:''}).value.trim();
   var content = (document.getElementById('bdGlobalContent') || {value:''}).value.trim();
   var ntype   = (document.getElementById('bdGlobalType')    || {value:'info'}).value;
+  var popupEl = document.getElementById('bdGlobalAsPopup');
+  var asPopup = !!(popupEl && popupEl.checked);
   if (!title)   { showToast('⚠️ 제목을 입력해 주세요'); return; }
   if (!content) { showToast('⚠️ 본문을 입력해 주세요'); return; }
   if (title.length > 200) { showToast('⚠️ 제목은 200자 이하로 작성해 주세요'); return; }
@@ -285,22 +307,60 @@ function saveGlobalNotice() {
   // pin/imp는 자동으로 상단 고정
   var pinned = (ntype !== 'info');
 
-  return supaFetch('madi_global_notices', 'POST', [{
-    notice_type: ntype,
-    pinned:      pinned,
-    title:       title,
-    content:     content,
-    author_id:   currentUser.id,
-    author_name: currentUser.name || '슈퍼어드민'
-  }])
+  // 팝업 ON 으로 등록 시 → 먼저 기존 활성 팝업 모두 OFF (한 번에 하나만 활성)
+  var prep = asPopup
+    ? supaFetch('madi_global_notices?show_as_login_popup=eq.true', 'PATCH', { show_as_login_popup: false })
+    : Promise.resolve();
+
+  return prep
+    .then(function() {
+      return supaFetch('madi_global_notices', 'POST', [{
+        notice_type:         ntype,
+        pinned:              pinned,
+        title:               title,
+        content:             content,
+        author_id:           currentUser.id,
+        author_name:         currentUser.name || '슈퍼어드민',
+        show_as_login_popup: asPopup
+      }]);
+    })
     .then(function() {
       var t = document.getElementById('bdGlobalTitle');   if (t) t.value = '';
       var b = document.getElementById('bdGlobalContent'); if (b) b.value = '';
       var s = document.getElementById('bdGlobalType');    if (s) s.value = 'info';
-      showToast('✅ 마디 공지가 등록됐습니다');
+      var p = document.getElementById('bdGlobalAsPopup'); if (p) p.checked = false;
+      showToast(asPopup ? '✅ 공지 등록 + 로그인 팝업 활성화' : '✅ 마디 공지가 등록됐습니다');
       loadGlobalNotices();
     })
     .catch(function(e) { showToast('❌ 저장 실패: ' + (e.message || '')); });
+}
+
+// 기존 공지의 로그인 팝업 ON/OFF 토글
+// current=true 면 해당 글을 OFF, current=false 면 다른 글 모두 OFF 후 해당 글만 ON
+function togglePopupNotice(id, current) {
+  if (!currentUser || currentUser.role !== 'superadmin') {
+    showToast('❌ 슈퍼어드민만 변경할 수 있습니다'); return;
+  }
+  if (current) {
+    // 현재 ON → OFF 만 하면 됨
+    supaFetch('madi_global_notices?id=eq.' + encodeURIComponent(id), 'PATCH', { show_as_login_popup: false })
+      .then(function() {
+        showToast('🔕 로그인 팝업 해제됨');
+        loadGlobalNotices();
+      })
+      .catch(function(e) { showToast('❌ 변경 실패: ' + (e.message || '')); });
+  } else {
+    // 현재 OFF → 모든 글 OFF 후 해당 글만 ON
+    supaFetch('madi_global_notices?show_as_login_popup=eq.true', 'PATCH', { show_as_login_popup: false })
+      .then(function() {
+        return supaFetch('madi_global_notices?id=eq.' + encodeURIComponent(id), 'PATCH', { show_as_login_popup: true });
+      })
+      .then(function() {
+        showToast('🔔 로그인 팝업으로 활성화됨');
+        loadGlobalNotices();
+      })
+      .catch(function(e) { showToast('❌ 변경 실패: ' + (e.message || '')); });
+  }
 }
 
 // 공지 삭제
