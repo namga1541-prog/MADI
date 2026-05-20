@@ -307,7 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// ★ 헤더 사용자 클릭 드롭다운 (비밀번호 변경 / 로그아웃)
+// ★ 헤더 사용자 클릭 드롭다운 (로그아웃)
+// 비밀번호 변경은 별도 설정 메뉴/관리자 페이지에서 호출 (showChangePasswordModal 함수는 유지)
 function showLogoutMenu() {
   var existing = document.getElementById('userDropdown');
   if (existing) { existing.remove(); return; }
@@ -321,9 +322,6 @@ function showLogoutMenu() {
     + 'box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:9999;min-width:160px;overflow:hidden;';
   menu.innerHTML =
     '<div style="padding:6px 0;">'
-    + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();showChangePasswordModal();"'
-    + ' style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 16px;border:none;background:none;font-size:13px;cursor:pointer;color:#1e293b;">🔑 비밀번호 변경</button>'
-    + '<div style="height:1px;background:#f1f5f9;margin:2px 0;"></div>'
     + '<button onclick="var d=document.getElementById(\'userDropdown\');if(d)d.remove();doLogout();"'
     + ' style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 16px;border:none;background:none;font-size:13px;cursor:pointer;color:#ef4444;">🚪 로그아웃</button>'
     + '</div>';
