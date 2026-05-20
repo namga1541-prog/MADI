@@ -1,5 +1,15 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$TOPLEVEL\" ]; then PULL=$(git -C \"$TOPLEVEL\" pull --ff-only origin main 2>&1); if echo \"$PULL\" | grep -q \"Already up to date\"; then echo \"[auto-pull] 이미 최신 상태\"; else echo \"[auto-pull] 🔄 $PULL\"; fi; fi'"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
