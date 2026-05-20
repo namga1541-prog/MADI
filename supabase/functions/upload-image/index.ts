@@ -59,6 +59,15 @@ async function verifyJwt(token: string, secret: string) {
   const [header, body, sig] = token.split('.')
   if (!header || !body || !sig) throw new Error('JWT 형식 오류')
 
+  // alg 검증 — alg:none 우회 또는 비대칭→대칭 confusion 공격 차단
+  let headerObj: { alg?: string; typ?: string }
+  try {
+    headerObj = JSON.parse(atob(header.replace(/-/g, '+').replace(/_/g, '/')))
+  } catch (_) {
+    throw new Error('JWT 헤더 파싱 실패')
+  }
+  if (headerObj.alg !== 'HS256') throw new Error('지원하지 않는 JWT 알고리즘')
+
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
@@ -179,15 +188,11 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  // ── 6. Magic Bytes로 실제 MIME 검증 (클라이언트 우회 방지) ──
+  // ── 6. Magic Bytes로 실제 MIME 검증 (클라이언트 mimeType 은 신뢰하지 않음) ──
   const detectedMime = detectMime(fileBytes)
-  if (!detectedMime) {
+  if (!detectedMime || !ALLOWED_MIMES.has(detectedMime)) {
+    console.warn('[upload-image] reject mime: declared=%s detected=%s', mimeType, detectedMime)
     return new Response(JSON.stringify({ error: '허용되지 않는 파일 형식 (이미지만 가능)' }), {
-      status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
-    })
-  }
-  if (!ALLOWED_MIMES.has(mimeType ?? '') || detectedMime !== mimeType) {
-    return new Response(JSON.stringify({ error: `파일 형식 불일치: 선언=${mimeType}, 실제=${detectedMime}` }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }
@@ -210,7 +215,9 @@ Deno.serve(async (req: Request) => {
 
   if (!uploadRes.ok) {
     const err = await uploadRes.text()
-    return new Response(JSON.stringify({ error: '스토리지 업로드 실패: ' + err }), {
+    // 내부 정보(버킷명, 권한 메시지) 노출 방지 — 상세는 서버 로그에만
+    console.error('[upload-image] storage error status=%d body=%s', uploadRes.status, err)
+    return new Response(JSON.stringify({ error: '파일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.' }), {
       status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }

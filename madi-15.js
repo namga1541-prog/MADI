@@ -127,8 +127,9 @@ function loadParentHome() {
         if(_wEl) _wEl.textContent='';
       });
 
-    // 최근 리포트
+    // 최근 리포트 — 서버에서 child_id 필터링 (학부모 데이터 격리 강화)
     supaFetch('madi_sessions?center_id=eq.' + centerId
+      + '&child_id=eq.' + encodeURIComponent(childId)
       + '&order=id.desc&limit=5', 'GET')
       .then(function(rows) {
         var el = document.getElementById('parentLatestReport');
@@ -136,6 +137,7 @@ function loadParentHome() {
         if (!Array.isArray(rows) || rows.length === 0) {
           el.textContent = '작성된 리포트 없음'; return;
         }
+        // 클라이언트 2차 필터 — 서버 필터 우회 방어선
         var mine = rows.filter(function(s) {
           var data = s.data || s;
           return String(data.childId || data.child_id) === String(childId);
@@ -225,9 +227,12 @@ function loadParentReport() {
   getMyChildInfo(function(childId, centerId) {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
 
-    supaFetch('madi_sessions?center_id=eq.' + centerId + '&order=id.desc&limit=30', 'GET')
+    supaFetch('madi_sessions?center_id=eq.' + centerId
+      + '&child_id=eq.' + encodeURIComponent(childId)
+      + '&order=id.desc&limit=30', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) { el.innerHTML = '<div class="empty"><p>리포트 없음</p></div>'; return; }
+        // 서버 필터 우회 방어선
         var mine = rows.filter(function(s) {
           var d = s.data || s;
           return String(d.childId || d.child_id) === String(childId);
