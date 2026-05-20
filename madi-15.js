@@ -7,6 +7,7 @@ var _parentCurrentTab = 'home';
 // ─── 탭 전환 ───
 function switchParentTab(tab) {
   _parentCurrentTab = tab;
+  window._parentActiveTab = tab; // setActiveParentChild 가 재로드 대상 판별에 사용
   var tabs = ['home','sched','report','notice'];
   tabs.forEach(function(t) {
     var panel = document.getElementById('parentPanel' + t.charAt(0).toUpperCase() + t.slice(1));
@@ -24,33 +25,117 @@ function switchParentTab(tab) {
 }
 
 // ─── 내 아동 정보 가져오기 (공통) ───
+// 다자녀 학부모 지원: window._parentChildren 에 전체 배열 캐싱, _parentActiveIdx 로 활성 자녀 추적
 // onNoChild: 아동 미연결 시 호출되는 콜백 (온보딩용)
 function getMyChildInfo(callback, onNoChild) {
   if (!currentUser || currentUser.role !== 'parent') return;
+
+  function _emit() {
+    var arr = window._parentChildren;
+    var idx = window._parentActiveIdx || 0;
+    if (!arr || arr.length === 0) {
+      if (typeof onNoChild === 'function') onNoChild();
+      return;
+    }
+    if (idx < 0 || idx >= arr.length) idx = 0;
+    var c = arr[idx];
+    // 하위 호환 캐시 (window._parentChildId / Center / Name 을 보는 기존 코드용)
+    window._parentChildId   = c.child_id;
+    window._parentCenterId  = c.center_id;
+    window._parentChildName = c.name || '';
+    callback(c.child_id, c.center_id);
+  }
+
   // 캐시 유효성 — currentUser.id 가 캐싱된 시점과 동일할 때만 신뢰
-  // (DevTools 에서 window._parentChildId 변조해도 다른 학부모로 위장 불가)
-  if (window._parentChildId && window._parentCacheUserId === currentUser.id) {
-    callback(window._parentChildId, window._parentCenterId);
+  if (window._parentChildren && window._parentCacheUserId === currentUser.id) {
+    _emit();
     return;
   }
   // 캐시 무효 → 재조회
-  window._parentChildId = null;
-  window._parentCenterId = null;
+  window._parentChildren    = null;
+  window._parentActiveIdx   = 0;
+  window._parentChildId     = null;
+  window._parentCenterId    = null;
+  window._parentChildName   = '';
   window._parentCacheUserId = null;
+
   supaFetch('madi_parent_children?parent_user_id=eq.' + encodeURIComponent(currentUser.id) + '&select=child_id,center_id', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) {
+        window._parentChildren = [];
+        window._parentCacheUserId = currentUser.id;
         if (typeof onNoChild === 'function') onNoChild();
         return;
       }
-      window._parentChildId    = rows[0].child_id;
-      window._parentCenterId   = rows[0].center_id;
-      window._parentCacheUserId = currentUser.id;
-      callback(window._parentChildId, window._parentCenterId);
+      // 자녀 이름까지 함께 조회 후 캐싱
+      var ids = rows.map(function(r){ return encodeURIComponent(r.child_id); }).join(',');
+      return supaFetch('madi_children?id=in.(' + ids + ')&select=id,data', 'GET')
+        .then(function(children) {
+          var nameMap = {};
+          if (Array.isArray(children)) {
+            children.forEach(function(c){ nameMap[String(c.id)] = (c.data && c.data.name) || ''; });
+          }
+          window._parentChildren = rows.map(function(r){
+            return { child_id: r.child_id, center_id: r.center_id, name: nameMap[String(r.child_id)] || '' };
+          });
+          window._parentActiveIdx   = 0;
+          window._parentCacheUserId = currentUser.id;
+          _emit();
+        });
     }).catch(function(e){
       if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);
       if (typeof onNoChild === 'function') onNoChild();
     });
+}
+
+// 활성 자녀 변경 — 셀렉터 UI 에서 호출
+function setActiveParentChild(idx) {
+  if (!window._parentChildren) return;
+  idx = parseInt(idx, 10);
+  if (isNaN(idx) || idx < 0 || idx >= window._parentChildren.length) return;
+  if (idx === window._parentActiveIdx) return;
+  window._parentActiveIdx = idx;
+  // 활성 자녀 표시 라벨 즉시 갱신
+  var c = window._parentChildren[idx];
+  window._parentChildId   = c.child_id;
+  window._parentCenterId  = c.center_id;
+  window._parentChildName = c.name || '';
+  document.querySelectorAll('.parentChildNameLabel').forEach(function(el){ el.textContent = c.name || ''; });
+  renderParentChildSwitcher();
+  // 현재 활성 탭 다시 로드
+  var active = window._parentActiveTab || 'home';
+  if (active === 'home'   && typeof loadParentHome   === 'function') loadParentHome();
+  if (active === 'sched'  && typeof loadParentSched  === 'function') loadParentSched();
+  if (active === 'report' && typeof loadParentReport === 'function') loadParentReport();
+  if (active === 'notice' && typeof loadParentNotice === 'function') loadParentNotice();
+}
+
+// 다자녀 셀렉터 UI — 자녀 2명 이상일 때만 표시
+function renderParentChildSwitcher() {
+  var arr = window._parentChildren;
+  var home = document.getElementById('parentPanelHome');
+  if (!home) return;
+  var existing = document.getElementById('parentChildSwitcher');
+  if (!arr || arr.length < 2) {
+    if (existing) existing.remove();
+    return;
+  }
+  var html = '<div id="parentChildSwitcher" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;margin-bottom:8px;background:var(--bg);border-radius:10px;">'
+    + '<span style="font-size:11px;color:var(--text2);align-self:center;margin-right:2px;">자녀:</span>';
+  arr.forEach(function(c, i){
+    var active = (i === (window._parentActiveIdx || 0));
+    html += '<button data-idx="' + i + '" onclick="setActiveParentChild(this.getAttribute(\'data-idx\'))" '
+      + 'style="padding:5px 12px;border-radius:16px;border:1.5px solid ' + (active ? 'var(--mint)' : 'var(--border)') + ';'
+      + 'background:' + (active ? 'var(--mint)' : 'white') + ';color:' + (active ? 'white' : 'var(--text)') + ';'
+      + 'font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">'
+      + escHtml(c.name || ('자녀 ' + (i + 1))) + '</button>';
+  });
+  html += '</div>';
+  if (existing) {
+    existing.outerHTML = html;
+  } else {
+    home.insertAdjacentHTML('afterbegin', html);
+  }
 }
 
 // ─── 홈 ───
@@ -58,6 +143,8 @@ function loadParentHome() {
   // 알림 카드 먼저 로드 (홈 진입 시마다)
   loadParentNotifications();
   getMyChildInfo(function(childId, centerId) {
+    // 다자녀 셀렉터 (자녀 2명 이상일 때만 렌더)
+    renderParentChildSwitcher();
     var today = getTodayKST();
 
     // 아동 이름 조회

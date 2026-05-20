@@ -468,7 +468,7 @@ function saveSchedule() {
 }
 function saveAssess() {
   markMyChange(); safeSetItem('cn3_assess', JSON.stringify(assessmentDB)); if (assessmentDB.length === 0) return;
-  var cid = getCenterId(), rows = assessmentDB.map(function(a){ return { id: a.id, center_id: cid, data: a }; }), batches = [];
+  var cid = getCenterId(), rows = assessmentDB.map(function(a){ return { id: a.id, center_id: cid, user_id: a.user_id || null, data: a }; }), batches = [];
   for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
   batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_assessments?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
     .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '검사')); });

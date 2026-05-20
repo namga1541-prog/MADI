@@ -27,7 +27,13 @@ function calcAgeFromBirth(birthStr) {
 
 function escHtml(str) {
   if (str === null || str === undefined) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  // 작은따옴표(') 도 escape — inline onclick='...' 안에 사용자 문자열이 들어가도 안전하도록
+  return String(str)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
 }
 
 // ─────── 미작성 세션 알림 ───────
