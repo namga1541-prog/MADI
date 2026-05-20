@@ -494,7 +494,7 @@ function loadIEPFromSupa() {
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
       var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; });
-      if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); renderIEPHistory(parseInt(document.getElementById('iepChild').value) || 0); }
+      if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); var _iepEl = document.getElementById('iepChild'); if (_iepEl) renderIEPHistory(parseInt(_iepEl.value) || 0); }
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 function saveActivities() {
@@ -589,8 +589,17 @@ function updateHeaderClock() {
     nextEl.textContent = diff === 0 ? '🔔 '+name+' 지금' : diff < 60 ? '⏱️ '+name+' '+diff+'분 후' : '📅 '+name+' '+next.startTime;
   } else { var count = (typeof childDB !== 'undefined' ? childDB.length : 0); nextEl.textContent = count > 0 ? '아동 '+count+'명' : '오늘 일정 없음'; }
 }
-var _clockTimer = null;
-function startHeaderClock() { updateHeaderClock(); if (_clockTimer) clearInterval(_clockTimer); _clockTimer = setInterval(updateHeaderClock, 60000); document.addEventListener('visibilitychange', function() { if (!document.hidden) updateHeaderClock(); }); }
+var _clockTimer = null, _clockVcBound = false;
+function startHeaderClock() {
+  updateHeaderClock();
+  if (_clockTimer) clearInterval(_clockTimer);
+  _clockTimer = setInterval(updateHeaderClock, 60000);
+  // visibilitychange 리스너 중복 등록 방지
+  if (!_clockVcBound) {
+    _clockVcBound = true;
+    document.addEventListener('visibilitychange', function() { if (!document.hidden) updateHeaderClock(); });
+  }
+}
 
 function fetchWithRetry(url, options, opts) {
   opts = opts || {}; var maxRetries = opts.retries !== undefined ? opts.retries : 3, baseDelay = opts.delay !== undefined ? opts.delay : 1000, label = opts.label || '요청', onSlow = opts.onSlow;

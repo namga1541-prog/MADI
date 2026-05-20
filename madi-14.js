@@ -537,8 +537,13 @@ function loadLoungePosts() {
   if (!ui) return;
   ui.innerHTML = '<div class="loading"><div class="spinner"></div><p>고객센터 글을 불러오는 중...</p></div>';
 
-  // admin/superadmin은 다른 센터 글까지 봐야 하므로 limit 넉넉하게
-  supaFetch('madi_lounge_posts?select=*&order=created_at.desc&limit=100', 'GET')
+  // superadmin은 전체 센터 조회, admin/teacher는 자기 센터만 (RLS 이중 방어)
+  var _loungeUser = currentUser || {};
+  var _loungePath = 'madi_lounge_posts?select=*&order=created_at.desc&limit=100';
+  if (_loungeUser.role !== 'superadmin' && _loungeUser.center_id) {
+    _loungePath += '&center_id=eq.' + encodeURIComponent(_loungeUser.center_id);
+  }
+  supaFetch(_loungePath, 'GET')
     .then(function(data) {
       loungePostsDB = data || [];
       // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
@@ -549,7 +554,8 @@ function loadLoungePosts() {
       }
     })
     .catch(function(err) {
-      ui.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+      console.error('[loadLoungePosts]', err);
+      ui.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
     });
 }
 
@@ -739,7 +745,10 @@ function saveLoungePost() {
     })
     .catch(function(err) {
       showToast('⚠️ 등록 실패: ' + (err.message || ''));
-      if (btn) { btn.disabled = false; btn.textContent = '📝 작성하기'; }
+    })
+    .finally(function() {
+      // 성공(UI 재렌더) 후 btn은 이미 교체됐을 수 있으나 no-op으로 안전
+      if (btn) { btn.disabled = false; btn.textContent = '📨 건의 보내기'; }
     });
 }
 
@@ -784,7 +793,8 @@ function loadComments(postId) {
       renderComments(postId);
     })
     .catch(function(err) {
-      area.innerHTML = '<div style="font-size:11px;color:#ef4444;padding:6px;">⚠️ ' + escHtml(err.message || '오류') + '</div>';
+      console.error('[loadComments]', err);
+      area.innerHTML = '<div style="font-size:11px;color:#ef4444;padding:6px;">⚠️ 댓글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>';
     });
 }
 
@@ -1008,7 +1018,7 @@ function saveLibraryPost() {
   var user    = currentUser || {};
 
   var uploadAll = _libraryFiles.length
-    ? Promise.all(_libraryFiles.map(function(f){ return uploadBoardImage(f, 'library'); }))
+    ? Promise.all(_libraryFiles.map(function(f){ return uploadBoardImage(f, 'posts'); })) // 'library'는 허용 폴더 아님
     : Promise.resolve([]);
 
   showToast('⏳ 자료 등록 중...');
