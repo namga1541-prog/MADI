@@ -502,14 +502,14 @@ function renderLounge() {
 // teacher는 Edge Function이 center_id 자동 필터, admin/superadmin은 클라이언트 필터
 function filterLoungePosts(posts, user) {
   if (!user || !posts) return [];
-  var role = user.role, name = user.name, uid = user.id, cid = user.center_id;
+  var role = user.role, uid = user.id, cid = user.center_id;
 
   return posts.filter(function(p) {
     if (role === 'superadmin') {
       // 슈퍼어드민: 모든 center 라운지 + 모든 private_super 1:1
       return p.visibility === 'center' || p.visibility === 'private_super';
     }
-    var isMine = p.author_id ? p.author_id === uid : p.author_name === name;
+    var isMine = p.author_id === uid;
     if (role === 'admin') {
       // 센터장: 자기 센터의 center/private_admin + 본인 발신 private_super
       if (p.center_id !== cid) return false;
@@ -608,8 +608,8 @@ function renderLoungeUI() {
   // 관리자: 받은 건의 / 내가 보낸 건의 구분
   var listHtml = '';
   if (role === 'admin') {
-    var received = posts.filter(function(p){ return p.visibility === 'private_admin' && (p.author_id ? p.author_id !== user.id : p.author_name !== user.name); });
-    var sent     = posts.filter(function(p){ return p.author_id ? p.author_id === user.id : p.author_name === user.name; });
+    var received = posts.filter(function(p){ return p.visibility === 'private_admin' && p.author_id !== user.id; });
+    var sent     = posts.filter(function(p){ return p.author_id === user.id; });
 
     listHtml += '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;margin-top:4px;">📥 받은 건의 (' + received.length + ')</div>';
     listHtml += received.length
@@ -630,7 +630,7 @@ function renderLoungeUI() {
 }
 
 function renderInquiryCard(post, user) {
-  var isMine    = user && (post.author_id ? post.author_id === user.id : post.author_name === user.name);
+  var isMine    = user && post.author_id === user.id;
   var canDelete = (user && (user.role === 'superadmin' || isMine));
 
   // 수신자 배지
@@ -813,7 +813,7 @@ function renderComments(postId) {
   var listHtml = comments.length === 0
     ? '<div style="font-size:11px;color:var(--text2);text-align:center;padding:8px;">아직 댓글이 없습니다.</div>'
     : comments.map(function(c) {
-        var canDelete = (user.role === 'superadmin' || (c.author_id ? c.author_id === user.id : c.author_name === user.name));
+        var canDelete = (user.role === 'superadmin' || c.author_id === user.id);
         var roleBadge = c.author_role === 'superadmin' ? '👑' :
                         c.author_role === 'admin'      ? '🎯' : '👤';
         var when = '';
