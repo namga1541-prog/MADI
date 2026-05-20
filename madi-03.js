@@ -687,6 +687,7 @@ function saveNotice() {
     pinned: ntype !== 'info',
     title: title,
     content: content,
+    author_id: currentUser.id,
     author_name: currentUser.name
   }]).then(function(saved) {
     document.getElementById('noticeTitle').value = '';

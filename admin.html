@@ -1697,7 +1697,7 @@ async function saveNotice() {
   var ntype   = (document.getElementById('noticeType')   ||{value:'info'}).value;
   if (!title||!content) { showToast('⚠️ 제목과 내용을 모두 입력해 주세요'); return; }
   try {
-    await supaFetch('madi_notices','POST',[{ center_id:currentUser.center_id, notice_type:ntype, pinned:ntype!=='info', title:title, content:content, author_name:currentUser.name }]);
+    await supaFetch('madi_notices','POST',[{ center_id:currentUser.center_id, notice_type:ntype, pinned:ntype!=='info', title:title, content:content, author_id:currentUser.id, author_name:currentUser.name }]);
     document.getElementById('noticeTitle').value = '';
     document.getElementById('noticeContent').value = '';
     showToast('✅ 공지가 등록됐습니다');

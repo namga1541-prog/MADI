@@ -290,6 +290,7 @@ function saveGlobalNotice() {
     pinned:      pinned,
     title:       title,
     content:     content,
+    author_id:   currentUser.id,
     author_name: currentUser.name || '슈퍼어드민'
   }])
     .then(function() {
@@ -479,6 +480,7 @@ function saveCenterNotice() {
     pinned:      pinned,
     title:       title,
     content:     content,
+    author_id:   currentUser.id,
     author_name: currentUser.name || '관리자'
   }])
     .then(function() {
