@@ -263,18 +263,24 @@ function renderGlobalNoticeCard(n, isSuperAdmin) {
     : '';
   var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
 
-  // 슈퍼어드민: 팝업 토글 + 삭제 버튼
+  // 슈퍼어드민: 팝업 토글 + 삭제 버튼  /  본인 글: 수정 버튼
   var adminBtns = '';
+  var editBtn = _isMyPost(n)
+    ? '<button onclick="editGlobalNotice(\'' + n.id + '\')" style="padding:5px 10px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0c4a6e;border:1px solid #38bdf8;border-radius:6px;cursor:pointer;">✏️ 수정</button>'
+    : '';
   if (isSuperAdmin) {
     var togglLabel = n.show_as_login_popup ? '🔕 팝업 해제' : '🔔 팝업으로 표시';
     var togglBg    = n.show_as_login_popup ? '#fef9c3' : '#f1f5f9';
     var togglCol   = n.show_as_login_popup ? '#854d0e' : '#475569';
     adminBtns =
-        '<button onclick="togglePopupNotice(\'' + n.id + '\',' + (n.show_as_login_popup ? 'true' : 'false') + ')" '
-      +   'style="padding:5px 10px;font-size:11px;font-weight:700;background:' + togglBg + ';color:' + togglCol + ';border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;margin-right:4px;">'
+        editBtn
+      + '<button onclick="togglePopupNotice(\'' + n.id + '\',' + (n.show_as_login_popup ? 'true' : 'false') + ')" '
+      +   'style="padding:5px 10px;font-size:11px;font-weight:700;background:' + togglBg + ';color:' + togglCol + ';border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;">'
       +   togglLabel
       + '</button>'
       + '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(\'' + n.id + '\')">삭제</button>';
+  } else {
+    adminBtns = editBtn;
   }
 
   return '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'
@@ -500,6 +506,9 @@ function renderCenterNoticeCard(n, isAdminOrSuper, isSuperAdmin) {
   }
 
   var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
+  var editBtn = _isMyPost(n)
+    ? '<button onclick="editCenterNotice(\'' + n.id + '\')" style="padding:5px 10px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0c4a6e;border:1px solid #38bdf8;border-radius:6px;cursor:pointer;">✏️ 수정</button>'
+    : '';
   var deleteBtn = isAdminOrSuper
     ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteCenterNotice(\'' + n.id + '\')">삭제</button>'
     : '';
@@ -511,7 +520,7 @@ function renderCenterNoticeCard(n, isAdminOrSuper, isSuperAdmin) {
     +     centerBadge
     +     '<span style="font-size:14px;font-weight:700;color:#1e293b;">' + escHtml(n.title || '') + '</span>'
     +   '</div>'
-    +   deleteBtn
+    +   '<div style="display:flex;gap:4px;flex-shrink:0;">' + editBtn + deleteBtn + '</div>'
     + '</div>'
     + (n.content ? '<div style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin:8px 0 6px;">' + escHtml(n.content) + '</div>' : '')
     + '<div style="font-size:11px;color:#64748b;margin-top:6px;">👤 ' + escHtml(n.author_name || '익명') + ' · ' + escHtml(when) + '</div>'
@@ -742,12 +751,15 @@ function renderInquiryCard(post, user) {
     }
   } catch (e) {}
 
+  var editBtn = isMine
+    ? '<button class="btn-ghost" style="font-size:11px;color:#0c4a6e;border-color:#38bdf8;padding:4px 10px;flex-shrink:0;" onclick="editLoungePost(\'' + post.id + '\')">✏️ 수정</button>'
+    : '';
   var deleteBtn = canDelete
     ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(\'' + post.id + '\')">삭제</button>'
     : '';
 
   return '<div class="card" style="border-left:4px solid ' + toColor + ';margin-bottom:4px;">'
-    // 헤더: 발신→수신 / 날짜 / 삭제
+    // 헤더: 발신→수신 / 날짜 / 수정·삭제
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;">'
     +   '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">'
     +     (isMine ? '' : '<span style="font-size:12px;font-weight:700;color:var(--text);">' + escHtml(post.author_name||'') + '</span>')
@@ -759,6 +771,7 @@ function renderInquiryCard(post, user) {
     +   '</div>'
     +   '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
     +     '<span style="font-size:11px;color:var(--text2);">' + when + '</span>'
+    +     editBtn
     +     deleteBtn
     +   '</div>'
     + '</div>'
@@ -1049,9 +1062,16 @@ function _renderLibraryUI(posts) {
     listHtml = '<div class="empty"><div class="empty-icon">📭</div><p>등록된 자료가 없습니다.</p></div>';
   } else {
     listHtml = filtered.map(function(p) {
-      var canDel = user.role === 'superadmin' || p.author_id === user.id;
+      var isMine = !!(user && p.author_id === user.id);
+      var canDel = user.role === 'superadmin' || isMine;
       var imgs = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [];
       var dt = p.created_at ? new Date(p.created_at).toLocaleDateString('ko-KR') : '';
+      var editBtn = isMine
+        ? '<button onclick="editLibraryPost(\''+p.id+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #38bdf8;background:#e0f2fe;color:#0c4a6e;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>'
+        : '';
+      var delBtn = canDel
+        ? '<button onclick="deleteLibraryPost(\''+p.id+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>'
+        : '';
       return '<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);">'
         + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
         + '<div style="min-width:0;flex:1;">'
@@ -1063,7 +1083,7 @@ function _renderLibraryUI(posts) {
         + (imgs.length ? renderImageThumbs(imgs) : '')
         + '<div style="font-size:11px;color:var(--text2);margin-top:6px;">' + escHtml(p.author_name||'') + ' · ' + dt + '</div>'
         + '</div>'
-        + (canDel ? '<button onclick="deleteLibraryPost(\''+p.id+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>' : '')
+        + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">' + editBtn + delBtn + '</div>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -1143,5 +1163,212 @@ function deleteLibraryPost(id) {
     supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
       .then(function() { showToast('🗑️ 자료 삭제됨'); renderLibrary(); })
       .catch(function(err) { showToast('❌ 삭제 실패 — 다시 시도해주세요'); });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ✏️ 글 수정 — 4개 게시판 공통
+// ═══════════════════════════════════════════════════════════
+// 정책 (사용자 결정 2026-05-21):
+//  - 본인(author_id === currentUser.id) 만 수정 가능
+//  - 텍스트만 수정 (제목·본문·종류/카테고리). 첨부 이미지는 그대로 유지
+//  - visibility 는 변경 안 함 (보안·라우팅 혼란 방지)
+
+function _isMyPost(post) {
+  if (!currentUser || !post || !post.author_id) return false;
+  return post.author_id === currentUser.id;
+}
+
+// 공통 글 수정 모달
+// opts: {
+//   header:         '✏️ 마디 공지 수정',           // 모달 상단 타이틀
+//   currentTitle:   string,
+//   currentContent: string,
+//   selectField:    { label, current, options:[{value,label}] } | null,
+//   noteHint:       '첨부는 그대로 유지됩니다',      // 안내 문구 (옵션)
+//   maxTitle:       200,
+//   onSave:         function(values, closeFn)       // values: { title, content, selectValue }
+// }
+function openPostEditModal(opts) {
+  opts = opts || {};
+  var existing = document.getElementById('postEditModal');
+  if (existing) existing.remove();
+
+  var maxTitle = opts.maxTitle || 200;
+
+  var selectHtml = '';
+  if (opts.selectField && opts.selectField.options && opts.selectField.options.length > 0) {
+    var optsHtml = opts.selectField.options.map(function(o) {
+      var sel = (String(o.value) === String(opts.selectField.current)) ? ' selected' : '';
+      return '<option value="' + escHtml(String(o.value)) + '"' + sel + '>' + escHtml(o.label) + '</option>';
+    }).join('');
+    selectHtml =
+        '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin:10px 0 4px;">' + escHtml(opts.selectField.label || '종류') + '</label>'
+      + '<select id="peSelect" class="form-input" style="font-size:13px;padding:8px;width:100%;box-sizing:border-box;">' + optsHtml + '</select>';
+  }
+
+  var hintHtml = opts.noteHint
+    ? '<div style="font-size:11px;color:#64748b;background:#f1f5f9;border-radius:6px;padding:6px 10px;margin-top:10px;">ℹ️ ' + escHtml(opts.noteHint) + '</div>'
+    : '';
+
+  var overlay = document.createElement('div');
+  overlay.id = 'postEditModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML =
+      '<div style="background:white;border-radius:14px;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
+    +   '<div style="padding:16px 22px;border-bottom:1px solid #e2e8f0;font-size:15px;font-weight:700;color:#1e293b;">' + escHtml(opts.header || '✏️ 글 수정') + '</div>'
+    +   '<div style="padding:18px 22px;overflow-y:auto;flex:1;">'
+    +     '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">제목</label>'
+    +     '<input id="peTitle" class="form-input" maxlength="' + maxTitle + '" style="font-size:14px;padding:8px;width:100%;box-sizing:border-box;">'
+    +     selectHtml
+    +     '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin:10px 0 4px;">본문</label>'
+    +     '<textarea id="peContent" class="form-input" rows="6" style="font-size:13px;padding:8px;width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;"></textarea>'
+    +     hintHtml
+    +     '<div id="peError" style="font-size:12px;color:#ef4444;margin-top:8px;min-height:14px;word-break:break-word;"></div>'
+    +   '</div>'
+    +   '<div style="padding:14px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:flex-end;gap:8px;">'
+    +     '<button id="peCancel" style="padding:9px 18px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer;">취소</button>'
+    +     '<button id="peSave" style="padding:9px 18px;border:none;border-radius:8px;background:#0ea5a0;color:white;font-size:13px;font-weight:700;cursor:pointer;">💾 저장</button>'
+    +   '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+  // 값 채우기는 createElement 후에 .value 로 — escHtml 한 문자열을 value 에 직접 넣지 않기 위함
+  var titleEl   = document.getElementById('peTitle');
+  var contentEl = document.getElementById('peContent');
+  if (titleEl)   titleEl.value   = opts.currentTitle   || '';
+  if (contentEl) contentEl.value = opts.currentContent || '';
+  setTimeout(function(){ if (titleEl) titleEl.focus(); }, 50);
+
+  function _close() {
+    overlay.remove();
+    document.removeEventListener('keydown', _onKey);
+  }
+  function _onKey(e) { if (e.key === 'Escape') _close(); }
+
+  document.getElementById('peCancel').addEventListener('click', _close);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) _close(); });
+  document.addEventListener('keydown', _onKey);
+
+  document.getElementById('peSave').addEventListener('click', function() {
+    var errEl  = document.getElementById('peError');
+    errEl.textContent = '';
+    var title    = (titleEl.value || '').trim();
+    var content  = (contentEl.value || '').trim();
+    var selEl    = document.getElementById('peSelect');
+    var selValue = selEl ? selEl.value : null;
+    if (!title)                  { errEl.textContent = '제목을 입력해 주세요.'; return; }
+    if (!content)                { errEl.textContent = '본문을 입력해 주세요.'; return; }
+    if (title.length > maxTitle) { errEl.textContent = '제목은 ' + maxTitle + '자 이하로 작성해 주세요.'; return; }
+    if (typeof opts.onSave === 'function') {
+      opts.onSave({ title: title, content: content, selectValue: selValue }, _close);
+    }
+  });
+}
+
+var NOTICE_TYPE_OPTS = [
+  { value: 'info', label: '📢 일반' },
+  { value: 'pin',  label: '📍 중요 (상단 고정)' },
+  { value: 'imp',  label: '🚨 긴급 (상단 고정)' }
+];
+
+// ── 마디 공지 수정 ──
+function editGlobalNotice(id) {
+  var n = (globalNoticesDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!n) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(n)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  openPostEditModal({
+    header:         '✏️ 마디 공지 수정',
+    currentTitle:   n.title || '',
+    currentContent: n.content || '',
+    selectField:    { label: '종류', current: n.notice_type || 'info', options: NOTICE_TYPE_OPTS },
+    maxTitle:       200,
+    onSave: function(v, close) {
+      var ntype  = v.selectValue || 'info';
+      var pinned = (ntype !== 'info');
+      supaFetch('madi_global_notices?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:       v.title,
+        content:     v.content,
+        notice_type: ntype,
+        pinned:      pinned
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); loadGlobalNotices(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
+  });
+}
+
+// ── 센터 공지 수정 ──
+function editCenterNotice(id) {
+  var n = (centerNoticesDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!n) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(n)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  openPostEditModal({
+    header:         '✏️ 센터 공지 수정',
+    currentTitle:   n.title || '',
+    currentContent: n.content || '',
+    selectField:    { label: '종류', current: n.notice_type || 'info', options: NOTICE_TYPE_OPTS },
+    maxTitle:       200,
+    onSave: function(v, close) {
+      var ntype  = v.selectValue || 'info';
+      var pinned = (ntype !== 'info');
+      supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:       v.title,
+        content:     v.content,
+        notice_type: ntype,
+        pinned:      pinned
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); loadCenterNotices(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
+  });
+}
+
+// ── 고객센터(라운지) 수정 — visibility 는 변경 안 함 ──
+function editLoungePost(id) {
+  var p = (loungePostsDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!p) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(p)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  var hasImages = !!(p.image_urls && p.image_urls.length);
+  openPostEditModal({
+    header:         '✏️ 문의/건의 수정',
+    currentTitle:   p.title || '',
+    currentContent: p.content || '',
+    noteHint:       hasImages ? '첨부 이미지는 그대로 유지됩니다 (텍스트만 수정 가능)' : '',
+    maxTitle:       200,
+    onSave: function(v, close) {
+      supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:   v.title,
+        content: v.content
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); loadLoungePosts(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
+  });
+}
+
+// ── 자료실 수정 — note (카테고리) 도 함께 수정 ──
+function editLibraryPost(id) {
+  var p = (loungePostsDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!p) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(p)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  var hasFiles = !!(p.images && (typeof p.images === 'string' ? p.images.length > 2 : p.images.length));
+  var catOptions = LIBRARY_CATEGORIES.map(function(c){ return { value: c, label: c }; });
+  openPostEditModal({
+    header:         '✏️ 자료 수정',
+    currentTitle:   p.title || '',
+    currentContent: p.content || '',
+    selectField:    { label: '카테고리', current: p.note || LIBRARY_CATEGORIES[0], options: catOptions },
+    noteHint:       hasFiles ? '첨부 파일은 그대로 유지됩니다 (텍스트만 수정 가능)' : '',
+    maxTitle:       100,
+    onSave: function(v, close) {
+      supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:   v.title,
+        content: v.content,
+        note:    v.selectValue || (p.note || '')
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); renderLibrary(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
   });
 }
