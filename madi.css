@@ -2042,3 +2042,159 @@
       .lp-hero-cta     { flex-direction:column; width:100%; max-width:300px; margin:0 auto; }
       .lp-hero-cta button { width:100%; }
     }
+
+/* ════════════════════════════════════════════════════════════
+   로그인·가입 화면 v2 — 세련된 2단 분할 (Stripe / Vercel 스타일)
+   ════════════════════════════════════════════════════════════ */
+    .login-screen.login-v2 {
+      display:grid; grid-template-columns:6fr 5fr;
+      padding:0; background:white;
+      align-items:stretch; justify-content:stretch;
+      overflow:hidden;
+    }
+    /* 기존 원 장식 제거 (login-v2 일 때만) */
+    .login-screen.login-v2::before,
+    .login-screen.login-v2::after { display:none; }
+    .login-screen.login-v2 .login-deco-dot { display:none; }
+    .login-screen.login-v2 .login-box { display:none; }  /* 옛 박스 숨김 */
+
+    /* 좌측: 브랜드 영역 */
+    .login-brand {
+      position:relative;
+      background:linear-gradient(135deg,#0b6f6a 0%,#0ea5a0 38%,#22c9c3 100%);
+      color:white;
+      padding:60px 56px;
+      display:flex; flex-direction:column; justify-content:space-between;
+      overflow:hidden;
+      min-height:100vh;
+    }
+    .login-brand-shape { position:absolute; border-radius:50%; pointer-events:none; }
+    .login-shape-1 { width:520px; height:520px; top:-170px; right:-210px; background:radial-gradient(circle,rgba(255,255,255,0.14) 0%,transparent 70%); }
+    .login-shape-2 { width:320px; height:320px; bottom:-100px; left:-90px;  background:radial-gradient(circle,rgba(255,255,255,0.10) 0%,transparent 70%); }
+    .login-shape-3 { width:200px; height:200px; top:42%; right:8%;          background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%); }
+
+    .login-brand-inner { position:relative; z-index:1; max-width:480px; }
+    .login-brand-logo { display:flex; align-items:center; gap:12px; margin-bottom:64px; }
+    .login-brand-logo span { font-family:'Raleway',sans-serif; font-size:22px; font-weight:800; color:white; letter-spacing:0.5px; }
+
+    .login-brand-headline { font-size:clamp(24px,3vw,36px); font-weight:900; color:white; line-height:1.3; margin:0 0 14px; letter-spacing:-0.5px; }
+    .login-brand-desc { font-size:15px; color:rgba(255,255,255,0.85); line-height:1.7; margin:0 0 44px; }
+
+    .login-brand-features { list-style:none; padding:0; margin:0 0 40px; display:flex; flex-direction:column; gap:18px; }
+    .login-brand-features li { display:flex; align-items:flex-start; gap:14px; }
+    .login-feat-ic { width:38px; height:38px; border-radius:11px; background:rgba(255,255,255,0.15); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; border:1px solid rgba(255,255,255,0.1); }
+    .login-brand-features div { font-size:14px; color:rgba(255,255,255,0.8); line-height:1.55; }
+    .login-brand-features b { display:block; font-size:15px; font-weight:800; color:white; margin-bottom:2px; }
+
+    .login-brand-footer { font-size:12px; color:rgba(255,255,255,0.5); position:relative; z-index:1; }
+
+    /* 우측: 폼 영역 */
+    .login-form {
+      position:relative; background:white;
+      display:flex; align-items:center; justify-content:center;
+      padding:60px 48px;
+      min-height:100vh;
+      overflow-y:auto;
+    }
+    .login-back-btn-v2 {
+      position:absolute; top:28px; left:32px;
+      background:transparent; border:none;
+      color:#64748b; font-size:13px; font-weight:600;
+      cursor:pointer; padding:7px 14px; border-radius:8px;
+      transition:all 0.15s;
+      font-family:inherit;
+    }
+    .login-back-btn-v2:hover { background:#f1f5f9; color:#0f2942; }
+
+    .login-form-inner { width:100%; max-width:380px; }
+    .login-title { font-size:28px; font-weight:900; color:#0f2942; margin:0 0 8px; letter-spacing:-0.5px; line-height:1.25; }
+    .login-subtitle { font-size:14px; color:#64748b; margin:0 0 36px; line-height:1.6; }
+
+    .login-field { margin-bottom:18px; }
+    .login-field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .login-field label { display:block; font-size:12.5px; font-weight:700; color:#334155; margin-bottom:6px; letter-spacing:0.2px; }
+    .login-field-hint { font-size:11.5px; color:#64748b; margin-top:6px; line-height:1.5; }
+    .login-field-ok { font-size:11.5px; color:var(--mint); margin-top:4px; font-weight:600; }
+    .login-input {
+      width:100%; box-sizing:border-box;
+      height:48px; padding:0 16px;
+      border:1.5px solid #e2e8f0; border-radius:11px;
+      background:#fafbfc;
+      font-size:14.5px; font-family:inherit; color:#0f2942;
+      transition:all 0.15s;
+    }
+    .login-input::placeholder { color:#94a3b8; }
+    .login-input:hover { border-color:#cbd5e1; }
+    .login-input:focus { outline:none; border-color:var(--mint); background:white; box-shadow:0 0 0 4px rgba(14,165,160,0.08); }
+    .login-input-mono { font-family:'SF Mono','Menlo','Consolas',monospace; letter-spacing:2px; text-transform:uppercase; }
+
+    .login-btn-pri {
+      width:100%; height:50px; margin-top:8px;
+      border:none; border-radius:11px;
+      background:linear-gradient(135deg,#0ea5a0 0%,#22c9c3 100%);
+      color:white; font-size:15px; font-weight:800;
+      cursor:pointer; font-family:inherit; letter-spacing:0.3px;
+      box-shadow:0 6px 16px rgba(14,165,160,0.25);
+      transition:all 0.15s;
+    }
+    .login-btn-pri:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(14,165,160,0.32); }
+    .login-btn-pri:active { transform:translateY(0); }
+    .login-btn-pri:disabled { opacity:0.65; cursor:not-allowed; transform:none; box-shadow:0 4px 12px rgba(14,165,160,0.18); }
+
+    .login-error { color:#ef4444; font-size:13px; text-align:center; margin-top:12px; min-height:18px; line-height:1.5; }
+
+    .login-divider-v2 { display:flex; align-items:center; gap:14px; margin:28px 0 18px; }
+    .login-divider-v2::before, .login-divider-v2::after { content:''; flex:1; height:1px; background:#e2e8f0; }
+    .login-divider-v2 span { font-size:12px; color:#94a3b8; font-weight:600; }
+
+    .login-btn-sec {
+      width:100%; padding:14px 16px; margin-bottom:10px;
+      display:flex; align-items:center; gap:14px;
+      border:1.5px solid #e2e8f0; border-radius:11px;
+      background:white;
+      cursor:pointer; font-family:inherit; text-align:left;
+      transition:all 0.15s;
+    }
+    .login-btn-sec:hover { border-color:var(--mint); background:#f0fdfa; transform:translateY(-1px); }
+    .login-btn-ic { width:40px; height:40px; border-radius:10px; background:#e0f7f6; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .login-btn-sec-text { flex:1; }
+    .login-btn-sec-text b { display:block; font-size:14px; font-weight:800; color:#0f2942; margin-bottom:2px; }
+    .login-btn-sec-text em { display:block; font-size:11.5px; font-style:normal; color:#64748b; }
+
+    .login-btn-link {
+      width:100%; margin-top:6px;
+      background:transparent; border:none;
+      color:#64748b; font-size:13px; font-weight:600;
+      cursor:pointer; padding:8px;
+      font-family:inherit;
+    }
+    .login-btn-link:hover { color:var(--mint); }
+
+    /* 학부모 가입 step2: 매칭된 아동 안내 */
+    .login-matched-box { background:linear-gradient(135deg,#f0fdf4,#f0fdfa); border:1px solid #86efac; border-radius:12px; padding:14px 16px; margin-bottom:18px; }
+    .login-matched-label { font-size:11.5px; font-weight:800; color:#166534; margin-bottom:6px; letter-spacing:0.3px; }
+    .login-matched-list { font-size:15px; color:#15803d; font-weight:700; line-height:1.7; }
+
+    /* 모바일 — 좌측 브랜드 영역 축소 / 그리드 해체 */
+    @media (max-width:900px) {
+      .login-screen.login-v2 { grid-template-columns:1fr; min-height:100vh; align-items:flex-start; overflow-y:auto; }
+      .login-brand { padding:36px 28px; min-height:auto; }
+      .login-brand-logo { margin-bottom:24px; }
+      .login-brand-headline { font-size:22px; margin-bottom:10px; }
+      .login-brand-desc { font-size:13.5px; margin-bottom:24px; }
+      .login-brand-features { gap:12px; margin-bottom:0; }
+      .login-feat-ic { width:34px; height:34px; font-size:16px; }
+      .login-brand-features b { font-size:14px; }
+      .login-brand-features div { font-size:13px; }
+      .login-brand-footer { display:none; }
+      .login-form { padding:40px 24px; min-height:auto; }
+      .login-back-btn-v2 { top:18px; left:18px; }
+    }
+    @media (max-width:560px) {
+      .login-brand { padding:30px 22px; }
+      .login-brand-headline { font-size:20px; }
+      .login-brand-features li:nth-child(n+3) { display:none; }
+      .login-form { padding:32px 20px; }
+      .login-title { font-size:24px; }
+      .login-field-row { grid-template-columns:1fr; gap:0; }
+    }

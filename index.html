@@ -591,140 +591,256 @@
 </div>
 
 <!-- 로그인 화면 -->
-<div class="login-screen" id="loginScreen" style="display: none;">
-  <!-- 배경 장식 -->
-  <div class="login-deco-dot" style="width:120px;height:120px;top:15%;left:8%;"></div>
-  <div class="login-deco-dot" style="width:60px;height:60px;top:60%;right:12%;"></div>
-  <div class="login-deco-dot" style="width:40px;height:40px;bottom:18%;left:20%;"></div>
+<div class="login-screen login-v2" id="loginScreen" style="display: none;">
 
-  <div class="login-box">
-    <button class="login-back-btn" onclick="backToLanding()">← 처음으로</button>
-    <!-- 로고 & 슬로건 -->
-    <div class="login-logo">
-      <div class="login-logo-icon"><div class="madi-icon" style="width:64px;height:64px;border-radius:18px;"></div></div>
+  <!-- 좌측: 브랜드 영역 -->
+  <aside class="login-brand">
+    <div class="login-brand-shape login-shape-1"></div>
+    <div class="login-brand-shape login-shape-2"></div>
+    <div class="login-brand-shape login-shape-3"></div>
+
+    <div class="login-brand-inner">
+      <div class="login-brand-logo">
+        <div class="madi-icon" style="width:44px;height:44px;border-radius:13px;"></div>
+        <span>아이마디</span>
+      </div>
+
+      <h2 class="login-brand-headline">언어가 자라는 곳,<br>아이마디에 오신 걸 환영합니다.</h2>
+      <p class="login-brand-desc">세션 기록부터 보고서까지 — AI 가 함께하는 언어치료 센터 운영의 시작.</p>
+
+      <ul class="login-brand-features">
+        <li>
+          <span class="login-feat-ic">📋</span>
+          <div><b>스마트 세션 관리</b>일정·출결·바우처를 한 화면에서</div>
+        </li>
+        <li>
+          <span class="login-feat-ic">🤖</span>
+          <div><b>AI 자동 보고서</b>IEP·평가 해석·상담 메시지를 한 번에</div>
+        </li>
+        <li>
+          <span class="login-feat-ic">🛡️</span>
+          <div><b>안전한 데이터</b>RLS · 감사 로그 · CSP 다층 보호</div>
+        </li>
+      </ul>
     </div>
 
-    <!-- 아이디 입력 -->
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">아이디</label>
-      <input class="form-input" type="text" id="loginUsernameInput" placeholder="아이디를 입력하세요" autocomplete="username" style="font-size:16px;height:48px;">
+    <div class="login-brand-footer">© 2026 마디 (Madi) · 언어가 자라는 곳</div>
+  </aside>
+
+  <!-- 우측: 폼 영역 -->
+  <main class="login-form">
+    <button class="login-back-btn-v2" onclick="backToLanding()">← 처음으로</button>
+
+    <div class="login-form-inner">
+      <h1 class="login-title">다시 오신 걸 환영합니다</h1>
+      <p class="login-subtitle">아이마디 계정으로 로그인하세요</p>
+
+      <div class="login-field">
+        <label for="loginUsernameInput">아이디</label>
+        <input class="login-input" type="text" id="loginUsernameInput" placeholder="아이디를 입력하세요" autocomplete="username">
+      </div>
+
+      <div class="login-field">
+        <label for="loginPwInput">비밀번호</label>
+        <input class="login-input" type="password" id="loginPwInput" placeholder="비밀번호를 입력하세요" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin();">
+      </div>
+
+      <button class="login-btn-pri" id="loginSubmitBtn" onclick="doLogin()">로그인</button>
+      <div id="loginError" class="login-error"></div>
+
+      <div class="login-divider-v2"><span>처음 이용하시나요?</span></div>
+
+      <button class="login-btn-sec" onclick="showSignupScreen()">
+        <span class="login-btn-ic">✨</span>
+        <div class="login-btn-sec-text">
+          <b>초대 코드로 가입</b>
+          <em>센터에서 받은 코드로 시작</em>
+        </div>
+      </button>
+
+      <button class="login-btn-sec" onclick="showParentSignupScreen()">
+        <span class="login-btn-ic">👨‍👩‍👧</span>
+        <div class="login-btn-sec-text">
+          <b>학부모 가입</b>
+          <em>등록된 휴대폰 번호로 시작</em>
+        </div>
+      </button>
     </div>
+  </main>
 
-    <!-- 비밀번호 입력 -->
-    <div class="form-group" style="margin-bottom:20px;">
-      <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">비밀번호</label>
-      <input class="form-input" type="password" id="loginPwInput" placeholder="비밀번호를 입력하세요" autocomplete="current-password" style="font-size:16px;height:48px;">
-    </div>
-
-    <!-- 로그인 버튼 -->
-    <button class="btn btn-primary" id="loginSubmitBtn" style="height:50px;font-size:16px;font-weight:700;margin-top:0;" onclick="doLogin()">🔐 로그인</button>
-
-    <!-- 오류 메시지 -->
-    <div id="loginError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;min-height:18px;"></div>
-
-    <!-- 구분선 + 가입 -->
-    <div class="login-divider">
-      <span></span><em>처음 이용하시나요?</em><span></span>
-    </div>
-    <button class="btn-ghost" style="width:100%;height:46px;color:var(--mint);border-color:var(--mint);font-weight:700;font-size:14px;" onclick="showSignupScreen()">
-      ✨ 초대 코드로 가입하기
-    </button>
-    <button class="btn-ghost" style="width:100%;height:46px;color:#3b82f6;border-color:#3b82f6;font-weight:700;font-size:14px;margin-top:8px;" onclick="showParentSignupScreen()">
-      👨‍👩‍👧 학부모 가입하기
-    </button>
-  </div>
 </div>
 
-<!-- 신규 가입 화면 -->
-<div class="login-screen" id="signupScreen" style="display:none;">
-  <div class="login-box">
-    <button class="login-back-btn" onclick="backToLanding()">← 처음으로</button>
-    <div class="login-logo">
-      <div class="login-logo-icon"><div class="madi-icon" style="width:64px;height:64px;border-radius:18px;"></div></div>
-      <h1>마디 가입</h1>
-      <p>초대 코드로 시작하기</p>
+<!-- 신규 가입 화면 (선생님·관리자) -->
+<div class="login-screen login-v2" id="signupScreen" style="display:none;">
+
+  <!-- 좌측: 브랜드 영역 -->
+  <aside class="login-brand">
+    <div class="login-brand-shape login-shape-1"></div>
+    <div class="login-brand-shape login-shape-2"></div>
+    <div class="login-brand-shape login-shape-3"></div>
+
+    <div class="login-brand-inner">
+      <div class="login-brand-logo">
+        <div class="madi-icon" style="width:44px;height:44px;border-radius:13px;"></div>
+        <span>아이마디</span>
+      </div>
+
+      <h2 class="login-brand-headline">센터의 새 식구가<br>되어주세요.</h2>
+      <p class="login-brand-desc">초대 코드 한 줄로 가입이 끝납니다. 별도 설치 없이 브라우저에서 바로.</p>
+
+      <ul class="login-brand-features">
+        <li>
+          <span class="login-feat-ic">🎯</span>
+          <div><b>역할별 최적화</b>선생님 · 센터장 권한 자동 설정</div>
+        </li>
+        <li>
+          <span class="login-feat-ic">⚡</span>
+          <div><b>1분 가입</b>이메일·휴대폰 인증 단계 없음</div>
+        </li>
+        <li>
+          <span class="login-feat-ic">🔒</span>
+          <div><b>비밀번호 보안</b>bcrypt 해시 · 평문 저장 안 함</div>
+        </li>
+      </ul>
     </div>
 
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">초대 코드</label>
-      <input class="form-input" type="text" id="signupInviteCode" placeholder="관리자에게 받은 코드 입력" style="font-family:monospace;letter-spacing:1px;text-transform:uppercase;font-size:16px;" oninput="this.value=this.value.toUpperCase();onInviteCodeInput();">
-      <div id="signupCenterName" style="font-size:11px;color:var(--mint);margin-top:4px;font-weight:600;"></div>
-    </div>
+    <div class="login-brand-footer">© 2026 마디 (Madi) · 언어가 자라는 곳</div>
+  </aside>
 
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">이름</label>
-      <input class="form-input" type="text" id="signupName" placeholder="예: 김치료사" style="font-size:16px;">
-    </div>
+  <!-- 우측: 폼 영역 -->
+  <main class="login-form">
+    <button class="login-back-btn-v2" onclick="backToLanding()">← 처음으로</button>
 
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">아이디</label>
-      <input class="form-input" type="text" id="signupUsername" placeholder="영문/숫자, 4자 이상" autocomplete="off" style="font-size:16px;">
-    </div>
+    <div class="login-form-inner">
+      <h1 class="login-title">초대 코드로 가입</h1>
+      <p class="login-subtitle">센터장에게 받은 코드를 입력해주세요</p>
 
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">비밀번호</label>
-      <input class="form-input" type="password" id="signupPassword" placeholder="4자 이상" style="font-size:16px;">
-    </div>
+      <div class="login-field">
+        <label for="signupInviteCode">초대 코드</label>
+        <input class="login-input login-input-mono" type="text" id="signupInviteCode" placeholder="ABC-1234" oninput="this.value=this.value.toUpperCase();onInviteCodeInput();">
+        <div id="signupCenterName" class="login-field-ok"></div>
+      </div>
 
-    <div class="form-group" style="margin-bottom:14px;">
-      <label class="form-label">비밀번호 확인</label>
-      <input class="form-input" type="password" id="signupPasswordConfirm" placeholder="다시 입력" style="font-size:16px;">
-    </div>
+      <div class="login-field">
+        <label for="signupName">이름</label>
+        <input class="login-input" type="text" id="signupName" placeholder="예: 김치료사">
+      </div>
 
-    <button class="btn btn-primary" id="signupSubmitBtn" style="margin-top:0;" onclick="doSignup()">✨ 가입하기</button>
-    <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToLoginFromSignup()">← 로그인 화면으로</button>
-    <div id="signupError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;line-height:1.5;"></div>
-  </div>
+      <div class="login-field">
+        <label for="signupUsername">아이디</label>
+        <input class="login-input" type="text" id="signupUsername" placeholder="영문·숫자, 4자 이상" autocomplete="off">
+      </div>
+
+      <div class="login-field-row">
+        <div class="login-field">
+          <label for="signupPassword">비밀번호</label>
+          <input class="login-input" type="password" id="signupPassword" placeholder="4자 이상">
+        </div>
+        <div class="login-field">
+          <label for="signupPasswordConfirm">확인</label>
+          <input class="login-input" type="password" id="signupPasswordConfirm" placeholder="다시 입력" onkeydown="if(event.key==='Enter')doSignup();">
+        </div>
+      </div>
+
+      <button class="login-btn-pri" id="signupSubmitBtn" onclick="doSignup()">✨ 가입하기</button>
+      <div id="signupError" class="login-error"></div>
+
+      <button class="login-btn-link" onclick="backToLoginFromSignup()">← 로그인 화면으로</button>
+    </div>
+  </main>
+
 </div>
 
 <!-- 학부모 가입 화면 (핸드폰 번호 매칭 방식) -->
-<div class="login-screen" id="parentSignupScreen" style="display:none;">
-  <div class="login-box">
-    <button class="login-back-btn" onclick="backToLoginFromParentSignup()">← 처음으로</button>
-    <div class="login-logo">
-      <div class="login-logo-icon"><div class="madi-icon" style="width:64px;height:64px;border-radius:18px;"></div></div>
-      <h1>학부모 가입</h1>
-      <p>등록된 핸드폰 번호로 가입</p>
+<div class="login-screen login-v2" id="parentSignupScreen" style="display:none;">
+
+  <!-- 좌측: 브랜드 영역 -->
+  <aside class="login-brand">
+    <div class="login-brand-shape login-shape-1"></div>
+    <div class="login-brand-shape login-shape-2"></div>
+    <div class="login-brand-shape login-shape-3"></div>
+
+    <div class="login-brand-inner">
+      <div class="login-brand-logo">
+        <div class="madi-icon" style="width:44px;height:44px;border-radius:13px;"></div>
+        <span>아이마디</span>
+      </div>
+
+      <h2 class="login-brand-headline">아이의 성장,<br>가까이서 함께 보세요.</h2>
+      <p class="login-brand-desc">센터에 등록된 휴대폰 번호로 가입하면, 아이의 세션 기록·발달 추이를 언제든 확인할 수 있어요.</p>
+
+      <ul class="login-brand-features">
+        <li>
+          <span class="login-feat-ic">📖</span>
+          <div><b>주간 세션 기록</b>이번 주 무엇을 배웠는지 한눈에</div>
+        </li>
+        <li>
+          <span class="login-feat-ic">📈</span>
+          <div><b>발달 추이 그래프</b>회차별 성장이 그래프로 명확하게</div>
+        </li>
+        <li>
+          <span class="login-feat-ic">🏡</span>
+          <div><b>가정 연계 가이드</b>집에서 함께할 활동을 매주 안내</div>
+        </li>
+      </ul>
     </div>
 
-    <!-- 단계 1: 핸드폰 번호 조회 -->
-    <div id="parentSignupStep1">
-      <div class="form-group" style="margin-bottom:14px;">
-        <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">핸드폰 번호</label>
-        <input class="form-input" type="tel" id="parentPhoneInput" placeholder="010-1234-5678" maxlength="13"
-          oninput="formatParentPhone(this)" autocomplete="tel"
-          style="font-size:16px;letter-spacing:1px;height:48px;">
-        <p style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.5;">
-          📌 센터에 등록된 보호자 번호와 동일해야 합니다
-        </p>
+    <div class="login-brand-footer">© 2026 마디 (Madi) · 언어가 자라는 곳</div>
+  </aside>
+
+  <!-- 우측: 폼 영역 -->
+  <main class="login-form">
+    <button class="login-back-btn-v2" onclick="backToLoginFromParentSignup()">← 처음으로</button>
+
+    <div class="login-form-inner">
+
+      <!-- 단계 1: 핸드폰 번호 조회 -->
+      <div id="parentSignupStep1">
+        <h1 class="login-title">학부모 가입</h1>
+        <p class="login-subtitle">센터에 등록된 휴대폰 번호로 아이를 찾아드릴게요</p>
+
+        <div class="login-field">
+          <label for="parentPhoneInput">휴대폰 번호</label>
+          <input class="login-input" type="tel" id="parentPhoneInput" placeholder="010-1234-5678" maxlength="13"
+            oninput="formatParentPhone(this)" autocomplete="tel" style="letter-spacing:1px;">
+          <div class="login-field-hint">📌 센터에 등록된 보호자 번호와 동일해야 합니다</div>
+        </div>
+
+        <button class="login-btn-pri" id="parentLookupBtn" onclick="parentLookup()">🔍 내 아이 찾기</button>
+        <div id="parentLookupError" class="login-error"></div>
+
+        <button class="login-btn-link" onclick="backToLoginFromParentSignup()">← 로그인 화면으로</button>
       </div>
-      <button class="btn btn-primary" id="parentLookupBtn" style="height:50px;font-size:16px;font-weight:700;margin-top:0;" onclick="parentLookup()">🔍 내 아이 찾기</button>
-      <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="backToLoginFromParentSignup()">← 로그인 화면으로</button>
-      <div id="parentLookupError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;min-height:18px;line-height:1.5;"></div>
+
+      <!-- 단계 2: 매칭된 아동 확인 + 비밀번호 설정 -->
+      <div id="parentSignupStep2" style="display:none;">
+        <h1 class="login-title">비밀번호 설정</h1>
+        <p class="login-subtitle">마지막 단계입니다. 사용하실 비밀번호를 입력해주세요</p>
+
+        <div class="login-matched-box">
+          <div class="login-matched-label">✅ 매칭된 아동</div>
+          <div id="parentMatchedChildren" class="login-matched-list"></div>
+        </div>
+
+        <div class="login-field">
+          <label for="parentSignupPassword">비밀번호</label>
+          <input class="login-input" type="password" id="parentSignupPassword" placeholder="4자 이상" autocomplete="new-password">
+        </div>
+
+        <div class="login-field">
+          <label for="parentSignupPasswordConfirm">비밀번호 확인</label>
+          <input class="login-input" type="password" id="parentSignupPasswordConfirm" placeholder="다시 입력" autocomplete="new-password" onkeydown="if(event.key==='Enter')parentSignup();">
+        </div>
+
+        <button class="login-btn-pri" id="parentSignupBtn" onclick="parentSignup()">✨ 가입 완료</button>
+        <div id="parentSignupError" class="login-error"></div>
+
+        <button class="login-btn-link" onclick="resetParentSignup()">← 다른 번호로 다시 찾기</button>
+      </div>
+
     </div>
+  </main>
 
-    <!-- 단계 2: 매칭된 아동 확인 + 비밀번호 설정 -->
-    <div id="parentSignupStep2" style="display:none;">
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
-        <p style="font-size:12px;color:#166534;font-weight:600;margin-bottom:6px;">✅ 매칭된 아동</p>
-        <div id="parentMatchedChildren" style="font-size:15px;color:#15803d;font-weight:700;line-height:1.7;"></div>
-      </div>
-
-      <div class="form-group" style="margin-bottom:12px;">
-        <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">비밀번호 설정</label>
-        <input class="form-input" type="password" id="parentSignupPassword" placeholder="4자 이상" autocomplete="new-password" style="font-size:16px;height:48px;">
-      </div>
-
-      <div class="form-group" style="margin-bottom:16px;">
-        <label class="form-label" style="font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;display:block;">비밀번호 확인</label>
-        <input class="form-input" type="password" id="parentSignupPasswordConfirm" placeholder="다시 입력" autocomplete="new-password" style="font-size:16px;height:48px;">
-      </div>
-
-      <button class="btn btn-primary" id="parentSignupBtn" style="height:50px;font-size:16px;font-weight:700;margin-top:0;" onclick="parentSignup()">✨ 가입 완료</button>
-      <button class="btn-ghost" style="width:100%;margin-top:8px;text-align:center;" onclick="resetParentSignup()">← 다른 번호로 다시</button>
-      <div id="parentSignupError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;min-height:18px;line-height:1.5;"></div>
-    </div>
-  </div>
 </div>
 <div class="header">
   <div style="display:flex;align-items:center;gap:10px;">
