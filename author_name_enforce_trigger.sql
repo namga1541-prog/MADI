@@ -37,36 +37,48 @@ END;
 $$;
 
 -- ── 2. 게시판 / 댓글 / 공지에 트리거 부착 ─────────────────────────────
-DROP TRIGGER IF EXISTS trg_madi_lounge_posts_author_name    ON madi_lounge_posts;
-CREATE TRIGGER         trg_madi_lounge_posts_author_name
-  BEFORE INSERT OR UPDATE ON madi_lounge_posts
-  FOR EACH ROW EXECUTE FUNCTION madi_enforce_author_name();
-
-DROP TRIGGER IF EXISTS trg_madi_lounge_comments_author_name ON madi_lounge_comments;
-CREATE TRIGGER         trg_madi_lounge_comments_author_name
-  BEFORE INSERT OR UPDATE ON madi_lounge_comments
-  FOR EACH ROW EXECUTE FUNCTION madi_enforce_author_name();
-
-DROP TRIGGER IF EXISTS trg_madi_notices_author_name         ON madi_notices;
-CREATE TRIGGER         trg_madi_notices_author_name
-  BEFORE INSERT OR UPDATE ON madi_notices
-  FOR EACH ROW EXECUTE FUNCTION madi_enforce_author_name();
-
--- madi_global_notices / madi_center_notices / madi_inquiries 도 동일 컬럼 보유 시
-DROP TRIGGER IF EXISTS trg_madi_global_notices_author_name  ON madi_global_notices;
-CREATE TRIGGER         trg_madi_global_notices_author_name
-  BEFORE INSERT OR UPDATE ON madi_global_notices
-  FOR EACH ROW EXECUTE FUNCTION madi_enforce_author_name();
-
-DROP TRIGGER IF EXISTS trg_madi_center_notices_author_name  ON madi_center_notices;
-CREATE TRIGGER         trg_madi_center_notices_author_name
-  BEFORE INSERT OR UPDATE ON madi_center_notices
-  FOR EACH ROW EXECUTE FUNCTION madi_enforce_author_name();
-
-DROP TRIGGER IF EXISTS trg_madi_inquiries_author_name       ON madi_inquiries;
-CREATE TRIGGER         trg_madi_inquiries_author_name
-  BEFORE INSERT OR UPDATE ON madi_inquiries
-  FOR EACH ROW EXECUTE FUNCTION madi_enforce_author_name();
+-- 테이블이 존재하고 author_id + author_name 컬럼을 모두 가진 경우에만 트리거 부착
+-- (스키마에 없는 테이블이 있어도 에러 없이 통과)
+DO $do$
+DECLARE
+  t text;
+  tables text[] := ARRAY[
+    'madi_lounge_posts',
+    'madi_lounge_comments',
+    'madi_notices',
+    'madi_global_notices',
+    'madi_center_notices',
+    'madi_inquiries'
+  ];
+BEGIN
+  FOREACH t IN ARRAY tables LOOP
+    IF EXISTS (
+      SELECT 1
+      FROM   information_schema.columns
+      WHERE  table_schema = 'public'
+        AND  table_name   = t
+        AND  column_name  = 'author_id'
+    ) AND EXISTS (
+      SELECT 1
+      FROM   information_schema.columns
+      WHERE  table_schema = 'public'
+        AND  table_name   = t
+        AND  column_name  = 'author_name'
+    ) THEN
+      EXECUTE format(
+        'DROP TRIGGER IF EXISTS %I ON %I; '
+        'CREATE TRIGGER %I BEFORE INSERT OR UPDATE ON %I '
+        '  FOR EACH ROW EXECUTE FUNCTION madi_enforce_author_name();',
+        'trg_' || t || '_author_name', t,
+        'trg_' || t || '_author_name', t
+      );
+      RAISE NOTICE '✓ trigger attached: %', t;
+    ELSE
+      RAISE NOTICE '⊘ skipped (table or columns missing): %', t;
+    END IF;
+  END LOOP;
+END
+$do$;
 
 -- ── 3. 확인 쿼리 (선택) ───────────────────────────────────────────────
 -- 트리거가 잘 붙었는지 확인:
