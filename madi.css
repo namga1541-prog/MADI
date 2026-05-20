@@ -2090,9 +2090,13 @@
 
     /* 우측: 폼 영역 */
     .login-form {
-      position:relative; background:white;
-      display:flex; align-items:center; justify-content:center;
-      padding:60px 48px;
+      position:relative;
+      background:
+        radial-gradient(circle at 92% 8%, rgba(14,165,160,0.04) 0%, transparent 38%),
+        radial-gradient(circle at 8% 92%, rgba(34,201,195,0.03) 0%, transparent 40%),
+        white;
+      display:flex; flex-direction:column;
+      padding:80px 48px 32px;
       min-height:100vh;
       overflow-y:auto;
     }
@@ -2106,7 +2110,52 @@
     }
     .login-back-btn-v2:hover { background:#f1f5f9; color:#0f2942; }
 
-    .login-form-inner { width:100%; max-width:380px; }
+    .login-form-inner { width:100%; max-width:420px; margin:auto; }
+
+    /* 폼 하단 트러스트 배지 — 폼과 도움말 사이 작은 균형추 */
+    .login-form-trust {
+      display:flex; flex-wrap:wrap; gap:10px;
+      margin-top:28px; padding-top:24px;
+      border-top:1px dashed #e2e8f0;
+      justify-content:space-between;
+    }
+    .login-trust-item {
+      display:flex; align-items:center; gap:6px;
+      font-size:11.5px; font-weight:600; color:#64748b;
+      flex:1; min-width:0; justify-content:center;
+    }
+    .login-trust-item span { font-size:15px; }
+
+    /* 우측 영역 하단 — 도움말·문의 */
+    .login-form-help {
+      width:100%; max-width:420px;
+      margin:32px auto 0;
+      padding:18px 22px;
+      background:#fafbfc; border:1px solid #e8eef5; border-radius:12px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px; flex-wrap:wrap;
+    }
+    .login-form-help-text { font-size:12.5px; color:#64748b; line-height:1.5; }
+    .login-form-help-text b { color:#0f2942; font-weight:700; }
+    .login-form-help-links { display:flex; align-items:center; gap:6px; }
+    .login-form-help-links a {
+      font-size:12.5px; font-weight:700; color:var(--mint);
+      text-decoration:none; padding:6px 10px; border-radius:7px;
+      transition:all 0.15s;
+    }
+    .login-form-help-links a:hover { background:#e0f7f6; }
+    .login-form-help-links .sep { color:#cbd5e1; font-size:11px; }
+
+    /* 우측 영역 최하단 — 작은 메타 */
+    .login-form-meta {
+      width:100%; max-width:420px;
+      margin:14px auto 0;
+      text-align:center;
+      font-size:11px; color:#94a3b8;
+      line-height:1.6;
+    }
+    .login-form-meta a { color:#94a3b8; text-decoration:none; margin:0 4px; }
+    .login-form-meta a:hover { color:var(--mint); }
     .login-title { font-size:28px; font-weight:900; color:#0f2942; margin:0 0 8px; letter-spacing:-0.5px; line-height:1.25; }
     .login-subtitle { font-size:14px; color:#64748b; margin:0 0 36px; line-height:1.6; }
 
