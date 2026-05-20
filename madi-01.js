@@ -766,13 +766,9 @@ function getRoleFlags(user) {
   return { isAuth:true, isSuper:r==='superadmin', isAdmin:r==='admin', isTeacher:r==='teacher', isParent:r==='parent', isAdminOrSuper:r==='admin'||r==='superadmin' };
 }
 function validatePasswordStrength(pw) {
-  if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
-  if (pw.length > 128)      return '비밀번호는 128자 이하여야 합니다.';
-  if (!/[A-Za-z]/.test(pw)) return '비밀번호에 영문자를 포함해 주세요.';
-  if (!/[0-9]/.test(pw))    return '비밀번호에 숫자를 포함해 주세요.';
-  // 흔한 약한 비번 차단
-  var weak = ['12345678','password','qwerty12','11111111','00000000','abcd1234','asdf1234'];
-  if (weak.indexOf(pw.toLowerCase()) !== -1) return '흔히 쓰이는 비밀번호는 사용할 수 없습니다.';
+  // 테스트 기간 — 정책 단순 유지 (4자 최소)
+  // 운영 전환 시 8자+영숫자 권장. 강화 패치는 git 이력 fc9febe 참고.
+  if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
   return null;
 }
 
