@@ -372,6 +372,7 @@ Deno.serve(async (req: Request) => {
       'Authorization': 'Bearer ' + SUPA_KEY,
     }
     if (method === 'POST')   fetchHeaders['Prefer'] = 'return=representation,resolution=merge-duplicates'
+    if (method === 'PATCH')  fetchHeaders['Prefer'] = 'return=representation'
     if (method === 'DELETE') fetchHeaders['Prefer'] = 'return=representation'
 
     const response = await fetch(url, {
@@ -379,6 +380,13 @@ Deno.serve(async (req: Request) => {
       headers: fetchHeaders,
       body:    body !== undefined && body !== null ? JSON.stringify(body) : undefined,
     })
+
+    // null body status (204/205/304) 는 RFC 상 body 를 가질 수 없음
+    // → JSON.stringify 결과를 넣으면 Deno 가 throw → 빈 응답으로 forward
+    const isNullBodyStatus = response.status === 204 || response.status === 205 || response.status === 304
+    if (isNullBodyStatus) {
+      return new Response(null, { status: response.status, headers: CORS })
+    }
 
     const ct   = response.headers.get('content-type') || ''
     const data = ct.includes('json') ? await response.json() : await response.text()
