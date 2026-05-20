@@ -799,17 +799,34 @@ function execSchedDelete(id, future) {
     : [s];
   var toDeleteIds = toDeleteItems.map(function(x){ return x.id; });
   var snapshot = toDeleteItems.map(function(x){ return Object.assign({}, x); });
-  toDeleteIds.forEach(function(did){
-    supaFetch('madi_schedules?id=eq.' + did, 'DELETE').catch(function(e){ console.warn('일정 삭제 실패 id=' + did, e); });
-  });
-  scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1; });
-  saveSchedule(); renderSchedView();
-  var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
-  showToast('🗑️ ' + (cn ? cn + ' ' : '') + toDeleteIds.length + '개 일정 삭제됨', {
-    undo: function(){
-      snapshot.forEach(function(item){ scheduleDB.push(item); });
-      saveSchedule(); renderSchedView();
-      showToast('↩️ 일정이 복원되었습니다');
+  var failedIds = [];
+  // 서버 DELETE 모두 시도 후 실패한 id는 로컬에서도 복원 (서버/로컬 불일치 방지)
+  Promise.all(toDeleteIds.map(function(did){
+    return supaFetch('madi_schedules?id=eq.' + did, 'DELETE')
+      .catch(function(e){ console.warn('일정 삭제 실패 id=' + did, e); failedIds.push(did); });
+  })).then(function(){
+    scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1 || failedIds.indexOf(x.id) !== -1; });
+    // 실패한 항목은 snapshot에서 다시 복원
+    if (failedIds.length > 0) {
+      snapshot.forEach(function(item){
+        if (failedIds.indexOf(item.id) !== -1) {
+          if (!scheduleDB.find(function(x){ return x.id === item.id; })) scheduleDB.push(item);
+        }
+      });
+    }
+    saveSchedule(); renderSchedView();
+    var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
+    var okCount = toDeleteIds.length - failedIds.length;
+    if (failedIds.length > 0) {
+      showToast('⚠️ ' + okCount + '개 삭제, ' + failedIds.length + '개 실패 (네트워크 확인)');
+    } else {
+      showToast('🗑️ ' + (cn ? cn + ' ' : '') + okCount + '개 일정 삭제됨', {
+        undo: function(){
+          snapshot.forEach(function(item){ scheduleDB.push(item); });
+          saveSchedule(); renderSchedView();
+          showToast('↩️ 일정이 복원되었습니다');
+        }
+      });
     }
   });
 }

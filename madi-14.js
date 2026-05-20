@@ -51,6 +51,8 @@ function renderImageThumbs(urls) {
 // 파일 input change → 미리보기 갱신 (글 작성 폼)
 var MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB
 
+var ALLOWED_IMAGE_MIMES = ['image/jpeg','image/png','image/gif','image/webp'];
+
 function onLoungeImagesChange(input) {
   _loungePostImages = [];
   var previewEl = document.getElementById('loungeImgPreview');
@@ -59,13 +61,19 @@ function onLoungeImagesChange(input) {
     return;
   }
   var files = Array.prototype.slice.call(input.files, 0, 3);
-  var oversized = [];
+  var oversized = [], badType = [];
   files = files.filter(function(f) {
+    if (ALLOWED_IMAGE_MIMES.indexOf(f.type) === -1) { badType.push(f.name); return false; }
     if (f.size > MAX_IMG_BYTES) { oversized.push(f.name); return false; }
     return true;
   });
+  if (badType.length > 0) {
+    showToast('\u26a0\ufe0f \uc774\ubbf8\uc9c0(JPG/PNG/GIF/WEBP)\ub9cc \ucca8\ubd80 \uac00\ub2a5\ud569\ub2c8\ub2e4: ' + badType.join(', '));
+  }
   if (oversized.length > 0) {
     showToast('\u26a0\ufe0f 5MB \ucd08\uacfc \uc774\ubbf8\uc9c0\ub294 \uccca\ubd80\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4: ' + oversized.join(', '));
+  }
+  if (badType.length > 0 || oversized.length > 0) {
     input.value = '';
     if (files.length === 0) { if (previewEl) previewEl.innerHTML = ''; return; }
   }
@@ -1002,7 +1010,19 @@ function onLibFilesChange(input) {
   _libraryFiles = [];
   var preview = document.getElementById('libFilePreview');
   if (!input.files || !input.files.length) { if (preview) preview.innerHTML = ''; return; }
-  Array.from(input.files).slice(0, 5).forEach(function(f) { _libraryFiles.push(f); });
+  var allowed  = ALLOWED_IMAGE_MIMES.concat(['application/pdf']);
+  var MAX_LIB  = 10 * 1024 * 1024; // 10MB
+  var files    = Array.prototype.slice.call(input.files, 0, 5);
+  var rejected = [];
+  files.forEach(function(f){
+    if (allowed.indexOf(f.type) === -1) { rejected.push(f.name + ' (형식)'); return; }
+    if (f.size > MAX_LIB)                { rejected.push(f.name + ' (10MB 초과)'); return; }
+    _libraryFiles.push(f);
+  });
+  if (rejected.length > 0) {
+    showToast('⚠️ 첨부 거부: ' + rejected.join(', '));
+    if (_libraryFiles.length === 0) input.value = '';
+  }
   if (preview) preview.innerHTML = _libraryFiles.map(function(f){ return '<div style="font-size:12px;color:var(--text2);">📄 '+escHtml(f.name)+'</div>'; }).join('');
 }
 

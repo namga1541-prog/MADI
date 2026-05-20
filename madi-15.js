@@ -27,18 +27,25 @@ function switchParentTab(tab) {
 // onNoChild: 아동 미연결 시 호출되는 콜백 (온보딩용)
 function getMyChildInfo(callback, onNoChild) {
   if (!currentUser || currentUser.role !== 'parent') return;
-  if (window._parentChildId) {
+  // 캐시 유효성 — currentUser.id 가 캐싱된 시점과 동일할 때만 신뢰
+  // (DevTools 에서 window._parentChildId 변조해도 다른 학부모로 위장 불가)
+  if (window._parentChildId && window._parentCacheUserId === currentUser.id) {
     callback(window._parentChildId, window._parentCenterId);
     return;
   }
-  supaFetch('madi_parent_children?parent_user_id=eq.' + currentUser.id + '&select=child_id,center_id', 'GET')
+  // 캐시 무효 → 재조회
+  window._parentChildId = null;
+  window._parentCenterId = null;
+  window._parentCacheUserId = null;
+  supaFetch('madi_parent_children?parent_user_id=eq.' + encodeURIComponent(currentUser.id) + '&select=child_id,center_id', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) {
         if (typeof onNoChild === 'function') onNoChild();
         return;
       }
-      window._parentChildId  = rows[0].child_id;
-      window._parentCenterId = rows[0].center_id;
+      window._parentChildId    = rows[0].child_id;
+      window._parentCenterId   = rows[0].center_id;
+      window._parentCacheUserId = currentUser.id;
       callback(window._parentChildId, window._parentCenterId);
     }).catch(function(e){
       if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);

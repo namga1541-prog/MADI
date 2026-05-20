@@ -32,34 +32,60 @@ function makeCORS(origin: string | null): Record<string, string> {
   }
 }
 
-// ── Rate Limit 저장소 (메모리, 인스턴스 재시작 시 초기화) ──────────────────
-// 프로덕션에서는 madi_rate_limits 테이블 또는 Upstash KV 사용 권장
-const rateLimitStore = new Map<string, { count: number; windowStart: number; hourCount: number; hourStart: number }>()
+// ── Rate Limit (DB 기반: madi_rate_limits 테이블) ─────────────────────────
+// 사전 적용 필요: rate_limits_setup.sql
+// 메모리 fallback 은 DB 호출 실패 시에만 사용 (cold-start 보호용)
+const memFallback = new Map<string, { count: number; windowStart: number; hourCount: number; hourStart: number }>()
 
 const RATE_PER_MINUTE = 5
 const RATE_PER_HOUR   = 20
 
-function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
-  const now    = Date.now()
+async function checkRateLimit(
+  key: string,
+  supabaseUrl: string,
+  serviceKey: string,
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const now = Date.now()
   const minMs  = 60 * 1000
   const hourMs = 60 * 60 * 1000
 
-  let entry = rateLimitStore.get(ip)
+  // RPC 호출 — DB가 단일 트랜잭션으로 카운트 증가 + 반환
+  try {
+    const r = await fetch(`${supabaseUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey':        serviceKey,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ p_key: key, p_min_window_ms: minMs, p_hour_window_ms: hourMs }),
+    })
+    if (r.ok) {
+      const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
+      if (d.count > RATE_PER_MINUTE) {
+        const winStart = new Date(d.window_start).getTime()
+        return { allowed: false, retryAfter: Math.max(1, Math.ceil((winStart + minMs - now) / 1000)) }
+      }
+      if (d.hour_count > RATE_PER_HOUR) {
+        const hourStart = new Date(d.hour_start).getTime()
+        return { allowed: false, retryAfter: Math.max(1, Math.ceil((hourStart + hourMs - now) / 1000)) }
+      }
+      return { allowed: true }
+    }
+    console.warn('[rate-limit] RPC failed status=%d, fallback to memory', r.status)
+  } catch (e) {
+    console.warn('[rate-limit] RPC error, fallback to memory:', (e as Error).message)
+  }
+
+  // ── DB 실패 시 메모리 fallback ──
+  let entry = memFallback.get(key)
   if (!entry) entry = { count: 0, windowStart: now, hourCount: 0, hourStart: now }
-
-  if (now - entry.windowStart > minMs)  { entry.count = 0;      entry.windowStart = now }
-  if (now - entry.hourStart   > hourMs) { entry.hourCount = 0;  entry.hourStart   = now }
-
-  entry.count++
-  entry.hourCount++
-  rateLimitStore.set(ip, entry)
-
-  if (entry.count > RATE_PER_MINUTE) {
-    return { allowed: false, retryAfter: Math.ceil((entry.windowStart + minMs - now) / 1000) }
-  }
-  if (entry.hourCount > RATE_PER_HOUR) {
-    return { allowed: false, retryAfter: Math.ceil((entry.hourStart + hourMs - now) / 1000) }
-  }
+  if (now - entry.windowStart > minMs)  { entry.count = 0;     entry.windowStart = now }
+  if (now - entry.hourStart   > hourMs) { entry.hourCount = 0; entry.hourStart   = now }
+  entry.count++; entry.hourCount++
+  memFallback.set(key, entry)
+  if (entry.count     > RATE_PER_MINUTE) return { allowed: false, retryAfter: Math.ceil((entry.windowStart + minMs  - now) / 1000) }
+  if (entry.hourCount > RATE_PER_HOUR)   return { allowed: false, retryAfter: Math.ceil((entry.hourStart   + hourMs - now) / 1000) }
   return { allowed: true }
 }
 
@@ -112,7 +138,7 @@ Deno.serve(async (req: Request) => {
   // action: lookup — 전화번호로 아동 조회 + 중복 계정 확인
   // ─────────────────────────────────────────────────────────────────
   if (action === 'lookup') {
-    const rateCheck = checkRateLimit(`lookup:${ip}`)
+    const rateCheck = await checkRateLimit(`lookup:${ip}`, SUPABASE_URL, SERVICE_KEY)
     if (!rateCheck.allowed) {
       return new Response(JSON.stringify({
         error: `요청이 너무 많습니다. ${rateCheck.retryAfter}초 후 다시 시도해주세요.`
@@ -176,7 +202,7 @@ Deno.serve(async (req: Request) => {
   // action: signup — 학부모 계정 생성
   // ─────────────────────────────────────────────────────────────────
   if (action === 'signup') {
-    const rateCheck = checkRateLimit(`signup:${ip}`)
+    const rateCheck = await checkRateLimit(`signup:${ip}`, SUPABASE_URL, SERVICE_KEY)
     if (!rateCheck.allowed) {
       return new Response(JSON.stringify({
         error: `요청이 너무 많습니다. ${rateCheck.retryAfter}초 후 다시 시도해주세요.`

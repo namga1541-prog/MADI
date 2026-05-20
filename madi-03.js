@@ -149,10 +149,15 @@ function regenInviteCode() {
 }
 
 function addStaffAccount() {
-  var name     = (document.getElementById('fixedStaffName') || {}).value.trim();
-  var username = (document.getElementById('newStaffUsername') || {}).value.trim();
-  var pw       = (document.getElementById('fixedStaffPw') || {}).value.trim();
-  var role     = (document.getElementById('fixedStaffRole') || {}).value;
+  // 권한 가드 — admin / superadmin 만 (서버 RLS 외 클라이언트 1차 방어)
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+    showToast('❌ 관리자만 계정을 추가할 수 있습니다');
+    return;
+  }
+  var name     = ((document.getElementById('fixedStaffName')   || {value:''}).value || '').trim();
+  var username = ((document.getElementById('newStaffUsername') || {value:''}).value || '').trim();
+  var pw       = ((document.getElementById('fixedStaffPw')     || {value:''}).value || '').trim();
+  var role     = ((document.getElementById('fixedStaffRole')   || {value:''}).value || '');
   var resultEl = document.getElementById('staffAddResult');
   if (!name || !username || !pw) {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>';
