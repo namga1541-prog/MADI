@@ -327,8 +327,34 @@ function doLogout() {
   showConfirm(currentUser.name + '님, 로그아웃 하시겠습니까?', function() {
     // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
     fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
-    stopRealtime(); currentUser = null; clearToken(); localStorage.removeItem('madi_user');
-    childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[];
+    stopRealtime(); currentUser = null; clearToken();
+    // 공유 기기 보호: 다음 사용자가 이전 사용자의 PII 를 보지 못하도록 모든 캐시 제거
+    var _localKeys = [
+      'madi_user', 'madi_last_id',
+      'cn3_children', 'cn3_sessions', 'cn3_schedule',
+      'cn3_assess', 'cn3_activities', 'cn3_iep',
+      'madi_api_usage', 'madi_last_backup', 'madi_maro_pos'
+    ];
+    _localKeys.forEach(function(k){ try { localStorage.removeItem(k); } catch(e){} });
+    // login_block_* 동적 키도 sweep
+    try {
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (k && (k.indexOf('login_block_') === 0 || k.indexOf('cn3_') === 0)) localStorage.removeItem(k);
+      }
+    } catch(e) {}
+    // sessionStorage 도 전체 정리 (madi_error_log 등)
+    try { sessionStorage.clear(); } catch(e) {}
+    // 인메모리 DB도 비우기
+    childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[]; activityDB=[]; iepDB=[];
+    if (typeof window._parentChildren !== 'undefined') {
+      window._parentChildren = null;
+      window._parentChildId = null;
+      window._parentCenterId = null;
+      window._parentChildName = '';
+      window._parentCacheUserId = null;
+      window._parentActiveIdx = 0;
+    }
     renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
   }, { danger: false, okLabel: '로그아웃' });
 }
@@ -740,7 +766,13 @@ function getRoleFlags(user) {
   return { isAuth:true, isSuper:r==='superadmin', isAdmin:r==='admin', isTeacher:r==='teacher', isParent:r==='parent', isAdminOrSuper:r==='admin'||r==='superadmin' };
 }
 function validatePasswordStrength(pw) {
-  if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
+  if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+  if (pw.length > 128)      return '비밀번호는 128자 이하여야 합니다.';
+  if (!/[A-Za-z]/.test(pw)) return '비밀번호에 영문자를 포함해 주세요.';
+  if (!/[0-9]/.test(pw))    return '비밀번호에 숫자를 포함해 주세요.';
+  // 흔한 약한 비번 차단
+  var weak = ['12345678','password','qwerty12','11111111','00000000','abcd1234','asdf1234'];
+  if (weak.indexOf(pw.toLowerCase()) !== -1) return '흔히 쓰이는 비밀번호는 사용할 수 없습니다.';
   return null;
 }
 

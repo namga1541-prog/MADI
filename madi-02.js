@@ -110,6 +110,17 @@ function resetApiUsage() {
   }, { danger: false });
 }
 
+// 에러 로그에 토큰·비밀번호·API 키가 흘러들어가지 않도록 마스킹
+function _sanitizeForErrorLog(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/sk-ant-[A-Za-z0-9_\-]{20,}/g, 'sk-ant-***')
+    .replace(/eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}/g, 'JWT_***')
+    .replace(/Bearer\s+[A-Za-z0-9_\-\.=+\/]{20,}/gi, 'Bearer ***')
+    .replace(/(password|pwd|secret|token|api[_\-]?key)\s*[:=]\s*"?[^"\s,&]+/gi, '$1=***')
+    .replace(/[?&](password|pwd|token|api[_\-]?key)=[^&\s]*/gi, '&$1=***');
+}
+
 // 에러 로그 저장
 function pushErrorLog(entry) {
   // 1) 기존 sessionStorage 저장 (즉시 조회 가능, 변경 없음)
@@ -128,8 +139,8 @@ function pushErrorLog(entry) {
     var payload = {
       user_id:    String((window.currentUser && window.currentUser.id) || ''),
       username:   String((window.currentUser && window.currentUser.username) || ''),
-      message:    String(entry.message || '').slice(0, 1000),
-      source:     String(entry.source  || '').slice(0, 200),
+      message:    _sanitizeForErrorLog(entry.message).slice(0, 1000),
+      source:     _sanitizeForErrorLog(entry.source).slice(0, 200),
       user_agent: (navigator.userAgent || '').slice(0, 300),
       url:        location.pathname,
       ts:         entry.ts

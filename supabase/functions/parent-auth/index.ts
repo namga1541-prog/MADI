@@ -222,8 +222,20 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    if (password.length < 4) {
-      return new Response(JSON.stringify({ error: '비밀번호는 4자 이상이어야 합니다' }), {
+    // 비밀번호 정책: 8자 이상, 영문+숫자 포함, 흔한 약한 비번 차단
+    if (password.length < 8 || password.length > 128) {
+      return new Response(JSON.stringify({ error: '비밀번호는 8~128자여야 합니다' }), {
+        status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+    if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      return new Response(JSON.stringify({ error: '비밀번호는 영문자와 숫자를 모두 포함해야 합니다' }), {
+        status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+    const weakPwSet = new Set(['12345678','password','qwerty12','11111111','00000000','abcd1234','asdf1234'])
+    if (weakPwSet.has(password.toLowerCase())) {
+      return new Response(JSON.stringify({ error: '흔히 쓰이는 비밀번호는 사용할 수 없습니다' }), {
         status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }

@@ -5,9 +5,16 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- 보안 헤더 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.supabase.co https://ujxdhafzjyrglaclarwe.supabase.co; connect-src 'self' https://ujxdhafzjyrglaclarwe.supabase.co https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"
+          integrity="sha384-DhxhYObIMeMNGyAG7iK11OHzBIKyEIeRL0ad1iFPAOwZB8iirUlTT0O/WJJUk8+o"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+          integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <style>
     :root {
       --mint:#0ea5a0; --mint2:#e0f7f6; --navy:#0f2942; --navy2:#1a3a5c;
@@ -685,11 +692,9 @@ function getTodayKST() { return ymd(nowKST()); }
 function getMonthKST() { return getTodayKST().slice(0, 7); }
 
 (function() {
+  // 1차 — 클라이언트 검증 (UI 표시 조건). 이건 변조 가능하므로 신뢰하지 않음.
   var userStr = localStorage.getItem('madi_user');
-  if (!userStr) {
-    window.location.replace('index.html');
-    return;
-  }
+  if (!userStr) { window.location.replace('index.html'); return; }
   try {
     var user = JSON.parse(userStr);
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
@@ -701,7 +706,40 @@ function getMonthKST() { return getTodayKST().slice(0, 7); }
     _madiToken  = ''; // httpOnly 쿠키로 전환됨 — localStorage 토큰 미사용
   } catch(e) {
     window.location.replace('index.html');
+    return;
   }
+  // 2차 — 서버 검증. body 를 가린 채로 검증 응답 도착할 때까지 UI 노출 차단.
+  // /api Edge Function 이 httpOnly 쿠키로 내 토큰을 검증한 뒤 madi_users 의
+  // 본인 row 만 반환 (RLS madi_users_select_self). localStorage 변조해도 막힘.
+  document.documentElement.style.visibility = 'hidden';
+  var _verifyUrl = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1/api';
+  fetch(_verifyUrl, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      path:   'madi_users?select=id,role,center_id&id=eq.' + encodeURIComponent(currentUser.id),
+      method: 'GET'
+    })
+  })
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(new Error('verify_failed')); })
+    .then(function(rows){
+      var srv = (Array.isArray(rows) && rows[0]) ? rows[0] : null;
+      if (!srv || (srv.role !== 'admin' && srv.role !== 'superadmin') || String(srv.id) !== String(currentUser.id)) {
+        alert('⚠️ 관리자 권한 검증 실패. 다시 로그인해 주세요.');
+        try { localStorage.removeItem('madi_user'); } catch(e) {}
+        window.location.replace('index.html');
+        return;
+      }
+      // 서버 값으로 클라이언트 신뢰 원천 갱신
+      currentUser.role      = srv.role;
+      currentUser.center_id = srv.center_id || currentUser.center_id;
+      document.documentElement.style.visibility = '';
+    })
+    .catch(function(){
+      // 검증 실패는 안전한 쪽으로 — 로그인 화면으로
+      window.location.replace('index.html');
+    });
 })();
 
 // ══════════════════════════════
