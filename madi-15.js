@@ -100,10 +100,11 @@ function setActiveParentChild(idx) {
   window._parentChildId   = c.child_id;
   window._parentCenterId  = c.center_id;
   window._parentChildName = c.name || '';
-  // 홈 페르소나 캐시 무효화 (자녀별 데이터)
+  // 홈 페르소나 캐시 무효화 (자녀별 데이터) — 모든 자녀별 캐시 함께 리셋
   window._parentVoucherUsed = null;
   window._parentChildData = null;
   window._parentUpcoming = null;
+  window._parentSessionsCache = null;
   document.querySelectorAll('.parentChildNameLabel').forEach(function(el){ el.textContent = c.name || ''; });
   renderParentChildSwitcher();
   // 현재 활성 탭 다시 로드
@@ -145,6 +146,17 @@ function renderParentChildSwitcher() {
 // ─── 홈 (페르소나 ⑦) ───
 // 새 디자인: 자녀 히어로 + 이번 주 세션 + 선생님 메시지 + 발달 그래프 + 가정 활동 + 바우처
 function loadParentHome() {
+  // 온보딩 카드가 잔존하고 있다면 제거 (이전 미연결 상태에서 연결로 전환된 케이스)
+  var _ob = document.getElementById('parentOnboardingCard');
+  if (_ob && _ob.parentNode) _ob.parentNode.removeChild(_ob);
+  // 자녀 정보가 있을 때를 가정하고 모든 페르소나 패널을 일단 다시 보이게 — 미연결이면 onNoChild 콜백에서 다시 숨김
+  ['parentChildHero','parentChartPanel'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+  document.querySelectorAll('#parentPanelHome .dp-grid-2, #parentPanelHome .dp-grid-2-eq').forEach(function(el){
+    el.style.display = '';
+  });
   // 알림 카드 먼저 로드 (홈 진입 시마다)
   loadParentNotifications();
   getMyChildInfo(function(childId, centerId) {

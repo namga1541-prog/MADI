@@ -2365,8 +2365,8 @@
 .dp-tl-row.done .dp-tl-card { background:white; border-color:#e2e8f0; opacity:0.7; }
 .dp-tl-av { width:30px; height:30px; border-radius:9px; color:white; display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:800; flex-shrink:0; }
 .dp-tl-info { flex:1; min-width:0; }
-.dp-tl-name { font-size:13px; font-weight:700; color:#0f172a; }
-.dp-tl-meta { font-size:11px; color:#64748b; margin-top:1px; }
+.dp-tl-name { font-size:13px; font-weight:700; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dp-tl-meta { font-size:11px; color:#64748b; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dp-tl-tag { font-size:10.5px; padding:2px 8px; border-radius:8px; font-weight:700; flex-shrink:0; }
 .dp-tl-tag.done    { background:#dcfce7; color:#15803d; }
 .dp-tl-tag.now     { background:#dbeafe; color:#1e40af; }
@@ -2379,7 +2379,7 @@
 .dp-msg-av { width:32px; height:32px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; }
 .dp-msg-info { flex:1; min-width:0; }
 .dp-msg-top { display:flex; align-items:center; gap:6px; }
-.dp-msg-from { font-size:12.5px; font-weight:700; color:#0f172a; }
+.dp-msg-from { font-size:12.5px; font-weight:700; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
 .dp-msg-unread { width:7px; height:7px; border-radius:50%; background:#ef4444; }
 .dp-msg-time { font-size:10.5px; color:#94a3b8; margin-left:auto; font-weight:600; }
 .dp-msg-preview { font-size:12px; color:#64748b; line-height:1.5; margin-top:3px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -2390,8 +2390,8 @@
 .dp-child:hover { background:white; border-color:#0ea5a0; box-shadow:0 4px 12px rgba(14,165,160,0.1); }
 .dp-child-head { display:flex; align-items:center; gap:9px; margin-bottom:9px; }
 .dp-child-av { width:32px; height:32px; border-radius:10px; color:white; display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:800; flex-shrink:0; }
-.dp-child-name { font-size:13px; font-weight:800; color:#0f172a; }
-.dp-child-meta { font-size:10.5px; color:#64748b; margin-top:1px; }
+.dp-child-name { font-size:13px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dp-child-meta { font-size:10.5px; color:#64748b; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dp-child-last { font-size:11px; color:#64748b; padding-top:8px; border-top:1px dashed #e2e8f0; }
 .dp-child-last b { color:#0f172a; font-weight:700; }
 @media (max-width:1024px) { .dp-children { grid-template-columns:repeat(2,1fr); } }
@@ -2417,14 +2417,17 @@
 .dp-rev-num { font-size:32px; font-weight:900; color:white; letter-spacing:-1px; line-height:1; margin-top:8px; }
 .dp-rev-num em { font-size:16px; color:rgba(255,255,255,0.7); font-style:normal; font-weight:600; margin-left:4px; }
 .dp-rev-meta { font-size:11.5px; color:rgba(255,255,255,0.7); margin-top:8px; line-height:1.55; }
-.dp-rev-tag { display:inline-block; padding:3px 10px; background:rgba(252,211,77,0.18); color:#fcd34d; border:1px solid rgba(252,211,77,0.3); border-radius:8px; font-size:10.5px; font-weight:800; margin-top:8px; letter-spacing:0.2px; }
+.dp-rev-tag { display:inline-block; padding:3px 10px; background:rgba(252,211,77,0.18); color:#fcd34d; border:1px solid rgba(252,211,77,0.3); border-radius:8px; font-size:10.5px; font-weight:800; margin-top:8px; letter-spacing:0.2px; transition:background 0.15s, color 0.15s; }
+button.dp-rev-tag:hover { background:rgba(252,211,77,0.32); color:#fef3c7; }
 .dp-rev-sub { padding:22px 20px; border-left:1px solid rgba(255,255,255,0.12); position:relative; z-index:1; }
 .dp-rev-sub-label { font-size:11px; color:rgba(255,255,255,0.7); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; }
 .dp-rev-sub-num { font-size:20px; font-weight:900; color:white; letter-spacing:-0.4px; margin-top:6px; }
 .dp-rev-sub-num em { font-size:12px; color:rgba(255,255,255,0.6); font-style:normal; font-weight:600; }
 .dp-rev-sub-meta { font-size:11.5px; color:rgba(255,255,255,0.65); margin-top:6px; line-height:1.5; }
 .dp-rev-sub-meta b { color:#fcd34d; }
-@media (max-width:1024px) { .dp-rev { grid-template-columns:1fr; } .dp-rev-sub { border-left:none; border-top:1px solid rgba(255,255,255,0.12); } }
+/* tablet (768-1024): 1.4fr + (1fr+1fr) 2단으로 — 모바일은 1열 */
+@media (max-width:1024px) and (min-width:768px) { .dp-rev { grid-template-columns:1fr 1fr; } .dp-rev-main { grid-column:1 / -1; border-bottom:1px solid rgba(255,255,255,0.12); } .dp-rev-sub { border-left:1px solid rgba(255,255,255,0.12); } .dp-rev-sub:nth-of-type(2) { border-left:none; } }
+@media (max-width:767px) { .dp-rev { grid-template-columns:1fr; } .dp-rev-sub { border-left:none; border-top:1px solid rgba(255,255,255,0.12); } }
 @media (max-width:640px) { .dp-rev-num { font-size:26px; } }
 
 /* 선생님 활동표 (Admin) */
@@ -2434,13 +2437,21 @@
 .dp-trow.head .dp-tav { background:transparent !important; }
 .dp-tav { width:32px; height:32px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; }
 .dp-tinfo { min-width:0; }
-.dp-tname { font-size:12.5px; font-weight:700; color:#0f172a; }
-.dp-tmeta { font-size:10.5px; color:#64748b; margin-top:1px; }
+.dp-tname { font-size:12.5px; font-weight:700; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dp-tmeta { font-size:10.5px; color:#64748b; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dp-tstat { text-align:center; }
 .dp-tstat-num { font-size:13.5px; font-weight:800; color:#0f172a; letter-spacing:-0.2px; }
 .dp-tstat-num.warn { color:#a16207; }
 .dp-tstat-label { font-size:10px; color:#94a3b8; margin-top:1px; font-weight:600; }
 @media (max-width:640px) { .dp-trow { grid-template-columns:auto 1fr; row-gap:4px; } .dp-trow.head { display:none; } .dp-tstat { text-align:left; padding-left:44px; } }
+
+/* 매출 추정 산식 표 — 4열 (바우처/세션/단가/소계) */
+.dp-trow[data-revcols="1"] { grid-template-columns:1fr 80px 100px 120px; }
+@media (max-width:640px) {
+  .dp-trow[data-revcols="1"] { grid-template-columns:1fr auto; row-gap:4px; padding:10px 0; }
+  .dp-trow[data-revcols="1"] .dp-tstat { padding-left:0; }
+  .dp-trow[data-revcols="1"].head { display:none; }
+}
 
 /* 변동 아동 (Admin) */
 .dp-change-sum { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#f1f5f9; border:1px solid #e7ecf2; border-radius:10px; overflow:hidden; margin-bottom:12px; }
@@ -2454,8 +2465,8 @@
 .dp-change-row:first-child { border-top:none; }
 .dp-change-row .dp-tav { width:28px; height:28px; font-size:10.5px; border-radius:8px; }
 .dp-change-content { flex:1; min-width:0; }
-.dp-change-title { font-size:12px; font-weight:700; color:#0f172a; }
-.dp-change-detail { font-size:10.5px; color:#64748b; margin-top:1px; }
+.dp-change-title { font-size:12px; font-weight:700; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dp-change-detail { font-size:10.5px; color:#64748b; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dp-change-tag { font-size:10px; padding:2px 7px; border-radius:6px; font-weight:700; flex-shrink:0; }
 .dp-change-tag.new  { background:#dcfce7; color:#15803d; }
 .dp-change-tag.done { background:#dbeafe; color:#1e40af; }
@@ -2479,7 +2490,7 @@
 .dp-alert-big.dp-alert-ok   { background:#f8fafc; border:1px solid #e2e8f0; }
 .dp-alert-ic { font-size:17px; flex-shrink:0; }
 .dp-alert-body { flex:1; min-width:0; }
-.dp-alert-title { font-size:13px; font-weight:800; color:#0f172a; line-height:1.4; }
+.dp-alert-title { font-size:13px; font-weight:800; color:#0f172a; line-height:1.4; word-break:break-word; }
 .dp-alert-text { font-size:12px; color:#475569; line-height:1.55; margin-top:3px; word-break:break-word; }
 .dp-alert-time { font-size:10.5px; color:#94a3b8; margin-top:4px; font-weight:600; }
 
@@ -2519,7 +2530,7 @@
 .dp-p-hero-status { position:absolute; bottom:-4px; right:-4px; padding:3px 9px; background:white; border:2px solid #fce7f3; border-radius:10px; font-size:10.5px; font-weight:800; color:#be185d; }
 .dp-p-hero-info { position:relative; z-index:1; min-width:0; }
 .dp-p-hero-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.dp-p-hero-name { font-size:22px; font-weight:900; color:#0f172a; letter-spacing:-0.4px; }
+.dp-p-hero-name { font-size:22px; font-weight:900; color:#0f172a; letter-spacing:-0.4px; overflow:hidden; text-overflow:ellipsis; word-break:break-word; }
 .dp-p-hero-tag { font-size:11px; padding:3px 9px; border-radius:8px; background:white; border:1px solid #e2e8f0; color:#475569; font-weight:700; }
 .dp-p-hero-diag { font-size:12.5px; color:#64748b; margin-top:4px; }
 .dp-p-hero-diag b { color:#0f172a; font-weight:700; }
@@ -2559,7 +2570,7 @@
 .dp-p-msg:hover { background:#fef3c7; }
 .dp-p-msg-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
 .dp-p-msg-av { width:26px; height:26px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
-.dp-p-msg-from { font-size:12.5px; font-weight:800; color:#0f172a; }
+.dp-p-msg-from { font-size:12.5px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px; }
 .dp-p-msg-time { font-size:10.5px; color:#94a3b8; font-weight:600; margin-left:auto; }
 .dp-p-msg-body { font-size:12.5px; color:#475569; line-height:1.6; }
 .dp-p-msg-body b { color:#0f172a; font-weight:700; }

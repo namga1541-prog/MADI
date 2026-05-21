@@ -1035,6 +1035,18 @@ function _dpFreshnessLabel() {
   return '데이터 갱신: ' + Math.floor(d/3600) + '시간 전';
 }
 
+// 신선도 라벨 30초마다 자동 갱신 — 폴링이 10초 간격이지만 라벨 자체는 분 단위로 변하므로 30초면 충분
+if (typeof window !== 'undefined' && !window._dpFreshnessTimer) {
+  window._dpFreshnessTimer = setInterval(function() {
+    var labels = document.querySelectorAll('.dp-freshness');
+    if (!labels.length) return;
+    var txt = _dpFreshnessLabel();
+    for (var i = 0; i < labels.length; i++) {
+      labels[i].textContent = txt ? ' · ' + txt : '';
+    }
+  }, 30000);
+}
+
 // ────────────────────────────────────────────────────────────────
 // Teacher 홈 (⑥)
 // ────────────────────────────────────────────────────────────────
@@ -1108,7 +1120,9 @@ function renderDashboardTeacher() {
   var freshness = _dpFreshnessLabel();
   var html = ''
     + '<div class="dp-head">'
-    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + (freshness ? ' · <span style="color:#94a3b8;">' + escHtml(freshness) + '</span>' : '') + '</div>'
+    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner())
+    +     '<span class="dp-freshness" style="color:#94a3b8;">' + (freshness ? ' · ' + escHtml(freshness) : '') + '</span>'
+    +   '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
     + '</div>';
@@ -1397,11 +1411,13 @@ function _dpFmtWon(n) {
   return '₩' + Math.round(n).toLocaleString('ko-KR');
 }
 
-// 매출 추정 산식 펼침/접기 토글
+// 매출 추정 산식 펼침/접기 토글 (폴링 재렌더 시에도 상태 유지)
 function _dpToggleRevBreakdown() {
   var el = document.getElementById('dpRevBreakdown');
   if (!el) return;
-  el.style.display = el.style.display === 'none' ? '' : 'none';
+  var isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : '';
+  window._dpRevOpen = !isOpen;
 }
 
 function renderDashboardAdmin() {
@@ -1520,7 +1536,7 @@ function renderDashboardAdmin() {
     + '<div class="dp-head">'
     +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner())
     +     (role === 'superadmin' ? ' · <span style="color:#d97706;font-weight:700;">전체 센터 집계</span>' : '')
-    +     (freshness ? ' · <span style="color:#94a3b8;">' + escHtml(freshness) + '</span>' : '')
+    +     '<span class="dp-freshness" style="color:#94a3b8;">' + (freshness ? ' · ' + escHtml(freshness) : '') + '</span>'
     +   '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
@@ -1560,9 +1576,10 @@ function renderDashboardAdmin() {
     +   '</div>'
     + '</div>';
 
-  // 단가표 (기본 숨김 — 토글로 펼침)
+  // 단가표 (기본 숨김 — 토글로 펼침. window._dpRevOpen 으로 폴링 재렌더 시 상태 유지)
+  var _revOpen = window._dpRevOpen === true;
   html += ''
-    + '<div id="dpRevBreakdown" class="dp-rev-breakdown" style="display:none;margin-bottom:18px;background:white;border:1px solid #e7ecf2;border-radius:12px;overflow:hidden;">'
+    + '<div id="dpRevBreakdown" class="dp-rev-breakdown" style="display:' + (_revOpen ? '' : 'none') + ';margin-bottom:18px;background:white;border:1px solid #e7ecf2;border-radius:12px;overflow:hidden;">'
     +   '<div class="dp-panel-head">'
     +     '<div><div class="dp-panel-title">💵 이번 달 매출 추정 산식</div>'
     +       '<div class="dp-panel-sub">바우처별 세션 수 × 정부 단가 추정</div></div>'
@@ -1573,7 +1590,7 @@ function renderDashboardAdmin() {
     html += '<div class="dp-empty">이번 달 완료 세션이 없습니다</div>';
   } else {
     html += ''
-      + '<div class="dp-trow head" style="grid-template-columns:1fr 80px 100px 120px;">'
+      + '<div class="dp-trow head" data-revcols="1">'
       +   '<div>바우처 종류</div>'
       +   '<div class="dp-tstat"><div class="dp-tstat-label">세션</div></div>'
       +   '<div class="dp-tstat"><div class="dp-tstat-label">단가</div></div>'
@@ -1581,7 +1598,7 @@ function renderDashboardAdmin() {
       + '</div>';
     voucherRows.forEach(function(r){
       html += ''
-        + '<div class="dp-trow" style="grid-template-columns:1fr 80px 100px 120px;">'
+        + '<div class="dp-trow" data-revcols="1">'
         +   '<div class="dp-tname">' + escHtml(r.type) + '</div>'
         +   '<div class="dp-tstat"><div class="dp-tstat-num">' + r.count + '</div><div class="dp-tstat-label">건</div></div>'
         +   '<div class="dp-tstat"><div class="dp-tstat-num">' + _dpFmtWon(r.price) + '</div><div class="dp-tstat-label">/ 회</div></div>'
@@ -1589,7 +1606,7 @@ function renderDashboardAdmin() {
         + '</div>';
     });
     html += ''
-      + '<div class="dp-trow" style="grid-template-columns:1fr 80px 100px 120px;border-top:2px solid #e7ecf2;font-weight:800;">'
+      + '<div class="dp-trow" data-revcols="1" style="border-top:2px solid #e7ecf2;font-weight:800;">'
       +   '<div class="dp-tname">합계</div>'
       +   '<div class="dp-tstat"><div class="dp-tstat-num">' + thisMonthSessions.length + '</div><div class="dp-tstat-label">건</div></div>'
       +   '<div class="dp-tstat"></div>'
@@ -1875,6 +1892,7 @@ function _dpRenderTeacherRows(rows, placeholder) {
 }
 
 // madi_users 조회 후 활동 통계와 머지 (이름 매칭)
+// 캐시: madi_users 는 자주 안 바뀜 → 60초 TTL 캐시로 폴링 시 재호출 방지
 function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
   var tableEl = document.getElementById('dpAdminTeacherTable');
   var subEl = document.getElementById('dpAdminTeacherSub');
@@ -1887,54 +1905,21 @@ function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
   }
   // role=superadmin 은 필터 없이 전체 가져옴
 
+  // 캐시 사용 (60초 TTL, 같은 query 한정)
+  var cache = window._dpTeachersCache;
+  if (cache && cache.query === query && (Date.now() - cache.ts) < 60000) {
+    _dpRenderTeacherTable(cache.rows, teacherStats, tableEl, subEl);
+    return;
+  }
+
   supaFetch(query, 'GET')
     .then(function(rows) {
-      if (!Array.isArray(rows)) rows = [];
-      // 머지: madi_users 의 모든 선생님 + 활동 통계
-      var merged = rows.map(function(u){
-        var name = u.name || u.username || '?';
-        var s = teacherStats[name];
-        if (s) {
-          return {
-            name: name,
-            count: Object.keys(s.children).length,
-            weekSched: s.weekSched,
-            weekSession: s.weekSession,
-            unwritten: s.unwritten,
-            inactive: false
-          };
-        }
-        return { name: name, count: 0, weekSched: 0, weekSession: 0, unwritten: 0, inactive: true };
-      });
-      // madi_users 에 없는 활동 이름 (외부 자료 import 등) — orphan 으로 같이 표시
-      var knownNames = {};
-      rows.forEach(function(u){ knownNames[u.name || u.username || ''] = true; });
-      Object.keys(teacherStats).forEach(function(name){
-        if (!knownNames[name]) {
-          var s = teacherStats[name];
-          merged.push({
-            name: name,
-            count: Object.keys(s.children).length,
-            weekSched: s.weekSched,
-            weekSession: s.weekSession,
-            unwritten: s.unwritten,
-            inactive: false
-          });
-        }
-      });
-      // 정렬: 활동 있는 순 → 담당 아동 수 내림차순
-      merged.sort(function(a, b){
-        if (a.inactive !== b.inactive) return a.inactive ? 1 : -1;
-        return b.count - a.count;
-      });
-      tableEl.innerHTML = _dpRenderTeacherRows(merged);
-      if (subEl) {
-        var active = merged.filter(function(t){ return !t.inactive; }).length;
-        subEl.textContent = '이번 주 · 선생님 ' + merged.length + '명 (활동 ' + active + '명)';
+      if (Array.isArray(rows)) {
+        window._dpTeachersCache = { query: query, rows: rows, ts: Date.now() };
       }
+      _dpRenderTeacherTable(rows, teacherStats, tableEl, subEl);
     })
     .catch(function(e) {
-      // 실패 시 기존 통계 기반 fallback
       if (window.console && console.warn) console.warn('[silent dpAdmin teachers]', e && e.message);
       var fallback = Object.keys(teacherStats).map(function(name){
         var s = teacherStats[name];
@@ -1947,4 +1932,51 @@ function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
       tableEl.innerHTML = _dpRenderTeacherRows(fallback);
       if (subEl) subEl.textContent = '이번 주 · 선생님 ' + fallback.length + '명 (활동 데이터 기반)';
     });
+}
+
+// madi_users rows + teacherStats 머지·렌더 (캐시 / 실패 fallback 양쪽에서 호출)
+function _dpRenderTeacherTable(rows, teacherStats, tableEl, subEl) {
+  if (!Array.isArray(rows)) rows = [];
+  // 머지: madi_users 의 모든 선생님 + 활동 통계
+  var merged = rows.map(function(u){
+    var name = u.name || u.username || '?';
+    var s = teacherStats[name];
+    if (s) {
+      return {
+        name: name,
+        count: Object.keys(s.children).length,
+        weekSched: s.weekSched,
+        weekSession: s.weekSession,
+        unwritten: s.unwritten,
+        inactive: false
+      };
+    }
+    return { name: name, count: 0, weekSched: 0, weekSession: 0, unwritten: 0, inactive: true };
+  });
+  // madi_users 에 없는 활동 이름 (외부 자료 import 등) — orphan 으로 같이 표시
+  var knownNames = {};
+  rows.forEach(function(u){ knownNames[u.name || u.username || ''] = true; });
+  Object.keys(teacherStats).forEach(function(name){
+    if (!knownNames[name]) {
+      var s = teacherStats[name];
+      merged.push({
+        name: name,
+        count: Object.keys(s.children).length,
+        weekSched: s.weekSched,
+        weekSession: s.weekSession,
+        unwritten: s.unwritten,
+        inactive: false
+      });
+    }
+  });
+  // 정렬: 활동 있는 순 → 담당 아동 수 내림차순
+  merged.sort(function(a, b){
+    if (a.inactive !== b.inactive) return a.inactive ? 1 : -1;
+    return b.count - a.count;
+  });
+  tableEl.innerHTML = _dpRenderTeacherRows(merged);
+  if (subEl) {
+    var active = merged.filter(function(t){ return !t.inactive; }).length;
+    subEl.textContent = '이번 주 · 선생님 ' + merged.length + '명 (활동 ' + active + '명)';
+  }
 }
