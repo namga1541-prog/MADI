@@ -2417,8 +2417,11 @@ function copyParentNewInfo() {
 function loadParentList() {
   var el = document.getElementById('parentUserList');
   if (!el) return;
-  var cid = centerFilter().replace('center_id=eq.','');
-  supaFetch('madi_users?center_id=eq.' + cid + '&role=eq.parent&order=id.desc', 'GET')
+  var cid = getCenterId();
+  var query = cid
+    ? 'madi_users?center_id=eq.' + encodeURIComponent(cid) + '&role=eq.parent&order=id.desc'
+    : 'madi_users?role=eq.parent&order=id.desc';
+  supaFetch(query, 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) {
         el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">등록된 학부모가 없습니다</div>';
@@ -2432,9 +2435,28 @@ function loadParentList() {
           + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(r.username) + '</div>'
           + '</div>'
           + '<span style="font-size:11px;background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:8px;font-weight:700;">학부모</span>'
+          + '<button onclick="deleteParentAccount(' + r.id + ',\'' + escHtml(r.name || r.username) + '\')" '
+          + 'style="margin-left:6px;padding:4px 10px;font-size:11px;border:1px solid #fca5a5;background:#fff;color:#ef4444;border-radius:6px;cursor:pointer;">삭제</button>'
           + '</div>';
       }).join('');
     }).catch(function() { el.innerHTML = '<div style="color:var(--red);font-size:13px;padding:10px;">불러오기 실패</div>'; });
+}
+
+function deleteParentAccount(userId, name) {
+  showConfirm('학부모 [' + name + '] 계정을 삭제하시겠습니까?\n계정, 자녀 연결, 알림 구독이 모두 삭제됩니다.', function() {
+    supaFetch('madi_parent_children?parent_user_id=eq.' + encodeURIComponent(userId), 'DELETE')
+      .then(function() {
+        return supaFetch('madi_push_subscriptions?user_id=eq.' + encodeURIComponent(userId), 'DELETE');
+      })
+      .then(function() {
+        return supaFetch('madi_users?id=eq.' + encodeURIComponent(userId), 'DELETE');
+      })
+      .then(function() {
+        showToast('✅ 학부모 계정 삭제 완료');
+        loadParentList();
+      })
+      .catch(function(e) { showToast('❌ ' + ((e && e.message) || '삭제 실패')); });
+  });
 }
 
 // ── 오류 모니터링 ──
