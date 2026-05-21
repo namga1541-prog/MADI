@@ -138,6 +138,29 @@ function hashPassword(pw) {
     .then(function(buf) { return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join(''); });
 }
 function getCenterId() { return (currentUser && currentUser.center_id) ? currentUser.center_id : ''; }
+
+// XLSX(~900KB) lazy loader — 일정/정산 내보내기, 평가지 import 시점에만 로드
+// 최적화 2026-05-21: 초기 페이로드에서 제외, 첫 사용 시 1회만 다운로드
+var _xlsxLoadingPromise = null;
+function ensureXLSX() {
+  if (typeof XLSX !== 'undefined') return Promise.resolve();
+  if (_xlsxLoadingPromise) return _xlsxLoadingPromise;
+  _xlsxLoadingPromise = new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.integrity = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';
+    s.crossOrigin = 'anonymous';
+    s.referrerPolicy = 'no-referrer';
+    s.onload = function() { resolve(); };
+    s.onerror = function() {
+      _xlsxLoadingPromise = null;
+      reject(new Error('엑셀 모듈 로드 실패 — 인터넷 연결을 확인해주세요'));
+    };
+    document.head.appendChild(s);
+  });
+  return _xlsxLoadingPromise;
+}
+
 function centerFilter() {
   if (currentUser && currentUser.role === 'superadmin') return 'center_id=not.is.null';
   var cid = getCenterId();
@@ -517,29 +540,64 @@ function submitChangePassword() {
 }
 
 // ─────── Supabase DB 로드 / 저장 ───────
+// 최적화 (2026-05-21): 최근 90일 우선 로드 → 백그라운드에서 과거 데이터 머지
+// 운영 1년차 이후 첫 화면 fetch 1~3초 단축, 메모리·jsonb 페이로드 절감
+function _isoDaysAgo(n) {
+  var d = new Date(); d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 function loadDBFromSupabase(silent) {
   if (!silent) showToast('📡 데이터 불러오는 중...');
   _optionsCacheKey = null;
+  // 세션: 최근 90일, 일정: 최근 30일~미래 전체 (캘린더는 미래 일정 필요)
+  var d90 = _isoDaysAgo(90);
+  var d30 = _isoDaysAgo(30);
   Promise.all([
     supaFetch('madi_children?'    + centerFilter() + '&select=id,data&order=id.asc'),
-    supaFetch('madi_sessions?'    + centerFilter() + '&select=id,data&order=id.asc'),
-    supaFetch('madi_schedules?'   + centerFilter() + '&select=id,data&order=id.asc'),
+    supaFetch('madi_sessions?'    + centerFilter() + '&data->>date=gte.' + d90 + '&select=id,data&order=id.asc'),
+    supaFetch('madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc'),
     supaFetch('madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc')
   ]).then(function(results) {
     function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; }); }
     var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
-    // cn3_* localStorage 마이그레이션 분기 제거 — 보안 보강으로 PII 평문 캐시 폐지
     childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
-    window._dataLoadedAt = Date.now(); // 페르소나 대시보드 "데이터 갱신: N분 전" 표시용
+    window._dataLoadedAt = Date.now();
     if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
     renderChildGrid(); populateChildSelects(); renderGoalRows(); renderSessionList(); renderUnwrittenAlert(); renderStaffCard();
     if (typeof renderSchedView === 'function') renderSchedView();
     if (typeof renderDashboard === 'function') renderDashboard();
     loadActivitiesFromSupa(); loadIEPFromSupa();
     setTimeout(function() { if (typeof loadNotices === 'function') loadNotices(); }, 600);
+    // 백그라운드: 과거 데이터 추가 로드 후 머지 (사용자 인지 없이)
+    setTimeout(function() { _loadOlderHistory(d90, d30); }, 1500);
   }).catch(function(e) {
     console.error('loadDB 실패:', e); showToast('❌ 데이터 로드 실패 — 로컬 데이터로 표시합니다');
     loadDB(); renderChildGrid(); populateChildSelects();
+  });
+}
+
+// 90일 이전 세션 + 30일 이전 일정 백그라운드 로드 → 머지
+// 성장 기록·포트폴리오·연간 통계 등 과거 데이터 필요 영역을 위함
+function _loadOlderHistory(d90, d30) {
+  if (window._olderHistoryLoaded) return;
+  window._olderHistoryLoaded = true;
+  Promise.all([
+    supaFetch('madi_sessions?'  + centerFilter() + '&data->>date=lt.' + d90 + '&select=id,data&order=id.desc'),
+    supaFetch('madi_schedules?' + centerFilter() + '&data->>date=lt.' + d30 + '&select=id,data&order=id.desc')
+  ]).then(function(results) {
+    function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; }); }
+    var oldSe  = safeMap(results[0]);
+    var oldSch = safeMap(results[1]);
+    var seenSe = {}; sessionDB.forEach(function(s){ seenSe[s.id] = true; });
+    oldSe.forEach(function(s){ if (!seenSe[s.id]) sessionDB.push(s); });
+    var seenSch = {}; scheduleDB.forEach(function(s){ seenSch[s.id] = true; });
+    oldSch.forEach(function(s){ if (!seenSch[s.id]) scheduleDB.push(s); });
+    // idle 머지 후 영향 가능 영역만 부분 리렌더
+    if (typeof renderSessionList === 'function') try { renderSessionList(); } catch(e){}
+    if (typeof renderSchedView   === 'function') try { renderSchedView();   } catch(e){}
+  }).catch(function(e) {
+    if (window.console && console.warn) console.warn('[older history] silent:', e && e.message);
   });
 }
 

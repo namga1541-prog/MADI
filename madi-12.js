@@ -550,8 +550,18 @@ function processImportFile(file) {
   if (!getApiKeyOrAlert()) return;
 
   var resultEl = document.getElementById('importResult');
-  resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>파일을 읽는 중...</p></div>';
+  resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>엑셀 모듈 준비 중...</p></div>';
 
+  // XLSX lazy 로드 (~900KB) — 평가지 import 진입 시점에만
+  ensureXLSX().then(function() {
+    resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>파일을 읽는 중...</p></div>';
+    _processImportFileInner(file, resultEl);
+  }).catch(function(e) {
+    resultEl.innerHTML = '<div class="import-warning">⚠️ ' + escHtml(e && e.message ? e.message : '엑셀 모듈 로드 실패') + '</div>';
+  });
+}
+
+function _processImportFileInner(file, resultEl) {
   var reader = new FileReader();
   reader.onload = function(e) {
     try {

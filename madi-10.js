@@ -937,16 +937,18 @@ function exportSchedule(format) {
   var label = from + '~' + to;
 
   if (format === 'excel') {
-    var wb = XLSX.utils.book_new();
-    var ws = XLSX.utils.json_to_sheet(rows);
-    // 컬럼 너비
-    ws['!cols'] = [
-      {wch:12},{wch:8},{wch:8},{wch:12},{wch:10},{wch:14},{wch:8},{wch:24}
-    ];
-    XLSX.utils.book_append_sheet(wb, ws, '일정');
-    XLSX.writeFile(wb, '아이마디아이_일정_' + label + '.xlsx');
-    showToast('✅ 엑셀 파일이 저장됐습니다');
-    closeScheduleExportModal();
+    if (typeof showToast === 'function') showToast('📥 엑셀 모듈 준비 중...');
+    ensureXLSX().then(function() {
+      var wb = XLSX.utils.book_new();
+      var ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [
+        {wch:12},{wch:8},{wch:8},{wch:12},{wch:10},{wch:14},{wch:8},{wch:24}
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, '일정');
+      XLSX.writeFile(wb, '아이마디아이_일정_' + label + '.xlsx');
+      showToast('✅ 엑셀 파일이 저장됐습니다');
+      closeScheduleExportModal();
+    }).catch(function(e) { showToast('⚠️ ' + (e && e.message ? e.message : e)); });
 
   } else if (format === 'pdf') {
     _printSchedule(rows, label);

@@ -493,19 +493,21 @@ function exportSettlementExcel() {
 
   if (!excelRows.length) { showToast('⚠️ 내보낼 데이터가 없습니다'); return; }
 
-  try {
-    var wb = XLSX.utils.book_new();
-    var ws = XLSX.utils.json_to_sheet(excelRows);
-    // 열 너비 설정
-    ws['!cols'] = [
-      {wch:12},{wch:8},{wch:10},{wch:12},{wch:10},{wch:10},{wch:14},{wch:14},{wch:10},{wch:12}
-    ];
-    XLSX.utils.book_append_sheet(wb, ws, ym + ' 정산');
-    XLSX.writeFile(wb, '마디_정산_' + ym + '.xlsx');
-    showToast('✅ 엑셀 파일이 다운로드됐습니다!');
-  } catch(e) {
-    showToast('❌ 엑셀 생성 실패: ' + (e.message||''));
-  }
+  showToast('📥 엑셀 모듈 준비 중...');
+  ensureXLSX().then(function() {
+    try {
+      var wb = XLSX.utils.book_new();
+      var ws = XLSX.utils.json_to_sheet(excelRows);
+      ws['!cols'] = [
+        {wch:12},{wch:8},{wch:10},{wch:12},{wch:10},{wch:10},{wch:14},{wch:14},{wch:10},{wch:12}
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, ym + ' 정산');
+      XLSX.writeFile(wb, '마디_정산_' + ym + '.xlsx');
+      showToast('✅ 엑셀 파일이 다운로드됐습니다!');
+    } catch(e) {
+      showToast('❌ 엑셀 생성 실패: ' + (e.message||''));
+    }
+  }).catch(function(e) { showToast('⚠️ ' + (e && e.message ? e.message : e)); });
 }
 
 // ─────── 선생님별 통계 ───────
