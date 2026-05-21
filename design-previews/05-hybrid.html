@@ -130,28 +130,61 @@
   .ps-eval   { background:#dbeafe; color:#1e40af; }
   .ps-wait   { background:#fef3c7; color:#a16207; }
 
-  /* ── 알림 + 미작성 + 빠른 액션 (3열 작은 카드) ── */
-  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  /* ── 알림 (큰 카드, 풀너비) ── */
+  .alert-list-big { display:flex; flex-direction:column; gap:10px; }
+  .alert-big { display:flex; gap:14px; padding:14px 18px; border-radius:10px; align-items:flex-start; }
+  .ab-warn   { background:#fef3c7; border:1px solid #fde68a; }
+  .ab-info   { background:#dbeafe; border:1px solid #bfdbfe; }
+  .ab-ok     { background:#f8fafc; border:1px solid #e2e8f0; }
+  .alert-big-ic { font-size:20px; flex-shrink:0; margin-top:1px; }
+  .alert-big-info { flex:1; min-width:0; }
+  .alert-big-title { font-size:13.5px; font-weight:800; color:#0f172a; line-height:1.4; }
+  .alert-big-text { font-size:12.5px; color:#475569; line-height:1.55; margin-top:4px; }
+  .alert-big-time { font-size:10.5px; color:#94a3b8; margin-top:6px; font-weight:600; }
 
-  .alert-item { display:flex; gap:11px; padding:11px 0; border-top:1px solid #f1f5f9; align-items:flex-start; }
-  .alert-item:first-child { border-top:none; }
-  .alert-ic { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
-  .ai-warn { background:#fef3c7; }
-  .ai-info { background:#dbeafe; }
-  .ai-ok   { background:#dcfce7; }
-  .alert-info { flex:1; min-width:0; }
-  .alert-title { font-size:12.5px; font-weight:700; color:#0f172a; line-height:1.4; }
-  .alert-time { font-size:10.5px; color:#94a3b8; margin-top:2px; font-weight:600; }
+  /* ── 아래 영역: 미작성 세션 + 빠른 액션 (2열, 스크롤해서 보는 영역) ── */
+  .grid-2-bottom { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px; }
 
   /* 빠른 액션 */
-  .qa-item { display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid #f1f5f9; cursor:pointer; transition:padding 0.12s; }
+  .qa-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid #f1f5f9; cursor:pointer; transition:padding 0.12s; }
   .qa-item:first-child { border-top:none; }
   .qa-item:hover { padding-left:4px; }
-  .qa-ic { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; background:#f1f5f9; }
+  .qa-ic { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; background:#f1f5f9; }
   .qa-text { flex:1; }
   .qa-text b { display:block; font-size:13px; color:#0f172a; font-weight:700; }
   .qa-text span { font-size:11px; color:#94a3b8; }
   .qa-arrow { font-size:14px; color:#cbd5e1; }
+
+  /* 미작성 세션 빈 상태 */
+  .empty-clean { padding:36px 16px; text-align:center; }
+  .empty-clean-ic { font-size:36px; opacity:0.5; margin-bottom:10px; }
+  .empty-clean-title { font-size:14px; font-weight:700; color:#0f172a; margin-bottom:4px; }
+  .empty-clean-sub { font-size:12px; color:#94a3b8; line-height:1.5; }
+
+  /* 섹션 구분 힌트 (스크롤로 더 있다는 신호) */
+  .scroll-hint { text-align:center; margin:8px 0 20px; font-size:11px; color:#94a3b8; font-weight:600; letter-spacing:0.3px; }
+  .scroll-hint span { display:inline-flex; align-items:center; gap:6px; padding:5px 14px; background:#f1f5f9; border-radius:14px; }
+
+  /* 모바일 반응형 */
+  @media (max-width:1024px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .grid-2 { grid-template-columns:1fr; }
+    .kpi-grid { grid-template-columns:repeat(2,1fr); }
+    .top-search { display:none; }
+  }
+  @media (max-width:640px) {
+    .topbar { padding:0 16px; }
+    .content { padding:24px 16px 50px; }
+    .top-date { display:none; }
+    .grid-2-bottom { grid-template-columns:1fr; }
+    .page-actions { display:none; }
+    .kpi { padding:14px 16px; gap:10px; }
+    .kpi-ic { width:36px; height:36px; font-size:16px; }
+    .kpi-num { font-size:22px; }
+    .page-title { font-size:24px; }
+    .alert-big { padding:12px 14px; }
+  }
 </style>
 </head>
 <body>
@@ -375,50 +408,65 @@
         </div>
       </div>
 
-      <!-- 3컬럼: 공지 + 미작성 + 빠른 액션 -->
-      <div class="grid-3">
-
-        <!-- 공지·알림 (Clinical 알림 등급) -->
-        <div class="panel">
-          <div class="panel-head">
-            <div class="panel-title">📢 알림 · 공지</div>
-            <div class="panel-link">→</div>
+      <!-- 주요 알림·공지 (풀너비 큰 카드) -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">📢 주요 알림 · 공지</div>
+            <div class="panel-title-sub">중요한 운영 안내와 시스템 업데이트</div>
           </div>
-          <div class="panel-body">
-            <div class="alert-item">
-              <div class="alert-ic ai-warn">⚠️</div>
-              <div class="alert-info">
-                <div class="alert-title">5월 4주차 정산 마감</div>
-                <div class="alert-time">5/18 · 운영팀</div>
+          <div class="panel-link">모든 알림 →</div>
+        </div>
+        <div class="panel-body">
+          <div class="alert-list-big">
+            <div class="alert-big ab-warn">
+              <div class="alert-big-ic">⚠️</div>
+              <div class="alert-big-info">
+                <div class="alert-big-title">5월 4주차 정산 마감 안내</div>
+                <div class="alert-big-text">바우처 정산 자료를 5/24(토) 18시까지 제출해주세요. 미작성 세션 3건이 남아 있습니다.</div>
+                <div class="alert-big-time">5/18 · 운영팀</div>
               </div>
             </div>
-            <div class="alert-item">
-              <div class="alert-ic ai-info">✨</div>
-              <div class="alert-info">
-                <div class="alert-title">신규 활동 카탈로그 12개 추가</div>
-                <div class="alert-time">5/10 · 운영팀</div>
+            <div class="alert-big ab-info">
+              <div class="alert-big-ic">✨</div>
+              <div class="alert-big-info">
+                <div class="alert-big-title">신규 활동 카탈로그 12개 추가</div>
+                <div class="alert-big-text">조음·음운, 인지·학습 카테고리에 검증된 활동이 추가됐습니다.</div>
+                <div class="alert-big-time">5/10 · 운영팀</div>
               </div>
             </div>
-            <div class="alert-item">
-              <div class="alert-ic ai-ok">🔒</div>
-              <div class="alert-info">
-                <div class="alert-title">보안 패치 적용 완료</div>
-                <div class="alert-time">5/20 · 시스템</div>
+            <div class="alert-big ab-ok">
+              <div class="alert-big-ic">🔒</div>
+              <div class="alert-big-info">
+                <div class="alert-big-title">보안 패치 적용 완료</div>
+                <div class="alert-big-text">JWT 세션 무효화 · CSP 강화 등 7개 보안 항목이 적용됐습니다.</div>
+                <div class="alert-big-time">5/20 · 시스템</div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 미작성 세션 (Linear 빈 상태 미니멀) -->
+      <!-- 스크롤 힌트 -->
+      <div class="scroll-hint"><span>↓ 더 보기 — 미작성 세션 · 빠른 액션</span></div>
+
+      <!-- 아래 영역: 미작성 세션 + 빠른 액션 (스크롤로 보는 보조 영역) -->
+      <div class="grid-2-bottom">
+
+        <!-- 미작성 세션 -->
         <div class="panel">
           <div class="panel-head">
-            <div class="panel-title">📝 미작성 세션</div>
-            <div class="panel-link">→</div>
+            <div>
+              <div class="panel-title">📝 미작성 세션</div>
+              <div class="panel-title-sub">이번 주 작성 대기 중인 기록</div>
+            </div>
+            <div class="panel-link">전체 →</div>
           </div>
           <div class="panel-body">
-            <div class="tl-empty" style="padding:24px 12px;">
-              <div class="tl-empty-ic">✓</div>
-              <div class="tl-empty-text" style="font-size:12.5px;">모든 세션이<br>작성 완료됐습니다</div>
+            <div class="empty-clean">
+              <div class="empty-clean-ic">✓</div>
+              <div class="empty-clean-title">모두 작성 완료</div>
+              <div class="empty-clean-sub">이번 주 진행한 세션이<br>모두 기록되어 있습니다</div>
             </div>
           </div>
         </div>
@@ -426,7 +474,10 @@
         <!-- 빠른 액션 -->
         <div class="panel">
           <div class="panel-head">
-            <div class="panel-title">⚡ 빠른 액션</div>
+            <div>
+              <div class="panel-title">⚡ 빠른 액션</div>
+              <div class="panel-title-sub">자주 쓰는 작업 바로가기</div>
+            </div>
           </div>
           <div class="panel-body">
             <div class="qa-item">
