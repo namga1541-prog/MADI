@@ -1411,6 +1411,8 @@ function renderDashboardAdmin() {
   var thisMonthSessions = _sessions.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
   var lastMonthSessions = _sessions.filter(function(s){ return s.date >= lastMonthStartStr && s.date <= lastMonthEndStr; });
   var thisMonthSched = _schedules.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
+  // 진도율 분모: 오늘까지 도래한 일정만 (미래 일정은 아직 진행 의무 도래 전)
+  var thisMonthSchedDue = thisMonthSched.filter(function(s){ return s.date <= todayStr; });
 
   // 매출 추정 = sum(완료 세션 × 바우처 단가)
   var revenue = 0;
@@ -1518,7 +1520,7 @@ function renderDashboardAdmin() {
     +   '<div class="dp-rev-sub">'
     +     '<div class="dp-rev-sub-label">📊 이번 달 세션</div>'
     +     '<div class="dp-rev-sub-num">' + thisMonthSessions.length + ' <em>건</em></div>'
-    +     '<div class="dp-rev-sub-meta">계획 <b>' + thisMonthSched.length + '건</b> · 진도율 <b>' + (thisMonthSched.length ? Math.round(thisMonthSessions.length / thisMonthSched.length * 100) : 0) + '%</b></div>'
+    +     '<div class="dp-rev-sub-meta">월 계획 <b>' + thisMonthSched.length + '건</b> · 진도율 <b>' + (thisMonthSchedDue.length ? Math.round(thisMonthSessions.length / thisMonthSchedDue.length * 100) : 0) + '%</b> (도래 ' + thisMonthSchedDue.length + '건 기준)</div>'
     +   '</div>'
     + '</div>';
 
@@ -1629,7 +1631,7 @@ function renderDashboardAdmin() {
     realArea.push(_pt(d, realByDay[d]));
   }
   realArea.push(chartW + ',' + chartH);
-  var progressPct = thisMonthSched.length ? Math.round(thisMonthSessions.length / thisMonthSched.length * 100) : 0;
+  var progressPct = thisMonthSchedDue.length ? Math.round(thisMonthSessions.length / thisMonthSchedDue.length * 100) : 0;
 
   html += ''
     + '<div class="dp-panel">'
