@@ -105,16 +105,50 @@ function _purgeLegacyCnCache() {
   } catch(e) {}
 }
 
-function supaFetch(path, method, body) {
+// ─── supaFetch GET 캐시 (2026-05-21 최적화) ───
+// 5분 TTL 메모리 캐시 + 쓰기 발생 시 해당 테이블 자동 무효화
+// 효과: 탭 이동·재방문 시 중복 페치 제거 (notices/lounge/portfolio 등)
+var _supaCache = {};
+var SUPA_CACHE_TTL = 5 * 60 * 1000;
+function _supaCacheClone(v) {
+  // jsonb 데이터는 caller가 변형하므로 (예: var d=r.data; d.id=r.id;) 매 반환 시 복사
+  return v === null || typeof v !== 'object' ? v : JSON.parse(JSON.stringify(v));
+}
+function _supaCacheGet(path) {
+  var c = _supaCache[path];
+  if (!c) return null;
+  if (Date.now() - c.ts > SUPA_CACHE_TTL) { delete _supaCache[path]; return null; }
+  return _supaCacheClone(c.data);
+}
+function _supaCacheSet(path, data) {
+  _supaCache[path] = { data: _supaCacheClone(data), ts: Date.now() };
+}
+function supaCacheInvalidate(pathOrTable) {
+  var table = String(pathOrTable || '').split('?')[0];
+  if (!table) { _supaCache = {}; return; }
+  Object.keys(_supaCache).forEach(function(k) {
+    if (k.split('?')[0] === table) delete _supaCache[k];
+  });
+}
+function supaCacheClearAll() { _supaCache = {}; }
+
+function supaFetch(path, method, body, opts) {
+  var m = method || 'GET';
+  opts = opts || {};
+  // GET 캐시 hit 시 즉시 반환 (네트워크 우회)
+  if (m === 'GET' && !opts.noCache) {
+    var cached = _supaCacheGet(path);
+    if (cached !== null) return Promise.resolve(cached);
+  }
   return fetchWithRetry(EDGE_URL + '/api', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path: path, method: method || 'GET', body: body || null })
+    body: JSON.stringify({ path: path, method: m, body: body || null })
   }, {
     retries: 2,
     allowPostRetry: true,
-    label: 'Supabase ' + (method || 'GET') + ' ' + path.split('?')[0]
+    label: 'Supabase ' + m + ' ' + path.split('?')[0]
   }).then(function(r) {
     if (r.status === 401 && typeof currentUser !== 'undefined' && currentUser) {
       clearToken(); currentUser = null;
@@ -128,6 +162,11 @@ function supaFetch(path, method, body) {
     }
     var ct = r.headers.get('content-type') || '';
     return ct.includes('json') ? r.json() : r.text();
+  }).then(function(data) {
+    // GET 결과 캐시 / 쓰기 시 해당 테이블 무효화
+    if (m === 'GET' && !opts.noCache) _supaCacheSet(path, data);
+    else if (m === 'POST' || m === 'PATCH' || m === 'PUT' || m === 'DELETE') supaCacheInvalidate(path);
+    return data;
   });
 }
 
@@ -139,26 +178,41 @@ function hashPassword(pw) {
 }
 function getCenterId() { return (currentUser && currentUser.center_id) ? currentUser.center_id : ''; }
 
-// XLSX(~900KB) lazy loader — 일정/정산 내보내기, 평가지 import 시점에만 로드
-// 최적화 2026-05-21: 초기 페이로드에서 제외, 첫 사용 시 1회만 다운로드
-var _xlsxLoadingPromise = null;
-function ensureXLSX() {
-  if (typeof XLSX !== 'undefined') return Promise.resolve();
-  if (_xlsxLoadingPromise) return _xlsxLoadingPromise;
-  _xlsxLoadingPromise = new Promise(function(resolve, reject) {
+// 외부 라이브러리 lazy loader (최적화 2026-05-21)
+// 초기 페이로드에서 제외, 첫 사용 시 1회만 동적 다운로드
+function _loadScriptOnce(promiseHolderKey, src, integrity, label) {
+  if (window[promiseHolderKey]) return window[promiseHolderKey];
+  window[promiseHolderKey] = new Promise(function(resolve, reject) {
     var s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-    s.integrity = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';
-    s.crossOrigin = 'anonymous';
-    s.referrerPolicy = 'no-referrer';
+    s.src = src;
+    if (integrity) { s.integrity = integrity; s.crossOrigin = 'anonymous'; s.referrerPolicy = 'no-referrer'; }
     s.onload = function() { resolve(); };
     s.onerror = function() {
-      _xlsxLoadingPromise = null;
-      reject(new Error('엑셀 모듈 로드 실패 — 인터넷 연결을 확인해주세요'));
+      window[promiseHolderKey] = null;
+      reject(new Error(label + ' 로드 실패 — 인터넷 연결을 확인해주세요'));
     };
     document.head.appendChild(s);
   });
-  return _xlsxLoadingPromise;
+  return window[promiseHolderKey];
+}
+
+// XLSX(~900KB) — 일정/정산 내보내기, 평가지 import 시점에만 로드
+function ensureXLSX() {
+  if (typeof XLSX !== 'undefined') return Promise.resolve();
+  return _loadScriptOnce('_xlsxLoadingPromise',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw',
+    '엑셀 모듈');
+}
+
+// Chart.js(~200KB) — 첫 차트 렌더 시점에만 로드
+// 사용처: madi-04 선생님 통계, madi-07 발달 차트·음소 차트
+function ensureChart() {
+  if (typeof Chart !== 'undefined') return Promise.resolve();
+  return _loadScriptOnce('_chartLoadingPromise',
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js',
+    'sha384-DhxhYObIMeMNGyAG7iK11OHzBIKyEIeRL0ad1iFPAOwZB8iirUlTT0O/WJJUk8+o',
+    '차트 모듈');
 }
 
 function centerFilter() {
@@ -365,6 +419,8 @@ function doLogout() {
     // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
     fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
     stopRealtime(); currentUser = null; clearToken();
+    // 보안: supaFetch 메모리 캐시 전체 클리어 — 다른 사용자에게 잔여 PII 노출 방지
+    if (typeof supaCacheClearAll === 'function') supaCacheClearAll();
     // 공유 기기 보호: 다음 사용자가 이전 사용자의 PII 를 보지 못하도록 모든 캐시 제거
     var _localKeys = [
       'madi_user', 'madi_last_id',

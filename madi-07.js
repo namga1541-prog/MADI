@@ -476,16 +476,22 @@ function renderChart() {
     wrap.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>세션 데이터가 2회 이상 있어야 차트가 표시됩니다.</p></div>';
   } else {
     wrap.innerHTML = '<canvas id="devChart"></canvas>';
-    devChartObj = new Chart(document.getElementById('devChart').getContext('2d'), {
-      type: 'line', data: { labels: labels, datasets: datasets },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 12 } } },
-        scales: {
-          y: { min: 0, max: 100, ticks: { callback: function(v) { return v + '%'; }, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
-          x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+    ensureChart().then(function() {
+      var el = document.getElementById('devChart');
+      if (!el) return;
+      devChartObj = new Chart(el.getContext('2d'), {
+        type: 'line', data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 12 } } },
+          scales: {
+            y: { min: 0, max: 100, ticks: { callback: function(v) { return v + '%'; }, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+            x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+          }
         }
-      }
+      });
+    }).catch(function(e) {
+      wrap.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>' + escHtml(e && e.message || '차트 로드 실패') + '</p></div>';
     });
   }
 
@@ -604,23 +610,29 @@ function renderPhonemeChart(childId) {
     return;
   }
 
-  phonemeChartObj = new Chart(wrap, {
-    type: 'line',
-    data: { labels: labels, datasets: datasets },
-    options: {
-      responsive: true, maintainAspectRatio: true,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11, family: 'Noto Sans KR' }, boxWidth: 14 } },
-        tooltip: { callbacks: {
-          label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y + '%' : '—'); }
-        }}
-      },
-      scales: {
-        y: { min: 0, max: 100, ticks: { callback: function(v){ return v + '%'; }, font: { size: 11 } },
-             grid: { color: 'rgba(0,0,0,0.05)' } },
-        x: { ticks: { font: { size: 11 } } }
+  ensureChart().then(function() {
+    var wrapEl = document.getElementById('phonemeChart');
+    if (!wrapEl) return;
+    phonemeChartObj = new Chart(wrapEl, {
+      type: 'line',
+      data: { labels: labels, datasets: datasets },
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11, family: 'Noto Sans KR' }, boxWidth: 14 } },
+          tooltip: { callbacks: {
+            label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y + '%' : '—'); }
+          }}
+        },
+        scales: {
+          y: { min: 0, max: 100, ticks: { callback: function(v){ return v + '%'; }, font: { size: 11 } },
+               grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { ticks: { font: { size: 11 } } }
+        }
       }
-    }
+    });
+  }).catch(function(e) {
+    if (typeof showToast === 'function') showToast('⚠️ ' + (e && e.message ? e.message : '차트 로드 실패'));
   });
 
   // 최신 매트릭스 테이블 (가장 최근 세션 기준)

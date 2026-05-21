@@ -303,14 +303,18 @@ function _quickFormHtml(sched, name, age, diag, existing) {
 
 function _quickPhotoHtml() {
   if (_quickPhotoDataUrl) {
-    // 보안: 렌더 직전 한 번 더 헤더 검증 (XSS 차단 마지막 게이트)
-    if (!/^data:image\/(jpeg|png|webp|heic|heif|gif);base64,/i.test(_quickPhotoDataUrl)) {
+    // 보안: dataURL(신규 업로드) 또는 Storage public URL(기존 저장본) 만 허용
+    // - data:image/<jpeg|png|webp|heic|heif|gif>;base64,...
+    // - https://<sub>.supabase.co/storage/v1/object/public/board-images/quick/<uuid>.<ext>
+    var isDataUrl    = /^data:image\/(jpeg|png|webp|heic|heif|gif);base64,/i.test(_quickPhotoDataUrl);
+    var isStorageUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/board-images\/quick\//i.test(_quickPhotoDataUrl);
+    if (!isDataUrl && !isStorageUrl) {
       _quickPhotoDataUrl = '';
       return _quickPhotoHtml();
     }
     return ''
       + '<div style="position:relative;display:inline-block;border:1px solid var(--border);border-radius:10px;overflow:hidden;">'
-      +   '<img src="' + escHtml(_quickPhotoDataUrl) + '" alt="첨부 사진" style="max-width:200px;max-height:160px;display:block;">'
+      +   '<img src="' + escHtml(_quickPhotoDataUrl) + '" alt="첨부 사진" loading="lazy" style="max-width:200px;max-height:160px;display:block;">'
       +   '<button type="button" onclick="quickRemovePhoto()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;width:24px;height:24px;border-radius:12px;cursor:pointer;font-size:13px;line-height:1;">✕</button>'
       + '</div>';
   }
@@ -543,6 +547,34 @@ function quickAiClean() {
 }
 
 // ─────────────────────────────────────────────
+// 사진 dataURL → Supabase Storage 업로드 (upload-image Edge Function)
+// 결과 public URL 을 jsonb 에 저장 — jsonb 비대화 방지 (최적화 2026-05-21)
+// ─────────────────────────────────────────────
+function _quickUploadPhoto(dataUrl) {
+  if (!dataUrl) return Promise.resolve('');
+  // 이미 Storage URL 이면 그대로
+  if (dataUrl.indexOf('data:') !== 0) return Promise.resolve(dataUrl);
+  var m = dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/i);
+  if (!m) return Promise.resolve('');
+  var mimeType = m[1];
+  var base64   = m[2];
+  var ext      = (mimeType.split('/')[1] || 'jpg').toLowerCase();
+  if (ext === 'jpeg') ext = 'jpg';
+  return fetch(EDGE_URL + '/upload-image', {
+    method:      'POST',
+    credentials: 'include',
+    headers:     { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file: base64, mimeType: mimeType, folder: 'quick', ext: ext })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data && data.error) throw new Error(data.error);
+    if (!data || !data.url) throw new Error('업로드 응답 형식 오류');
+    return data.url;
+  });
+}
+
+// ─────────────────────────────────────────────
 // 저장 → 다음 미기록 카드로
 // ─────────────────────────────────────────────
 function quickSave() {
@@ -558,80 +590,85 @@ function quickSave() {
   var ta = document.getElementById('quickSummary');
   var summary = ta ? ta.value.trim() : '';
   if (!summary) { if (typeof showToast === 'function') showToast('⚠️ 한 줄 요약을 입력하세요'); return; }
-  // 보안: 길이 cap (jsonb 비대화 방지)
   if (summary.length > _QUICK_SUMMARY_MAX_LEN) {
     summary = summary.slice(0, _QUICK_SUMMARY_MAX_LEN);
     if (typeof showToast === 'function') showToast('⚠️ 요약이 ' + _QUICK_SUMMARY_MAX_LEN + '자로 잘렸습니다');
   }
 
   var parentVisible = !!(document.getElementById('quickParentVisible') && document.getElementById('quickParentVisible').checked);
-  // 보안: 다음 목표 개수·길이 cap
   var nextGoals = _quickNextGoals
     .filter(function(g) { return g && g.name; })
     .slice(0, _QUICK_GOAL_MAX_COUNT)
     .map(function(g) {
       return { name: String(g.name).slice(0, _QUICK_GOAL_MAX_LEN), checked: !!g.checked };
     });
-
-  // goals 컬럼은 마디 표준 호환: 체크된 목표만 점수 100, 나머지 점수 null
   var goals = nextGoals.map(function(g) {
     return { name: g.name, score: g.checked ? 100 : null };
   });
-
   var existing = _quickFindSession(sched);
-  var newRow = {
-    id: existing ? existing.id : (typeof generateClientId === 'function' ? generateClientId() : Date.now()),
-    childId: sched.childId,
-    date: sched.date,
-    teacher: (currentUser && currentUser.name) || '',
-    goals: goals,
-    memo: summary,
-    aiNote: existing ? (existing.aiNote || '') : '',
-    phonemes: existing ? (existing.phonemes || null) : null,
-    // 빠른 기록 전용 필드 (jsonb 안)
-    quickMode: true,
-    summary: summary,
-    nextGoals: nextGoals,
-    photoUrl: _quickPhotoDataUrl || '',
-    parentVisible: parentVisible,
-    schedId: sched.id
-  };
 
-  // sessionDB 갱신
-  if (existing) {
-    for (var j = 0; j < sessionDB.length; j++) {
-      if (sessionDB[j] && sessionDB[j].id === existing.id) { sessionDB[j] = newRow; break; }
-    }
-  } else {
-    sessionDB.push(newRow);
+  // 저장 버튼 잠금 + 사진 업로드 (dataURL → Storage URL)
+  var saveBtn = null;
+  var btns = document.querySelectorAll('#quickFormPanel .btn-primary');
+  if (btns && btns.length) saveBtn = btns[btns.length - 1];
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ 저장 중...'; }
+  if (_quickPhotoDataUrl && _quickPhotoDataUrl.indexOf('data:') === 0) {
+    if (typeof showToast === 'function') showToast('📤 사진 업로드 중...');
   }
-  if (typeof saveSessions === 'function') saveSessions();
-  if (typeof showToast === 'function') showToast('✅ 저장됨');
-  if (typeof vibrate === 'function') vibrate(40);
 
-  // 다음 미기록 카드 찾기
-  var idx = -1;
-  for (var k = 0; k < scheds.length; k++) {
-    if (String(scheds[k].id) === _quickCurrentSchedId) { idx = k; break; }
-  }
-  var next = null;
-  for (var m = idx + 1; m < scheds.length; m++) {
-    if (!_quickFindSession(scheds[m])) { next = scheds[m]; break; }
-  }
-  if (!next) {
-    // 앞쪽도 검색
-    for (var n = 0; n < idx; n++) {
-      if (!_quickFindSession(scheds[n])) { next = scheds[n]; break; }
-    }
-  }
-  setTimeout(function() {
-    if (next) {
-      openQuickForm(String(next.id));
-    } else {
-      _showQuickCardList();
-      renderQuickCards();
-    }
-  }, 500);
+  _quickUploadPhoto(_quickPhotoDataUrl)
+    .catch(function(e) {
+      if (typeof showToast === 'function') showToast('⚠️ 사진 업로드 실패 — 사진 없이 저장됩니다 (' + (e && e.message || '') + ')');
+      return '';
+    })
+    .then(function(photoUrl) {
+      var newRow = {
+        id: existing ? existing.id : (typeof generateClientId === 'function' ? generateClientId() : Date.now()),
+        childId: sched.childId,
+        date: sched.date,
+        teacher: (currentUser && currentUser.name) || '',
+        goals: goals,
+        memo: summary,
+        aiNote: existing ? (existing.aiNote || '') : '',
+        phonemes: existing ? (existing.phonemes || null) : null,
+        // 빠른 기록 전용 필드 (jsonb 안) — photoUrl 은 Storage public URL (dataURL 아님)
+        quickMode: true,
+        summary: summary,
+        nextGoals: nextGoals,
+        photoUrl: photoUrl || '',
+        parentVisible: parentVisible,
+        schedId: sched.id
+      };
+      if (existing) {
+        for (var j = 0; j < sessionDB.length; j++) {
+          if (sessionDB[j] && sessionDB[j].id === existing.id) { sessionDB[j] = newRow; break; }
+        }
+      } else {
+        sessionDB.push(newRow);
+      }
+      if (typeof saveSessions === 'function') saveSessions();
+      if (typeof showToast === 'function') showToast('✅ 저장됨');
+      if (typeof vibrate === 'function') vibrate(40);
+
+      // 다음 미기록 카드 찾기
+      var idx = -1;
+      for (var k = 0; k < scheds.length; k++) {
+        if (String(scheds[k].id) === _quickCurrentSchedId) { idx = k; break; }
+      }
+      var next = null;
+      for (var mm = idx + 1; mm < scheds.length; mm++) {
+        if (!_quickFindSession(scheds[mm])) { next = scheds[mm]; break; }
+      }
+      if (!next) {
+        for (var n = 0; n < idx; n++) {
+          if (!_quickFindSession(scheds[n])) { next = scheds[n]; break; }
+        }
+      }
+      setTimeout(function() {
+        if (next) openQuickForm(String(next.id));
+        else { _showQuickCardList(); renderQuickCards(); }
+      }, 500);
+    });
 }
 
 function closeQuickForm() {

@@ -696,30 +696,30 @@ function showStaffTrend(teacher) {
   if (!ctx) return;
 
   if (_staffTrendChart) { _staffTrendChart.destroy(); _staffTrendChart = null; }
-  _staffTrendChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '세션 수',
-        data: data,
-        backgroundColor: 'rgba(14,165,160,0.25)',
-        borderColor: '#0ea5a0',
-        borderWidth: 2,
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+  ensureChart().then(function() {
+    _staffTrendChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '세션 수',
+          data: data,
+          backgroundColor: 'rgba(14,165,160,0.25)',
+          borderColor: '#0ea5a0',
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
       }
-    }
+    });
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }).catch(function(e) {
+    if (typeof showToast === 'function') showToast('⚠️ ' + (e && e.message ? e.message : '차트 로드 실패'));
   });
-
-  // 해당 카드 강조
-  wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ─────── 입력 모드 ───────

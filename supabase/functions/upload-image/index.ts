@@ -155,7 +155,8 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 3. 허용 폴더 검증 ──
-  const ALLOWED_FOLDERS = new Set(['posts', 'comments'])
+  // 'quick' = madi-16.js 빠른 기록 모드 사진 (선생님이 업로드한 수업 사진)
+  const ALLOWED_FOLDERS = new Set(['posts', 'comments', 'quick'])
   if (!ALLOWED_FOLDERS.has(folder)) {
     return new Response(JSON.stringify({ error: '허용되지 않은 업로드 경로' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
