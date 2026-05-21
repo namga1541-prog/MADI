@@ -13,7 +13,7 @@
 | 4 | Admin/Super 홈 ⑧ — `renderDashboardAdmin()` (super 재활용) | ✅ 완료 |
 | 5 | smoke 검증 + 배포 | ✅ 완료 |
 
-**커밋**: `88906d5..627c634` (11개 커밋)
+**커밋**: `88906d5..f0227b8` (14개 커밋)
 - `3963a46` Teacher + Admin 페르소나
 - `e04e872` Parent 페르소나
 - `9de1be6` Superadmin 라벨 폴리시
@@ -26,6 +26,9 @@
 - `00a5d72` Admin 하단 패널 (운영 알림 + 빠른 액션)
 - `6bf50fb` 데이터 갱신 시각 표시
 - `627c634` 공지 내용 XSS escape
+- `009e959` UI/UX 종합 점검 1차 — 8개 결함 수정
+- `261ac6a` UI/UX 종합 점검 2차 — 6개 결함 수정
+- `f0227b8` Admin 빠른 액션 onclick 정확도
 
 **smoke**: 23 / 0 통과 (변동 없음)
 **배포**: GitHub Pages 1~2분 후 자동 반영 — 사용자에게 강제 새로고침 (Ctrl+Shift+R) 안내 필요
@@ -146,6 +149,38 @@ admin → 본인 센터 / superadmin → 전 센터 분기.
 ### 가정 활동 테이블
 `_renderParentHomeActivities()` 가 정적 3개 placeholder.
 `madi_home_activities` 테이블 도입 시 그 함수만 교체.
+체크 상태는 localStorage 자녀별·주별 분리 저장 (`madi_parent_acts_<childId>_<year>w<week>`).
+
+---
+
+## UI/UX 종합 점검 결과 (16개 결함 수정 — `009e959`, `261ac6a`, `f0227b8`)
+
+15라운드 이상 점검 후 발견·수정한 결함 전체 목록:
+
+| # | 결함 | 영향 | 수정 |
+|---|------|------|------|
+| 1 | dpRevBreakdown 펼침 상태가 10초 폴링마다 자동 접힘 | UX | window._dpRevOpen 으로 상태 영속화 |
+| 2 | 매출 산식 표 모바일에서 4열 강제로 가로 overflow | 반응형 | data-revcols 속성 + media query |
+| 3 | 신선도 라벨 stale ("방금 전" 5분 지나도 그대로) | UX | setInterval 30초로 자동 갱신 |
+| 4 | 긴 이름·제목 overflow → 줄바꿈으로 깨짐 | 시각 | ellipsis 전 컴포넌트 적용 |
+| 5 | 학부모 자녀 연결 후 onboarding/숨김 패널 잔존 | 흐름 | loadParentHome 시작에서 reset |
+| 6 | 다자녀 전환 시 _parentSessionsCache 미무효화 | 데이터 | setActiveParentChild 보강 |
+| 7 | 폴링 madi_users 매 10초 재 fetch | 성능 | 60초 TTL 캐시 |
+| 8 | tablet 매출 히어로 1열로 너무 길어짐 | 반응형 | 768-1024 중간 단계 추가 |
+| 9 | Teacher 평가 완료 KPI 항상 0 (a.teacher 필드 없음) | 데이터 | user_id 매칭으로 변경 |
+| 10 | 학부모 호칭 "어머님" 성별 가정 | UX | "보호자님" 으로 중성화 |
+| 11 | 가정 활동 체크박스 새로고침 시 초기화 | UX | localStorage 자녀·주별 저장 |
+| 12 | 매출 산식 토글 버튼 텍스트 정적 | UX | "자세히 ▾" ↔ "접기 ▴" 동적 |
+| 13 | Parent 평가 그래프 maxY 고정 100 → 100 초과 데이터 잘림 | 데이터 | maxScore 동적 계산 |
+| 14 | Admin 진도율 0% (월초 도래 0건일 때) 어색 | UX | "이번 달 시작 전" 으로 표기 |
+| 15 | Teacher 시급 배너 시간 빈값 공백 어색 | 시각 | 시간 없으면 prefix 생략 |
+| 16 | Admin 빠른 액션 switchTab(5) → admin 권한 없는 panel8 | 흐름 | goToAdmin('service') 로 변경 |
+
+### 잠재 결함 — 의도적 미수정 / 별도 작업
+- 인터랙티브 div의 키보드 접근성 (role="button", tabindex) — 코드베이스 전반 패턴 일관성 유지
+- SVG 그래프 스크린리더 접근성 (title/desc) — 별도 접근성 개선 작업
+- Service Worker 캐시는 pre-commit 훅이 자동 갱신 (`sw.js` CACHE_NAME)
+
 
 ### Edge Function 미수정
 이번 작업은 클라이언트 전용. `supabase/functions/api/index.ts` 등 백엔드 변경 없음.
