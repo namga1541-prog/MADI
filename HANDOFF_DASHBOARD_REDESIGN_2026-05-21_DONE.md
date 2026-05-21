@@ -13,13 +13,19 @@
 | 4 | Admin/Super 홈 ⑧ — `renderDashboardAdmin()` (super 재활용) | ✅ 완료 |
 | 5 | smoke 검증 + 배포 | ✅ 완료 |
 
-**커밋**: `88906d5..33e4330` (6개 커밋)
+**커밋**: `88906d5..627c634` (11개 커밋)
 - `3963a46` Teacher + Admin 페르소나
 - `e04e872` Parent 페르소나
 - `9de1be6` Superadmin 라벨 폴리시
 - `31aa058` 선생님 활동표 madi_users 확장 + 안전 가드
 - `f2b0d2c` 학부모 panelHome FOUC 가드
 - `33e4330` Parent 발달 그래프 평가 점수 반영
+- `c633e49` Teacher 이번 주 작성률 — 미래 일정 분모 제외
+- `3b2f043` Admin 진도율 — 미래 일정 분모 제외
+- `d06d08a` Admin 매출 추정 산식 인라인 expand
+- `00a5d72` Admin 하단 패널 (운영 알림 + 빠른 액션)
+- `6bf50fb` 데이터 갱신 시각 표시
+- `627c634` 공지 내용 XSS escape
 
 **smoke**: 23 / 0 통과 (변동 없음)
 **배포**: GitHub Pages 1~2분 후 자동 반영 — 사용자에게 강제 새로고침 (Ctrl+Shift+R) 안내 필요
@@ -111,9 +117,27 @@ applyParentUI() ─→ switchParentTab('home') ─→ loadParentHome()  (parentP
 `madi_users` 직접 조회로 활동 0건 선생님까지 표시 (회색 처리).
 admin → 본인 센터 / superadmin → 전 센터 분기.
 
+### 이번 주 작성률 / 진도율 정확도 — ✅ 개선 완료 (`c633e49`, `3b2f043`)
+미래 일정이 분모에 포함되어 항상 낮게 보이던 버그 수정.
+도래분만 분모로 사용 + 남은 일정 정보는 별도 표기.
+
+### Admin 매출 산식 투명성 — ✅ 개선 완료 (`d06d08a`)
+히어로의 "📌 바우처 단가 × 완료 세션 추정값" 클릭 시 단가표 펼침.
+바우처 종류별 세션 수 / 단가 / 소계 / 합계 + 단가 수정 경로 안내.
+
+### Admin 하단 패널 (운영 알림 + 빠른 액션) — ✅ 개선 완료 (`00a5d72`)
+미리보기 ⑧ 의 grid-2-bottom 누락 보완.
+정산 대기·미작성·공지 알림 + 정산처리·라운지·선생님관리·리포트 액션.
+
+### 데이터 갱신 시각 표시 — ✅ 개선 완료 (`6bf50fb`)
+헤더 greeting 줄에 "데이터 갱신: 방금 전 / N분 전" 회색 메타.
+실시간 폴링(10초) 이 loadDBFromSupabase 를 호출할 때마다 갱신.
+
 ### Super 센터 셀렉터
 현재 superadmin = admin 재활용 + "전체 센터 집계" 라벨만 추가.
 사이드바에 센터 드롭다운 추가는 별도 작업 — 결정되면 `dashAdmin` 헤더에 셀렉터 마운트.
+**주의**: loadDBFromSupabase 의 safeMap 이 center_id 를 carry over 하지 않으므로
+구현 시 select 에 center_id 추가 + safeMap 수정 + saveChildren 영향 확인 필요.
 
 ### 매출 단가 사용자 편집
 현재 `_DP_VOUCHER_PRICE` 가 madi-03.js 안에 하드코딩.
