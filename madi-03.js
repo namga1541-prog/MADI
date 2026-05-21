@@ -1106,16 +1106,23 @@ function renderDashboardTeacher() {
 
   // 이번 주 활동 요약
   var thisWeekSessions = mySession.filter(function(s){ return s.date >= monStr && s.date <= sunStr; });
-  var thisWeekEvals = _assessments.filter(function(a){ return a.teacher === myName && a.date >= monStr && a.date <= sunStr; });
+  // 평가는 user_id 로 식별 (assessmentDB 에는 teacher 필드 없음)
+  var myUserId = currentUser && currentUser.id;
+  var thisWeekEvals = _assessments.filter(function(a){
+    if (a.date < monStr || a.date > sunStr) return false;
+    return myUserId && String(a.user_id) === String(myUserId);
+  });
 
   // ── HTML ──
   var titleText = _dpGreetingFor(myName, 'teacher');
   var nearest = todaySched.length ? todaySched.find(function(s){ return !_sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; }); }) || todaySched[0] : null;
   var nearestChild = nearest ? _children.find(function(c){ return c.id === nearest.childId; }) : null;
+  var _nearestTime = nearest ? (nearest.startTime||'').slice(0,5) : '';
+  var _nearestName = escHtml(nearestChild ? nearestChild.name : '?');
   var subText = todaySched.length === 0
     ? '오늘 예정된 세션은 없어요. 다음 주 일정을 미리 확인해 보세요.'
     : '오늘 <b>' + todaySched.length + '건</b>의 세션이 예정되어 있어요.'
-      + (nearest ? ' 가장 가까운 일정은 <b>' + escHtml((nearest.startTime||'').slice(0,5)) + ' ' + escHtml(nearestChild ? nearestChild.name : '?') + '</b>예요.' : '');
+      + (nearest ? ' 가장 가까운 일정은 <b>' + (_nearestTime ? escHtml(_nearestTime) + ' ' : '') + _nearestName + '</b>이에요.' : '');
 
   var freshness = _dpFreshnessLabel();
   var html = ''
@@ -1418,6 +1425,9 @@ function _dpToggleRevBreakdown() {
   var isOpen = el.style.display !== 'none';
   el.style.display = isOpen ? 'none' : '';
   window._dpRevOpen = !isOpen;
+  // 트리거 버튼 텍스트 갱신 (자세히 ▾ ↔ 접기 ▴)
+  var btn = document.getElementById('dpRevToggleBtn');
+  if (btn) btn.textContent = '📌 바우처 단가 × 완료 세션 추정값 · ' + (isOpen ? '자세히 ▾' : '접기 ▴');
 }
 
 function renderDashboardAdmin() {
@@ -1532,6 +1542,7 @@ function renderDashboardAdmin() {
   var subText = '이번 달 세션 <b>' + thisMonthSessions.length + '건</b> 완료 · 정산 대기 <b>' + pendingSched.length + '건</b>' + (pendingSched.length > 0 ? ' (' + _dpFmtWon(pendingAmount) + ' 추정)' : '');
 
   var freshness = _dpFreshnessLabel();
+  var _revOpen = window._dpRevOpen === true; // 매출 산식 펼침 상태 (폴링 재렌더 시 유지)
   var html = ''
     + '<div class="dp-head">'
     +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner())
@@ -1562,7 +1573,7 @@ function renderDashboardAdmin() {
     +     '<div class="dp-rev-label">💰 이번 달 매출 (추정' + (role === 'superadmin' ? ' · 전체' : '') + ')</div>'
     +     '<div class="dp-rev-num">' + _dpFmtWon(revenue) + '</div>'
     +     '<div class="dp-rev-meta">' + escHtml(deltaTxt) + '</div>'
-    +     '<button class="dp-rev-tag" onclick="_dpToggleRevBreakdown()" style="cursor:pointer;border:1px solid rgba(252,211,77,0.3);font-family:inherit;" title="바우처별 단가·세션 수 보기">📌 바우처 단가 × 완료 세션 추정값 · 자세히 ▾</button>'
+    +     '<button class="dp-rev-tag" id="dpRevToggleBtn" onclick="_dpToggleRevBreakdown()" style="cursor:pointer;border:1px solid rgba(252,211,77,0.3);font-family:inherit;" title="바우처별 단가·세션 수 보기">📌 바우처 단가 × 완료 세션 추정값 · ' + (_revOpen ? '접기 ▴' : '자세히 ▾') + '</button>'
     +   '</div>'
     +   '<div class="dp-rev-sub">'
     +     '<div class="dp-rev-sub-label">⏳ 정산 대기</div>'
@@ -1572,12 +1583,11 @@ function renderDashboardAdmin() {
     +   '<div class="dp-rev-sub">'
     +     '<div class="dp-rev-sub-label">📊 이번 달 세션</div>'
     +     '<div class="dp-rev-sub-num">' + thisMonthSessions.length + ' <em>건</em></div>'
-    +     '<div class="dp-rev-sub-meta">월 계획 <b>' + thisMonthSched.length + '건</b> · 진도율 <b>' + (thisMonthSchedDue.length ? Math.round(thisMonthSessions.length / thisMonthSchedDue.length * 100) : 0) + '%</b> (도래 ' + thisMonthSchedDue.length + '건 기준)</div>'
+    +     '<div class="dp-rev-sub-meta">월 계획 <b>' + thisMonthSched.length + '건</b>' + (thisMonthSchedDue.length ? ' · 진도율 <b>' + Math.round(thisMonthSessions.length / thisMonthSchedDue.length * 100) + '%</b> (도래 ' + thisMonthSchedDue.length + '건 기준)' : ' · 이번 달 시작 전') + '</div>'
     +   '</div>'
     + '</div>';
 
   // 단가표 (기본 숨김 — 토글로 펼침. window._dpRevOpen 으로 폴링 재렌더 시 상태 유지)
-  var _revOpen = window._dpRevOpen === true;
   html += ''
     + '<div id="dpRevBreakdown" class="dp-rev-breakdown" style="display:' + (_revOpen ? '' : 'none') + ';margin-bottom:18px;background:white;border:1px solid #e7ecf2;border-radius:12px;overflow:hidden;">'
     +   '<div class="dp-panel-head">'
@@ -1609,7 +1619,7 @@ function renderDashboardAdmin() {
       + '<div class="dp-trow" data-revcols="1" style="border-top:2px solid #e7ecf2;font-weight:800;">'
       +   '<div class="dp-tname">합계</div>'
       +   '<div class="dp-tstat"><div class="dp-tstat-num">' + thisMonthSessions.length + '</div><div class="dp-tstat-label">건</div></div>'
-      +   '<div class="dp-tstat"></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-num" style="color:#cbd5e1;">—</div></div>'
       +   '<div class="dp-tstat"><div class="dp-tstat-num" style="color:#0f3b66;">' + _dpFmtWon(revenue) + '</div><div class="dp-tstat-label"></div></div>'
       + '</div>'
       + '<div style="margin-top:12px;padding:10px 12px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:11.5px;color:#92400e;line-height:1.55;">'

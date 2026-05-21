@@ -233,7 +233,8 @@ function _renderParentHero(d) {
   var t = new Date();
   var wd = ['일','월','화','수','목','금','토'];
   if (greetEl) greetEl.textContent = t.getFullYear() + '년 ' + (t.getMonth()+1) + '월 ' + t.getDate() + '일 ' + wd[t.getDay()] + '요일';
-  if (navEl)   navEl.innerHTML = '안녕하세요, ' + escHtml(name) + ' 어머님 🌸';
+  // 학부모 호칭은 성별 미특정이므로 "보호자님" 사용 (어머님/아버님 무관)
+  if (navEl)   navEl.innerHTML = '안녕하세요, ' + escHtml(name) + ' 보호자님 🌸';
   if (subEl)   subEl.textContent = name + '의 활동 상황과 다음 세션을 확인하세요.';
 
   var avEl = document.getElementById('parentHeroAv');
@@ -467,7 +468,10 @@ function _renderParentChartByScore(assessments) {
     return;
   }
 
-  var maxY = 100;
+  // maxY 동적 계산 — 표준 100점 만점 가정하되 데이터가 그보다 크면 확장
+  var maxScore = 100;
+  months.forEach(function(m){ if (m.avg != null && m.avg > maxScore) maxScore = m.avg; });
+  var maxY = maxScore;
   var W = 600, H = 160;
   var step = W / (months.length - 1 || 1);
   var pts = months.map(function(m, i){
@@ -676,7 +680,20 @@ function _renderParentHomeActivities() {
     { title: '그림책 읽고 등장인물 한 문장 만들기', desc: '"토끼가 뛰어요" 같이 두 단어 조합부터 자연스럽게 유도해 보세요.' },
     { title: '하루 한 가지 일과를 두 문장으로 말해보기', desc: '"오늘 어린이집에서 뭐 했어?" 같은 열린 질문을 활용해 보세요.' }
   ];
+  // 자녀별·주별 체크 상태 localStorage (자녀 전환·새로고침에도 유지)
+  var childKey = window._parentChildId || 'me';
+  var weekKey = (function(){
+    var d = new Date();
+    var yr = d.getFullYear();
+    // 연 시작 일 + 7일 단위 주차
+    var diff = Math.floor((d - new Date(yr, 0, 1)) / 86400000);
+    return yr + 'w' + Math.floor(diff / 7);
+  })();
+  var storeKey = 'madi_parent_acts_' + childKey + '_' + weekKey;
+  var checked = {};
+  try { checked = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch(e) { checked = {}; }
   el.innerHTML = defaults.map(function(a, i){
+    var isDone = checked[i] === true;
     return ''
       + '<div class="dp-p-act">'
       +   '<div class="dp-p-act-num">' + (i+1) + '</div>'
@@ -684,10 +701,23 @@ function _renderParentHomeActivities() {
       +     '<b>' + escHtml(a.title) + '</b>'
       +     '<span>' + escHtml(a.desc) + '</span>'
       +   '</div>'
-      +   '<div class="dp-p-act-check" onclick="this.classList.toggle(\'done\'); this.textContent=this.classList.contains(\'done\')?\'✓\':\'\';"></div>'
+      +   '<div class="dp-p-act-check ' + (isDone ? 'done' : '') + '" data-act-idx="' + i + '" '
+      +     'onclick="_toggleParentActivity(this, \'' + storeKey + '\', ' + i + ')">' + (isDone ? '✓' : '') + '</div>'
       + '</div>';
   }).join('')
   + '<div style="margin-top:12px;font-size:11px;color:#94a3b8;text-align:center;">담당 선생님이 곧 맞춤 활동을 제안해 드릴 예정이에요 🌱</div>';
+}
+
+// 가정 활동 체크박스 토글 — localStorage 영속화 (자녀별·주차별 분리)
+function _toggleParentActivity(el, storeKey, idx) {
+  var isDone = el.classList.contains('done');
+  if (isDone) { el.classList.remove('done'); el.textContent = ''; }
+  else        { el.classList.add('done');    el.textContent = '✓'; }
+  try {
+    var s = JSON.parse(localStorage.getItem(storeKey) || '{}') || {};
+    if (isDone) delete s[idx]; else s[idx] = true;
+    localStorage.setItem(storeKey, JSON.stringify(s));
+  } catch(e) { /* 저장 실패 — UI 만 토글 */ }
 }
 
 // 만 나이 계산
