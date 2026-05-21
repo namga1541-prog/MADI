@@ -1024,6 +1024,17 @@ function _dpTodayBanner() {
   return t.getFullYear() + '년 ' + (t.getMonth()+1) + '월 ' + t.getDate() + '일 ' + wd[t.getDay()] + '요일';
 }
 
+// 데이터 갱신 시각 표시 — _dataLoadedAt 기반
+function _dpFreshnessLabel() {
+  var ts = window._dataLoadedAt;
+  if (!ts) return '';
+  var d = Math.floor((Date.now() - ts) / 1000);
+  if (d < 5)   return '데이터 갱신: 방금 전';
+  if (d < 60)  return '데이터 갱신: ' + d + '초 전';
+  if (d < 3600) return '데이터 갱신: ' + Math.floor(d/60) + '분 전';
+  return '데이터 갱신: ' + Math.floor(d/3600) + '시간 전';
+}
+
 // ────────────────────────────────────────────────────────────────
 // Teacher 홈 (⑥)
 // ────────────────────────────────────────────────────────────────
@@ -1094,9 +1105,10 @@ function renderDashboardTeacher() {
     : '오늘 <b>' + todaySched.length + '건</b>의 세션이 예정되어 있어요.'
       + (nearest ? ' 가장 가까운 일정은 <b>' + escHtml((nearest.startTime||'').slice(0,5)) + ' ' + escHtml(nearestChild ? nearestChild.name : '?') + '</b>예요.' : '');
 
+  var freshness = _dpFreshnessLabel();
   var html = ''
     + '<div class="dp-head">'
-    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + '</div>'
+    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + (freshness ? ' · <span style="color:#94a3b8;">' + escHtml(freshness) + '</span>' : '') + '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
     + '</div>';
@@ -1503,9 +1515,13 @@ function renderDashboardAdmin() {
     : '전월 데이터 없음';
   var subText = '이번 달 세션 <b>' + thisMonthSessions.length + '건</b> 완료 · 정산 대기 <b>' + pendingSched.length + '건</b>' + (pendingSched.length > 0 ? ' (' + _dpFmtWon(pendingAmount) + ' 추정)' : '');
 
+  var freshness = _dpFreshnessLabel();
   var html = ''
     + '<div class="dp-head">'
-    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + (role === 'superadmin' ? ' · <span style="color:#d97706;font-weight:700;">전체 센터 집계</span>' : '') + '</div>'
+    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner())
+    +     (role === 'superadmin' ? ' · <span style="color:#d97706;font-weight:700;">전체 센터 집계</span>' : '')
+    +     (freshness ? ' · <span style="color:#94a3b8;">' + escHtml(freshness) + '</span>' : '')
+    +   '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
     + '</div>';

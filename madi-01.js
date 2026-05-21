@@ -530,6 +530,7 @@ function loadDBFromSupabase(silent) {
     var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
     // cn3_* localStorage 마이그레이션 분기 제거 — 보안 보강으로 PII 평문 캐시 폐지
     childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
+    window._dataLoadedAt = Date.now(); // 페르소나 대시보드 "데이터 갱신: N분 전" 표시용
     if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
     renderChildGrid(); populateChildSelects(); renderGoalRows(); renderSessionList(); renderUnwrittenAlert(); renderStaffCard();
     if (typeof renderSchedView === 'function') renderSchedView();
