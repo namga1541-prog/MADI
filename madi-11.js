@@ -831,7 +831,10 @@ function generateAssessReport() {
     + '- 오류 분석 표 예시 형식:\n'
     + '  | 목표 → 오류 | 적용 오류 패턴 | 발달성 판단 |\n'
     + '  | 사탕→타탕 (ㅅ→ㅌ) | 파열음화 | 만 4세 이후이므로 비발달적 |\n'
-    + '  | 자동차→타동타 (ㅈ→ㅌ) | 파열음화 + 전방화 | 만 4세 이후이므로 비발달적 |';
+    + '  | 자동차→타동타 (ㅈ→ㅌ) | 파열음화 + 전방화 | 만 4세 이후이므로 비발달적 |'
+    + '\n\n'
+    // 현업 임상 보고서 스타일 가이드 — madi-vocab.js 의 익명화된 예시 부착
+    + ((typeof getReportStyleGuide === 'function') ? getReportStyleGuide('language') : '');
 
   var USER = '【아동 정보】\n'
     + '이름: ' + child.name + '\n'

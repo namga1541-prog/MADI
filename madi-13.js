@@ -381,8 +381,10 @@ function generateSIReport() {
     : '입력 없음';
 
   var _clinicalGuide = (typeof SLP_PROMPT_CLINICAL_GUIDE !== 'undefined') ? SLP_PROMPT_CLINICAL_GUIDE : '';
+  var _styleGuide = (typeof getReportStyleGuide === 'function') ? getReportStyleGuide('si') : '';
   var SYSTEM = '당신은 한국 임상 현장의 감각통합 분야 전문 작업치료사입니다. 평가 결과를 바탕으로 전문적이고 임상적으로 타당한 보고서 종합 소견과 치료 권고사항을 작성합니다. 한국어로 작성하며, 아동의 강점과 어려움을 균형 있게 기술합니다.\n\n'
-    + _clinicalGuide;
+    + _clinicalGuide
+    + (_styleGuide ? '\n\n' + _styleGuide : '');
 
   var USER = '[아동 정보]' + NL
     + '이름: ' + d.child.name + ' / 성별: ' + (d.child.gender||'-') + ' / 생년월일: ' + (d.child.birth||'-') + ' / 생활연령: ' + (d.child.age||'-') + NL
