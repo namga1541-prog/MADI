@@ -197,8 +197,10 @@ function loadParentHome() {
           var data = s.data || s;
           return String(data.childId || data.child_id) === String(childId);
         }).map(function(s){ return s.data || s; });
+        window._parentSessionsCache = mine; // 평가 fallback 용
         _renderParentWeekSessions(mine);
-        _renderParentChart(mine);
+        // 평가 데이터 우선 시도, 없으면 세션 기반
+        _loadParentAssessments(childId, centerId, mine);
       })
       .catch(function(e){ if(window.console&&console.warn) console.warn('[silent madi-15 sess]', e && e.message); });
 
@@ -370,6 +372,131 @@ function _loadParentTeacherMessages() {
       if (subEl) subEl.textContent = '불러오기 실패';
       el.innerHTML = '<div class="dp-empty">메시지를 불러오지 못했습니다</div>';
     });
+}
+
+// 평가 점수 조회 → 점수 기반 그래프, 실패/빈 경우 세션 기반 fallback
+function _loadParentAssessments(childId, centerId, sessionsFallback) {
+  supaFetch('madi_assessments?child_id=eq.' + encodeURIComponent(childId)
+    + '&order=id.desc&limit=30', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows)) rows = [];
+      // 2차 필터 (server 우회 방어선)
+      var mine = rows.filter(function(a){
+        var d = a.data || a;
+        return String(d.childId || d.child_id || a.child_id) === String(childId);
+      }).map(function(a){
+        var d = a.data || a;
+        // scores: {언어이해:75, 표현언어:68, ...} 또는 단일 score
+        var avg = null;
+        if (d.scores && typeof d.scores === 'object') {
+          var sum = 0, cnt = 0;
+          Object.keys(d.scores).forEach(function(k){
+            var v = parseFloat(d.scores[k]);
+            if (isFinite(v)) { sum += v; cnt++; }
+          });
+          if (cnt > 0) avg = sum / cnt;
+        } else if (d.score != null && isFinite(parseFloat(d.score))) {
+          avg = parseFloat(d.score);
+        }
+        return { date: d.date || a.date || '', score: avg };
+      }).filter(function(a){ return a.date && a.score != null; });
+
+      if (mine.length === 0) {
+        // fallback — 평가가 없으면 세션 카운트 차트
+        _renderParentChart(sessionsFallback || []);
+        return;
+      }
+      _renderParentChartByScore(mine);
+    })
+    .catch(function(e){
+      if (window.console && console.warn) console.warn('[silent madi-15 assess]', e && e.message);
+      _renderParentChart(sessionsFallback || []);
+    });
+}
+
+// 평가 점수 기반 발달 그래프 (월별 평균)
+function _renderParentChartByScore(assessments) {
+  var bodyEl = document.getElementById('parentChartBody');
+  var subEl = document.getElementById('parentChartSub');
+  if (!bodyEl) return;
+
+  // 월별 평균 — 최근 5개월
+  var now = new Date();
+  var months = [];
+  for (var i = 4; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'),
+      label: (d.getMonth()+1) + '월',
+      sum: 0, count: 0, avg: null
+    });
+  }
+  assessments.forEach(function(a){
+    var ym = (a.date || '').slice(0,7);
+    months.forEach(function(m){ if (m.key === ym) { m.sum += a.score; m.count++; } });
+  });
+  months.forEach(function(m){ if (m.count > 0) m.avg = m.sum / m.count; });
+
+  // 빈 월은 직전 값으로 보간 (그래프 연속성)
+  var lastVal = null;
+  months.forEach(function(m){
+    if (m.avg == null && lastVal != null) m.avg = lastVal;
+    if (m.avg != null) lastVal = m.avg;
+  });
+  // 앞쪽도 후속 값으로 채움
+  var firstVal = null;
+  months.forEach(function(m){ if (m.avg != null && firstVal == null) firstVal = m.avg; });
+  if (firstVal != null) {
+    months.forEach(function(m){ if (m.avg == null) m.avg = firstVal; });
+  }
+  if (firstVal == null) {
+    // 평가는 있지만 최근 5개월 안에 없음 → 세션 fallback
+    _renderParentChart(window._parentSessionsCache || []);
+    return;
+  }
+
+  var maxY = 100;
+  var W = 600, H = 160;
+  var step = W / (months.length - 1 || 1);
+  var pts = months.map(function(m, i){
+    var x = i * step;
+    var y = H - (m.avg / maxY) * H;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  });
+  var areaPts = ['0,' + H].concat(pts).concat([W + ',' + H]);
+
+  if (subEl) subEl.textContent = '최근 5개월 평가 점수 평균 (100점 만점)';
+
+  var html = ''
+    + '<div class="dp-p-chart-area">'
+    +   '<div class="dp-p-chart-grid"><div class="dp-p-chart-grid-line"></div><div class="dp-p-chart-grid-line"></div><div class="dp-p-chart-grid-line"></div><div class="dp-p-chart-grid-line"></div><div class="dp-p-chart-grid-line"></div></div>'
+    +   '<svg class="dp-p-chart-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">'
+    +     '<defs><linearGradient id="dpPGradScore" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ec4899" stop-opacity="0.3"/><stop offset="100%" stop-color="#ec4899" stop-opacity="0"/></linearGradient></defs>'
+    +     '<polygon points="' + areaPts.join(' ') + '" fill="url(#dpPGradScore)"/>'
+    +     '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+    + months.map(function(m, i){
+        var x = i * step;
+        var y = H - (m.avg / maxY) * H;
+        var isLast = i === months.length - 1;
+        return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (isLast ? 6 : 5) + '" fill="' + (isLast ? '#ec4899' : 'white') + '" stroke="' + (isLast ? 'white' : '#ec4899') + '" stroke-width="2.5"/>';
+      }).join('')
+    +   '</svg>'
+    + '</div>'
+    + '<div class="dp-p-chart-x">' + months.map(function(m){ return '<span>' + m.label + '</span>'; }).join('') + '</div>';
+
+  // 요약 셀
+  var current = months[months.length - 1].avg;
+  var first = months[0].avg;
+  var delta = current - first;
+  var deltaTxt = delta >= 0 ? '↑ +' + delta.toFixed(0) + '점' : delta.toFixed(0) + '점';
+  html += ''
+    + '<div class="dp-p-chart-sum">'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num ' + (delta >= 0 ? 'good' : '') + '">' + deltaTxt + '</div><div class="dp-p-chart-label">5개월 누적</div></div>'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + Math.round(current) + '<small style="font-size:11px;color:#94a3b8;font-weight:600;">점</small></div><div class="dp-p-chart-label">현재 평균</div></div>'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + assessments.length + '<small style="font-size:11px;color:#94a3b8;font-weight:600;"> 회</small></div><div class="dp-p-chart-label">평가 누적</div></div>'
+    + '</div>';
+
+  bodyEl.innerHTML = html;
 }
 
 // 발달 추이 그래프 (월별 세션 수 — 평가 점수가 있으면 우선 사용)
