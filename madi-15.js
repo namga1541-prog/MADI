@@ -4,8 +4,7 @@
 
 var _parentCurrentTab = 'home';
 
-// VAPID 공개키 — vapid-keygen.html 로 생성 후 아래 값 교체
-var MADI_VAPID_PUBLIC_KEY = 'REPLACE_WITH_YOUR_VAPID_PUBLIC_KEY';
+var MADI_VAPID_PUBLIC_KEY = 'BNH0y5wZW_nzhS5IG_6pMYAKmeDYoPWIkc9msFfNXyAsSxAeCzYjtEpW4NDdk5K_0SBmEYUeqIb_mpAWN9NPflU';
 
 // ─── 탭 전환 ───
 function switchParentTab(tab) {
@@ -1338,7 +1337,7 @@ function _subscribePush(reg) {
         center_id: currentUser.center_id || window._parentCenterId || '',
         endpoint:  j.endpoint,
         p256dh:    j.keys.p256dh,
-        auth_key:  j.keys.auth
+        auth:      j.keys.auth
       }).then(function() {
         showToast('✅ 알림이 설정됐습니다');
         loadParentPushToggle();

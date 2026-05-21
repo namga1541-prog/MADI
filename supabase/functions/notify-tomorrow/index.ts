@@ -96,7 +96,7 @@ Deno.serve(async () => {
       const childIds = [...new Set(scheds.map(s => s.child_id))];
 
       // ③ 학부모-자녀 연결
-      interface Link { parent_user_id: number; child_id: number }
+      interface Link { parent_user_id: string; child_id: string }
       const links = await sq<Link>(
         `madi_parent_children?child_id=in.(${childIds.join(',')})&select=parent_user_id,child_id`
       );
@@ -112,10 +112,10 @@ Deno.serve(async () => {
       children.forEach(c => { nameMap[c.id] = c.data?.name ?? ''; });
 
       // ⑤ Push 구독 조회
-      interface PushSub { user_id: number; endpoint: string; p256dh: string; auth_key: string }
+      interface PushSub { user_id: string; endpoint: string; p256dh: string; auth: string }
       const parentIds = [...new Set(links.map(l => l.parent_user_id))];
       const subs = await sq<PushSub>(
-        `madi_push_subscriptions?user_id=in.(${parentIds.join(',')})&select=user_id,endpoint,p256dh,auth_key`
+        `madi_push_subscriptions?user_id=in.(${parentIds.map(encodeURIComponent).join(',')})&select=user_id,endpoint,p256dh,auth`
       );
       if (!subs.length) {
         await sp('madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
@@ -123,13 +123,14 @@ Deno.serve(async () => {
       }
 
       // ⑥ 학부모별 1회 발송 (다자녀면 첫 번째 자녀 기준)
-      const sentParents = new Set<number>();
+      const sentParents = new Set<string>();
       for (const link of links) {
         if (sentParents.has(link.parent_user_id)) continue;
-        const sched = scheds.find(s => s.child_id === link.child_id);
+        // madi_schedules.child_id=bigint, madi_parent_children.child_id=text
+        const sched = scheds.find(s => String(s.child_id) === link.child_id);
         if (!sched) continue;
 
-        const childName = nameMap[link.child_id] || '아동';
+        const childName = nameMap[Number(link.child_id)] || '아동';
         const startTime = sched.data?.startTime ?? '';
         const title = cfg.message_title;
         const body  = cfg.message_body
@@ -144,7 +145,7 @@ Deno.serve(async () => {
         for (const sub of parentSubs) {
           try {
             await webpush.sendNotification(
-              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
+              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
               payload
             );
             totalSent++;
