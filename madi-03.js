@@ -1385,6 +1385,13 @@ function _dpFmtWon(n) {
   return '₩' + Math.round(n).toLocaleString('ko-KR');
 }
 
+// 매출 추정 산식 펼침/접기 토글
+function _dpToggleRevBreakdown() {
+  var el = document.getElementById('dpRevBreakdown');
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
 function renderDashboardAdmin() {
   var root = document.getElementById('dashAdmin');
   if (!root) return;
@@ -1503,6 +1510,19 @@ function renderDashboardAdmin() {
     +   '<p class="dp-sub">' + subText + '</p>'
     + '</div>';
 
+  // 이번 달 바우처별 세션 카운트 (단가 노출용)
+  var voucherBreakdown = {};
+  thisMonthSessions.forEach(function(s){
+    var c = _children.find(function(cc){ return cc.id === s.childId; });
+    var v = c && c.voucherType ? c.voucherType : '일반';
+    if (!voucherBreakdown[v]) voucherBreakdown[v] = { count: 0, price: _DP_VOUCHER_PRICE[v] || _DP_VOUCHER_PRICE['일반'] };
+    voucherBreakdown[v].count++;
+  });
+  var voucherRows = Object.keys(voucherBreakdown).map(function(v){
+    var b = voucherBreakdown[v];
+    return { type: v, count: b.count, price: b.price, total: b.count * b.price };
+  }).sort(function(a,b){ return b.total - a.total; });
+
   // 매출 히어로 (추정값 라벨 명시)
   html += ''
     + '<div class="dp-rev">'
@@ -1510,7 +1530,7 @@ function renderDashboardAdmin() {
     +     '<div class="dp-rev-label">💰 이번 달 매출 (추정' + (role === 'superadmin' ? ' · 전체' : '') + ')</div>'
     +     '<div class="dp-rev-num">' + _dpFmtWon(revenue) + '</div>'
     +     '<div class="dp-rev-meta">' + escHtml(deltaTxt) + '</div>'
-    +     '<div class="dp-rev-tag">📌 바우처 단가 × 완료 세션 추정값</div>'
+    +     '<button class="dp-rev-tag" onclick="_dpToggleRevBreakdown()" style="cursor:pointer;border:1px solid rgba(252,211,77,0.3);font-family:inherit;" title="바우처별 단가·세션 수 보기">📌 바우처 단가 × 완료 세션 추정값 · 자세히 ▾</button>'
     +   '</div>'
     +   '<div class="dp-rev-sub">'
     +     '<div class="dp-rev-sub-label">⏳ 정산 대기</div>'
@@ -1523,6 +1543,48 @@ function renderDashboardAdmin() {
     +     '<div class="dp-rev-sub-meta">월 계획 <b>' + thisMonthSched.length + '건</b> · 진도율 <b>' + (thisMonthSchedDue.length ? Math.round(thisMonthSessions.length / thisMonthSchedDue.length * 100) : 0) + '%</b> (도래 ' + thisMonthSchedDue.length + '건 기준)</div>'
     +   '</div>'
     + '</div>';
+
+  // 단가표 (기본 숨김 — 토글로 펼침)
+  html += ''
+    + '<div id="dpRevBreakdown" class="dp-rev-breakdown" style="display:none;margin-bottom:18px;background:white;border:1px solid #e7ecf2;border-radius:12px;overflow:hidden;">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">💵 이번 달 매출 추정 산식</div>'
+    +       '<div class="dp-panel-sub">바우처별 세션 수 × 정부 단가 추정</div></div>'
+    +     '<button class="dp-panel-link" onclick="_dpToggleRevBreakdown()">접기 ▴</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">';
+  if (voucherRows.length === 0) {
+    html += '<div class="dp-empty">이번 달 완료 세션이 없습니다</div>';
+  } else {
+    html += ''
+      + '<div class="dp-trow head" style="grid-template-columns:1fr 80px 100px 120px;">'
+      +   '<div>바우처 종류</div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-label">세션</div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-label">단가</div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-label">소계</div></div>'
+      + '</div>';
+    voucherRows.forEach(function(r){
+      html += ''
+        + '<div class="dp-trow" style="grid-template-columns:1fr 80px 100px 120px;">'
+        +   '<div class="dp-tname">' + escHtml(r.type) + '</div>'
+        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + r.count + '</div><div class="dp-tstat-label">건</div></div>'
+        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + _dpFmtWon(r.price) + '</div><div class="dp-tstat-label">/ 회</div></div>'
+        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + _dpFmtWon(r.total) + '</div><div class="dp-tstat-label"></div></div>'
+        + '</div>';
+    });
+    html += ''
+      + '<div class="dp-trow" style="grid-template-columns:1fr 80px 100px 120px;border-top:2px solid #e7ecf2;font-weight:800;">'
+      +   '<div class="dp-tname">합계</div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-num">' + thisMonthSessions.length + '</div><div class="dp-tstat-label">건</div></div>'
+      +   '<div class="dp-tstat"></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-num" style="color:#0f3b66;">' + _dpFmtWon(revenue) + '</div><div class="dp-tstat-label"></div></div>'
+      + '</div>'
+      + '<div style="margin-top:12px;padding:10px 12px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:11.5px;color:#92400e;line-height:1.55;">'
+      +   '⚠️ 단가는 정부 고시 기준 추정값입니다. 실제 정산 금액과 다를 수 있어요. '
+      +   '<code style="background:white;padding:1px 5px;border-radius:4px;font-size:11px;">madi-03.js</code> 의 <code style="background:white;padding:1px 5px;border-radius:4px;font-size:11px;">_DP_VOUCHER_PRICE</code> 에서 단가표 수정 가능.'
+      + '</div>';
+  }
+  html += '</div></div>';
 
   // KPI
   html += ''
