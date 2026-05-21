@@ -878,4 +878,7 @@ function applyUserUI() {
   }
   headerUser.style.display = 'flex';
   if (typeof updateSidebarAdminVisibility === 'function') updateSidebarAdminVisibility();
+  // ⚡ 빠른 기록 버튼: 선생님 역할에만 노출 (admin/superadmin/parent 숨김)
+  var qb = document.getElementById('headerQuickBtn');
+  if (qb) qb.style.display = (currentUser.role === 'teacher') ? 'inline-flex' : 'none';
 }

@@ -384,7 +384,7 @@ function renderDashboardLegacy() {
   }).join('');}}
 }
 var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7','panel8',
-                      'panelNotice','panelReport','panelPortfolio','panelService','panelUserSettings','panelBoard'];
+                      'panelNotice','panelReport','panelPortfolio','panelService','panelUserSettings','panelBoard','panelQuick'];
 var TAB_PANEL_MAP  = ['panel2','panel0','panelReport','panelPortfolio','panelService','panel8','panelUserSettings','panelBoard'];
 
 // ─── 사이드바 active 동기화 ───

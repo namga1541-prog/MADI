@@ -950,6 +950,8 @@
   <div style="display:flex;align-items:center;gap:8px;">
     <!-- 관리자 전용 배포 버튼 (로컬 파일에서만 표시) -->
     <button id="headerDeployBtn" onclick="deployToGitHub()" style="background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.3); color: rgb(255, 255, 255); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; min-height: 32px; touch-action: manipulation;" title="index.html 배포" disabled="">⏳ 배포 중...</button>
+    <!-- ⚡ 빠른 기록 버튼 (teacher 역할일 때만 표시) -->
+    <button id="headerQuickBtn" onclick="openQuickPanel()" style="display:none;background:rgba(250,204,21,0.18);border:1.5px solid rgba(250,204,21,0.55);color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;min-height:32px;touch-action:manipulation;" title="오늘 수업 빠른 기록">⚡ 빠른 기록</button>
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
       <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">02:45</div>
       <div id="clockNext" style="display:none;">아동 467명</div>
@@ -1773,6 +1775,24 @@
   </div>
 </div>
 
+<!-- ─── ⚡ 빠른 기록 패널 (teacher 전용, 헤더 버튼으로 진입) ─── -->
+<div class="tab-panel" id="panelQuick">
+  <div class="content">
+    <div id="quickHeader" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:20px;font-weight:800;color:var(--text);">⚡ 빠른 기록</div>
+        <div id="quickHeaderSub" style="font-size:12px;color:var(--text2);margin-top:2px;">오늘 본인 담당 수업을 한 번에 기록하세요</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-secondary" onclick="renderQuickCards()" style="padding:8px 14px;font-size:13px;">🔄 새로고침</button>
+        <button class="btn" onclick="showDashboard()" style="padding:8px 14px;font-size:13px;background:var(--card-bg);border:1px solid var(--border);color:var(--text);">← 홈</button>
+      </div>
+    </div>
+    <div id="quickCardList"><!-- madi-16.js renderQuickCards() --></div>
+    <div id="quickFormPanel" style="display:none;"><!-- madi-16.js openQuickForm() --></div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════
      학부모 전용 패널
 ══════════════════════════════════════ -->
@@ -1986,6 +2006,7 @@
 <script src="madi-13.js"></script>
 <script src="madi-14.js"></script>
 <script src="madi-15.js"></script>
+<script src="madi-16.js"></script>
 
 <!-- ─── 플로팅 AI 비서 ─── -->
 <button class="float-btn" id="floatBtn" title="마로">
