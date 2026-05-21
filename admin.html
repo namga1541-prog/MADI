@@ -574,6 +574,44 @@
 <div class="panel active" id="panelAdminSettings">
   <div class="content">
 
+    <!-- 학부모 Push 알림 설정 -->
+    <div class="card" id="pushSettingsCard">
+      <div class="card-title">
+        <div class="card-title-left">🔔 학부모 알림 설정</div>
+        <span style="font-size:11px;color:var(--text2);">내일 치료 예약 알림</span>
+      </div>
+      <div style="display:grid;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">발송 시각 (KST)</label>
+            <input type="time" class="form-input" id="pushTimeInput" value="20:00">
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding-bottom:10px;">
+            <input type="checkbox" id="pushEnabledInput" checked>
+            <span>알림 활성화</span>
+          </label>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">알림 제목</label>
+          <input type="text" class="form-input" id="pushTitleInput" placeholder="내일 치료 예약 안내">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">알림 내용</label>
+          <textarea class="form-input" id="pushBodyInput" rows="2"
+            placeholder="{아동이름}의 치료가 내일 {시간}에 예정되어 있습니다."
+            style="resize:vertical;"></textarea>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px;">
+            변수: <code>{아동이름}</code>, <code>{시간}</code>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;margin:0;" onclick="savePushSettings()">💾 저장</button>
+          <button class="btn-outline" style="flex:0.4;" onclick="loadPushSettings()">🔄 불러오기</button>
+        </div>
+        <div id="pushSettingsStatus" style="font-size:12px;color:var(--text2);min-height:14px;"></div>
+      </div>
+    </div>
+
     <!-- 센터 AI 키 관리 -->
     <div class="card" style="border:2px solid var(--mint);">
       <div class="card-title">
@@ -911,11 +949,64 @@ function showAdminTab(tab) {
   }
   if (tab === 'settings') {
     loadCenterApiKey(false);
+    loadPushSettings();
     if (currentUser && currentUser.role === 'superadmin') {
       loadErrorLogs();
       loadLicenseList();
     }
   }
+}
+
+function loadPushSettings() {
+  if (!currentUser) return;
+  supaFetch('madi_push_settings?center_id=eq.' + encodeURIComponent(currentUser.center_id) + '&limit=1', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) return;
+      var s = rows[0];
+      var ti = document.getElementById('pushTimeInput');
+      var ttl = document.getElementById('pushTitleInput');
+      var bd  = document.getElementById('pushBodyInput');
+      var en  = document.getElementById('pushEnabledInput');
+      if (ti)  ti.value  = s.push_time      || '20:00';
+      if (ttl) ttl.value = s.message_title  || '';
+      if (bd)  bd.value  = s.message_body   || '';
+      if (en)  en.checked = s.enabled !== false;
+    })
+    .catch(function() {});
+}
+
+function savePushSettings() {
+  if (!currentUser) return;
+  var ti  = document.getElementById('pushTimeInput');
+  var ttl = document.getElementById('pushTitleInput');
+  var bd  = document.getElementById('pushBodyInput');
+  var en  = document.getElementById('pushEnabledInput');
+  var st  = document.getElementById('pushSettingsStatus');
+  if (!ti || !ttl || !bd) return;
+  if (st) st.textContent = '';
+
+  var data = {
+    center_id:     currentUser.center_id,
+    push_time:     ti.value || '20:00',
+    message_title: ttl.value.trim() || '내일 치료 예약 안내',
+    message_body:  bd.value.trim()  || '{아동이름}의 치료가 내일 {시간}에 예정되어 있습니다.',
+    enabled:       en ? en.checked : true
+  };
+
+  // PATCH 먼저 시도, 매칭 row 없으면 POST(신규 센터)
+  supaFetch('madi_push_settings?center_id=eq.' + encodeURIComponent(currentUser.center_id), 'PATCH', data)
+    .then(function(res) {
+      if (!res || (Array.isArray(res) && res.length === 0)) {
+        return supaFetch('madi_push_settings', 'POST', data);
+      }
+    })
+    .then(function() {
+      showToast('✅ 알림 설정 저장됨');
+      if (st) st.textContent = '저장 완료';
+    })
+    .catch(function(e) {
+      showToast('⚠️ 저장 실패: ' + (e.message || ''));
+    });
 }
 
 function goBack() { window.location.href = 'index.html'; }

@@ -62,13 +62,14 @@ const ALLOWED_TABLES = [
   'madi_schedules', 'madi_assessments', 'madi_activities',
   'madi_iep_history', 'madi_notices', 'madi_settings', 'madi_programs',
   'madi_global_notices', 'madi_lounge_posts', 'madi_lounge_comments', 'madi_parent_invites',
-  'madi_parent_children', 'madi_push_subscriptions', 'madi_licenses', 'madi_error_logs', 'madi_notifications',
+  'madi_parent_children', 'madi_push_subscriptions', 'madi_push_settings', 'madi_licenses', 'madi_error_logs', 'madi_notifications',
   'madi_portfolios'
 ]
 
 // 관리자 이상만 모든 조작 가능
 const ADMIN_ONLY_TABLES = [
   'madi_users', 'madi_centers', 'madi_settings', 'madi_error_logs', 'madi_licenses',
+  'madi_push_settings',
 ]
 
 // 읽기는 전체 허용, 쓰기(POST·PATCH·DELETE)는 admin 이상만

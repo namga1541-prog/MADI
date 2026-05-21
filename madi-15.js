@@ -4,6 +4,9 @@
 
 var _parentCurrentTab = 'home';
 
+// VAPID 공개키 — vapid-keygen.html 로 생성 후 아래 값 교체
+var MADI_VAPID_PUBLIC_KEY = 'REPLACE_WITH_YOUR_VAPID_PUBLIC_KEY';
+
 // ─── 탭 전환 ───
 function switchParentTab(tab) {
   _parentCurrentTab = tab;
@@ -161,6 +164,7 @@ function loadParentHome() {
   });
   // 알림 카드 먼저 로드 (홈 진입 시마다)
   loadParentNotifications();
+  loadParentPushToggle();
   getMyChildInfo(function(childId, centerId) {
     renderParentChildSwitcher();
     var today = getTodayKST();
@@ -1257,4 +1261,109 @@ function parentSignup() {
       btn.textContent = '✨ 가입 완료';
       errEl.textContent = '❌ 네트워크 오류: ' + (e.message || '');
     });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Web Push 알림 구독 (학부모 전용)
+// ══════════════════════════════════════════════════════════════════════
+
+function _b64UrlToUint8(b64url) {
+  var pad = '='.repeat((4 - b64url.length % 4) % 4);
+  var b64 = (b64url + pad).replace(/-/g, '+').replace(/_/g, '/');
+  var raw = atob(b64);
+  var arr = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+function loadParentPushToggle() {
+  var container = document.getElementById('parentPushToggleArea');
+  if (!container) return;
+  if (!('Notification' in window) || !navigator.serviceWorker || !window.PushManager) {
+    container.innerHTML = ''; return;
+  }
+  if (!currentUser || currentUser.role !== 'parent') { container.innerHTML = ''; return; }
+  if (!MADI_VAPID_PUBLIC_KEY || MADI_VAPID_PUBLIC_KEY === 'REPLACE_WITH_YOUR_VAPID_PUBLIC_KEY') {
+    container.innerHTML = ''; return;
+  }
+
+  navigator.serviceWorker.ready.then(function(reg) {
+    reg.pushManager.getSubscription().then(function(sub) {
+      var on = !!sub;
+      container.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;' +
+        'background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:12px;gap:12px;">' +
+        '<div>' +
+        '<div style="font-size:13px;font-weight:600;color:#111827;">🔔 내일 치료 예약 알림</div>' +
+        '<div style="font-size:11px;color:#6b7280;margin-top:2px;">치료 전날 저녁 이 기기로 알림을 보내드립니다</div>' +
+        '</div>' +
+        '<button id="pushToggleBtn" onclick="onPushToggleTap()" style="' +
+        'background:' + (on ? 'var(--mint,#64d9c0)' : '#e5e7eb') + ';' +
+        'color:' + (on ? '#fff' : '#6b7280') + ';' +
+        'border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">' +
+        (on ? '알림 켜짐' : '알림 받기') +
+        '</button>' +
+        '</div>';
+    });
+  }).catch(function() { /* SW 미준비 시 조용히 skip */ });
+}
+
+function onPushToggleTap() {
+  if (!navigator.serviceWorker) return;
+  navigator.serviceWorker.ready.then(function(reg) {
+    reg.pushManager.getSubscription().then(function(sub) {
+      if (sub) { _unsubscribePush(sub); }
+      else     { _subscribePush(reg); }
+    });
+  });
+}
+
+function _subscribePush(reg) {
+  if (Notification.permission === 'denied') {
+    showToast('⚠️ 브라우저 알림이 차단됐습니다. 브라우저 설정에서 허용 후 다시 시도해주세요.');
+    return;
+  }
+  Notification.requestPermission().then(function(perm) {
+    if (perm !== 'granted') {
+      showToast('⚠️ 알림 권한이 필요합니다.');
+      return;
+    }
+    reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: _b64UrlToUint8(MADI_VAPID_PUBLIC_KEY)
+    }).then(function(sub) {
+      var j = sub.toJSON();
+      supaFetch('madi_push_subscriptions', 'POST', {
+        user_id:   currentUser.id,
+        center_id: currentUser.center_id || window._parentCenterId || '',
+        endpoint:  j.endpoint,
+        p256dh:    j.keys.p256dh,
+        auth_key:  j.keys.auth
+      }).then(function() {
+        showToast('✅ 알림이 설정됐습니다');
+        loadParentPushToggle();
+      }).catch(function(e) {
+        showToast('⚠️ 알림 저장 실패: ' + (e.message || ''));
+        sub.unsubscribe();
+      });
+    }).catch(function() {
+      showToast('⚠️ 알림 구독에 실패했습니다.');
+    });
+  });
+}
+
+function _unsubscribePush(sub) {
+  var endpoint = sub.endpoint;
+  sub.unsubscribe().then(function() {
+    supaFetch(
+      'madi_push_subscriptions?user_id=eq.' + encodeURIComponent(currentUser.id)
+      + '&endpoint=eq.' + encodeURIComponent(endpoint),
+      'DELETE'
+    ).then(function() {
+      showToast('🔕 알림이 해제됐습니다');
+      loadParentPushToggle();
+    }).catch(function() {
+      showToast('⚠️ 알림 해제 중 오류가 발생했습니다');
+    });
+  });
 }

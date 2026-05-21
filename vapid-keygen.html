@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>MADI VAPID 키 생성기</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 620px; margin: 40px auto; padding: 24px; background: #0f1117; color: #e2e8f0; }
+  h1 { font-size: 18px; color: #64d9c0; margin: 0 0 4px; }
+  p  { font-size: 13px; color: #94a3b8; margin: 0 0 20px; }
+  .warn { color: #f87171; font-size: 12px; background: #1a1025; border: 1px solid #f87171; border-radius: 8px; padding: 12px; margin-bottom: 20px; }
+  .key-box { background: #1e2433; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .key-label { font-size: 11px; color: #64d9c0; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; font-weight: 700; }
+  .key-desc  { font-size: 11px; color: #94a3b8; margin-bottom: 8px; }
+  .key-value { font-family: monospace; font-size: 11px; word-break: break-all; background: #0f1117; padding: 10px 12px; border-radius: 6px; color: #f0f4ff; min-height: 36px; }
+  button { border: none; border-radius: 8px; padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-gen  { background: #64d9c0; color: #0f1117; width: 100%; margin-bottom: 14px; }
+  .btn-copy { background: #2d3748; color: #94a3b8; font-size: 12px; padding: 6px 14px; margin-top: 8px; }
+  .btn-copy:hover { background: #374151; color: #e2e8f0; }
+  .step { background: #1e2433; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .step-title { font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; }
+  .step-body  { font-size: 12px; color: #94a3b8; line-height: 1.7; }
+  code { background: #0f1117; padding: 1px 5px; border-radius: 3px; font-family: monospace; color: #64d9c0; }
+</style>
+</head>
+<body>
+<h1>MADI VAPID 키 생성기</h1>
+<p>Web Push 알림에 필요한 VAPID 키를 1회 생성합니다.</p>
+
+<div class="warn">⚠️ 이 페이지를 닫으면 키를 다시 볼 수 없습니다. 아래 값을 모두 복사해두세요.</div>
+
+<button class="btn-gen" onclick="generate()">🔑 VAPID 키 생성</button>
+
+<div id="output" style="display:none;">
+
+  <div class="key-box">
+    <div class="key-label">① VAPID 공개키 (VAPID_PUBLIC_KEY)</div>
+    <div class="key-desc">Supabase 시크릿 + <code>madi-15.js</code> MADI_VAPID_PUBLIC_KEY 변수에 입력</div>
+    <div class="key-value" id="pubKey"></div>
+    <button class="btn-copy" onclick="copy('pubKey')">📋 복사</button>
+  </div>
+
+  <div class="key-box">
+    <div class="key-label">② VAPID 비공개키 (VAPID_PRIVATE_KEY)</div>
+    <div class="key-desc">Supabase 시크릿에만 입력 — 절대 공유 금지</div>
+    <div class="key-value" id="privKey"></div>
+    <button class="btn-copy" onclick="copy('privKey')">📋 복사</button>
+  </div>
+
+  <div class="key-box" style="border-left:3px solid #64d9c0;">
+    <div class="key-label">③ Supabase CLI 명령어 (한 번에 설정)</div>
+    <div class="key-desc">터미널에서 실행하면 세 가지 시크릿이 한 번에 등록됩니다.</div>
+    <div class="key-value" id="cliCmd"></div>
+    <button class="btn-copy" onclick="copy('cliCmd')">📋 복사</button>
+  </div>
+
+  <div class="step">
+    <div class="step-title">📋 다음 단계</div>
+    <div class="step-body">
+      1. 위 CLI 명령어를 터미널에서 실행 → Supabase 시크릿 등록<br>
+      2. <code>madi-15.js</code> 파일 상단의 <code>MADI_VAPID_PUBLIC_KEY</code> 변수에 공개키 붙여넣기<br>
+      3. <code>notify-tomorrow</code> Edge Function 배포<br>
+      4. Supabase Dashboard > Edge Functions > notify-tomorrow > Schedule 에서<br>
+         &nbsp;&nbsp;&nbsp;Cron 표현식 <code>*/10 * * * *</code> 으로 설정
+    </div>
+  </div>
+
+</div>
+
+<script>
+function bufToBase64Url(buf) {
+  var bytes = new Uint8Array(buf);
+  var bin = '';
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function generate() {
+  var kp = await crypto.subtle.generateKey(
+    { name: 'ECDH', namedCurve: 'P-256' },
+    true,
+    ['deriveKey']
+  );
+  var pubRaw  = await crypto.subtle.exportKey('raw', kp.publicKey);
+  var privJwk = await crypto.subtle.exportKey('jwk', kp.privateKey);
+
+  var pub  = bufToBase64Url(pubRaw);
+  var priv = privJwk.d; // base64url raw 32-byte private key
+
+  document.getElementById('pubKey').textContent  = pub;
+  document.getElementById('privKey').textContent = priv;
+  document.getElementById('cliCmd').textContent  =
+    'supabase secrets set' +
+    ' VAPID_PUBLIC_KEY=' + pub +
+    ' VAPID_PRIVATE_KEY=' + priv +
+    ' VAPID_SUBJECT=mailto:namga1541@gmail.com' +
+    ' --project-ref ujxdhafzjyrglaclarwe';
+  document.getElementById('output').style.display = 'block';
+}
+
+function copy(id) {
+  var val = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(val).then(function() {
+    alert('복사 완료 ✅');
+  }).catch(function() {
+    prompt('아래 값을 수동으로 복사하세요:', val);
+  });
+}
+</script>
+</body>
+</html>

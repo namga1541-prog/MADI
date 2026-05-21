@@ -71,3 +71,32 @@ self.addEventListener("fetch", function(e) {
   // → 재방문 시 즉시 표시, 백그라운드에서 새 버전 받음
   e.respondWith(staleWhileRevalidate(e.request));
 });
+
+// ─── Web Push 핸들러 ───────────────────────────────────────────────
+self.addEventListener("push", function(e) {
+  var data = {};
+  try { if (e.data) data = e.data.json(); } catch(_) {}
+  var title = data.title || '마디';
+  var opts = {
+    body: data.body || '',
+    icon: '/MADI/icon-192.png',
+    badge: '/MADI/icon-192.png',
+    data: { url: data.url || 'https://namga1541-prog.github.io/MADI/' },
+    requireInteraction: false
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
+self.addEventListener("notificationclick", function(e) {
+  e.notification.close();
+  var target = (e.notification.data && e.notification.data.url)
+    || 'https://namga1541-prog.github.io/MADI/';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
+      for (var i = 0; i < list.length; i++) {
+        if ('focus' in list[i]) return list[i].focus();
+      }
+      if (clients.openWindow) return clients.openWindow(target);
+    })
+  );
+});
