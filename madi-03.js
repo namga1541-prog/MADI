@@ -1767,10 +1767,12 @@ function renderDashboardAdmin() {
   }
   if (_bannerNotices && _bannerNotices.length > 0) {
     var topNotice = _bannerNotices[0];
+    var noticeContent = (topNotice.content || '').toString();
     alerts.push({
       ic: topNotice.notice_type === 'imp' ? '🔴' : '📢', cls: 'ok',
       title: topNotice.title || '공지',
-      text: (topNotice.content || '').toString().slice(0, 80) + ((topNotice.content || '').length > 80 ? '...' : ''),
+      // 사용자 입력 — escape 필수
+      text: escHtml(noticeContent.slice(0, 80)) + (noticeContent.length > 80 ? '...' : ''),
       time: topNotice.created_at ? topNotice.created_at.slice(0,10) : ''
     });
   }
