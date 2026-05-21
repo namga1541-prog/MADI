@@ -427,6 +427,9 @@ function updateSidebarAdminVisibility() {
   var isSuper  = currentUser && currentUser.role==='superadmin';
   var s4=document.getElementById('sbTab4'); if(s4) s4.style.display=isAdmin?'':'none';
   var s5=document.getElementById('sbTab5'); if(s5) s5.style.display=isSuper?'':'none';
+  // "관리" 카테고리 라벨 — admin/superadmin 만 표시
+  var sl=document.getElementById('sbLabelAdmin'); if(sl) sl.style.display=isAdmin?'':'none';
+  // 구 divider id 하위 호환 (이전 HTML 캐시 사용자 대비)
   var sd=document.getElementById('sbDividerAdmin'); if(sd) sd.style.display=isAdmin?'':'none';
 }
 

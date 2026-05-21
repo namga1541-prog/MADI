@@ -2619,3 +2619,143 @@ button.dp-rev-tag:hover { background:rgba(252,211,77,0.32); color:#fef3c7; }
 .dp-p-link { color:#be185d !important; }
 .dp-p-link:hover { color:#9d174d !important; }
 
+/* ═══════════════════════════════════════════════════════════
+   ① Linear Minimal — 헤더 · 사이드바 톤 통일
+   기존 다크 그라데이션 헤더 / 큰 사이드바를 흰 배경 + 가는 보더 +
+   미니멀 톤으로 override.
+   ═══════════════════════════════════════════════════════════ */
+
+/* 헤더 — 흰 배경 + 미세 보더 */
+.header {
+  background:white !important;
+  box-shadow:none !important;
+  border-bottom:1px solid #e7ecf2;
+  padding:10px 24px !important;
+  min-height:56px;
+}
+@media (max-width:767px) { .header { padding:calc(10px + env(safe-area-inset-top, 0px)) 16px 10px !important; } }
+
+/* 로고 톤 */
+.header .logo-icon { background:linear-gradient(135deg,#0ea5a0,#22c9c3); border:none; box-shadow:0 2px 8px rgba(14,165,160,0.18); width:34px !important; height:34px !important; border-radius:9px !important; }
+.header .logo-icon .madi-icon { width:34px !important; height:34px !important; border-radius:9px !important; }
+.header .logo-text h1 { color:#0a0a0a; font-size:17px !important; letter-spacing:-0.3px; }
+.header .logo-text p { color:#737373 !important; opacity:1 !important; font-size:10.5px !important; }
+
+/* 사이드바 토글 — 흰 헤더에 맞춰 회색 톤 */
+.sidebar-toggle-btn {
+  background:#f4f4f5 !important;
+  color:#404040 !important;
+  border:1px solid #e5e5e5 !important;
+}
+.sidebar-toggle-btn:hover { background:#e5e5e5 !important; }
+
+/* 배포 버튼 — 흰 헤더에 맞춰 */
+#headerDeployBtn {
+  background:#fafafa !important;
+  border:1px solid #e5e5e5 !important;
+  color:#404040 !important;
+  font-weight:600 !important;
+  font-size:11.5px !important;
+  padding:6px 11px !important;
+  border-radius:7px !important;
+}
+#headerDeployBtn:hover { background:#f4f4f5 !important; }
+
+/* 헤더 시계 */
+.header .header-clock { color:#404040 !important; }
+.header .header-clock #clockTime { color:#0a0a0a !important; font-size:12.5px !important; font-weight:700; }
+.header .header-clock #clockNext { color:#737373 !important; font-size:11px !important; }
+
+/* 헤더 사용자 영역 */
+.header .header-user-name { color:#0a0a0a !important; font-size:13.5px !important; font-weight:700; }
+.header .header-user-badge {
+  background:#f4f4f5 !important;
+  color:#0a0a0a !important;
+  border:1px solid #e5e5e5 !important;
+  font-size:10.5px !important;
+  padding:2px 8px !important;
+  border-radius:6px !important;
+  font-weight:700;
+}
+.header .header-logout-btn {
+  background:#fafafa !important;
+  color:#404040 !important;
+  border:1px solid #e5e5e5 !important;
+  font-size:11.5px !important;
+  font-weight:600 !important;
+  padding:6px 10px !important;
+  border-radius:7px !important;
+}
+.header .header-logout-btn:hover { background:#f4f4f5 !important; color:#0a0a0a !important; }
+
+/* PC 전용 — 사이드바 미니멀화 */
+@media (min-width:768px) {
+  .app-layout { height:calc(100dvh - 56px) !important; }
+  .sidebar {
+    width:220px !important;
+    background:white !important;
+    border-right:1px solid #ebebeb !important;
+  }
+  .sidebar.collapsed { width:54px !important; }
+  .sidebar-nav { padding:14px 10px !important; gap:1px !important; }
+  .sidebar-item {
+    padding:8px 10px !important;
+    border-radius:6px !important;
+    font-size:13px !important;
+    font-weight:500 !important;
+    color:#404040 !important;
+  }
+  .sidebar-item:hover { background:#f4f4f5 !important; color:#0a0a0a !important; }
+  .sidebar-item.active {
+    background:#f4f4f5 !important;
+    color:#0a0a0a !important;
+    font-weight:600 !important;
+    box-shadow:none !important;
+  }
+  .sidebar.collapsed .sidebar-item.active { box-shadow:inset 3px 0 0 #0a0a0a !important; }
+  .sidebar-item .s-ico { font-size:14px !important; width:18px !important; opacity:0.8; }
+  .sidebar-item.active .s-ico { opacity:1; }
+  .sidebar-item .s-lbl { font-size:13px !important; }
+  .sidebar-divider { background:#f4f4f5 !important; margin:8px 12px !important; }
+
+  /* Breadcrumb — 더 가볍게 */
+  .breadcrumb-bar {
+    padding:11px 28px !important;
+    background:white !important;
+    border-bottom:1px solid #ebebeb !important;
+    font-size:13px !important;
+    color:#737373 !important;
+  }
+  .breadcrumb-bar .bc-home { color:#0a0a0a !important; font-weight:600 !important; }
+  .breadcrumb-bar .bc-current { color:#737373 !important; }
+}
+
+/* 카테고리 라벨 (PC 사이드바) — JS 가 추가하거나 HTML에 들어가는 경우 */
+.sidebar-label {
+  font-size:10.5px;
+  font-weight:600;
+  color:#94a3b8;
+  padding:14px 12px 4px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+}
+.sidebar.collapsed .sidebar-label { display:none; }
+
+/* 다크모드는 기존 톤 유지하기 위해 위 override 일부 무효화 */
+body.dark-mode .header { background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%) !important; border-bottom-color:rgba(255,255,255,0.06); }
+body.dark-mode .header .logo-text h1,
+body.dark-mode .header .header-user-name,
+body.dark-mode .header .header-clock #clockTime { color:white !important; }
+body.dark-mode .header .logo-text p,
+body.dark-mode .header .header-clock,
+body.dark-mode .header .header-clock #clockNext { color:rgba(255,255,255,0.7) !important; }
+body.dark-mode .header .header-user-badge { background:rgba(255,255,255,0.12) !important; border-color:rgba(255,255,255,0.2) !important; color:white !important; }
+body.dark-mode .header .header-logout-btn,
+body.dark-mode #headerDeployBtn { background:rgba(255,255,255,0.08) !important; border-color:rgba(255,255,255,0.18) !important; color:rgba(255,255,255,0.9) !important; }
+body.dark-mode .sidebar { background:#0f172a !important; border-right-color:rgba(255,255,255,0.06) !important; }
+body.dark-mode .sidebar-item { color:rgba(255,255,255,0.7) !important; }
+body.dark-mode .sidebar-item:hover { background:rgba(255,255,255,0.06) !important; color:white !important; }
+body.dark-mode .sidebar-item.active { background:rgba(255,255,255,0.08) !important; color:white !important; }
+body.dark-mode .breadcrumb-bar { background:#0f172a !important; border-bottom-color:rgba(255,255,255,0.06) !important; color:rgba(255,255,255,0.6) !important; }
+body.dark-mode .breadcrumb-bar .bc-home { color:white !important; }
+
