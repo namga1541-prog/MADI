@@ -1722,7 +1722,106 @@ function renderDashboardAdmin() {
     +   '</div>'
     + '</div>';
 
+  // 상단 html 먼저 root 에 set, 이후 하단 패널을 append
   root.innerHTML = html;
+
+  // ── 하단 2열: 운영 알림 + 빠른 액션 ──
+  // 알림 목록 자동 구성: 정산 대기 + 미작성 (전체 합산) + 최근 공지 1건
+  var alerts = [];
+  if (pendingSched.length > 0) {
+    alerts.push({
+      ic: '⚠️', cls: 'warn',
+      title: '정산 대기 ' + pendingSched.length + '건 (' + _dpFmtWon(pendingAmount) + ')',
+      text: '이번 달 미작성 세션이 있어요. 가장 오래된 건부터 처리하면 정산을 마무리할 수 있어요.',
+      time: '이번 달 누적'
+    });
+  }
+  var totalUnwritten = (typeof getUnwrittenSessions === 'function' ? getUnwrittenSessions() : []);
+  if (totalUnwritten.length > 0) {
+    // 선생님별 카운트 집계
+    var byTeacher = {};
+    totalUnwritten.forEach(function(u){ byTeacher[u.teacher || '미배정'] = (byTeacher[u.teacher || '미배정'] || 0) + 1; });
+    var byTeacherText = Object.keys(byTeacher).slice(0,3).map(function(t){ return escHtml(t) + ' ' + byTeacher[t] + '건'; }).join(' / ');
+    alerts.push({
+      ic: '💬', cls: 'info',
+      title: '미작성 세션 ' + totalUnwritten.length + '건 (전체 선생님)',
+      text: byTeacherText + (Object.keys(byTeacher).length > 3 ? ' 외' : '') + '. 선생님께 리마인드 전송 가능합니다.',
+      time: '최근 7일 기준'
+    });
+  }
+  if (_bannerNotices && _bannerNotices.length > 0) {
+    var topNotice = _bannerNotices[0];
+    alerts.push({
+      ic: topNotice.notice_type === 'imp' ? '🔴' : '📢', cls: 'ok',
+      title: topNotice.title || '공지',
+      text: (topNotice.content || '').toString().slice(0, 80) + ((topNotice.content || '').length > 80 ? '...' : ''),
+      time: topNotice.created_at ? topNotice.created_at.slice(0,10) : ''
+    });
+  }
+
+  html = '<div class="dp-grid-2-eq">';
+
+  // 운영 알림
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">📢 운영 알림</div>'
+    +       '<div class="dp-panel-sub">' + (alerts.length ? '조치가 필요한 항목 ' + alerts.length + '건' : '모두 정상') + '</div></div>'
+    +     '<button class="dp-panel-link" onclick="switchTab(1)">전체 →</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">';
+  if (alerts.length === 0) {
+    html += '<div class="dp-empty">📭 처리할 알림이 없어요. 모든 항목이 정상이에요.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:8px;">' + alerts.slice(0,4).map(function(a){
+      return ''
+        + '<div class="dp-alert-big dp-alert-' + a.cls + '">'
+        +   '<div class="dp-alert-ic">' + a.ic + '</div>'
+        +   '<div class="dp-alert-body">'
+        +     '<div class="dp-alert-title">' + escHtml(a.title) + '</div>'
+        +     '<div class="dp-alert-text">' + a.text + '</div>'
+        +     (a.time ? '<div class="dp-alert-time">' + escHtml(a.time) + '</div>' : '')
+        +   '</div>'
+        + '</div>';
+    }).join('') + '</div>';
+  }
+  html += '</div></div>';
+
+  // 빠른 액션
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">⚡ 빠른 액션</div>'
+    +       '<div class="dp-panel-sub">자주 쓰는 운영 작업</div></div>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">'
+    +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:none;cursor:pointer;" onclick="switchTab(2)">'
+    +       '<div class="dp-tl-av dp-av-2" style="background:#fef3c7;color:#a16207;">💰</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">정산 대기 ' + (pendingSched.length ? pendingSched.length + '건 처리' : '확인') + '</div><div class="dp-tl-meta">' + (pendingSched.length ? _dpFmtWon(pendingAmount) + ' — 우선 처리 권장' : '대기 건 없음') + '</div></div>'
+    +       '<div style="color:#cbd5e1;">→</div>'
+    +     '</div>'
+    +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid #f1f5f9;cursor:pointer;" onclick="switchTab(7)">'
+    +       '<div class="dp-tl-av dp-av-6" style="background:#dbeafe;color:#1e40af;">💬</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">선생님 라운지·메시지</div><div class="dp-tl-meta">미작성 리마인드 / 공지 전송</div></div>'
+    +       '<div style="color:#cbd5e1;">→</div>'
+    +     '</div>'
+    +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid #f1f5f9;cursor:pointer;" onclick="switchTab(5)">'
+    +       '<div class="dp-tl-av dp-av-1" style="background:#dcfce7;color:#15803d;">➕</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">선생님 관리</div><div class="dp-tl-meta">초대 코드 발급·권한 설정</div></div>'
+    +       '<div style="color:#cbd5e1;">→</div>'
+    +     '</div>'
+    +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid #f1f5f9;cursor:pointer;" onclick="switchTab(3)">'
+    +       '<div class="dp-tl-av dp-av-3" style="background:#ede9fe;color:#6d28d9;">📤</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">월간 리포트·포트폴리오</div><div class="dp-tl-meta">' + (todayDate.getMonth()+1) + '월 성과 출력</div></div>'
+    +       '<div style="color:#cbd5e1;">→</div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+
+  html += '</div>'; // grid-2-eq end
+
+  // 안전하게 append (innerHTML += 보다 빠르고 안정적)
+  root.insertAdjacentHTML('beforeend', html);
 
   // 비동기: madi_users 에서 선생님 전체 가져와 활동 0건 선생님도 포함
   _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr);

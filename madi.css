@@ -2472,6 +2472,17 @@
 .dp-chart-leg-dot { width:10px; height:3px; border-radius:2px; }
 .dp-chart-leg.ok { color:#15803d; font-weight:800; }
 
+/* 운영 알림 카드 (Admin) */
+.dp-alert-big { display:flex; gap:12px; padding:12px 14px; border-radius:10px; align-items:flex-start; }
+.dp-alert-big.dp-alert-warn { background:#fef3c7; border:1px solid #fde68a; }
+.dp-alert-big.dp-alert-info { background:#dbeafe; border:1px solid #bfdbfe; }
+.dp-alert-big.dp-alert-ok   { background:#f8fafc; border:1px solid #e2e8f0; }
+.dp-alert-ic { font-size:17px; flex-shrink:0; }
+.dp-alert-body { flex:1; min-width:0; }
+.dp-alert-title { font-size:13px; font-weight:800; color:#0f172a; line-height:1.4; }
+.dp-alert-text { font-size:12px; color:#475569; line-height:1.55; margin-top:3px; word-break:break-word; }
+.dp-alert-time { font-size:10.5px; color:#94a3b8; margin-top:4px; font-weight:600; }
+
 /* 아바타 색상 (공통 — Teacher/Admin) */
 .dp-av-1 { background:linear-gradient(135deg,#0ea5a0,#22c9c3); }
 .dp-av-2 { background:linear-gradient(135deg,#f59e0b,#fbbf24); }
