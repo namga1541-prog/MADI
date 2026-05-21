@@ -1457,34 +1457,14 @@ function renderDashboardAdmin() {
 
   // ── 데이터 계산 ──
   var thisMonthSessions = _sessions.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
-  var lastMonthSessions = _sessions.filter(function(s){ return s.date >= lastMonthStartStr && s.date <= lastMonthEndStr; });
   var thisMonthSched = _schedules.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
   // 진도율 분모: 오늘까지 도래한 일정만 (미래 일정은 아직 진행 의무 도래 전)
   var thisMonthSchedDue = thisMonthSched.filter(function(s){ return s.date <= todayStr; });
 
-  // 매출 추정 = sum(완료 세션 × 바우처 단가)
-  var revenue = 0;
-  thisMonthSessions.forEach(function(s){
-    var c = _children.find(function(cc){ return cc.id === s.childId; });
-    revenue += _dpEstSessionPrice(c);
-  });
-  var lastRevenue = 0;
-  lastMonthSessions.forEach(function(s){
-    var c = _children.find(function(cc){ return cc.id === s.childId; });
-    lastRevenue += _dpEstSessionPrice(c);
-  });
-  var revenueDelta = revenue - lastRevenue;
-  var revenueDeltaPct = lastRevenue > 0 ? Math.round(revenueDelta / lastRevenue * 100) : 0;
-
-  // 정산 대기 = 이번 달 일정 중 세션 매칭 안된 것 (미완료 추정)
+  // 미작성 세션 (이번 달 중 일정은 지났는데 세션 매칭 안 된 것) — 운영 알림용
   var pendingSched = thisMonthSched.filter(function(s){
-    if (s.date > todayStr) return false; // 미래는 정상
+    if (s.date > todayStr) return false;
     return !_sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
-  });
-  var pendingAmount = 0;
-  pendingSched.forEach(function(s){
-    var c = _children.find(function(cc){ return cc.id === s.childId; });
-    pendingAmount += _dpEstSessionPrice(c);
   });
 
   // KPI
@@ -1539,13 +1519,13 @@ function renderDashboardAdmin() {
 
   // ── HTML ──
   var titleText = _dpGreetingFor(myName, role);
-  var deltaTxt = lastRevenue > 0
-    ? '전월 대비 ' + (revenueDeltaPct >= 0 ? '+' : '') + revenueDeltaPct + '% (' + (revenueDelta >= 0 ? '+' : '') + _dpFmtWon(revenueDelta) + ')'
-    : '전월 데이터 없음';
-  var subText = '이번 달 세션 <b>' + thisMonthSessions.length + '건</b> 완료 · 정산 대기 <b>' + pendingSched.length + '건</b>' + (pendingSched.length > 0 ? ' (' + _dpFmtWon(pendingAmount) + ' 추정)' : '');
+  var _progressPct = thisMonthSchedDue.length ? Math.round(thisMonthSessions.length / thisMonthSchedDue.length * 100) : null;
+  var subText = '이번 달 세션 <b>' + thisMonthSessions.length + '건</b> 완료'
+    + (thisMonthSched.length ? ' · 월 계획 <b>' + thisMonthSched.length + '건</b>' : '')
+    + (_progressPct != null ? ' · 진도율 <b>' + _progressPct + '%</b>' : '')
+    + (pendingSched.length > 0 ? ' · 미작성 <b style="color:#a16207;">' + pendingSched.length + '건</b>' : '');
 
   var freshness = _dpFreshnessLabel();
-  var _revOpen = window._dpRevOpen === true; // 매출 산식 펼침 상태 (폴링 재렌더 시 유지)
   var html = ''
     + '<div class="dp-head">'
     +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner())
@@ -1555,82 +1535,6 @@ function renderDashboardAdmin() {
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
     + '</div>';
-
-  // 이번 달 바우처별 세션 카운트 (단가 노출용)
-  var voucherBreakdown = {};
-  thisMonthSessions.forEach(function(s){
-    var c = _children.find(function(cc){ return cc.id === s.childId; });
-    var v = c && c.voucherType ? c.voucherType : '일반';
-    if (!voucherBreakdown[v]) voucherBreakdown[v] = { count: 0, price: _DP_VOUCHER_PRICE[v] || _DP_VOUCHER_PRICE['일반'] };
-    voucherBreakdown[v].count++;
-  });
-  var voucherRows = Object.keys(voucherBreakdown).map(function(v){
-    var b = voucherBreakdown[v];
-    return { type: v, count: b.count, price: b.price, total: b.count * b.price };
-  }).sort(function(a,b){ return b.total - a.total; });
-
-  // 매출 히어로 (추정값 라벨 명시)
-  html += ''
-    + '<div class="dp-rev">'
-    +   '<div class="dp-rev-main">'
-    +     '<div class="dp-rev-label">💰 이번 달 매출 (추정' + (role === 'superadmin' ? ' · 전체' : '') + ')</div>'
-    +     '<div class="dp-rev-num">' + _dpFmtWon(revenue) + '</div>'
-    +     '<div class="dp-rev-meta">' + escHtml(deltaTxt) + '</div>'
-    +     '<button class="dp-rev-tag" id="dpRevToggleBtn" onclick="_dpToggleRevBreakdown()" style="cursor:pointer;border:1px solid rgba(252,211,77,0.3);font-family:inherit;" title="바우처별 단가·세션 수 보기">📌 바우처 단가 × 완료 세션 추정값 · ' + (_revOpen ? '접기 ▴' : '자세히 ▾') + '</button>'
-    +   '</div>'
-    +   '<div class="dp-rev-sub">'
-    +     '<div class="dp-rev-sub-label">⏳ 정산 대기</div>'
-    +     '<div class="dp-rev-sub-num">' + _dpFmtWon(pendingAmount) + '</div>'
-    +     '<div class="dp-rev-sub-meta"><b>' + pendingSched.length + '건</b> · 이번 달 미작성 세션</div>'
-    +   '</div>'
-    +   '<div class="dp-rev-sub">'
-    +     '<div class="dp-rev-sub-label">📊 이번 달 세션</div>'
-    +     '<div class="dp-rev-sub-num">' + thisMonthSessions.length + ' <em>건</em></div>'
-    +     '<div class="dp-rev-sub-meta">월 계획 <b>' + thisMonthSched.length + '건</b>' + (thisMonthSchedDue.length ? ' · 진도율 <b>' + Math.round(thisMonthSessions.length / thisMonthSchedDue.length * 100) + '%</b> (도래 ' + thisMonthSchedDue.length + '건 기준)' : ' · 이번 달 시작 전') + '</div>'
-    +   '</div>'
-    + '</div>';
-
-  // 단가표 (기본 숨김 — 토글로 펼침. window._dpRevOpen 으로 폴링 재렌더 시 상태 유지)
-  html += ''
-    + '<div id="dpRevBreakdown" class="dp-rev-breakdown" style="display:' + (_revOpen ? '' : 'none') + ';margin-bottom:18px;background:white;border:1px solid #e7ecf2;border-radius:12px;overflow:hidden;">'
-    +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">💵 이번 달 매출 추정 산식</div>'
-    +       '<div class="dp-panel-sub">바우처별 세션 수 × 정부 단가 추정</div></div>'
-    +     '<button class="dp-panel-link" onclick="_dpToggleRevBreakdown()">접기 ▴</button>'
-    +   '</div>'
-    +   '<div class="dp-panel-body">';
-  if (voucherRows.length === 0) {
-    html += '<div class="dp-empty">이번 달 완료 세션이 없습니다</div>';
-  } else {
-    html += ''
-      + '<div class="dp-trow head" data-revcols="1">'
-      +   '<div>바우처 종류</div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-label">세션</div></div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-label">단가</div></div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-label">소계</div></div>'
-      + '</div>';
-    voucherRows.forEach(function(r){
-      html += ''
-        + '<div class="dp-trow" data-revcols="1">'
-        +   '<div class="dp-tname">' + escHtml(r.type) + '</div>'
-        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + r.count + '</div><div class="dp-tstat-label">건</div></div>'
-        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + _dpFmtWon(r.price) + '</div><div class="dp-tstat-label">/ 회</div></div>'
-        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + _dpFmtWon(r.total) + '</div><div class="dp-tstat-label"></div></div>'
-        + '</div>';
-    });
-    html += ''
-      + '<div class="dp-trow" data-revcols="1" style="border-top:2px solid #e7ecf2;font-weight:800;">'
-      +   '<div class="dp-tname">합계</div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-num">' + thisMonthSessions.length + '</div><div class="dp-tstat-label">건</div></div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-num" style="color:#cbd5e1;">—</div></div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-num" style="color:#0f3b66;">' + _dpFmtWon(revenue) + '</div><div class="dp-tstat-label"></div></div>'
-      + '</div>'
-      + '<div style="margin-top:12px;padding:10px 12px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:11.5px;color:#92400e;line-height:1.55;">'
-      +   '⚠️ 단가는 정부 고시 기준 추정값입니다. 실제 정산 금액과 다를 수 있어요. '
-      +   '<code style="background:white;padding:1px 5px;border-radius:4px;font-size:11px;">madi-03.js</code> 의 <code style="background:white;padding:1px 5px;border-radius:4px;font-size:11px;">_DP_VOUCHER_PRICE</code> 에서 단가표 수정 가능.'
-      + '</div>';
-  }
-  html += '</div></div>';
 
   // KPI
   html += ''
@@ -1772,13 +1676,13 @@ function renderDashboardAdmin() {
   root.innerHTML = html;
 
   // ── 하단 2열: 운영 알림 + 빠른 액션 ──
-  // 알림 목록 자동 구성: 정산 대기 + 미작성 (전체 합산) + 최근 공지 1건
+  // 알림 목록 자동 구성: 미작성 (전체 합산) + 이번 달 미작성 + 최근 공지 1건
   var alerts = [];
   if (pendingSched.length > 0) {
     alerts.push({
       ic: '⚠️', cls: 'warn',
-      title: '정산 대기 ' + pendingSched.length + '건 (' + _dpFmtWon(pendingAmount) + ')',
-      text: '이번 달 미작성 세션이 있어요. 가장 오래된 건부터 처리하면 정산을 마무리할 수 있어요.',
+      title: '이번 달 미작성 세션 ' + pendingSched.length + '건',
+      text: '일정은 지났지만 아직 세션 기록이 작성되지 않았어요. 보고서 탭에서 작성할 수 있습니다.',
       time: '이번 달 누적'
     });
   }
@@ -1844,8 +1748,8 @@ function renderDashboardAdmin() {
     +   '</div>'
     +   '<div class="dp-panel-body">'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:none;cursor:pointer;" onclick="switchTab(2)">'
-    +       '<div class="dp-tl-av dp-av-2" style="background:#fef3c7;color:#a16207;">💰</div>'
-    +       '<div class="dp-tl-info"><div class="dp-tl-name">정산 대기 ' + (pendingSched.length ? pendingSched.length + '건 처리' : '확인') + '</div><div class="dp-tl-meta">' + (pendingSched.length ? _dpFmtWon(pendingAmount) + ' — 보고서에서 미작성 세션 작성' : '대기 건 없음') + '</div></div>'
+    +       '<div class="dp-tl-av dp-av-2" style="background:#fef3c7;color:#a16207;">📝</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">' + (pendingSched.length ? '미작성 세션 ' + pendingSched.length + '건 작성' : '세션 기록 작성') + '</div><div class="dp-tl-meta">' + (pendingSched.length ? '이번 달 미작성 — 우선 처리 권장' : '대기 건 없음') + '</div></div>'
     +       '<div style="color:#cbd5e1;">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid #f1f5f9;cursor:pointer;" onclick="switchTab(7)">'
