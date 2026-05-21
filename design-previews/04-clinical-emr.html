@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>④ Clinical EMR — 아이마디 대시보드 미리보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Inter','Noto Sans KR',sans-serif; background:#f1f5f9; color:#0f172a; min-height:100vh; }
+
+  /* 레이아웃 */
+  .app { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
+
+  /* 사이드바 */
+  .sidebar { background:white; border-right:1px solid #e2e8f0; padding:18px 14px; display:flex; flex-direction:column; box-shadow:1px 0 0 rgba(0,0,0,0.02); }
+  .brand { display:flex; align-items:center; gap:11px; padding:6px 12px 24px; border-bottom:1px solid #f1f5f9; margin-bottom:16px; }
+  .brand-logo { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#0f3b66,#1e5a93); color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:15px; box-shadow:0 4px 10px rgba(15,59,102,0.18); }
+  .brand-name { font-size:15px; font-weight:800; color:#0f3b66; letter-spacing:-0.2px; }
+  .brand-name span { display:block; font-size:10.5px; color:#64748b; font-weight:500; margin-top:1px; }
+
+  .nav-section { margin-bottom:18px; }
+  .nav-label { font-size:10.5px; font-weight:700; color:#94a3b8; padding:0 12px 8px; letter-spacing:0.5px; text-transform:uppercase; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; font-size:13.5px; color:#475569; cursor:pointer; margin-bottom:2px; font-weight:500; }
+  .nav-item:hover { background:#f1f5f9; color:#0f172a; }
+  .nav-item.active { background:linear-gradient(90deg,#dbeafe,#eff6ff); color:#0f3b66; font-weight:700; }
+  .nav-item.active .nav-ic { color:#1e5a93; }
+  .nav-ic { width:18px; height:18px; flex-shrink:0; color:#64748b; }
+  .nav-badge { margin-left:auto; font-size:10.5px; padding:1px 7px; border-radius:8px; font-weight:700; }
+  .nav-badge.red  { background:#fee2e2; color:#b91c1c; }
+  .nav-badge.blue { background:#dbeafe; color:#1e40af; }
+
+  .sidebar-foot { margin-top:auto; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; display:flex; align-items:center; gap:10px; }
+  .avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#0f3b66,#1e5a93); color:white; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+  .avatar-text { font-size:13px; color:#0f172a; font-weight:700; }
+  .avatar-role { font-size:11px; color:#64748b; }
+  .avatar-status { width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid white; position:relative; margin-left:auto; }
+
+  /* 메인 */
+  .main { display:flex; flex-direction:column; min-width:0; }
+  .topbar { background:white; border-bottom:1px solid #e2e8f0; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .top-left { display:flex; align-items:center; gap:16px; }
+  .page-crumb { font-size:13px; color:#64748b; }
+  .page-crumb b { color:#0f3b66; font-weight:700; }
+  .top-search { display:flex; align-items:center; gap:8px; background:#f1f5f9; padding:8px 14px; border-radius:8px; flex:1; max-width:340px; min-width:200px; }
+  .top-search input { border:none; background:transparent; font-size:13px; outline:none; flex:1; font-family:inherit; color:#0f172a; }
+  .top-right { display:flex; align-items:center; gap:10px; }
+  .top-date { font-size:12.5px; color:#475569; padding:8px 14px; background:#f1f5f9; border-radius:8px; font-weight:600; }
+  .top-date b { color:#0f3b66; font-weight:800; }
+  .icon-btn { width:38px; height:38px; border-radius:9px; border:1px solid #e2e8f0; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative; }
+  .icon-btn:hover { background:#f8fafc; }
+  .badge-dot { position:absolute; top:8px; right:8px; width:8px; height:8px; border-radius:50%; background:#ef4444; border:2px solid white; }
+  .cta-btn { padding:0 18px; height:38px; border-radius:8px; background:linear-gradient(135deg,#0f3b66,#1e5a93); color:white; border:none; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(15,59,102,0.2); font-family:inherit; }
+
+  .content { padding:24px 28px 60px; max-width:1400px; width:100%; }
+
+  /* 페이지 헤드 */
+  .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap; }
+  .page-title { font-size:24px; font-weight:900; color:#0f172a; letter-spacing:-0.5px; margin:0; }
+  .page-sub { font-size:13px; color:#64748b; margin-top:4px; }
+
+  /* 메트릭 카드 — 의료 진료 톤 */
+  .metric-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+  .metric { background:white; border-radius:12px; padding:18px 20px; border:1px solid #e2e8f0; display:flex; align-items:center; gap:16px; }
+  .metric-ic { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+  .mi-green  { background:#dcfce7; color:#15803d; }
+  .mi-amber  { background:#fef3c7; color:#a16207; }
+  .mi-blue   { background:#dbeafe; color:#1e40af; }
+  .mi-purple { background:#ede9fe; color:#6d28d9; }
+  .metric-num { font-size:24px; font-weight:900; color:#0f172a; letter-spacing:-0.5px; line-height:1; }
+  .metric-label { font-size:11.5px; color:#64748b; font-weight:600; margin-top:4px; }
+  .metric-delta { font-size:10.5px; padding:2px 7px; border-radius:6px; font-weight:700; display:inline-block; margin-top:4px; }
+  .md-up   { background:#dcfce7; color:#15803d; }
+  .md-flat { background:#f1f5f9; color:#475569; }
+
+  /* 메인 그리드 */
+  .grid-main { display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-bottom:18px; }
+  .panel { background:white; border:1px solid #e2e8f0; border-radius:12px; }
+  .panel-head { padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .panel-title { font-size:14.5px; font-weight:800; color:#0f3b66; display:flex; align-items:center; gap:8px; }
+  .panel-link { font-size:12px; color:#1e5a93; font-weight:700; cursor:pointer; }
+  .panel-body { padding:20px; }
+
+  /* 캘린더 미니 (오늘) */
+  .calendar-day { padding:14px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc; text-align:center; margin-bottom:12px; }
+  .cal-day-num { font-size:38px; font-weight:900; color:#0f3b66; line-height:1; letter-spacing:-1px; }
+  .cal-day-name { font-size:12px; color:#64748b; font-weight:600; margin-top:4px; }
+  .timeline { display:flex; flex-direction:column; gap:8px; }
+  .tl-slot { display:grid; grid-template-columns:60px 1fr; gap:14px; padding:10px 0; border-top:1px solid #f1f5f9; align-items:center; }
+  .tl-slot:first-child { border-top:none; }
+  .tl-time { font-size:12px; color:#64748b; font-weight:700; font-variant-numeric:tabular-nums; }
+  .tl-card { padding:10px 14px; border-radius:8px; background:#f8fafc; border-left:3px solid #cbd5e1; font-size:13px; color:#475569; }
+  .tl-card.empty { color:#94a3b8; font-style:italic; font-size:12px; padding:6px 14px; border:none; background:transparent; }
+  .tl-empty-state { padding:24px 16px; text-align:center; color:#64748b; }
+  .tl-empty-state-ic { font-size:32px; opacity:0.4; margin-bottom:8px; }
+  .tl-empty-state-text { font-size:13px; }
+
+  /* 환자(아동) 리스트 */
+  .patient-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f1f5f9; }
+  .patient-row:last-child { border-bottom:none; }
+  .pt-avatar { width:38px; height:38px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+  .pa-1 { background:linear-gradient(135deg,#0ea5a0,#22c9c3); }
+  .pa-2 { background:linear-gradient(135deg,#f59e0b,#fbbf24); }
+  .pa-3 { background:linear-gradient(135deg,#8b5cf6,#a855f7); }
+  .pa-4 { background:linear-gradient(135deg,#ec4899,#f43f5e); }
+  .pt-info { flex:1; min-width:0; }
+  .pt-name { font-size:13.5px; font-weight:700; color:#0f172a; }
+  .pt-meta { font-size:11.5px; color:#64748b; margin-top:1px; }
+  .pt-status { font-size:11px; padding:3px 9px; border-radius:8px; font-weight:700; flex-shrink:0; }
+  .ps-active { background:#dcfce7; color:#15803d; }
+  .ps-eval   { background:#dbeafe; color:#1e40af; }
+  .ps-wait   { background:#fef3c7; color:#a16207; }
+  .pt-progress { width:60px; height:5px; background:#f1f5f9; border-radius:3px; overflow:hidden; flex-shrink:0; }
+  .pt-progress-bar { height:100%; background:linear-gradient(90deg,#0ea5a0,#22c9c3); border-radius:3px; }
+
+  /* 알림·공지 */
+  .alert-list { display:flex; flex-direction:column; gap:10px; }
+  .alert { display:flex; gap:12px; padding:12px 14px; border-radius:10px; align-items:flex-start; }
+  .al-warn   { background:#fef3c7; border:1px solid #fde68a; }
+  .al-info   { background:#dbeafe; border:1px solid #bfdbfe; }
+  .al-neutral{ background:#f8fafc; border:1px solid #e2e8f0; }
+  .alert-ic { font-size:18px; flex-shrink:0; }
+  .alert-title { font-size:13px; font-weight:700; color:#0f172a; }
+  .alert-text { font-size:12px; color:#475569; line-height:1.5; margin-top:2px; }
+  .alert-time { font-size:10.5px; color:#94a3b8; margin-top:4px; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">M</div>
+      <div class="brand-name">아이마디<span>언어치료 EMR</span></div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">진료</div>
+      <div class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>대시보드
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        진료 일정 <span class="nav-badge blue">7</span>
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+        아동 차트
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        평가·보고서
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">운영</div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+        통계
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        공지·메시지 <span class="nav-badge red">3</span>
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5"/></svg>
+        설정
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="avatar">남</div>
+      <div>
+        <div class="avatar-text">남그 대장</div>
+        <div class="avatar-role">슈퍼관리자</div>
+      </div>
+      <div class="avatar-status" title="온라인"></div>
+    </div>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="top-left">
+        <div class="page-crumb">대시보드 / <b>홈</b></div>
+        <div class="top-search">🔍 <input type="text" placeholder="아동 이름·진료 일정 검색"></div>
+      </div>
+      <div class="top-right">
+        <div class="top-date">📅 2026년 05월 <b>21일 (목)</b></div>
+        <button class="icon-btn">🔔<span class="badge-dot"></span></button>
+        <button class="cta-btn">＋ 새 진료 기록</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- 페이지 헤드 -->
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">진료 대시보드</h1>
+          <div class="page-sub">남그 대장님, 오늘은 진료 일정이 없습니다. 이번 주 7건이 예정되어 있어요.</div>
+        </div>
+      </div>
+
+      <!-- 메트릭 -->
+      <div class="metric-row">
+        <div class="metric">
+          <div class="metric-ic mi-green">👶</div>
+          <div>
+            <div class="metric-num">100</div>
+            <div class="metric-label">활동 중인 아동</div>
+            <span class="metric-delta md-up">↑ 3 이번 달</span>
+          </div>
+        </div>
+        <div class="metric">
+          <div class="metric-ic mi-amber">⏳</div>
+          <div>
+            <div class="metric-num">0</div>
+            <div class="metric-label">대기 환자</div>
+            <span class="metric-delta md-flat">변동 없음</span>
+          </div>
+        </div>
+        <div class="metric">
+          <div class="metric-ic mi-blue">✓</div>
+          <div>
+            <div class="metric-num">393</div>
+            <div class="metric-label">종결 사례</div>
+            <span class="metric-delta md-up">↑ 12 이번 달</span>
+          </div>
+        </div>
+        <div class="metric">
+          <div class="metric-ic mi-purple">🌳</div>
+          <div>
+            <div class="metric-num">493</div>
+            <div class="metric-label">전체 누적</div>
+            <span class="metric-delta md-flat">2024년부터</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 메인 그리드: 오늘 진료 + 환자 차트 -->
+      <div class="grid-main">
+
+        <!-- 좌측: 오늘 진료 캘린더 -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">📅 오늘의 진료 일정</div>
+            <div class="panel-link">주간 보기 →</div>
+          </div>
+          <div class="panel-body">
+            <div class="calendar-day">
+              <div class="cal-day-num">21</div>
+              <div class="cal-day-name">목요일 · 2026.05</div>
+            </div>
+            <div class="tl-empty-state">
+              <div class="tl-empty-state-ic">🕊️</div>
+              <div class="tl-empty-state-text">오늘은 예정된 진료가 없습니다</div>
+              <button class="cta-btn" style="margin-top:14px; height:34px; padding:0 16px; font-size:12px;">＋ 진료 일정 추가</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측: 최근 진료한 아동 -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">👥 최근 진료 아동</div>
+            <div class="panel-link">전체 →</div>
+          </div>
+          <div class="panel-body">
+            <div class="patient-row">
+              <div class="pt-avatar pa-1">김</div>
+              <div class="pt-info">
+                <div class="pt-name">김민서 (5세, 여)</div>
+                <div class="pt-meta">표현언어지연 · 12회차</div>
+              </div>
+              <div class="pt-progress"><div class="pt-progress-bar" style="width:75%;"></div></div>
+              <div class="pt-status ps-active">진료 중</div>
+            </div>
+            <div class="patient-row">
+              <div class="pt-avatar pa-2">박</div>
+              <div class="pt-info">
+                <div class="pt-name">박서준 (4세, 남)</div>
+                <div class="pt-meta">K-DST 평가 · 오늘 완료</div>
+              </div>
+              <div class="pt-progress"><div class="pt-progress-bar" style="width:45%;"></div></div>
+              <div class="pt-status ps-eval">평가</div>
+            </div>
+            <div class="patient-row">
+              <div class="pt-avatar pa-3">이</div>
+              <div class="pt-info">
+                <div class="pt-name">이하늘 (6세, 여)</div>
+                <div class="pt-meta">조음음운장애 · 18회차</div>
+              </div>
+              <div class="pt-progress"><div class="pt-progress-bar" style="width:88%;"></div></div>
+              <div class="pt-status ps-active">진료 중</div>
+            </div>
+            <div class="patient-row">
+              <div class="pt-avatar pa-4">정</div>
+              <div class="pt-info">
+                <div class="pt-name">정도윤 (3세, 남)</div>
+                <div class="pt-meta">초기 면담 대기</div>
+              </div>
+              <div class="pt-progress"><div class="pt-progress-bar" style="width:10%;"></div></div>
+              <div class="pt-status ps-wait">대기</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 알림·공지 -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">📢 주요 알림 · 공지</div>
+          <div class="panel-link">모든 알림 →</div>
+        </div>
+        <div class="panel-body">
+          <div class="alert-list">
+            <div class="alert al-warn">
+              <div class="alert-ic">⚠️</div>
+              <div style="flex:1;">
+                <div class="alert-title">5월 4주차 정산 마감 안내</div>
+                <div class="alert-text">바우처 정산 자료를 5/24(토) 18시까지 제출해주세요. 미작성 세션 3건이 남아 있습니다.</div>
+                <div class="alert-time">5/18 · 운영팀</div>
+              </div>
+            </div>
+            <div class="alert al-info">
+              <div class="alert-ic">✨</div>
+              <div style="flex:1;">
+                <div class="alert-title">신규 활동 카탈로그 12개 추가</div>
+                <div class="alert-text">조음·음운, 인지·학습 카테고리에 검증된 활동이 추가됐습니다.</div>
+                <div class="alert-time">5/10 · 운영팀</div>
+              </div>
+            </div>
+            <div class="alert al-neutral">
+              <div class="alert-ic">🔒</div>
+              <div style="flex:1;">
+                <div class="alert-title">보안 패치 적용 완료</div>
+                <div class="alert-text">JWT 세션 무효화 · CSP 강화 등 7개 보안 항목이 적용됐습니다.</div>
+                <div class="alert-time">5/20 · 시스템</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

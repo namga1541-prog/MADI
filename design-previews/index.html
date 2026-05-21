@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>아이마디 대시보드 — 디자인 미리보기 4종</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Inter','Noto Sans KR',sans-serif; background:linear-gradient(135deg,#e0f7f6,#f1f8f7,#e8f7f6); min-height:100vh; padding:48px 24px; color:#0f172a; }
+  .wrap { max-width:1100px; margin:0 auto; }
+  .header { text-align:center; margin-bottom:48px; }
+  .badge { display:inline-block; padding:6px 14px; background:white; border-radius:20px; font-size:12px; font-weight:700; color:#0ea5a0; margin-bottom:18px; box-shadow:0 2px 8px rgba(14,165,160,0.1); }
+  h1 { font-size:36px; font-weight:900; margin:0 0 12px; letter-spacing:-1px; }
+  h1 em { color:#0ea5a0; font-style:normal; }
+  .sub { font-size:15px; color:#475569; line-height:1.7; max-width:680px; margin:0 auto; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:24px; }
+  .card { background:white; border-radius:18px; overflow:hidden; box-shadow:0 8px 28px rgba(14,41,66,0.08); border:1px solid rgba(255,255,255,0.6); transition:transform 0.15s, box-shadow 0.15s; }
+  .card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(14,41,66,0.14); }
+  .card-thumb { height:180px; padding:24px; position:relative; overflow:hidden; }
+  .c1 .card-thumb { background:#fafafa; }
+  .c2 .card-thumb { background:linear-gradient(135deg,#0f172a,#1e293b); }
+  .c3 .card-thumb { background:#f7f6f3; }
+  .c4 .card-thumb { background:linear-gradient(135deg,#dbeafe,#eff6ff); }
+  .thumb-bars { display:flex; gap:6px; height:100%; }
+  .tb-side { width:18%; border-radius:6px; }
+  .tb-main { flex:1; display:flex; flex-direction:column; gap:6px; }
+  .tb-row { background:rgba(0,0,0,0.06); border-radius:5px; height:18px; }
+  .c2 .tb-row { background:rgba(255,255,255,0.1); }
+  .c1 .tb-side { background:white; border:1px solid #ebebeb; }
+  .c2 .tb-side { background:rgba(255,255,255,0.08); }
+  .c3 .tb-side { background:#ebebea; }
+  .c4 .tb-side { background:white; border:1px solid #c7ddf2; }
+  .card-info { padding:24px 26px 26px; }
+  .card-num { font-size:12px; font-weight:800; color:#0ea5a0; letter-spacing:0.5px; margin-bottom:6px; }
+  .card-name { font-size:20px; font-weight:800; margin:0 0 8px; letter-spacing:-0.3px; }
+  .card-desc { font-size:13.5px; color:#64748b; line-height:1.65; margin-bottom:14px; min-height:48px; }
+  .card-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+  .tag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:8px; background:#f1f5f9; color:#475569; }
+  .card-actions { display:flex; gap:8px; }
+  .btn { flex:1; padding:11px 14px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; text-align:center; text-decoration:none; border:none; font-family:inherit; }
+  .btn-pri { background:linear-gradient(135deg,#0ea5a0,#22c9c3); color:white; box-shadow:0 4px 12px rgba(14,165,160,0.25); }
+  .btn-pri:hover { transform:translateY(-1px); }
+  .btn-sec { background:white; color:#475569; border:1px solid #e2e8f0; }
+  .footer-note { margin-top:48px; padding:18px 24px; background:rgba(255,255,255,0.6); backdrop-filter:blur(10px); border-radius:14px; text-align:center; font-size:13px; color:#475569; line-height:1.6; }
+  .footer-note b { color:#0f172a; }
+  @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="badge">🎨 디자인 미리보기</div>
+    <h1>아이마디 <em>대시보드</em> 4가지 컨셉</h1>
+    <p class="sub">웹 SaaS 다운 느낌으로 재구성한 4가지 방향을 비교해보세요. 마음에 드는 컨셉을 알려주시면 실제 코드에 반영합니다.</p>
+  </div>
+
+  <div class="grid">
+
+    <div class="card c1">
+      <div class="card-thumb">
+        <div class="thumb-bars">
+          <div class="tb-side"></div>
+          <div class="tb-main">
+            <div class="tb-row" style="height:24px;"></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+              <div class="tb-row" style="height:38px;"></div>
+              <div class="tb-row" style="height:38px;"></div>
+              <div class="tb-row" style="height:38px;"></div>
+              <div class="tb-row" style="height:38px;"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:4px;flex:1;">
+              <div class="tb-row" style="height:100%;"></div>
+              <div class="tb-row" style="height:100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">컨셉 ① · LINEAR</div>
+        <h3 class="card-name">Linear Minimal</h3>
+        <p class="card-desc">미니멀 그레이 + 화이트 카드. 큰 타이포, 모노톤, 거의 없는 그림자. 가장 트렌디한 SaaS 톤.</p>
+        <div class="card-tags">
+          <span class="tag">미니멀</span><span class="tag">모노톤</span><span class="tag">정보 중심</span>
+        </div>
+        <div class="card-actions">
+          <a href="01-linear-minimal.html" class="btn btn-pri">미리보기 열기 →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card c2">
+      <div class="card-thumb">
+        <div class="thumb-bars">
+          <div class="tb-side"></div>
+          <div class="tb-main">
+            <div class="tb-row" style="height:24px;background:rgba(255,255,255,0.15);"></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+              <div class="tb-row" style="height:38px;"></div>
+              <div class="tb-row" style="height:38px;"></div>
+              <div class="tb-row" style="height:38px;"></div>
+              <div class="tb-row" style="height:38px;"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:4px;flex:1;">
+              <div class="tb-row" style="height:100%;background:linear-gradient(135deg,rgba(34,201,195,0.3),rgba(34,201,195,0.05));"></div>
+              <div class="tb-row" style="height:100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">컨셉 ② · STRIPE</div>
+        <h3 class="card-name">Stripe Data Dashboard</h3>
+        <p class="card-desc">짙은 네이비 사이드바 + 컬러 KPI · 스파크라인 · 활동 추이 그래프. 데이터가 풍부한 SaaS 분석 도구 톤.</p>
+        <div class="card-tags">
+          <span class="tag">데이터 풍부</span><span class="tag">차트·그래프</span><span class="tag">분석</span>
+        </div>
+        <div class="card-actions">
+          <a href="02-stripe-data.html" class="btn btn-pri">미리보기 열기 →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card c3">
+      <div class="card-thumb">
+        <div class="thumb-bars">
+          <div class="tb-side"></div>
+          <div class="tb-main">
+            <div class="tb-row" style="height:24px;background:rgba(0,0,0,0.04);"></div>
+            <div class="tb-row" style="height:32px;background:rgba(0,0,0,0.08);"></div>
+            <div class="tb-row" style="flex:1;background:rgba(0,0,0,0.04);"></div>
+          </div>
+          <div class="tb-side" style="background:white;border:1px solid #ebebea;"></div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">컨셉 ③ · NOTION</div>
+        <h3 class="card-name">Notion Workspace</h3>
+        <p class="card-desc">3컬럼 (사이드바 + 메인 + 우측 활동 피드). 데이터베이스 뷰 · 콜아웃 · 단축키. 도구처럼 일하는 느낌.</p>
+        <div class="card-tags">
+          <span class="tag">3컬럼</span><span class="tag">활동 피드</span><span class="tag">생산성</span>
+        </div>
+        <div class="card-actions">
+          <a href="03-notion-workspace.html" class="btn btn-pri">미리보기 열기 →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card c4">
+      <div class="card-thumb">
+        <div class="thumb-bars">
+          <div class="tb-side"></div>
+          <div class="tb-main">
+            <div class="tb-row" style="height:24px;background:white;"></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+              <div class="tb-row" style="height:38px;background:white;"></div>
+              <div class="tb-row" style="height:38px;background:white;"></div>
+              <div class="tb-row" style="height:38px;background:white;"></div>
+              <div class="tb-row" style="height:38px;background:white;"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:4px;flex:1;">
+              <div class="tb-row" style="height:100%;background:white;"></div>
+              <div class="tb-row" style="height:100%;background:white;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">컨셉 ④ · CLINICAL</div>
+        <h3 class="card-name">Clinical EMR</h3>
+        <p class="card-desc">네이비 + 화이트 · 아동(환자) 카드 + 진행률 · 진료 일정 · 등급 별 알림. 의료 SaaS 의 신뢰감.</p>
+        <div class="card-tags">
+          <span class="tag">신뢰감</span><span class="tag">의료 SaaS</span><span class="tag">환자 중심</span>
+        </div>
+        <div class="card-actions">
+          <a href="04-clinical-emr.html" class="btn btn-pri">미리보기 열기 →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    💡 <b>비교 팁</b> — 큰 화면(데스크탑)에서 보시면 의도된 SaaS 톤이 가장 잘 보입니다. 마음에 드는 컨셉의 <b>번호</b>를 알려주시거나, 여러 컨셉의 좋은 부분을 조합해도 됩니다.
+  </div>
+
+</div>
+</body>
+</html>
