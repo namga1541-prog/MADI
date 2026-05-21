@@ -530,6 +530,7 @@
         <div style="position:relative;">
           <input type="text" id="parentChildSearchInput" class="form-input" placeholder="이름으로 검색..." style="font-size:14px;" oninput="filterParentChildList(this.value)" onfocus="showParentChildDrop()" autocomplete="off">
           <input type="hidden" id="parentInviteChild">
+          <input type="hidden" id="parentInviteChildCenter">
           <div id="parentChildDrop" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:white;border:1.5px solid var(--mint);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.14);max-height:220px;overflow-y:auto;z-index:600;"></div>
         </div>
       </div>
@@ -2294,12 +2295,12 @@ function saveUserPerms(){
 // ── 학부모 ──
 var _parentChildList = [];
 function populateParentChildSelect() {
-  supaFetch('madi_children?' + centerFilter() + '&select=id,data&order=id.asc', 'GET')
+  supaFetch('madi_children?' + centerFilter() + '&select=id,data,center_id&order=id.asc', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) return;
       _parentChildList = rows.map(function(r) {
         var d = r.data || {};
-        return { id: r.id, name: d.name || '?', birth: d.birth || '' };
+        return { id: r.id, name: d.name || '?', birth: d.birth || '', center_id: r.center_id || '' };
       }).sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); });
     }).catch(function() {});
 }
@@ -2314,7 +2315,7 @@ function filterParentChildList(q) {
     drop.innerHTML = '<div style="padding:12px 14px;color:#94a3b8;text-align:center;font-size:13px;">검색 결과 없음</div>';
   } else {
     drop.innerHTML = filtered.slice(0,30).map(function(c) {
-      return '<div onclick="selectParentChild(\'' + c.id + '\',\'' + escHtml(c.name) + '\')" '
+      return '<div onclick="selectParentChild(\'' + c.id + '\',\'' + escHtml(c.name) + '\',\'' + escHtml(c.center_id) + '\')" '
         + 'style="padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#1e293b;" '
         + 'onmouseover="this.style.background=\'#e0f7f6\'" onmouseout="this.style.background=\'\'">'
         + escHtml(c.name) + (c.birth ? ' <span style="color:#94a3b8;font-size:11px;">(' + escHtml(c.birth) + ')</span>' : '')
@@ -2330,8 +2331,9 @@ function showParentChildDrop() {
   if (v) filterParentChildList(v);
 }
 
-function selectParentChild(id, name) {
+function selectParentChild(id, name, centerId) {
   document.getElementById('parentInviteChild').value = id;
+  document.getElementById('parentInviteChildCenter').value = centerId || '';
   document.getElementById('parentChildSearchInput').value = name;
   document.getElementById('parentChildDrop').style.display = 'none';
 }
@@ -2350,7 +2352,8 @@ function createParentAccount() {
   if (!/^[a-zA-Z0-9_]+$/.test(username)) { showToast('⚠️ 아이디는 영문/숫자/언더바만 가능'); return; }
   var pwErr2 = validatePasswordStrength(password);
   if (pwErr2) { showToast('⚠️ ' + pwErr2); return; }
-  var cid = centerFilter().replace('center_id=eq.','') || '';
+  var cid = document.getElementById('parentInviteChildCenter').value || '';
+  if (!cid) { showToast('⚠️ 아동의 센터 정보를 찾을 수 없습니다. 아동을 다시 선택해주세요.'); return; }
   supaFetch('madi_users?username=eq.' + encodeURIComponent(username) + '&select=id', 'GET')
     .then(function(dup) {
       if (Array.isArray(dup) && dup.length > 0) throw new Error('이미 사용 중인 아이디입니다');

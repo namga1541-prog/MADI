@@ -944,7 +944,7 @@ function _initParentSidebar() {
     sb.setAttribute('style',
       'width:68px;display:flex;flex-direction:column;align-items:center;' +
       'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
-      'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);overflow-y:auto;'
+      'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);align-self:flex-start;'
     );
   } else {
     document.body.appendChild(sb);
