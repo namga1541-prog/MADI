@@ -11,6 +11,17 @@ var _quickPhotoDataUrl = '';   // 사진 dataURL (선택 시)
 var _quickNextGoals = [];      // 다음 목표 체크박스 상태 [{name, checked}]
 
 // ─────────────────────────────────────────────
+// 보안 상수
+// ─────────────────────────────────────────────
+// XSS 벡터 차단: SVG/HTML/PDF 등은 거부. 일반 사진 포맷만 허용.
+var _QUICK_PHOTO_ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'image/gif'];
+var _QUICK_PHOTO_MAX_BYTES   = 2 * 1024 * 1024;   // 2MB (base64 인코딩 시 ~2.7MB → jsonb 부담 완화)
+var _QUICK_SUMMARY_MAX_LEN   = 1500;              // 한 줄 요약 최대 길이
+var _QUICK_AI_INPUT_MAX_LEN  = 8000;              // AI 정리 입력 최대 길이 (서버 413 방지)
+var _QUICK_GOAL_MAX_LEN      = 100;               // 다음 목표 1건 최대 길이
+var _QUICK_GOAL_MAX_COUNT    = 20;                // 다음 목표 최대 개수
+
+// ─────────────────────────────────────────────
 // 진입점: 패널 활성화 + 카드 리스트 렌더
 // ─────────────────────────────────────────────
 function openQuickPanel() {
@@ -249,7 +260,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +         '<button type="button" id="quickAiBtn" onclick="quickAiClean()" class="btn" style="padding:7px 12px;font-size:13px;background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6;font-weight:700;">✨ AI 정리</button>'
     +       '</div>'
     +     '</div>'
-    +     '<textarea id="quickSummary" class="form-input" rows="4" placeholder="예) /ㅅ/ 음소 단어 수준 산출 70% · 차례 기다리기 양호 · 다음 시간 문장 수준 진입">' + escHtml(summary) + '</textarea>'
+    +     '<textarea id="quickSummary" class="form-input" rows="4" maxlength="' + _QUICK_SUMMARY_MAX_LEN + '" placeholder="예) /ㅅ/ 음소 단어 수준 산출 70% · 차례 기다리기 양호 · 다음 시간 문장 수준 진입">' + escHtml(summary) + '</textarea>'
     +     '<div style="font-size:11px;color:var(--text2);margin-top:5px;">🎤 받아쓰기는 한국어로 말한 내용을 자동으로 텍스트로 변환합니다 (Chrome/Edge/Safari)</div>'
     +   '</div>'
 
@@ -257,7 +268,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +   '<div class="quick-section">'
     +     '<label class="form-label">📷 사진 (선택)</label>'
     +     '<div id="quickPhotoBox">' + _quickPhotoHtml() + '</div>'
-    +     '<input type="file" id="quickPhotoInput" accept="image/*" onchange="quickPickPhoto(event)" style="display:none;">'
+    +     '<input type="file" id="quickPhotoInput" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif" onchange="quickPickPhoto(event)" style="display:none;">'
     +   '</div>'
 
     // 다음 목표 체크박스
@@ -265,7 +276,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +     '<label class="form-label">✅ 다음 목표</label>'
     +     '<div id="quickGoalsBox"></div>'
     +     '<div style="display:flex;gap:6px;margin-top:8px;">'
-    +       '<input type="text" id="quickGoalInput" class="form-input" placeholder="새 목표 추가" style="flex:1;">'
+    +       '<input type="text" id="quickGoalInput" class="form-input" maxlength="' + _QUICK_GOAL_MAX_LEN + '" placeholder="새 목표 추가" style="flex:1;">'
     +       '<button type="button" onclick="quickAddGoal()" class="btn btn-secondary" style="padding:9px 14px;font-size:13px;">+ 추가</button>'
     +     '</div>'
     +   '</div>'
@@ -292,16 +303,21 @@ function _quickFormHtml(sched, name, age, diag, existing) {
 
 function _quickPhotoHtml() {
   if (_quickPhotoDataUrl) {
+    // 보안: 렌더 직전 한 번 더 헤더 검증 (XSS 차단 마지막 게이트)
+    if (!/^data:image\/(jpeg|png|webp|heic|heif|gif);base64,/i.test(_quickPhotoDataUrl)) {
+      _quickPhotoDataUrl = '';
+      return _quickPhotoHtml();
+    }
     return ''
       + '<div style="position:relative;display:inline-block;border:1px solid var(--border);border-radius:10px;overflow:hidden;">'
-      +   '<img src="' + _quickPhotoDataUrl + '" alt="첨부 사진" style="max-width:200px;max-height:160px;display:block;">'
+      +   '<img src="' + escHtml(_quickPhotoDataUrl) + '" alt="첨부 사진" style="max-width:200px;max-height:160px;display:block;">'
       +   '<button type="button" onclick="quickRemovePhoto()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;width:24px;height:24px;border-radius:12px;cursor:pointer;font-size:13px;line-height:1;">✕</button>'
       + '</div>';
   }
   return ''
     + '<button type="button" onclick="document.getElementById(\'quickPhotoInput\').click()" class="btn" '
     +   'style="padding:14px;border:1.5px dashed var(--border);background:var(--card-bg);color:var(--text2);width:100%;font-size:13px;">'
-    +   '📷 사진 선택 (최대 1장)'
+    +   '📷 사진 선택 (최대 1장, JPG·PNG·WebP·HEIC, 2MB)'
     + '</button>';
 }
 
@@ -336,6 +352,12 @@ function quickAddGoal() {
   if (!inp) return;
   var v = inp.value.trim();
   if (!v) return;
+  // 보안: 개수·길이 제한
+  if (_quickNextGoals.length >= _QUICK_GOAL_MAX_COUNT) {
+    if (typeof showToast === 'function') showToast('⚠️ 다음 목표는 최대 ' + _QUICK_GOAL_MAX_COUNT + '개까지');
+    return;
+  }
+  if (v.length > _QUICK_GOAL_MAX_LEN) v = v.slice(0, _QUICK_GOAL_MAX_LEN);
   _quickNextGoals.push({ name: v, checked: false });
   inp.value = '';
   _quickRenderNextGoals();
@@ -347,15 +369,32 @@ function quickAddGoal() {
 function quickPickPhoto(ev) {
   var f = ev && ev.target && ev.target.files && ev.target.files[0];
   if (!f) return;
-  if (f.size > 5 * 1024 * 1024) {
-    if (typeof showToast === 'function') showToast('⚠️ 5MB 이하 이미지만 가능합니다');
+  // 보안: MIME 화이트리스트 (SVG/HTML/PDF 등 XSS 벡터 차단)
+  var mime = String(f.type || '').toLowerCase();
+  if (_QUICK_PHOTO_ALLOWED_MIME.indexOf(mime) === -1) {
+    if (typeof showToast === 'function') showToast('⚠️ JPG·PNG·WebP·HEIC·GIF 만 업로드 가능합니다');
+    if (ev.target) ev.target.value = '';
+    return;
+  }
+  if (f.size > _QUICK_PHOTO_MAX_BYTES) {
+    if (typeof showToast === 'function') showToast('⚠️ 2MB 이하 이미지만 가능합니다');
+    if (ev.target) ev.target.value = '';
     return;
   }
   var reader = new FileReader();
   reader.onload = function(e) {
-    _quickPhotoDataUrl = String(e.target.result || '');
+    var dataUrl = String(e.target.result || '');
+    // 보안: dataURL 헤더 화이트리스트 재검증 (FileReader 결과도 신뢰하지 않음)
+    if (!/^data:image\/(jpeg|png|webp|heic|heif|gif);base64,/i.test(dataUrl)) {
+      if (typeof showToast === 'function') showToast('⚠️ 지원하지 않는 이미지 형식입니다');
+      return;
+    }
+    _quickPhotoDataUrl = dataUrl;
     var box = document.getElementById('quickPhotoBox');
     if (box) box.innerHTML = _quickPhotoHtml();
+  };
+  reader.onerror = function() {
+    if (typeof showToast === 'function') showToast('⚠️ 이미지 읽기 실패');
   };
   reader.readAsDataURL(f);
 }
@@ -377,6 +416,18 @@ function quickToggleDictation() {
     if (typeof showToast === 'function') showToast('⚠️ 이 브라우저는 받아쓰기를 지원하지 않습니다 (Chrome/Edge/Safari 권장)');
     return;
   }
+  // 보안 안내: 음성이 브라우저 벤더(Google 등)의 음성 인식 서버로 전송될 수 있음 — 첫 사용 시 1회 확인
+  try {
+    if (!localStorage.getItem('madi_quick_dict_notice')) {
+      var msg = '🎤 받아쓰기 안내\n\n'
+        + '음성은 브라우저(Chrome/Edge 등)의 음성 인식 서버로 전송되어 텍스트로 변환됩니다.\n'
+        + '아동 실명·진단명 등 민감 정보는 음성으로 말하지 마시고,\n'
+        + '음성으로는 "오늘 발음 70%" 같이 일반적인 표현만 사용해주세요.\n\n'
+        + '계속하시겠어요?';
+      if (!confirm(msg)) return;
+      localStorage.setItem('madi_quick_dict_notice', '1');
+    }
+  } catch (e) { /* localStorage 차단 환경에서도 동작 */ }
   try {
     _quickRec = new SR();
   } catch (e) {
@@ -460,6 +511,11 @@ function quickAiClean() {
     if (typeof showToast === 'function') showToast('먼저 텍스트를 입력하거나 받아쓰기 하세요');
     return;
   }
+  // 보안: 입력 길이 cap (ai-proxy MAX_CONTENT_LEN 413 방지 + 토큰 폭주 차단)
+  if (raw.length > _QUICK_AI_INPUT_MAX_LEN) {
+    if (typeof showToast === 'function') showToast('⚠️ 입력이 너무 깁니다 (' + _QUICK_AI_INPUT_MAX_LEN + '자 초과). 잘라서 다시 시도하세요');
+    return;
+  }
   if (typeof callClaude !== 'function') {
     if (typeof showToast === 'function') showToast('⚠️ AI 호출 함수가 없습니다');
     return;
@@ -502,11 +558,20 @@ function quickSave() {
   var ta = document.getElementById('quickSummary');
   var summary = ta ? ta.value.trim() : '';
   if (!summary) { if (typeof showToast === 'function') showToast('⚠️ 한 줄 요약을 입력하세요'); return; }
+  // 보안: 길이 cap (jsonb 비대화 방지)
+  if (summary.length > _QUICK_SUMMARY_MAX_LEN) {
+    summary = summary.slice(0, _QUICK_SUMMARY_MAX_LEN);
+    if (typeof showToast === 'function') showToast('⚠️ 요약이 ' + _QUICK_SUMMARY_MAX_LEN + '자로 잘렸습니다');
+  }
 
   var parentVisible = !!(document.getElementById('quickParentVisible') && document.getElementById('quickParentVisible').checked);
-  var nextGoals = _quickNextGoals.filter(function(g) { return g && g.name; }).map(function(g) {
-    return { name: g.name, checked: !!g.checked };
-  });
+  // 보안: 다음 목표 개수·길이 cap
+  var nextGoals = _quickNextGoals
+    .filter(function(g) { return g && g.name; })
+    .slice(0, _QUICK_GOAL_MAX_COUNT)
+    .map(function(g) {
+      return { name: String(g.name).slice(0, _QUICK_GOAL_MAX_LEN), checked: !!g.checked };
+    });
 
   // goals 컬럼은 마디 표준 호환: 체크된 목표만 점수 100, 나머지 점수 null
   var goals = nextGoals.map(function(g) {
