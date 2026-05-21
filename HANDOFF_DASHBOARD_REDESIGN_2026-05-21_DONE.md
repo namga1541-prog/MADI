@@ -13,10 +13,13 @@
 | 4 | Admin/Super 홈 ⑧ — `renderDashboardAdmin()` (super 재활용) | ✅ 완료 |
 | 5 | smoke 검증 + 배포 | ✅ 완료 |
 
-**커밋**: `88906d5..9de1be6` (3개 커밋)
-- `3963a46` Teacher + Admin
-- `e04e872` Parent
-- `9de1be6` Superadmin 폴리시
+**커밋**: `88906d5..33e4330` (6개 커밋)
+- `3963a46` Teacher + Admin 페르소나
+- `e04e872` Parent 페르소나
+- `9de1be6` Superadmin 라벨 폴리시
+- `31aa058` 선생님 활동표 madi_users 확장 + 안전 가드
+- `f2b0d2c` 학부모 panelHome FOUC 가드
+- `33e4330` Parent 발달 그래프 평가 점수 반영
 
 **smoke**: 23 / 0 통과 (변동 없음)
 **배포**: GitHub Pages 1~2분 후 자동 반영 — 사용자에게 강제 새로고침 (Ctrl+Shift+R) 안내 필요
@@ -100,17 +103,25 @@ applyParentUI() ─→ switchParentTab('home') ─→ loadParentHome()  (parentP
 
 ## 5. 알려진 한계·차후 개선 후보
 
-### 발달 그래프 (Parent)
-현재는 **월별 세션 수**만 표시. 평가 점수 (`madi_assessments`) 가 점수 필드를 가진다면 그쪽으로 교체 권장.
-→ `madi-15.js` `_renderParentChart(sessions)` 안에서 sessions 대신 assessments 데이터 매핑.
+### 발달 그래프 (Parent) — ✅ 개선 완료 (`33e4330`)
+`madi_assessments.scores` 평균을 월별 집계해서 100점 만점 그래프로 표시.
+평가 0건이면 자동으로 세션 카운트 그래프 fallback.
 
-### 선생님 활동 표 (Admin)
-sessionDB/scheduleDB 의 `teacher` (이름 문자열) 기반 집계. `madi_users` 직접 조회 안 함.
-→ 동명이인 / 닉네임 변경 케이스가 생기면 `madi_users` 조회로 교체.
+### 선생님 활동 표 (Admin) — ✅ 개선 완료 (`31aa058`)
+`madi_users` 직접 조회로 활동 0건 선생님까지 표시 (회색 처리).
+admin → 본인 센터 / superadmin → 전 센터 분기.
 
 ### Super 센터 셀렉터
 현재 superadmin = admin 재활용 + "전체 센터 집계" 라벨만 추가.
 사이드바에 센터 드롭다운 추가는 별도 작업 — 결정되면 `dashAdmin` 헤더에 셀렉터 마운트.
+
+### 매출 단가 사용자 편집
+현재 `_DP_VOUCHER_PRICE` 가 madi-03.js 안에 하드코딩.
+센터별 단가 설정 UI 가 필요해지면 `madi_settings` 테이블에 저장 후 로드.
+
+### 가정 활동 테이블
+`_renderParentHomeActivities()` 가 정적 3개 placeholder.
+`madi_home_activities` 테이블 도입 시 그 함수만 교체.
 
 ### Edge Function 미수정
 이번 작업은 클라이언트 전용. `supabase/functions/api/index.ts` 등 백엔드 변경 없음.
