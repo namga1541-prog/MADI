@@ -1479,7 +1479,7 @@ function renderDashboardAdmin() {
 
   var html = ''
     + '<div class="dp-head">'
-    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + '</div>'
+    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + (role === 'superadmin' ? ' · <span style="color:#d97706;font-weight:700;">전체 센터 집계</span>' : '') + '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
     + '</div>';
@@ -1488,7 +1488,7 @@ function renderDashboardAdmin() {
   html += ''
     + '<div class="dp-rev">'
     +   '<div class="dp-rev-main">'
-    +     '<div class="dp-rev-label">💰 이번 달 매출 (추정)</div>'
+    +     '<div class="dp-rev-label">💰 이번 달 매출 (추정' + (role === 'superadmin' ? ' · 전체' : '') + ')</div>'
     +     '<div class="dp-rev-num">' + _dpFmtWon(revenue) + '</div>'
     +     '<div class="dp-rev-meta">' + escHtml(deltaTxt) + '</div>'
     +     '<div class="dp-rev-tag">📌 바우처 단가 × 완료 세션 추정값</div>'
