@@ -566,15 +566,8 @@
         <div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">불러오는 중...</div>
       </div>
     </div>
-  </div>
 
-</div>
-
-<!-- ══════ 관리자설정 패널 ══════ -->
-<div class="panel active" id="panelAdminSettings">
-  <div class="content">
-
-    <!-- 학부모 Push 알림 설정 -->
+    <!-- 🔔 학부모 Push 알림 설정 -->
     <div class="card" id="pushSettingsCard">
       <div class="card-title">
         <div class="card-title-left">🔔 학부모 알림 설정</div>
@@ -611,6 +604,13 @@
         <div id="pushSettingsStatus" style="font-size:12px;color:var(--text2);min-height:14px;"></div>
       </div>
     </div>
+
+  </div><!-- /svcSubPanel_parent -->
+</div><!-- /panelAdminService -->
+
+<!-- ══════ 관리자설정 패널 ══════ -->
+<div class="panel active" id="panelAdminSettings">
+  <div class="content">
 
     <!-- 센터 AI 키 관리 -->
     <div class="card" style="border:2px solid var(--mint);">
@@ -687,29 +687,6 @@
       </div>
     </div>
 
-    <!-- 오류 모니터링 -->
-    <div class="card" style="border:2px solid #ef4444;">
-      <div class="card-title">
-        <div class="card-title-left" style="color:#ef4444;">🐞 오류 모니터링</div>
-        <span style="font-size:11px;color:var(--text2);">슈퍼관리자 전용</span>
-      </div>
-      <div id="errorLogStats" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-        <select id="errorLogCenterFilter" class="form-input" style="flex:1;min-width:120px;font-size:13px;" onchange="loadErrorLogs()">
-          <option value="">전체 센터</option>
-        </select>
-        <select id="errorLogLimitSel" class="form-input" style="width:90px;font-size:13px;" onchange="loadErrorLogs()">
-          <option value="20">최근 20건</option>
-          <option value="50">최근 50건</option>
-          <option value="100">최근 100건</option>
-        </select>
-        <button class="btn-ghost" style="font-size:12px;padding:8px 12px;" onclick="loadErrorLogs()">🔄 새로고침</button>
-        <button class="btn-ghost" style="font-size:12px;padding:8px 12px;color:#ef4444;border-color:#ef4444;" onclick="clearOldErrorLogs()">🗑️ 30일+ 삭제</button>
-      </div>
-      <div id="errorLogList">
-        <div style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0;">불러오는 중...</div>
-      </div>
-    </div>
 
   </div>
 </div>
@@ -917,7 +894,7 @@ function showSvcSubTab(tab) {
     if (panel) panel.style.display = (t === tab) ? '' : 'none';
     if (btn)   btn.classList.toggle('active', t === tab);
   });
-  if (tab === 'parent') { loadParentList(); populateParentChildSelect(); }
+  if (tab === 'parent') { loadParentList(); populateParentChildSelect(); loadPushSettings(); }
   if (tab === 'service' && currentUser && currentUser.role === 'admin') { loadMyLicense(); }
   if (tab === 'service' && typeof updateAIModelUI === 'function') { updateAIModelUI(); }
 }
@@ -949,9 +926,7 @@ function showAdminTab(tab) {
   }
   if (tab === 'settings') {
     loadCenterApiKey(false);
-    loadPushSettings();
     if (currentUser && currentUser.role === 'superadmin') {
-      loadErrorLogs();
       loadLicenseList();
     }
   }
