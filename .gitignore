@@ -5,4 +5,16 @@ test-results/
 
 # 현업 치료사 실제 보고서 원본 — 개인정보 포함, 로컬 보관만 (GitHub 푸시 금지)
 .local-reports/
+.local-reports-tmp/
 .local-functions-backup-*/
+
+# Claude Code 세션·워크트리·로컬 설정 — 로컬 전용
+.claude/sessions-extract-*/
+.claude/worktrees/
+.claude/settings.local.json
+
+# Supabase CLI 임시 파일
+supabase/.temp/
+
+# 사적 메모·인계 문서 (로컬 보관)
+마디_인계문서_*.md
