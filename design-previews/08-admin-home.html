@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>⑧ Admin Home — 센터장 페르소나 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Inter','Noto Sans KR',sans-serif; background:#f7f9fb; color:#0f172a; min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+  /* ── 레이아웃 ── */
+  .app { display:grid; grid-template-columns:228px 1fr; min-height:100vh; }
+  .sidebar { background:white; border-right:1px solid #e7ecf2; padding:16px 12px; display:flex; flex-direction:column; }
+  .brand { display:flex; align-items:center; gap:10px; padding:6px 10px 22px; }
+  .brand-logo { width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,#0f3b66,#1e5a93); color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:13.5px; }
+  .brand-name { font-size:15px; font-weight:800; color:#0f172a; letter-spacing:-0.3px; }
+  .brand-name span { display:block; font-size:10.5px; color:#94a3b8; font-weight:500; margin-top:1px; }
+
+  /* 센터 정보 카드 (admin은 자기 센터 명시) */
+  .center-card { margin:8px 6px 18px; padding:11px 14px; background:linear-gradient(135deg,#0f3b66,#1e5a93); color:white; border-radius:11px; display:flex; align-items:center; gap:10px; }
+  .center-ic { width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .center-info { flex:1; min-width:0; }
+  .center-name { font-size:12px; font-weight:800; color:white; }
+  .center-meta { font-size:10px; color:rgba(255,255,255,0.7); margin-top:1px; }
+
+  .nav-section { margin-bottom:18px; }
+  .nav-label { font-size:10.5px; font-weight:700; color:#94a3b8; padding:0 10px 6px; letter-spacing:0.6px; text-transform:uppercase; }
+  .nav-item { display:flex; align-items:center; gap:11px; padding:7px 11px; border-radius:7px; font-size:13px; color:#475569; cursor:pointer; margin-bottom:1px; font-weight:500; }
+  .nav-item:hover { background:#f1f5f9; color:#0f172a; }
+  .nav-item.active { background:#eff5fc; color:#0f3b66; font-weight:700; }
+  .nav-item.active .nav-ic { color:#1e5a93; }
+  .nav-ic { width:15px; height:15px; flex-shrink:0; color:#64748b; }
+  .nav-badge { margin-left:auto; font-size:10.5px; padding:1px 7px; border-radius:8px; font-weight:700; }
+  .nav-badge.amber { background:#fef3c7; color:#a16207; }
+  .nav-badge.green { background:#dcfce7; color:#15803d; }
+  .nav-badge.blue  { background:#dbeafe; color:#1e40af; }
+
+  .sidebar-foot { margin-top:auto; padding:10px; border-top:1px solid #f1f5f9; display:flex; align-items:center; gap:10px; }
+  .avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#0f3b66,#1e5a93); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; }
+  .avatar-text { font-size:12.5px; color:#0f172a; font-weight:700; }
+  .avatar-role { font-size:10.5px; color:#94a3b8; }
+
+  /* ── 상단 바 ── */
+  .main { display:flex; flex-direction:column; min-width:0; }
+  .topbar { height:54px; border-bottom:1px solid #e7ecf2; background:white; padding:0 28px; display:flex; align-items:center; justify-content:space-between; }
+  .top-left { display:flex; align-items:center; gap:14px; }
+  .breadcrumb { font-size:13px; color:#64748b; }
+  .breadcrumb b { color:#0f172a; font-weight:600; }
+  .top-search { display:flex; align-items:center; gap:8px; background:#f1f5f9; padding:7px 14px; border-radius:8px; min-width:280px; }
+  .top-search input { border:none; background:transparent; font-size:13px; outline:none; flex:1; font-family:inherit; color:#0f172a; }
+  .top-search input::placeholder { color:#94a3b8; }
+  .top-search kbd { font-size:10px; color:#94a3b8; padding:1px 5px; background:white; border:1px solid #e2e8f0; border-radius:3px; font-family:'SF Mono',monospace; }
+
+  .top-right { display:flex; align-items:center; gap:8px; }
+  .top-period { display:flex; gap:2px; background:#f1f5f9; padding:3px; border-radius:8px; }
+  .top-period-btn { padding:5px 12px; font-size:11.5px; font-weight:700; color:#64748b; cursor:pointer; border-radius:6px; border:none; background:transparent; font-family:inherit; }
+  .top-period-btn.active { background:white; color:#0f3b66; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .icon-btn { width:34px; height:34px; border-radius:8px; border:1px solid #e7ecf2; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative; font-size:14px; }
+  .badge-dot { position:absolute; top:7px; right:7px; width:7px; height:7px; border-radius:50%; background:#ef4444; border:2px solid white; }
+  .cta-btn { padding:0 16px; height:34px; border-radius:8px; background:linear-gradient(135deg,#0f3b66,#1e5a93); color:white; border:none; font-weight:700; font-size:12.5px; cursor:pointer; font-family:inherit; }
+
+  .content { padding:28px 32px 60px; max-width:1400px; width:100%; }
+
+  /* ── 페이지 헤드 ── */
+  .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
+  .greeting { font-size:13px; color:#64748b; font-weight:500; margin-bottom:4px; }
+  .page-title { font-size:28px; font-weight:900; color:#0f172a; letter-spacing:-0.7px; margin:0; line-height:1.2; }
+  .page-sub { font-size:13.5px; color:#475569; margin-top:8px; line-height:1.55; }
+  .page-sub b { color:#15803d; }
+
+  /* ── 💰 매출·정산 풀너비 강조 카드 ── */
+  .revenue-hero {
+    display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:0;
+    background:linear-gradient(135deg,#0f3b66 0%,#1e5a93 100%);
+    color:white; border-radius:16px; overflow:hidden;
+    margin-bottom:22px; position:relative;
+    box-shadow:0 12px 32px rgba(15,59,102,0.18);
+  }
+  .revenue-hero::before { content:""; position:absolute; top:-80px; right:-60px; width:280px; height:280px; border-radius:50%; background:radial-gradient(circle,rgba(251,191,36,0.15) 0%,transparent 70%); pointer-events:none; }
+
+  .rev-main { padding:24px 28px; position:relative; z-index:1; }
+  .rev-label { font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.7); letter-spacing:0.5px; text-transform:uppercase; }
+  .rev-num { font-size:38px; font-weight:900; color:white; letter-spacing:-1.2px; line-height:1; margin-top:8px; }
+  .rev-num em { font-size:18px; color:rgba(255,255,255,0.7); font-style:normal; font-weight:600; margin-left:4px; }
+  .rev-delta { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; background:rgba(34,197,94,0.18); color:#86efac; border:1px solid rgba(134,239,172,0.3); border-radius:8px; font-size:11.5px; font-weight:800; margin-top:10px; }
+  .rev-period-info { font-size:12px; color:rgba(255,255,255,0.7); margin-top:8px; }
+
+  .rev-sub { padding:24px 22px; border-left:1px solid rgba(255,255,255,0.12); position:relative; z-index:1; }
+  .rev-sub-label { font-size:11px; color:rgba(255,255,255,0.7); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; }
+  .rev-sub-num { font-size:22px; font-weight:900; color:white; letter-spacing:-0.5px; margin-top:6px; }
+  .rev-sub-num em { font-size:13px; color:rgba(255,255,255,0.6); font-style:normal; font-weight:600; }
+  .rev-sub-meta { font-size:11.5px; color:rgba(255,255,255,0.65); margin-top:6px; line-height:1.55; }
+  .rev-sub-meta b { color:#fcd34d; }
+  .rev-sub-action { margin-top:12px; padding:6px 12px; background:white; color:#0f3b66; border:none; border-radius:7px; font-size:11.5px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .rev-sub-action:hover { background:#fef3c7; }
+
+  /* ── 운영 KPI 4개 ── */
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#e7ecf2; border:1px solid #e7ecf2; border-radius:12px; overflow:hidden; margin-bottom:20px; }
+  .kpi { background:white; padding:18px 22px; display:flex; align-items:center; gap:14px; }
+  .kpi-ic { width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .kic-green  { background:#dcfce7; color:#15803d; }
+  .kic-amber  { background:#fef3c7; color:#a16207; }
+  .kic-blue   { background:#dbeafe; color:#1e40af; }
+  .kic-purple { background:#ede9fe; color:#6d28d9; }
+  .kpi-info { flex:1; min-width:0; }
+  .kpi-label { font-size:11.5px; color:#64748b; font-weight:600; margin-bottom:4px; }
+  .kpi-num { font-size:26px; font-weight:900; color:#0f172a; letter-spacing:-0.8px; line-height:1; }
+  .kpi-delta { font-size:10.5px; font-weight:700; margin-top:4px; }
+  .kpi-delta.up   { color:#15803d; }
+  .kpi-delta.warn { color:#a16207; }
+  .kpi-delta.flat { color:#94a3b8; }
+
+  /* ── 2열 ── */
+  .grid-2 { display:grid; grid-template-columns:1.3fr 1fr; gap:18px; margin-bottom:18px; }
+
+  .panel { background:white; border:1px solid #e7ecf2; border-radius:12px; overflow:hidden; }
+  .panel-head { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .panel-title { font-size:14px; font-weight:800; color:#0f172a; letter-spacing:-0.2px; }
+  .panel-title-sub { font-size:11px; color:#94a3b8; font-weight:500; margin-top:2px; }
+  .panel-link { font-size:12px; color:#1e5a93; font-weight:700; cursor:pointer; }
+  .panel-body { padding:18px 20px; }
+
+  /* ── 선생님별 활동 현황 ── */
+  .teacher-row { display:grid; grid-template-columns:auto 1fr auto auto auto; gap:14px; align-items:center; padding:12px 0; border-top:1px solid #f1f5f9; }
+  .teacher-row:first-child { border-top:none; }
+  .t-av { width:36px; height:36px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+  .tav-1 { background:linear-gradient(135deg,#0ea5a0,#22c9c3); }
+  .tav-2 { background:linear-gradient(135deg,#f59e0b,#fbbf24); }
+  .tav-3 { background:linear-gradient(135deg,#8b5cf6,#a855f7); }
+  .tav-4 { background:linear-gradient(135deg,#ec4899,#f43f5e); }
+  .tav-5 { background:linear-gradient(135deg,#06b6d4,#0ea5a0); }
+  .t-info { min-width:0; }
+  .t-name { font-size:13px; font-weight:700; color:#0f172a; }
+  .t-meta { font-size:11px; color:#64748b; margin-top:1px; }
+  .t-stat { text-align:center; min-width:50px; }
+  .t-stat-num { font-size:14px; font-weight:800; color:#0f172a; letter-spacing:-0.2px; }
+  .t-stat-num.warn { color:#a16207; }
+  .t-stat-label { font-size:10px; color:#94a3b8; margin-top:1px; font-weight:600; }
+
+  /* ── 이번 주 아동 변동 ── */
+  .change-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#f1f5f9; border:1px solid #e7ecf2; border-radius:10px; overflow:hidden; margin-bottom:14px; }
+  .change-cell { background:white; padding:14px 12px; text-align:center; }
+  .change-num { font-size:20px; font-weight:900; line-height:1; letter-spacing:-0.4px; }
+  .change-num.up { color:#15803d; }
+  .change-num.flat { color:#475569; }
+  .change-num.done { color:#1e40af; }
+  .change-label { font-size:11px; color:#64748b; margin-top:5px; font-weight:600; }
+
+  .change-row { display:flex; align-items:center; gap:11px; padding:11px 0; border-top:1px solid #f1f5f9; }
+  .change-row:first-child { border-top:none; }
+  .change-row .t-av { width:30px; height:30px; font-size:11px; border-radius:8px; }
+  .change-content { flex:1; min-width:0; }
+  .change-title { font-size:12.5px; font-weight:700; color:#0f172a; }
+  .change-detail { font-size:11px; color:#64748b; margin-top:1px; }
+  .change-tag { font-size:10px; padding:2px 7px; border-radius:6px; font-weight:700; flex-shrink:0; }
+  .ctag-new   { background:#dcfce7; color:#15803d; }
+  .ctag-done  { background:#dbeafe; color:#1e40af; }
+  .ctag-wait  { background:#fef3c7; color:#a16207; }
+
+  /* ── 이번 달 활동 추이 그래프 (풀너비) ── */
+  .chart-panel { background:white; border:1px solid #e7ecf2; border-radius:12px; overflow:hidden; margin-bottom:18px; }
+  .chart-area { height:200px; position:relative; margin:8px 0 4px; padding:0 10px; }
+  .chart-grid { position:absolute; inset:8px 10px; display:flex; flex-direction:column; justify-content:space-between; }
+  .chart-line-bg { border-top:1px dashed #f1f5f9; }
+  .chart-svg { position:absolute; inset:8px 10px; width:calc(100% - 20px); height:calc(100% - 16px); }
+  .chart-x { display:flex; justify-content:space-between; padding:6px 10px 0; font-size:10.5px; color:#94a3b8; font-weight:600; }
+  .chart-legend { display:flex; gap:18px; padding:10px 0 0; }
+  .chart-leg-item { display:flex; align-items:center; gap:6px; font-size:11.5px; color:#475569; font-weight:600; }
+  .chart-leg-dot { width:10px; height:3px; border-radius:2px; }
+
+  /* 스크롤 힌트 */
+  .scroll-hint { text-align:center; margin:22px 0 18px; font-size:11px; color:#94a3b8; font-weight:600; }
+  .scroll-hint span { display:inline-flex; align-items:center; gap:6px; padding:5px 14px; background:#f1f5f9; border-radius:14px; }
+
+  /* 하단 2열 */
+  .grid-2-bottom { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+
+  /* 알림 */
+  .alert-list { display:flex; flex-direction:column; gap:8px; }
+  .alert-big { display:flex; gap:14px; padding:13px 16px; border-radius:10px; align-items:flex-start; }
+  .ab-warn   { background:#fef3c7; border:1px solid #fde68a; }
+  .ab-info   { background:#dbeafe; border:1px solid #bfdbfe; }
+  .ab-ok     { background:#f8fafc; border:1px solid #e2e8f0; }
+  .alert-big-ic { font-size:18px; flex-shrink:0; }
+  .alert-big-info { flex:1; }
+  .alert-big-title { font-size:13px; font-weight:800; color:#0f172a; line-height:1.4; }
+  .alert-big-text { font-size:12px; color:#475569; line-height:1.55; margin-top:3px; }
+  .alert-big-time { font-size:10.5px; color:#94a3b8; margin-top:5px; font-weight:600; }
+
+  /* 빠른 액션 */
+  .qa-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid #f1f5f9; cursor:pointer; transition:padding 0.12s; }
+  .qa-item:first-child { border-top:none; }
+  .qa-item:hover { padding-left:4px; }
+  .qa-ic { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .qa-ic-gold { background:#fef3c7; color:#a16207; }
+  .qa-ic-blue { background:#dbeafe; color:#1e40af; }
+  .qa-ic-green { background:#dcfce7; color:#15803d; }
+  .qa-text { flex:1; }
+  .qa-text b { display:block; font-size:13px; color:#0f172a; font-weight:700; }
+  .qa-text span { font-size:11px; color:#94a3b8; }
+  .qa-arrow { font-size:14px; color:#cbd5e1; }
+
+  /* 모바일 */
+  @media (max-width:1024px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .grid-2 { grid-template-columns:1fr; }
+    .kpi-grid { grid-template-columns:repeat(2,1fr); }
+    .revenue-hero { grid-template-columns:1fr; }
+    .rev-sub { border-left:none; border-top:1px solid rgba(255,255,255,0.12); }
+    .top-search, .top-period { display:none; }
+  }
+  @media (max-width:640px) {
+    .topbar { padding:0 16px; }
+    .content { padding:20px 16px 50px; }
+    .grid-2-bottom { grid-template-columns:1fr; }
+    .change-summary { grid-template-columns:1fr; }
+    .teacher-row { grid-template-columns:auto 1fr; row-gap:6px; }
+    .teacher-row .t-stat { grid-column:span 1; min-width:0; text-align:left; padding-left:50px; display:flex; gap:6px; align-items:baseline; }
+    .teacher-row .t-stat-label { margin-top:0; }
+    .rev-num { font-size:28px; }
+    .page-title { font-size:22px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══ 사이드바 ═══ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">M</div>
+      <div class="brand-name">아이마디<span>운영자 콘솔</span></div>
+    </div>
+
+    <!-- 센터 정보 카드 -->
+    <div class="center-card">
+      <div class="center-ic">🏢</div>
+      <div class="center-info">
+        <div class="center-name">행복어린이센터</div>
+        <div class="center-meta">서울 강남구 · 6명 운영</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">운영</div>
+      <div class="nav-item active">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        대시보드
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        매출·정산 <span class="nav-badge amber">3</span>
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        센터 일정
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 11h6M19 8v6"/></svg>
+        선생님 관리 <span class="nav-badge blue">6</span>
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+        전체 아동 <span class="nav-badge green">100</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">분석</div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+        통계·리포트
+      </div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        센터 공지
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">관리</div>
+      <div class="nav-item">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1"/></svg>
+        센터 설정
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="avatar">박</div>
+      <div>
+        <div class="avatar-text">박원장</div>
+        <div class="avatar-role">센터장 🎯</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ 메인 ═══ -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="top-left">
+        <div class="breadcrumb"><b>대시보드</b></div>
+        <div class="top-search">
+          <span style="opacity:0.5;">🔍</span>
+          <input type="text" placeholder="아동·선생님·정산 검색">
+          <kbd>⌘K</kbd>
+        </div>
+      </div>
+      <div class="top-right">
+        <div class="top-period">
+          <button class="top-period-btn">오늘</button>
+          <button class="top-period-btn">이번 주</button>
+          <button class="top-period-btn active">이번 달</button>
+          <button class="top-period-btn">올해</button>
+        </div>
+        <button class="icon-btn">🔔<span class="badge-dot"></span></button>
+        <button class="cta-btn">＋ 선생님 초대</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- 페이지 헤드 -->
+      <div class="page-head">
+        <div>
+          <div class="greeting">2026년 5월 21일 목요일</div>
+          <h1 class="page-title">안녕하세요, 박원장님 🎯</h1>
+          <p class="page-sub">이번 달 매출이 <b>전월 대비 12%</b> 상승했어요. 정산 대기 <b style="color:#a16207;">3건</b>이 남아 있습니다.</p>
+        </div>
+      </div>
+
+      <!-- 💰 매출·정산 풀너비 강조 -->
+      <div class="revenue-hero">
+        <div class="rev-main">
+          <div class="rev-label">💰 이번 달 매출</div>
+          <div class="rev-num">₩18,420,000</div>
+          <div class="rev-delta">↑ +12% &nbsp;전월 대비 +₩1,970,000</div>
+          <div class="rev-period-info">2026년 5월 1일 ~ 21일 · 21일차</div>
+        </div>
+        <div class="rev-sub">
+          <div class="rev-sub-label">⏳ 정산 대기</div>
+          <div class="rev-sub-num">₩4,200,000</div>
+          <div class="rev-sub-meta"><b>3건</b> · 가장 오래된 5/18<br>마감 <b>5/24 18시</b></div>
+          <button class="rev-sub-action">→ 정산 처리</button>
+        </div>
+        <div class="rev-sub">
+          <div class="rev-sub-label">📊 이번 달 세션</div>
+          <div class="rev-sub-num">312 <em>회</em></div>
+          <div class="rev-sub-meta">선생님 평균 <b>52회</b><br>일평균 <b>14.8회</b></div>
+          <button class="rev-sub-action">→ 상세 보기</button>
+        </div>
+      </div>
+
+      <!-- 운영 KPI 4개 -->
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-ic kic-green">👶</div>
+          <div class="kpi-info">
+            <div class="kpi-label">활동 중인 아동</div>
+            <div class="kpi-num">100</div>
+            <div class="kpi-delta up">↑ +3 이번 달</div>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic kic-amber">⏳</div>
+          <div class="kpi-info">
+            <div class="kpi-label">대기 / 초기 면담</div>
+            <div class="kpi-num">5</div>
+            <div class="kpi-delta warn">+2 이번 주 신규</div>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic kic-blue">✓</div>
+          <div class="kpi-info">
+            <div class="kpi-label">이번 달 종결</div>
+            <div class="kpi-num">12</div>
+            <div class="kpi-delta up">↑ +4 vs 4월</div>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic kic-purple">🌳</div>
+          <div class="kpi-info">
+            <div class="kpi-label">전체 누적</div>
+            <div class="kpi-num">493</div>
+            <div class="kpi-delta flat">2024년 1월 이후</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2열: 선생님 활동 + 아동 변동 -->
+      <div class="grid-2">
+
+        <!-- 선생님별 활동 현황 -->
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">👥 선생님별 활동 현황</div>
+              <div class="panel-title-sub">이번 주 (5/19 ~ 5/25) · 6명</div>
+            </div>
+            <div class="panel-link">상세 →</div>
+          </div>
+          <div class="panel-body">
+            <!-- 헤더 -->
+            <div style="display:grid;grid-template-columns:auto 1fr 50px 50px 50px;gap:14px;font-size:10.5px;color:#94a3b8;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+              <div style="width:36px;"></div>
+              <div>선생님</div>
+              <div style="text-align:center;">담당</div>
+              <div style="text-align:center;">세션</div>
+              <div style="text-align:center;">미작성</div>
+            </div>
+
+            <div class="teacher-row">
+              <div class="t-av tav-1">김</div>
+              <div class="t-info">
+                <div class="t-name">김선생</div>
+                <div class="t-meta">언어치료 · 5년차</div>
+              </div>
+              <div class="t-stat"><div class="t-stat-num">12</div><div class="t-stat-label">명</div></div>
+              <div class="t-stat"><div class="t-stat-num">8</div><div class="t-stat-label">/11</div></div>
+              <div class="t-stat"><div class="t-stat-num warn">3</div><div class="t-stat-label">건</div></div>
+            </div>
+            <div class="teacher-row">
+              <div class="t-av tav-2">이</div>
+              <div class="t-info">
+                <div class="t-name">이치료사</div>
+                <div class="t-meta">언어치료 · 8년차</div>
+              </div>
+              <div class="t-stat"><div class="t-stat-num">15</div><div class="t-stat-label">명</div></div>
+              <div class="t-stat"><div class="t-stat-num">14</div><div class="t-stat-label">/14</div></div>
+              <div class="t-stat"><div class="t-stat-num">0</div><div class="t-stat-label">건</div></div>
+            </div>
+            <div class="teacher-row">
+              <div class="t-av tav-3">박</div>
+              <div class="t-info">
+                <div class="t-name">박치료사</div>
+                <div class="t-meta">감각통합 · 3년차</div>
+              </div>
+              <div class="t-stat"><div class="t-stat-num">10</div><div class="t-stat-label">명</div></div>
+              <div class="t-stat"><div class="t-stat-num">9</div><div class="t-stat-label">/10</div></div>
+              <div class="t-stat"><div class="t-stat-num warn">1</div><div class="t-stat-label">건</div></div>
+            </div>
+            <div class="teacher-row">
+              <div class="t-av tav-4">최</div>
+              <div class="t-info">
+                <div class="t-name">최선생</div>
+                <div class="t-meta">언어치료 · 2년차</div>
+              </div>
+              <div class="t-stat"><div class="t-stat-num">8</div><div class="t-stat-label">명</div></div>
+              <div class="t-stat"><div class="t-stat-num">7</div><div class="t-stat-label">/7</div></div>
+              <div class="t-stat"><div class="t-stat-num">0</div><div class="t-stat-label">건</div></div>
+            </div>
+            <div class="teacher-row">
+              <div class="t-av tav-5">정</div>
+              <div class="t-info">
+                <div class="t-name">정치료사</div>
+                <div class="t-meta">놀이치료 · 6년차</div>
+              </div>
+              <div class="t-stat"><div class="t-stat-num">11</div><div class="t-stat-label">명</div></div>
+              <div class="t-stat"><div class="t-stat-num">10</div><div class="t-stat-label">/12</div></div>
+              <div class="t-stat"><div class="t-stat-num warn">2</div><div class="t-stat-label">건</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 이번 주 아동 변동 -->
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">🔄 이번 주 아동 변동</div>
+              <div class="panel-title-sub">신규·종결·대기 전환</div>
+            </div>
+            <div class="panel-link">전체 →</div>
+          </div>
+          <div class="panel-body">
+            <div class="change-summary">
+              <div class="change-cell">
+                <div class="change-num up">+3</div>
+                <div class="change-label">신규 가입</div>
+              </div>
+              <div class="change-cell">
+                <div class="change-num done">2</div>
+                <div class="change-label">종결</div>
+              </div>
+              <div class="change-cell">
+                <div class="change-num flat">+2</div>
+                <div class="change-label">대기 추가</div>
+              </div>
+            </div>
+
+            <div class="change-row">
+              <div class="t-av tav-4">정</div>
+              <div class="change-content">
+                <div class="change-title">정도윤 (3세, 남)</div>
+                <div class="change-detail">초기 면담 예정 · 정치료사 담당</div>
+              </div>
+              <div class="change-tag ctag-new">신규</div>
+            </div>
+            <div class="change-row">
+              <div class="t-av tav-3">한</div>
+              <div class="change-content">
+                <div class="change-title">한지유 (4세, 여)</div>
+                <div class="change-detail">조음음운장애 · 김선생 담당</div>
+              </div>
+              <div class="change-tag ctag-new">신규</div>
+            </div>
+            <div class="change-row">
+              <div class="t-av tav-1">송</div>
+              <div class="change-content">
+                <div class="change-title">송예린 (6세, 여)</div>
+                <div class="change-detail">12개월 차 종결 · 목표 달성</div>
+              </div>
+              <div class="change-tag ctag-done">종결</div>
+            </div>
+            <div class="change-row">
+              <div class="t-av tav-2">조</div>
+              <div class="change-content">
+                <div class="change-title">조하준 (5세, 남)</div>
+                <div class="change-detail">5/19 대기 등록 · 평가 예정</div>
+              </div>
+              <div class="change-tag ctag-wait">대기</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 📊 이번 달 활동 추이 그래프 (풀너비) -->
+      <div class="chart-panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">📊 이번 달 세션 추이</div>
+            <div class="panel-title-sub">2026년 5월 일별 완료 세션 수 (계획 vs 실제)</div>
+          </div>
+          <div class="panel-link">월별 추이 →</div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-area">
+            <div class="chart-grid">
+              <div class="chart-line-bg"></div>
+              <div class="chart-line-bg"></div>
+              <div class="chart-line-bg"></div>
+              <div class="chart-line-bg"></div>
+              <div class="chart-line-bg"></div>
+            </div>
+            <svg class="chart-svg" viewBox="0 0 700 200" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad-actual" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0f3b66" stop-opacity="0.18"/>
+                  <stop offset="100%" stop-color="#0f3b66" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <!-- 계획 (점선) -->
+              <path d="M0,120 L46,120 L93,120 L140,120 L186,120 L233,120 L280,120 L326,120 L373,120 L420,120 L466,120 L513,120 L560,120 L606,120 L653,120 L700,120" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,4"/>
+              <!-- 실제 (라인) -->
+              <path d="M0,150 L46,128 L93,135 L140,110 L186,118 L233,95 L280,88 L326,78 L373,82 L420,70 L466,65 L513,58 L560,55 L606,48 L653,42 L700,38 L700,200 L0,200 Z" fill="url(#grad-actual)"/>
+              <path d="M0,150 L46,128 L93,135 L140,110 L186,118 L233,95 L280,88 L326,78 L373,82 L420,70 L466,65 L513,58 L560,55 L606,48 L653,42 L700,38" fill="none" stroke="#0f3b66" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="chart-x">
+            <span>5/1</span><span>5/5</span><span>5/10</span><span>5/15</span><span>5/20</span><span>5/25</span><span>5/30</span>
+          </div>
+          <div class="chart-legend">
+            <div class="chart-leg-item"><div class="chart-leg-dot" style="background:#0f3b66;"></div>실제 (누적 312회)</div>
+            <div class="chart-leg-item"><div class="chart-leg-dot" style="background:#94a3b8;"></div>계획 (목표 360회)</div>
+            <div class="chart-leg-item" style="color:#15803d;font-weight:800;">↑ 진도율 87% · 정상 페이스</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 스크롤 힌트 -->
+      <div class="scroll-hint"><span>↓ 더 보기 — 알림·공지 · 빠른 액션</span></div>
+
+      <!-- 하단 2열 -->
+      <div class="grid-2-bottom">
+
+        <!-- 알림·공지 -->
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">📢 운영 알림</div>
+              <div class="panel-title-sub">조치가 필요한 항목</div>
+            </div>
+            <div class="panel-link">전체 →</div>
+          </div>
+          <div class="panel-body">
+            <div class="alert-list">
+              <div class="alert-big ab-warn">
+                <div class="alert-big-ic">⚠️</div>
+                <div class="alert-big-info">
+                  <div class="alert-big-title">정산 대기 3건 (₩4,200,000)</div>
+                  <div class="alert-big-text">5/24 (토) 18시까지 처리해주세요. 가장 오래된 건은 5/18입니다.</div>
+                  <div class="alert-big-time">긴급 · 마감 3일 전</div>
+                </div>
+              </div>
+              <div class="alert-big ab-info">
+                <div class="alert-big-ic">💬</div>
+                <div class="alert-big-info">
+                  <div class="alert-big-title">미작성 세션 6건 (전체 선생님)</div>
+                  <div class="alert-big-text">김선생 3건 / 박치료사 1건 / 정치료사 2건. 선생님께 리마인드 전송 가능합니다.</div>
+                  <div class="alert-big-time">5/21 오전 집계</div>
+                </div>
+              </div>
+              <div class="alert-big ab-ok">
+                <div class="alert-big-ic">🔒</div>
+                <div class="alert-big-info">
+                  <div class="alert-big-title">신규 활동 카탈로그 12개 추가</div>
+                  <div class="alert-big-text">조음·음운, 인지·학습 카테고리에 검증된 활동이 추가됐습니다.</div>
+                  <div class="alert-big-time">5/10 · 운영팀</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 빠른 액션 -->
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">⚡ 빠른 액션</div>
+              <div class="panel-title-sub">자주 쓰는 운영 작업</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="qa-item">
+              <div class="qa-ic qa-ic-gold">💰</div>
+              <div class="qa-text"><b>정산 처리 시작</b><span>대기 3건 ₩4,200,000 — 우선 처리 필요</span></div>
+              <div class="qa-arrow">→</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-ic qa-ic-blue">📢</div>
+              <div class="qa-text"><b>미작성 리마인드 발송</b><span>3명 선생님께 일괄 알림</span></div>
+              <div class="qa-arrow">→</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-ic qa-ic-green">＋</div>
+              <div class="qa-text"><b>새 선생님 초대</b><span>초대 코드 발급 · 이메일 전송</span></div>
+              <div class="qa-arrow">→</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-ic qa-ic-blue">📤</div>
+              <div class="qa-text"><b>월간 운영 리포트 출력</b><span>5월 성과 요약 PDF</span></div>
+              <div class="qa-arrow">→</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
