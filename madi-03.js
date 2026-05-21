@@ -1053,11 +1053,15 @@ function renderDashboardTeacher() {
   mySession.forEach(function(s){ if (s.childId) myChildIds[s.childId] = true; });
   var myChildren = _children.filter(function(c){ return myChildIds[c.id] && c.status !== '종결'; });
 
-  // 이번 주 작성률
+  // 이번 주 작성률 — 미래 일정은 분모에서 제외 (작성 의무 도래 전)
   var weekSched = mySched.filter(function(s){ return s.date >= monStr && s.date <= sunStr; });
-  var weekDone = weekSched.filter(function(s){
+  var weekSchedDue = weekSched.filter(function(s){ return s.date <= todayStr; }); // 오늘까지 도래한 일정
+  var weekSchedFuture = weekSched.length - weekSchedDue.length;
+  var weekDone = weekSchedDue.filter(function(s){
     return _sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
   }).length;
+  var weekPending = weekSchedDue.length - weekDone;
+  var weekRatePct = weekSchedDue.length > 0 ? Math.round(weekDone / weekSchedDue.length * 100) : null;
 
   // 미작성 세션 (내 것만)
   var unwrittenAll = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
@@ -1127,8 +1131,8 @@ function renderDashboardTeacher() {
     +   '</div></div>'
     +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-purple">📝</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">이번 주 작성</div>'
-    +     '<div class="dp-kpi-num">' + weekDone + '<em> / ' + weekSched.length + '</em></div>'
-    +     '<div class="dp-kpi-delta ' + (unwritten.length ? 'warn' : 'flat') + '">' + (unwritten.length ? unwritten.length + '건 미작성' : '모두 작성 완료') + '</div>'
+    +     '<div class="dp-kpi-num">' + weekDone + '<em> / ' + weekSchedDue.length + (weekRatePct != null ? ' · ' + weekRatePct + '%' : '') + '</em></div>'
+    +     '<div class="dp-kpi-delta ' + (weekPending ? 'warn' : 'flat') + '">' + (weekPending ? weekPending + '건 미작성' : (weekSchedDue.length ? '모두 작성 완료' : '도래한 일정 없음')) + (weekSchedFuture ? ' · 남은 일정 ' + weekSchedFuture + '건' : '') + '</div>'
     +   '</div></div>'
     +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-rose">💬</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">답변 대기 메시지</div>'
@@ -1253,9 +1257,10 @@ function renderDashboardTeacher() {
     +     '<div class="dp-week">'
     +       '<div class="dp-week-item"><div class="dp-week-num">' + thisWeekSessions.length + '</div><div class="dp-week-label">완료 세션</div></div>'
     +       '<div class="dp-week-item"><div class="dp-week-num">' + thisWeekEvals.length + '</div><div class="dp-week-label">평가 완료</div></div>'
-    +       '<div class="dp-week-item"><div class="dp-week-num">' + weekSched.length + '</div><div class="dp-week-label">계획 일정</div></div>'
-    +       '<div class="dp-week-item"><div class="dp-week-num">' + (weekSched.length - weekDone) + '</div><div class="dp-week-label">남은 작성</div></div>'
+    +       '<div class="dp-week-item"><div class="dp-week-num">' + weekSched.length + '</div><div class="dp-week-label">주간 일정</div></div>'
+    +       '<div class="dp-week-item"><div class="dp-week-num ' + (weekPending ? '' : '') + '">' + weekPending + '</div><div class="dp-week-label">미작성</div></div>'
     +     '</div>'
+    +     (weekSchedFuture ? '<div style="margin-top:10px;font-size:11px;color:#94a3b8;text-align:center;">남은 일정 ' + weekSchedFuture + '건은 아직 작성 의무 도래 전이에요</div>' : '')
     +   '</div>'
     + '</div>';
 
