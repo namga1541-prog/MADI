@@ -1753,10 +1753,17 @@
      학부모 전용 패널
 ══════════════════════════════════════ -->
 
-<!-- 학부모 홈 -->
+<!-- 학부모 홈 (페르소나 ⑦ 핑크 톤) -->
 <div class="tab-panel" id="parentPanelHome" style="display:none;">
-  <div class="dash-content">
-    <!-- 🔔 알림 카드 (미확인 있을 때만 표시) -->
+  <div class="dp-parent">
+    <!-- 페이지 헤드 (자녀 이름으로 인사) -->
+    <div class="dp-p-head">
+      <div class="dp-p-greeting" id="parentHomeGreeting">불러오는 중...</div>
+      <h1 class="dp-p-title" id="parentHomeTitle">학부모님 🌸</h1>
+      <p class="dp-p-sub" id="parentHomeSub">자녀 정보를 확인하고 있어요.</p>
+    </div>
+
+    <!-- 🔔 알림 카드 (기존 ID 보존 — loadParentNotifications 사용) -->
     <div id="parentNotifCard" style="display:none;background:white;border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text);">
@@ -1767,32 +1774,97 @@
       </div>
       <div id="parentNotifList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
-    <!-- D-day 카드 -->
-    <div id="parentNextSched" style="background:linear-gradient(135deg,#3b82f6 0%,#0ea5a0 100%);border-radius:18px;padding:20px 22px;margin-bottom:14px;color:white;">
-      <div style="font-size:13px;opacity:0.8;margin-bottom:6px;">다음 치료 일정</div>
-      <div id="parentNextSchedText" style="font-size:22px;font-weight:800;">불러오는 중...</div>
-      <div id="parentNextSchedSub" style="font-size:12px;opacity:0.75;margin-top:4px;"></div>
-    </div>
-    <!-- 요약 카드 -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-      <div class="dash-card" onclick="switchParentTab('report')">
-        <div class="dash-card-hd">
-          <div class="dash-card-ico dash-ico-mint">📋</div>
-          <div class="dash-card-hd-title">최근 리포트</div>
-          <div class="dash-arrow">›</div>
+
+    <!-- 🌟 자녀 히어로 카드 -->
+    <div class="dp-p-hero" id="parentChildHero" style="display:none;">
+      <div class="dp-p-hero-av">
+        <div class="dp-p-hero-img" id="parentHeroAv">?</div>
+        <div class="dp-p-hero-status" id="parentHeroStatus">진행 중</div>
+      </div>
+      <div class="dp-p-hero-info">
+        <div class="dp-p-hero-row">
+          <div class="dp-p-hero-name parentChildNameLabel" id="parentHeroName">자녀</div>
+          <div class="dp-p-hero-tag" id="parentHeroAgeTag"></div>
         </div>
-        <div class="dash-card-body">
-          <div id="parentLatestReport" class="dash-empty">불러오는 중...</div>
+        <div class="dp-p-hero-diag" id="parentHeroDiag"></div>
+        <div class="dp-p-hero-stats" id="parentHeroStats"></div>
+      </div>
+      <div class="dp-p-hero-next">
+        <div class="dp-p-hero-next-label">📅 다음 세션</div>
+        <div class="dp-p-hero-next-time" id="parentNextSchedText">--:--</div>
+        <div class="dp-p-hero-next-date" id="parentNextSchedSub">불러오는 중...</div>
+        <div class="dp-p-hero-next-teacher" id="parentNextSchedTeacher"></div>
+      </div>
+    </div>
+
+    <!-- 2열: 이번 주 세션 + 선생님 메시지 -->
+    <div class="dp-grid-2">
+      <div class="dp-panel">
+        <div class="dp-panel-head">
+          <div>
+            <div class="dp-panel-title">📖 이번 주 세션</div>
+            <div class="dp-panel-sub" id="parentWeekRange">최근 진행 기록</div>
+          </div>
+          <button class="dp-panel-link dp-p-link" onclick="switchParentTab('report')">전체 →</button>
+        </div>
+        <div class="dp-panel-body" id="parentWeekDetails">
+          <div class="dp-empty">불러오는 중...</div>
+        </div>
+        <!-- 호환: parentLatestReport / parentWeekSched 미사용 — 신 구조에서는 parentWeekDetails 한 곳에 통합 -->
+        <div id="parentLatestReport" style="display:none;"></div>
+        <div id="parentWeekSched" style="display:none;"></div>
+      </div>
+
+      <div class="dp-panel">
+        <div class="dp-panel-head">
+          <div>
+            <div class="dp-panel-title">💌 선생님 메시지</div>
+            <div class="dp-panel-sub" id="parentTeacherMsgSub">받은 메시지</div>
+          </div>
+          <button class="dp-panel-link dp-p-link" onclick="switchParentTab('notice')">전체 →</button>
+        </div>
+        <div class="dp-panel-body" id="parentTeacherMsgs">
+          <div class="dp-empty">불러오는 중...</div>
         </div>
       </div>
-      <div class="dash-card" onclick="switchParentTab('sched')">
-        <div class="dash-card-hd">
-          <div class="dash-card-ico dash-ico-blue">📅</div>
-          <div class="dash-card-hd-title">이번 주 일정</div>
-          <div class="dash-arrow">›</div>
+    </div>
+
+    <!-- 📈 발달 추이 그래프 -->
+    <div class="dp-panel" id="parentChartPanel">
+      <div class="dp-panel-head">
+        <div>
+          <div class="dp-panel-title">📈 발달 추이</div>
+          <div class="dp-panel-sub" id="parentChartSub">월별 평가 점수</div>
         </div>
-        <div class="dash-card-body">
-          <div id="parentWeekSched" class="dash-empty">불러오는 중...</div>
+      </div>
+      <div class="dp-panel-body" id="parentChartBody">
+        <div class="dp-empty">불러오는 중...</div>
+      </div>
+    </div>
+
+    <!-- 하단 2열: 가정 활동 + 다음 일정·바우처 -->
+    <div class="dp-grid-2-eq">
+      <div class="dp-panel">
+        <div class="dp-panel-head">
+          <div>
+            <div class="dp-panel-title">🏡 이번 주 가정 활동</div>
+            <div class="dp-panel-sub">선생님이 제안한 활동</div>
+          </div>
+        </div>
+        <div class="dp-panel-body" id="parentHomeActivities">
+          <div class="dp-empty">불러오는 중...</div>
+        </div>
+      </div>
+
+      <div class="dp-panel">
+        <div class="dp-panel-head">
+          <div>
+            <div class="dp-panel-title">📅 다음 일정 · 바우처</div>
+            <div class="dp-panel-sub" id="parentVoucherSub">예약된 세션과 잔여</div>
+          </div>
+        </div>
+        <div class="dp-panel-body" id="parentVoucherPanel">
+          <div class="dp-empty">불러오는 중...</div>
         </div>
       </div>
     </div>
