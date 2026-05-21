@@ -315,6 +315,10 @@ function renderDashboard() {
   if (lEl) lEl.style.display = 'none';
 
   var role = (currentUser && currentUser.role) || '';
+  // 학부모는 별도 진입점(parentPanelHome / loadParentHome)을 사용 → applyParentUI 가
+  // 직후 panelHome 을 숨기므로 여기서는 아무 것도 그리지 않고 종료 (FOUC 방지)
+  if (role === 'parent') return;
+
   if (role === 'teacher' && typeof renderDashboardTeacher === 'function') {
     if (tEl) tEl.style.display = '';
     renderDashboardTeacher();
