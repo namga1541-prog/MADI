@@ -25,13 +25,20 @@ function generateReport() {
     return s.date + ': [' + g + '] ' + (s.memo || '');
   }).join('\n');
 
-  var SYSTEM = '당신은 언어치료 전문가입니다. 부모님께 보낼 보고서를 두 형식으로 작성하세요. 순수 JSON만:'
-    + ' {"kakao":"카카오톡 메시지 (이모지, 친근한 존댓말, 200자 내외)","report":"전문 보고서 (치료 경과, 목표 달성, 가정 지도, 존댓말, 400자 내외)"}';
+  var _parentGuide = (typeof SLP_PROMPT_PARENT_GUIDE !== 'undefined') ? SLP_PROMPT_PARENT_GUIDE : '';
+  var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 부모님께 보낼 보고서를 두 형식으로 작성하세요. 순수 JSON만:'
+    + ' {"kakao":"카카오톡 메시지 (이모지, 친근한 존댓말, 200자 내외)","report":"전문 보고서 (치료 경과, 목표 달성, 가정 지도, 존댓말, 400자 내외)"}\n\n'
+    + _parentGuide;
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n세션:\n' + summary;
 
   callClaude(SYSTEM, USER, 1500, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
+      // 학부모용 — 한자어·비표준 용어 자동 치환
+      if (typeof sanitizeSLPOutput === 'function') {
+        if (p.kakao)  p.kakao  = sanitizeSLPOutput(p.kakao,  'parent');
+        if (p.report) p.report = sanitizeSLPOutput(p.report, 'parent');
+      }
       renderReport(p, child.name);
     })
     .catch(function(err) {
@@ -297,6 +304,8 @@ function generateIEP() {
 
   callClaude(SYSTEM, USER, 2500, getAIModel())
     .then(function(raw) {
+      // IEP 는 부모도 보는 문서 — 학부모 어휘 정책 적용
+      if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       var p = parseJSON(raw);
       if (!p || !p.longTermGoals) throw new Error('IEP 파싱 실패');
       renderIEP(p, child.name);

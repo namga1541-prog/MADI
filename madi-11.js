@@ -817,7 +817,21 @@ function generateAssessReport() {
     + '- 등가연령 범위 표기 시 "X세 X-X개월" 또는 "XM" 형식\n'
     + '- ** 또는 * 마크다운 볼드/이탤릭 절대 사용 금지. 강조는 섹션 제목(로마 숫자, 가나다 번호)으로만 할 것\n'
     + '- 검사명 표기 규칙: U-TAP은 반드시 "우리말 조음·음운 평가(U-TAP)"으로만 표기. "UTAP2", "U-TAP2", "U-TAP-2" 등 숫자 붙인 표기 절대 금지\n'
-    + '- PRES 검사에서 등가월령은 제공된 값을 그대로 사용하고 임의로 수정하지 말 것';
+    + '- PRES 검사에서 등가월령은 제공된 값을 그대로 사용하고 임의로 수정하지 말 것\n\n'
+    + '【조음 오류 분석 — 조음음운장애 또는 U-TAP/APAC 등 음운 검사가 실시된 경우 IV. 검사결과에 필수 포함】\n'
+    + '- 각 오류 음소마다 다음을 모두 기술:\n'
+    + '  (1) 목표음 → 오류음 (예: "사탕→타탕, ㅅ→ㅌ")\n'
+    + '  (2) 적용되는 오류 패턴을 모두 나열 — 한 오류가 여러 패턴을 동시에 가지면 모두 명시\n'
+    + '      예: "ㅈ→ㅌ은 파열음화(파찰음→파열음)인 동시에 전방화(치경경구개음→치경음)에 해당함"\n'
+    + '  (3) 발달적 오류 vs 비발달적 오류 판단 — 아동의 생활연령과 한국 음운 발달 기준 대조\n'
+    + '      한국 음소 안정화(90% 정조음): ㅂㅁㄴㅇ ~2세, ㄷㅌ ~3세, ㄱㅋㅎ ~3.5세, ㅈㅊ ~4.5세, ㅅㅆ ~5세, ㄹ ~6세\n'
+    + '      오류 패턴 일반 소실 연령: 파열음화·전방화 ~4세, 후방화·마찰음화·초성생략 ~3세, 활음화 ~5세, 자음군축약 ~6세\n'
+    + '  (4) 자극반응도(SR) 또는 일관성 코멘트 (정보 있을 때)\n'
+    + '- 표준 용어만 사용: "파열음화"(중지화/폐쇄음화/저해음화 X), 전방화, 후방화, 마찰음화, 파찰음화, 활음화, 비음화, 탈비음화, 음절생략, 종성생략, 초성생략, 자음군축약, 순행동화, 역행동화\n'
+    + '- 오류 분석 표 예시 형식:\n'
+    + '  | 목표 → 오류 | 적용 오류 패턴 | 발달성 판단 |\n'
+    + '  | 사탕→타탕 (ㅅ→ㅌ) | 파열음화 | 만 4세 이후이므로 비발달적 |\n'
+    + '  | 자동차→타동타 (ㅈ→ㅌ) | 파열음화 + 전방화 | 만 4세 이후이므로 비발달적 |';
 
   var USER = '【아동 정보】\n'
     + '이름: ' + child.name + '\n'
@@ -836,6 +850,8 @@ function generateAssessReport() {
       raw = raw.replace(/\*\*([^*\n]+)\*\*/g, '$1').replace(/\*([^*\n]+)\*/g, '$1');
       // UTAP2 → U-TAP 자동 교체
       raw = raw.replace(/U-TAP-?2/g, 'U-TAP').replace(/UTAP-?2/g, 'U-TAP');
+      // 임상 표준 용어 통일: "중지화"→"파열음화" 등 (audience: clinical)
+      if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');
       var cn = escHtml(child.name);
       result.innerHTML = '<div id="assessReportText" contenteditable="false" class="report-box"'
         + ' style="white-space:pre-wrap;outline:none;cursor:text;transition:border 0.2s,background 0.2s;">'
@@ -875,17 +891,21 @@ function generateParentEdu() {
     return s.date + ': [' + g + '] ' + (s.memo || '');
   }).join('\n');
 
-  var SYSTEM = '당신은 언어치료 전문가입니다. 아동의 최근 치료 내용을 바탕으로 부모가 집에서 실천할 수 있는 교육 자료를 작성하세요. '
+  var _parentGuide = (typeof SLP_PROMPT_PARENT_GUIDE !== 'undefined') ? SLP_PROMPT_PARENT_GUIDE : '';
+  var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 아동의 최근 치료 내용을 바탕으로 부모가 집에서 실천할 수 있는 교육 자료를 작성하세요.\n'
     + 'A4 한 장 분량으로 구성:\n'
     + '1. 이번 주 치료에서 잘 된 것 (칭찬 포인트)\n'
     + '2. 이번 주 집에서 할 활동 3가지 (각각 제목 + 방법 + 소요 시간)\n'
     + '3. 부모님께 드리는 한마디\n'
-    + '따뜻하고 실용적인 말투로, 부모가 바로 활용할 수 있게 작성하세요. JSON 없이 텍스트로.';
+    + '따뜻하고 실용적인 말투로, 부모가 바로 활용할 수 있게 작성하세요. JSON 없이 텍스트로.\n\n'
+    + _parentGuide;
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n치료 목표: ' + (child.goals.join(', ')||'없음')
     + '\n\n최근 세션:\n' + (sessionSummary || '세션 기록 없음');
 
   callClaude(SYSTEM, USER, 1500, getAIModel())
     .then(function(raw) {
+      // 학부모용 — 한자어·비표준 용어 자동 치환
+      if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       result.innerHTML = '<div class="parent-edu-preview" id="eduText">' + escHtml(raw) + '</div>'
         + '<button class="print-btn" onclick="printParentEdu(\'' + escHtml(child.name) + '\')">🖨️ 인쇄하기</button>';
     })

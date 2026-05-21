@@ -414,6 +414,8 @@ function generatePortfolio() {
 
   callClaude(SYSTEM, USER, 3000, getAIModel())
     .then(function(raw) {
+      // 학부모용 포트폴리오 — 한자어·비표준 용어 자동 치환
+      if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       var p = parseJSON(raw);
       renderPortfolio(p, child, month, sessions, goalProgress);
     })
@@ -585,14 +587,18 @@ function generateFAQ() {
     return s.date + ' [' + g + '] ' + (s.memo || '');
   }).join('\n');
 
-  var SYSTEM = '당신은 한국의 베테랑 언어재활사입니다. 부모가 묻는 까다로운 질문에 대해, '
+  var _parentGuide = (typeof SLP_PROMPT_PARENT_GUIDE !== 'undefined') ? SLP_PROMPT_PARENT_GUIDE : '';
+  var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 부모가 묻는 까다로운 질문에 대해, '
     + '치료사가 그대로 사용하거나 참고할 수 있는 따뜻하고 전문적인 답변 예시를 작성하세요. '
-    + '실제 치료 데이터를 근거로 활용하세요. 존댓말, 부모 마음을 헤아리는 톤. 300자 내외. JSON 없이 일반 텍스트.';
+    + '실제 치료 데이터를 근거로 활용하세요. 존댓말, 부모 마음을 헤아리는 톤. 300자 내외. JSON 없이 일반 텍스트.\n\n'
+    + _parentGuide;
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n'
     + '최근 세션:\n' + (summary || '없음') + '\n\n부모 질문: "' + question + '"';
 
   callClaude(SYSTEM, USER, 1000, getAIModel())
     .then(function(raw) {
+      // 학부모 대상 — 자동 치환
+      if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       resultEl.innerHTML = '<div class="ai-response-box">'
         + '<div class="ai-response-label">💬 AI 답변 예시 (참고용, 그대로 또는 수정 후 사용)</div>'
         + '<div class="ai-response-text">' + escHtml(raw) + '</div>'

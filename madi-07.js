@@ -50,18 +50,41 @@ function saveSessionAI() {
   btn.disabled = true;
   btn.textContent = '⏳ AI 정리 중...';
 
-  var SYSTEM = '당신은 언어치료 전문가 보조 AI입니다. 치료사의 자유로운 메모를 분석해 JSON으로 정리하세요. 순수 JSON만:'
-    + ' {"goals":[{"name":"항목명","score":0-100숫자}],"memo":"세션 핵심 2-3문장","aiNote":"치료사용 전문 메모"}';
+  // 진단별 임상 용어 가이드 (madi-vocab.js)
+  var _diagGuide = (typeof getClinicalGuideForDiagnosis === 'function')
+    ? getClinicalGuideForDiagnosis(child.type) : '';
+  var _clinicalGuide = (typeof SLP_PROMPT_CLINICAL_GUIDE !== 'undefined') ? SLP_PROMPT_CLINICAL_GUIDE : '';
+  var _phonoGuide = '';
+  if (child.type === '조음음운장애' && typeof SLP_PROMPT_PHONO_GUIDE !== 'undefined') {
+    _phonoGuide = SLP_PROMPT_PHONO_GUIDE;
+  }
+  var SYSTEM = '당신은 한국 언어치료 임상 현장의 1급 언어재활사 보조 AI입니다.'
+    + ' 치료사의 자유로운 메모를 분석해 JSON으로 정리하세요. 순수 JSON만:'
+    + ' {"goals":[{"name":"항목명","score":0-100숫자}],"memo":"세션 핵심 2-3문장","aiNote":"치료사용 전문 메모"}'
+    + '\n【aiNote 작성 규칙】'
+    + ' - 임상 약어 사용 가능: MLU, SLD, PCC, SR, U-TAP 등.'
+    + ' - 진단별 핵심 용어 권장 (있다면 적용).'
+    + ' - 회기 구조 표기 권장: "도입-전개-마무리".'
+    + ' - 자료/활동명 구체적으로 (예: "그림카드 20장", "Bag-task", "단어 모방 과제").'
+    + ' - 조음음운장애 케이스에서 음운 오류가 보고되면 반드시 오류 패턴을 분석 (파열음화/전방화/후방화 등),'
+    + '   한 오류에 여러 패턴이 동시 적용되면 모두 나열, 발달적/비발달적 판단까지 포함.'
+    + '\n' + _clinicalGuide
+    + (_diagGuide ? '\n' + _diagGuide : '')
+    + (_phonoGuide ? '\n' + _phonoGuide : '');
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n치료사 입력:\n' + aiText;
 
   callClaude(SYSTEM, USER, 1200, MODEL_HAIKU)
     .then(function(raw) {
       var p = parseJSON(raw);
+      // 후처리: 비표준 용어 자동 치환 (치료사용 → 'clinical')
+      var _san = (typeof sanitizeSLPOutput === 'function') ? sanitizeSLPOutput : function(t){ return t; };
       var sessionId = generateClientId();
       sessionDB.push({
         id: sessionId, childId: childId, date: date,
         teacher: (currentUser && currentUser.name) || '',
-        goals: p.goals || [], memo: p.memo || aiText, aiNote: p.aiNote || '',
+        goals: p.goals || [],
+        memo: _san(p.memo || aiText, 'clinical'),
+        aiNote: _san(p.aiNote || '', 'clinical'),
         phonemes: getPhonemeSnapshot()
       });
       saveSessions();
@@ -135,9 +158,11 @@ function suggestHomeActivities(sessionId) {
   }
 
   var NL = String.fromCharCode(10);
-  var SYSTEM = '당신은 언어재활 전문가입니다. 오늘 세션 결과를 바탕으로 부모가 집에서 아이와 실천할 수 있는 활동 3가지를 추천하세요.'
+  var _parentGuide = (typeof SLP_PROMPT_PARENT_GUIDE !== 'undefined') ? SLP_PROMPT_PARENT_GUIDE : '';
+  var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 오늘 세션 결과를 바탕으로 부모가 집에서 아이와 실천할 수 있는 활동 3가지를 추천하세요.'
     + ' 달성률이 낮은 목표를 보완하는 활동을 우선하고, 각 활동은 5-10분 내 일상에서 바로 쓸 수 있어야 합니다.'
-    + ' 순수 JSON만 출력: {"activities":[{"title":"활동명","reason":"이 활동을 추천하는 이유 1문장","steps":"진행 방법 2-3문장","level":"쉬움/보통/어려움","tip":"부모 팁"}]}';
+    + ' 순수 JSON만 출력: {"activities":[{"title":"활동명","reason":"이 활동을 추천하는 이유 1문장","steps":"진행 방법 2-3문장","level":"쉬움/보통/어려움","tip":"부모 팁"}]}\n\n'
+    + _parentGuide;
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')' + NL
     + '오늘 세션 목표: ' + goalsText + NL
     + (weakGoals.length ? '달성률 60% 미만(집중 보완 필요): ' + weakGoals.join(', ') + NL : '')
@@ -146,6 +171,8 @@ function suggestHomeActivities(sessionId) {
 
   callClaude(SYSTEM, USER, 1000, MODEL_HAIKU)
     .then(function(raw) {
+      // 학부모 대상 — 자동 치환
+      if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       var p = parseJSON(raw);
       var html = '<div class="ai-response-box">'
         + '<div class="ai-response-label">🏠 오늘 세션 기반 가정 활동 추천</div>';
