@@ -1026,6 +1026,11 @@ function _dpTodayBanner() {
 function renderDashboardTeacher() {
   var root = document.getElementById('dashTeacher');
   if (!root) return;
+  // 안전 가드 — 전역 DB 미초기화 / 빈 배열 케이스 모두 안전
+  var _children = (typeof childDB !== 'undefined' && Array.isArray(childDB)) ? childDB : [];
+  var _sessions = (typeof sessionDB !== 'undefined' && Array.isArray(sessionDB)) ? sessionDB : [];
+  var _schedules = (typeof scheduleDB !== 'undefined' && Array.isArray(scheduleDB)) ? scheduleDB : [];
+  var _assessments = (typeof assessmentDB !== 'undefined' && Array.isArray(assessmentDB)) ? assessmentDB : [];
   var myName = (currentUser && currentUser.name) || '';
   var todayStr = ymd(nowKST());
   var today = nowKST(); today.setHours(0,0,0,0);
@@ -1033,8 +1038,8 @@ function renderDashboardTeacher() {
   var monStr = ymd(mon), sunStr = ymd(sun);
 
   // 데이터 계산
-  var mySched = scheduleDB.filter(function(s){ return s.teacher === myName; });
-  var mySession = sessionDB.filter(function(s){ return s.teacher === myName; });
+  var mySched = _schedules.filter(function(s){ return s.teacher === myName; });
+  var mySession = _sessions.filter(function(s){ return s.teacher === myName; });
   var todaySched = mySched.filter(function(s){ return s.date === todayStr; })
     .sort(function(a,b){ return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
 
@@ -1042,17 +1047,17 @@ function renderDashboardTeacher() {
   var myChildIds = {};
   mySched.forEach(function(s){ if (s.childId) myChildIds[s.childId] = true; });
   mySession.forEach(function(s){ if (s.childId) myChildIds[s.childId] = true; });
-  var myChildren = childDB.filter(function(c){ return myChildIds[c.id] && c.status !== '종결'; });
+  var myChildren = _children.filter(function(c){ return myChildIds[c.id] && c.status !== '종결'; });
 
   // 이번 주 작성률
   var weekSched = mySched.filter(function(s){ return s.date >= monStr && s.date <= sunStr; });
   var weekDone = weekSched.filter(function(s){
-    return sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+    return _sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
   }).length;
 
   // 미작성 세션 (내 것만)
   var unwrittenAll = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
-  var unwritten = unwrittenAll.filter(function(u){ return u.teacher === myName; });
+  var unwritten = (Array.isArray(unwrittenAll) ? unwrittenAll : []).filter(function(u){ return u.teacher === myName; });
 
   // 최근 만난 순 4명 (오늘 일정 우선, 그다음 최근 세션 날짜)
   var lastMet = {};
@@ -1070,13 +1075,12 @@ function renderDashboardTeacher() {
 
   // 이번 주 활동 요약
   var thisWeekSessions = mySession.filter(function(s){ return s.date >= monStr && s.date <= sunStr; });
-  var thisWeekEvals = (typeof assessmentDB !== 'undefined' ? assessmentDB : [])
-    .filter(function(a){ return a.teacher === myName && a.date >= monStr && a.date <= sunStr; });
+  var thisWeekEvals = _assessments.filter(function(a){ return a.teacher === myName && a.date >= monStr && a.date <= sunStr; });
 
   // ── HTML ──
   var titleText = _dpGreetingFor(myName, 'teacher');
-  var nearest = todaySched.length ? todaySched.find(function(s){ return !sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; }); }) || todaySched[0] : null;
-  var nearestChild = nearest ? childDB.find(function(c){ return c.id === nearest.childId; }) : null;
+  var nearest = todaySched.length ? todaySched.find(function(s){ return !_sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; }); }) || todaySched[0] : null;
+  var nearestChild = nearest ? _children.find(function(c){ return c.id === nearest.childId; }) : null;
   var subText = todaySched.length === 0
     ? '오늘 예정된 세션은 없어요. 다음 주 일정을 미리 확인해 보세요.'
     : '오늘 <b>' + todaySched.length + '건</b>의 세션이 예정되어 있어요.'
@@ -1110,7 +1114,7 @@ function renderDashboardTeacher() {
     +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-blue">👶</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">내 담당 아동</div>'
     +     '<div class="dp-kpi-num">' + myChildren.length + '<em> 명</em></div>'
-    +     '<div class="dp-kpi-delta flat">전체 ' + childDB.length + '명 중</div>'
+    +     '<div class="dp-kpi-delta flat">전체 ' + _children.length + '명 중</div>'
     +   '</div></div>'
     +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-green">📅</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">오늘 세션</div>'
@@ -1132,7 +1136,7 @@ function renderDashboardTeacher() {
   // 2열: 오늘 타임라인 + 받은 메시지
   var wd = ['일','월','화','수','목','금','토'];
   var weekNum = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / 86400000 + new Date(today.getFullYear(),0,1).getDay() + 1) / 7);
-  var doneCnt = todaySched.filter(function(s){ return sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; }); }).length;
+  var doneCnt = todaySched.filter(function(s){ return _sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; }); }).length;
 
   html += '<div class="dp-grid-2">';
 
@@ -1155,9 +1159,9 @@ function renderDashboardTeacher() {
     html += '<div class="dp-empty">오늘 예정된 세션이 없습니다</div>';
   } else {
     html += todaySched.slice(0, 6).map(function(s){
-      var c = childDB.find(function(cc){ return cc.id === s.childId; });
+      var c = _children.find(function(cc){ return cc.id === s.childId; });
       var nm = c ? c.name : '?';
-      var done = sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+      var done = _sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
       var st = (s.startTime || '').slice(0,5);
       var et = (s.endTime || '').slice(0,5);
       var age = c ? _dpAge(c.birth) : null;
@@ -1375,6 +1379,10 @@ function _dpFmtWon(n) {
 function renderDashboardAdmin() {
   var root = document.getElementById('dashAdmin');
   if (!root) return;
+  // 안전 가드 — 전역 DB 미초기화 / 빈 배열 케이스 모두 안전
+  var _children = (typeof childDB !== 'undefined' && Array.isArray(childDB)) ? childDB : [];
+  var _sessions = (typeof sessionDB !== 'undefined' && Array.isArray(sessionDB)) ? sessionDB : [];
+  var _schedules = (typeof scheduleDB !== 'undefined' && Array.isArray(scheduleDB)) ? scheduleDB : [];
   var myName = (currentUser && currentUser.name) || '';
   var role = (currentUser && currentUser.role) || 'admin';
   var todayDate = nowKST(); todayDate.setHours(0,0,0,0);
@@ -1391,19 +1399,19 @@ function renderDashboardAdmin() {
   var lastMonthStartStr = ymd(lastMonthStart), lastMonthEndStr = ymd(lastMonthEnd);
 
   // ── 데이터 계산 ──
-  var thisMonthSessions = sessionDB.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
-  var lastMonthSessions = sessionDB.filter(function(s){ return s.date >= lastMonthStartStr && s.date <= lastMonthEndStr; });
-  var thisMonthSched = scheduleDB.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
+  var thisMonthSessions = _sessions.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
+  var lastMonthSessions = _sessions.filter(function(s){ return s.date >= lastMonthStartStr && s.date <= lastMonthEndStr; });
+  var thisMonthSched = _schedules.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
 
   // 매출 추정 = sum(완료 세션 × 바우처 단가)
   var revenue = 0;
   thisMonthSessions.forEach(function(s){
-    var c = childDB.find(function(cc){ return cc.id === s.childId; });
+    var c = _children.find(function(cc){ return cc.id === s.childId; });
     revenue += _dpEstSessionPrice(c);
   });
   var lastRevenue = 0;
   lastMonthSessions.forEach(function(s){
-    var c = childDB.find(function(cc){ return cc.id === s.childId; });
+    var c = _children.find(function(cc){ return cc.id === s.childId; });
     lastRevenue += _dpEstSessionPrice(c);
   });
   var revenueDelta = revenue - lastRevenue;
@@ -1412,26 +1420,26 @@ function renderDashboardAdmin() {
   // 정산 대기 = 이번 달 일정 중 세션 매칭 안된 것 (미완료 추정)
   var pendingSched = thisMonthSched.filter(function(s){
     if (s.date > todayStr) return false; // 미래는 정상
-    return !sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+    return !_sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
   });
   var pendingAmount = 0;
   pendingSched.forEach(function(s){
-    var c = childDB.find(function(cc){ return cc.id === s.childId; });
+    var c = _children.find(function(cc){ return cc.id === s.childId; });
     pendingAmount += _dpEstSessionPrice(c);
   });
 
   // KPI
-  var kRegistered = childDB.filter(function(c){ return c.status === '등록'; }).length;
-  var kWaiting    = childDB.filter(function(c){ return c.status === '대기'; }).length;
-  var kClosedThisMonth = childDB.filter(function(c){
+  var kRegistered = _children.filter(function(c){ return c.status === '등록'; }).length;
+  var kWaiting    = _children.filter(function(c){ return c.status === '대기'; }).length;
+  var kClosedThisMonth = _children.filter(function(c){
     if (c.status !== '종결') return false;
     var d = c.updatedAt || c.closedAt || c.endDate || '';
     return d && d.slice(0,7) === monthStartStr.slice(0,7);
   }).length;
-  var kTotal = childDB.length;
+  var kTotal = _children.length;
 
   // 이번 주 변동
-  var weekChildren = childDB.filter(function(c){
+  var weekChildren = _children.filter(function(c){
     var d = c.updatedAt || c.createdAt || c.regDate || '';
     return d && d.slice(0,10) >= monStr && d.slice(0,10) <= sunStr;
   });
@@ -1441,13 +1449,13 @@ function renderDashboardAdmin() {
 
   // 선생님 활동 — 일단 sessionDB / scheduleDB 의 teacher 이름들로 집계 (사용자 테이블 조회 없이 즉시)
   var teacherStats = {};
-  scheduleDB.forEach(function(s){
+  _schedules.forEach(function(s){
     if (!s.teacher) return;
     if (!teacherStats[s.teacher]) teacherStats[s.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
     teacherStats[s.teacher].children[s.childId] = true;
     if (s.date >= monStr && s.date <= sunStr) teacherStats[s.teacher].weekSched++;
   });
-  sessionDB.forEach(function(s){
+  _sessions.forEach(function(s){
     if (!s.teacher) return;
     if (!teacherStats[s.teacher]) teacherStats[s.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
     teacherStats[s.teacher].children[s.childId] = true;
@@ -1533,39 +1541,21 @@ function renderDashboardAdmin() {
   // 2열: 선생님 활동 + 변동 아동
   html += '<div class="dp-grid-2">';
 
+  // 선생님 활동표 — placeholder, 이후 _dpLoadAdminTeacherTable() 가 madi_users 조회 후 갱신
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
     +     '<div><div class="dp-panel-title">👥 선생님별 활동 현황</div>'
-    +       '<div class="dp-panel-sub">이번 주 (' + _dpFmtMD(mon) + ' ~ ' + _dpFmtMD(sun) + ') · 선생님 ' + teacherList.length + '명</div></div>'
+    +       '<div class="dp-panel-sub" id="dpAdminTeacherSub">이번 주 (' + _dpFmtMD(mon) + ' ~ ' + _dpFmtMD(sun) + ') · 불러오는 중</div></div>'
     +     '<button class="dp-panel-link" onclick="switchTab(5)">관리 →</button>'
     +   '</div>'
-    +   '<div class="dp-panel-body">';
-  if (teacherList.length === 0) {
-    html += '<div class="dp-empty">선생님 활동 데이터가 없습니다</div>';
-  } else {
-    html += ''
-      + '<div class="dp-trow head">'
-      +   '<div></div><div>선생님</div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-label">담당</div></div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-label">세션/주</div></div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-label">미작성</div></div>'
-      + '</div>';
-    teacherList.slice(0, 8).forEach(function(t){
-      html += ''
-        + '<div class="dp-trow">'
-        +   '<div class="dp-tav ' + _dpAvatarClass(t.name) + '">' + escHtml(_dpInitial(t.name)) + '</div>'
-        +   '<div class="dp-tinfo"><div class="dp-tname">' + escHtml(t.name) + '</div><div class="dp-tmeta">활동 중</div></div>'
-        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + t.count + '</div><div class="dp-tstat-label">명</div></div>'
-        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + t.weekSession + '<small style="color:#94a3b8;font-weight:600;">/' + t.weekSched + '</small></div><div class="dp-tstat-label"></div></div>'
-        +   '<div class="dp-tstat"><div class="dp-tstat-num ' + (t.unwritten ? 'warn' : '') + '">' + t.unwritten + '</div><div class="dp-tstat-label">건</div></div>'
-        + '</div>';
-    });
-  }
-  html += '</div></div>';
+    +   '<div class="dp-panel-body" id="dpAdminTeacherTable">'
+    +     _dpRenderTeacherRows(teacherList, /*placeholder=*/true)
+    +   '</div>'
+    + '</div>';
 
   // 변동 아동
-  var sortedChanges = childDB.filter(function(c){
+  var sortedChanges = _children.filter(function(c){
     var d = c.updatedAt || c.createdAt || c.regDate || '';
     return d && d.slice(0,10) >= monStr && d.slice(0,10) <= sunStr;
   }).sort(function(a,b){
@@ -1660,4 +1650,111 @@ function renderDashboardAdmin() {
     + '</div>';
 
   root.innerHTML = html;
+
+  // 비동기: madi_users 에서 선생님 전체 가져와 활동 0건 선생님도 포함
+  _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr);
+}
+
+// 선생님 활동표 행 렌더 (헬퍼)
+// rows: [{name, count, weekSched, weekSession, unwritten, inactive}, ...]
+function _dpRenderTeacherRows(rows, placeholder) {
+  if (!rows || rows.length === 0) {
+    if (placeholder) return '<div class="dp-empty">불러오는 중...</div>';
+    return '<div class="dp-empty">등록된 선생님이 없습니다</div>';
+  }
+  var head = ''
+    + '<div class="dp-trow head">'
+    +   '<div></div><div>선생님</div>'
+    +   '<div class="dp-tstat"><div class="dp-tstat-label">담당</div></div>'
+    +   '<div class="dp-tstat"><div class="dp-tstat-label">세션/주</div></div>'
+    +   '<div class="dp-tstat"><div class="dp-tstat-label">미작성</div></div>'
+    + '</div>';
+  var body = rows.slice(0, 10).map(function(t){
+    var meta = t.inactive ? '활동 없음' : '활동 중';
+    var nameStyle = t.inactive ? 'color:#94a3b8;' : '';
+    return ''
+      + '<div class="dp-trow">'
+      +   '<div class="dp-tav ' + _dpAvatarClass(t.name) + '" style="' + (t.inactive ? 'opacity:0.55;' : '') + '">' + escHtml(_dpInitial(t.name)) + '</div>'
+      +   '<div class="dp-tinfo"><div class="dp-tname" style="' + nameStyle + '">' + escHtml(t.name) + '</div><div class="dp-tmeta">' + meta + '</div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-num">' + (t.count || 0) + '</div><div class="dp-tstat-label">명</div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-num">' + (t.weekSession || 0) + '<small style="color:#94a3b8;font-weight:600;">/' + (t.weekSched || 0) + '</small></div><div class="dp-tstat-label"></div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-num ' + (t.unwritten ? 'warn' : '') + '">' + (t.unwritten || 0) + '</div><div class="dp-tstat-label">건</div></div>'
+      + '</div>';
+  }).join('');
+  return head + body;
+}
+
+// madi_users 조회 후 활동 통계와 머지 (이름 매칭)
+function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
+  var tableEl = document.getElementById('dpAdminTeacherTable');
+  var subEl = document.getElementById('dpAdminTeacherSub');
+  if (!tableEl) return;
+  // 슈퍼관리자는 전 센터, admin 은 본인 센터
+  var role = (currentUser && currentUser.role) || '';
+  var query = 'madi_users?role=eq.teacher&select=id,name,username&order=name.asc';
+  if (role === 'admin' && currentUser.center_id) {
+    query += '&center_id=eq.' + encodeURIComponent(currentUser.center_id);
+  }
+  // role=superadmin 은 필터 없이 전체 가져옴
+
+  supaFetch(query, 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows)) rows = [];
+      // 머지: madi_users 의 모든 선생님 + 활동 통계
+      var merged = rows.map(function(u){
+        var name = u.name || u.username || '?';
+        var s = teacherStats[name];
+        if (s) {
+          return {
+            name: name,
+            count: Object.keys(s.children).length,
+            weekSched: s.weekSched,
+            weekSession: s.weekSession,
+            unwritten: s.unwritten,
+            inactive: false
+          };
+        }
+        return { name: name, count: 0, weekSched: 0, weekSession: 0, unwritten: 0, inactive: true };
+      });
+      // madi_users 에 없는 활동 이름 (외부 자료 import 등) — orphan 으로 같이 표시
+      var knownNames = {};
+      rows.forEach(function(u){ knownNames[u.name || u.username || ''] = true; });
+      Object.keys(teacherStats).forEach(function(name){
+        if (!knownNames[name]) {
+          var s = teacherStats[name];
+          merged.push({
+            name: name,
+            count: Object.keys(s.children).length,
+            weekSched: s.weekSched,
+            weekSession: s.weekSession,
+            unwritten: s.unwritten,
+            inactive: false
+          });
+        }
+      });
+      // 정렬: 활동 있는 순 → 담당 아동 수 내림차순
+      merged.sort(function(a, b){
+        if (a.inactive !== b.inactive) return a.inactive ? 1 : -1;
+        return b.count - a.count;
+      });
+      tableEl.innerHTML = _dpRenderTeacherRows(merged);
+      if (subEl) {
+        var active = merged.filter(function(t){ return !t.inactive; }).length;
+        subEl.textContent = '이번 주 · 선생님 ' + merged.length + '명 (활동 ' + active + '명)';
+      }
+    })
+    .catch(function(e) {
+      // 실패 시 기존 통계 기반 fallback
+      if (window.console && console.warn) console.warn('[silent dpAdmin teachers]', e && e.message);
+      var fallback = Object.keys(teacherStats).map(function(name){
+        var s = teacherStats[name];
+        return {
+          name: name, count: Object.keys(s.children).length,
+          weekSched: s.weekSched, weekSession: s.weekSession, unwritten: s.unwritten,
+          inactive: false
+        };
+      }).sort(function(a,b){ return b.count - a.count; });
+      tableEl.innerHTML = _dpRenderTeacherRows(fallback);
+      if (subEl) subEl.textContent = '이번 주 · 선생님 ' + fallback.length + '명 (활동 데이터 기반)';
+    });
 }
