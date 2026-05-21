@@ -1061,9 +1061,17 @@
     <button class="notice-banner-close" onclick="closeNoticeBanner()" title="닫기">✕</button>
   </div>
 </div>
-<!-- ─── 홈 대시보드 ─── -->
+<!-- ─── 홈 대시보드 (페르소나별 분기) ─── -->
+<!-- 라우터: madi-03.js renderDashboard() 가 role 별로 아래 컨테이너 중 하나만 보이게 채움 -->
 <div class="tab-panel active" id="panelHome">
-  <div class="dash-content">
+  <!-- 선생님 페르소나 (⑥) — renderDashboardTeacher() -->
+  <div id="dashTeacher" class="dash-persona" style="display:none;"></div>
+
+  <!-- 관리자/슈퍼관리자 페르소나 (⑧) — renderDashboardAdmin() -->
+  <div id="dashAdmin" class="dash-persona" style="display:none;"></div>
+
+  <!-- 레거시 (이전 단일 디자인 보존 · 미지원 role fallback) — renderDashboardLegacy() -->
+  <div id="dashLegacy" class="dash-content" style="display:none;">
     <div class="dash-greeting">
       <div>
         <div class="dash-greeting-name" id="dashWelcome">오늘도 좋은 하루 시작해요, 남그 선생님! 🌅</div>

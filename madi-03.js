@@ -299,9 +299,39 @@ function showDashboard() {
     }
   } catch (e) {}
 }
+// ─── 대시보드 라우터 ───
+// role 에 따라 페르소나별 컨테이너 하나만 보이게 하고 해당 렌더러 호출.
+// 학부모는 별도 진입점(parentPanelHome/loadParentHome)이라 여기 안 들어옴.
 function renderDashboard() {
-  var hp=document.getElementById('panelHome');
-  if(!hp||!hp.classList.contains('active')) return;
+  var hp = document.getElementById('panelHome');
+  if (!hp || !hp.classList.contains('active')) return;
+
+  var tEl = document.getElementById('dashTeacher');
+  var aEl = document.getElementById('dashAdmin');
+  var lEl = document.getElementById('dashLegacy');
+  // 모두 숨김
+  if (tEl) tEl.style.display = 'none';
+  if (aEl) aEl.style.display = 'none';
+  if (lEl) lEl.style.display = 'none';
+
+  var role = (currentUser && currentUser.role) || '';
+  if (role === 'teacher' && typeof renderDashboardTeacher === 'function') {
+    if (tEl) tEl.style.display = '';
+    renderDashboardTeacher();
+    return;
+  }
+  if ((role === 'admin' || role === 'superadmin') && typeof renderDashboardAdmin === 'function') {
+    if (aEl) aEl.style.display = '';
+    renderDashboardAdmin();
+    return;
+  }
+  // fallback — 알 수 없는 role 이거나 페르소나 렌더러 미정의면 레거시 단일 디자인
+  if (lEl) lEl.style.display = '';
+  renderDashboardLegacy();
+}
+
+// ─── 레거시 (이전 단일 디자인) — fallback 보존 ───
+function renderDashboardLegacy() {
   var today=nowKST(); var todayStr=ymd(today);
   var wd=['일','월','화','수','목','금','토']; var h=today.getHours();
   var gr=h<12?'오늘도 좋은 하루 시작해요':h<18?'즐거운 오후 되세요':'오늘 하루도 수고하셨어요';
@@ -933,4 +963,701 @@ function changeMyPassword() {
     .catch(function(err) {
       setResult('<span style="color:var(--red);">❌ ' + escHtml(err.message || '변경 실패') + '</span>');
     });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 페르소나별 대시보드 렌더러 (Teacher ⑥ / Admin ⑧)
+// - 미리보기: design-previews/06-teacher-home.html, 08-admin-home.html
+// - 진입: renderDashboard() → role 분기
+// - 학부모는 별도 진입(parentPanelHome / loadParentHome) 사용
+// ═══════════════════════════════════════════════════════════════════════
+
+// 공통 유틸 — 이름 첫 글자 + 결정론적 아바타 색상 클래스
+function _dpInitial(name) {
+  var s = (name || '?').trim();
+  return s ? s.charAt(0) : '?';
+}
+function _dpAvatarClass(seed) {
+  var s = String(seed || '');
+  var h = 0;
+  for (var i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return 'dp-av-' + ((Math.abs(h) % 6) + 1);
+}
+function _dpMonday(d) {
+  var x = new Date(d);
+  var day = x.getDay(); // 0=일
+  var diff = day === 0 ? -6 : 1 - day;
+  x.setDate(x.getDate() + diff);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function _dpSunday(d) {
+  var m = _dpMonday(d);
+  m.setDate(m.getDate() + 6);
+  return m;
+}
+function _dpFmtMD(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
+function _dpAge(birthYmd) {
+  if (!birthYmd) return null;
+  var b = new Date(birthYmd);
+  if (isNaN(b.getTime())) return null;
+  var now = nowKST();
+  var a = now.getFullYear() - b.getFullYear();
+  var m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+  return a;
+}
+function _dpGreetingFor(name, role) {
+  var h = nowKST().getHours();
+  var em = h < 12 ? '☕' : h < 18 ? '☀️' : '🌙';
+  var head = h < 12 ? '좋은 아침이에요' : h < 18 ? '즐거운 오후 되세요' : '오늘 하루도 수고하셨어요';
+  var roleLabel = role === 'superadmin' ? '👑' : role === 'admin' ? '🎯' : '👩‍⚕️';
+  return head + ', ' + escHtml(name || '') + '님 ' + roleLabel + ' ' + em;
+}
+function _dpTodayBanner() {
+  var t = nowKST();
+  var wd = ['일','월','화','수','목','금','토'];
+  return t.getFullYear() + '년 ' + (t.getMonth()+1) + '월 ' + t.getDate() + '일 ' + wd[t.getDay()] + '요일';
+}
+
+// ────────────────────────────────────────────────────────────────
+// Teacher 홈 (⑥)
+// ────────────────────────────────────────────────────────────────
+function renderDashboardTeacher() {
+  var root = document.getElementById('dashTeacher');
+  if (!root) return;
+  var myName = (currentUser && currentUser.name) || '';
+  var todayStr = ymd(nowKST());
+  var today = nowKST(); today.setHours(0,0,0,0);
+  var mon = _dpMonday(today), sun = _dpSunday(today);
+  var monStr = ymd(mon), sunStr = ymd(sun);
+
+  // 데이터 계산
+  var mySched = scheduleDB.filter(function(s){ return s.teacher === myName; });
+  var mySession = sessionDB.filter(function(s){ return s.teacher === myName; });
+  var todaySched = mySched.filter(function(s){ return s.date === todayStr; })
+    .sort(function(a,b){ return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
+
+  // 내 담당 아동 (등록 상태 + 내가 일정/세션 기록한 적 있는 아동)
+  var myChildIds = {};
+  mySched.forEach(function(s){ if (s.childId) myChildIds[s.childId] = true; });
+  mySession.forEach(function(s){ if (s.childId) myChildIds[s.childId] = true; });
+  var myChildren = childDB.filter(function(c){ return myChildIds[c.id] && c.status !== '종결'; });
+
+  // 이번 주 작성률
+  var weekSched = mySched.filter(function(s){ return s.date >= monStr && s.date <= sunStr; });
+  var weekDone = weekSched.filter(function(s){
+    return sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+  }).length;
+
+  // 미작성 세션 (내 것만)
+  var unwrittenAll = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
+  var unwritten = unwrittenAll.filter(function(u){ return u.teacher === myName; });
+
+  // 최근 만난 순 4명 (오늘 일정 우선, 그다음 최근 세션 날짜)
+  var lastMet = {};
+  mySession.forEach(function(s){
+    if (!s.childId) return;
+    if (!lastMet[s.childId] || lastMet[s.childId] < s.date) lastMet[s.childId] = s.date;
+  });
+  mySched.forEach(function(s){
+    if (!s.childId || s.date > todayStr) return;
+    if (!lastMet[s.childId] || lastMet[s.childId] < s.date) lastMet[s.childId] = s.date;
+  });
+  var recentChildren = myChildren.slice().sort(function(a,b){
+    return (lastMet[b.id] || '') < (lastMet[a.id] || '') ? -1 : 1;
+  }).slice(0,4);
+
+  // 이번 주 활동 요약
+  var thisWeekSessions = mySession.filter(function(s){ return s.date >= monStr && s.date <= sunStr; });
+  var thisWeekEvals = (typeof assessmentDB !== 'undefined' ? assessmentDB : [])
+    .filter(function(a){ return a.teacher === myName && a.date >= monStr && a.date <= sunStr; });
+
+  // ── HTML ──
+  var titleText = _dpGreetingFor(myName, 'teacher');
+  var nearest = todaySched.length ? todaySched.find(function(s){ return !sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; }); }) || todaySched[0] : null;
+  var nearestChild = nearest ? childDB.find(function(c){ return c.id === nearest.childId; }) : null;
+  var subText = todaySched.length === 0
+    ? '오늘 예정된 세션은 없어요. 다음 주 일정을 미리 확인해 보세요.'
+    : '오늘 <b>' + todaySched.length + '건</b>의 세션이 예정되어 있어요.'
+      + (nearest ? ' 가장 가까운 일정은 <b>' + escHtml((nearest.startTime||'').slice(0,5)) + ' ' + escHtml(nearestChild ? nearestChild.name : '?') + '</b>예요.' : '');
+
+  var html = ''
+    + '<div class="dp-head">'
+    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + '</div>'
+    +   '<h1 class="dp-title">' + titleText + '</h1>'
+    +   '<p class="dp-sub">' + subText + '</p>'
+    + '</div>';
+
+  // 시급 배너 (미작성 있을 때만)
+  if (unwritten.length > 0) {
+    var sample = unwritten.slice(0,3).map(function(u){ return u.date.slice(5).replace('-','/') + ' (' + escHtml(u.childName) + ')'; }).join(', ');
+    html += ''
+      + '<div class="dp-urgent">'
+      +   '<div class="dp-urgent-ic">⚠️</div>'
+      +   '<div class="dp-urgent-info">'
+      +     '<div class="dp-urgent-title">미작성 세션 ' + unwritten.length + '건이 있어요</div>'
+      +     '<div class="dp-urgent-text">' + sample + (unwritten.length > 3 ? ' 외 ' + (unwritten.length - 3) + '건' : '') + ' 세션 기록이 작성 대기 중입니다.</div>'
+      +   '</div>'
+      +   '<button class="dp-urgent-action" onclick="switchTab(2)">→ 지금 작성</button>'
+      + '</div>';
+  }
+
+  // KPI 4개
+  var todayTimesShort = todaySched.slice(0,3).map(function(s){ return (s.startTime||'').slice(0,5); }).filter(Boolean).join(' · ');
+  html += ''
+    + '<div class="dp-kpi-grid">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-blue">👶</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">내 담당 아동</div>'
+    +     '<div class="dp-kpi-num">' + myChildren.length + '<em> 명</em></div>'
+    +     '<div class="dp-kpi-delta flat">전체 ' + childDB.length + '명 중</div>'
+    +   '</div></div>'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-green">📅</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">오늘 세션</div>'
+    +     '<div class="dp-kpi-num">' + todaySched.length + '<em> 건</em></div>'
+    +     '<div class="dp-kpi-delta flat">' + (todayTimesShort || '없음') + '</div>'
+    +   '</div></div>'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-purple">📝</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">이번 주 작성</div>'
+    +     '<div class="dp-kpi-num">' + weekDone + '<em> / ' + weekSched.length + '</em></div>'
+    +     '<div class="dp-kpi-delta ' + (unwritten.length ? 'warn' : 'flat') + '">' + (unwritten.length ? unwritten.length + '건 미작성' : '모두 작성 완료') + '</div>'
+    +   '</div></div>'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-rose">💬</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">답변 대기 메시지</div>'
+    +     '<div class="dp-kpi-num" id="dpTeacherMsgKpi">-<em> 건</em></div>'
+    +     '<div class="dp-kpi-delta flat" id="dpTeacherMsgKpiSub">불러오는 중...</div>'
+    +   '</div></div>'
+    + '</div>';
+
+  // 2열: 오늘 타임라인 + 받은 메시지
+  var wd = ['일','월','화','수','목','금','토'];
+  var weekNum = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / 86400000 + new Date(today.getFullYear(),0,1).getDay() + 1) / 7);
+  var doneCnt = todaySched.filter(function(s){ return sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; }); }).length;
+
+  html += '<div class="dp-grid-2">';
+
+  // 오늘 일정 패널
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">📅 오늘의 일정</div>'
+    +       '<div class="dp-panel-sub">' + (todaySched.length ? todaySched.length + '개 세션' : '오늘 일정 없음') + '</div></div>'
+    +     '<button class="dp-panel-link" onclick="switchTab(0)">주간 보기 →</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">'
+    +     '<div class="dp-day-sum">'
+    +       '<div class="dp-day-num">' + today.getDate() + '</div>'
+    +       '<div class="dp-day-text"><b>' + wd[today.getDay()] + '요일</b>' + today.getFullYear() + '년 ' + (today.getMonth()+1) + '월 · ' + weekNum + '주차</div>'
+    +       '<div class="dp-day-right">예정 <b>' + todaySched.length + '</b> · 완료 <b>' + doneCnt + '</b></div>'
+    +     '</div>';
+
+  if (todaySched.length === 0) {
+    html += '<div class="dp-empty">오늘 예정된 세션이 없습니다</div>';
+  } else {
+    html += todaySched.slice(0, 6).map(function(s){
+      var c = childDB.find(function(cc){ return cc.id === s.childId; });
+      var nm = c ? c.name : '?';
+      var done = sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+      var st = (s.startTime || '').slice(0,5);
+      var et = (s.endTime || '').slice(0,5);
+      var age = c ? _dpAge(c.birth) : null;
+      var meta = (c ? (c.type || '') : '') + (age ? (c && c.type ? ' · ' : '') + age + '세' : '');
+      var tag = done ? '<span class="dp-tl-tag done">완료</span>' : '<span class="dp-tl-tag upcoming">예정</span>';
+      var cls = done ? 'done' : 'upcoming';
+      return ''
+        + '<div class="dp-tl-row ' + cls + '" onclick="switchTab(2)">'
+        +   '<div class="dp-tl-time">' + escHtml(st || '--:--') + (et ? '<em>~ ' + escHtml(et) + '</em>' : '') + '</div>'
+        +   '<div class="dp-tl-dot"></div>'
+        +   '<div class="dp-tl-card">'
+        +     '<div class="dp-tl-av ' + _dpAvatarClass(nm) + '">' + escHtml(_dpInitial(nm)) + '</div>'
+        +     '<div class="dp-tl-info">'
+        +       '<div class="dp-tl-name">' + escHtml(nm) + '</div>'
+        +       '<div class="dp-tl-meta">' + escHtml(meta || '세션') + '</div>'
+        +     '</div>'
+        +     tag
+        +   '</div>'
+        + '</div>';
+    }).join('');
+    if (todaySched.length > 6) html += '<div class="dp-empty" style="padding:8px;">+ ' + (todaySched.length - 6) + '개 더</div>';
+  }
+  html += '</div></div>';
+
+  // 답변 대기 메시지 (async — placeholder 후 채움)
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">💬 답변 대기 메시지</div>'
+    +       '<div class="dp-panel-sub">받은 메시지 · 미응답</div></div>'
+    +     '<button class="dp-panel-link" onclick="switchTab(7)">전체 →</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body" id="dpTeacherMsgs">'
+    +     '<div class="dp-empty">불러오는 중...</div>'
+    +   '</div>'
+    + '</div>';
+  html += '</div>'; // grid-2 end
+
+  // 내 담당 아동 (가로 카드 4개)
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">👥 내 담당 아동</div>'
+    +       '<div class="dp-panel-sub">최근 만난 순 · 총 ' + myChildren.length + '명</div></div>'
+    +     '<button class="dp-panel-link" onclick="switchTab(1)">전체 →</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">';
+  if (recentChildren.length === 0) {
+    html += '<div class="dp-empty">담당 중인 아동이 없습니다.<br>일정·세션 기록을 시작하면 여기에 표시됩니다.</div>';
+  } else {
+    html += '<div class="dp-children">' + recentChildren.map(function(c){
+      var age = _dpAge(c.birth);
+      var nm = c.name || '?';
+      var last = lastMet[c.id];
+      var lastText = last
+        ? (last === todayStr ? '<b>오늘</b> 만남' : '<b>' + last.slice(5).replace('-','/') + '</b> 마지막 만남')
+        : '<b>일정 미등록</b>';
+      var meta = [c.type, age ? age + '세' : ''].filter(Boolean).join(' · ');
+      return ''
+        + '<div class="dp-child" onclick="openChildDetail(' + c.id + ')">'
+        +   '<div class="dp-child-head">'
+        +     '<div class="dp-child-av ' + _dpAvatarClass(nm) + '">' + escHtml(_dpInitial(nm)) + '</div>'
+        +     '<div style="flex:1;min-width:0;">'
+        +       '<div class="dp-child-name">' + escHtml(nm) + '</div>'
+        +       '<div class="dp-child-meta">' + escHtml(meta || c.status || '등록') + '</div>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="dp-child-last">' + lastText + '</div>'
+        + '</div>';
+    }).join('') + '</div>';
+  }
+  html += '</div></div>';
+
+  // 하단 2열: 이번 주 활동 + 빠른 액션
+  html += '<div class="dp-grid-2-eq">';
+
+  // 이번 주 활동
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">📊 내 이번 주 활동</div>'
+    +       '<div class="dp-panel-sub">' + _dpFmtMD(mon) + ' ~ ' + _dpFmtMD(sun) + '</div></div>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">'
+    +     '<div class="dp-week">'
+    +       '<div class="dp-week-item"><div class="dp-week-num">' + thisWeekSessions.length + '</div><div class="dp-week-label">완료 세션</div></div>'
+    +       '<div class="dp-week-item"><div class="dp-week-num">' + thisWeekEvals.length + '</div><div class="dp-week-label">평가 완료</div></div>'
+    +       '<div class="dp-week-item"><div class="dp-week-num">' + weekSched.length + '</div><div class="dp-week-label">계획 일정</div></div>'
+    +       '<div class="dp-week-item"><div class="dp-week-num">' + (weekSched.length - weekDone) + '</div><div class="dp-week-label">남은 작성</div></div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+
+  // 빠른 액션
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">⚡ 빠른 액션</div>'
+    +       '<div class="dp-panel-sub">자주 쓰는 작업</div></div>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">'
+    +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:none;cursor:pointer;" onclick="switchTab(2)">'
+    +       '<div class="dp-tl-av dp-av-2">📝</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">세션 기록 작성</div><div class="dp-tl-meta">' + (unwritten.length ? unwritten.length + '건 미작성 — 우선 처리' : '오늘 일정에서 시작') + '</div></div>'
+    +       '<div style="color:#cbd5e1;">→</div>'
+    +     '</div>'
+    +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid #f1f5f9;cursor:pointer;" onclick="switchTab(0)">'
+    +       '<div class="dp-tl-av dp-av-1">📅</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">캘린더 관리</div><div class="dp-tl-meta">주간 일정·새 일정 추가</div></div>'
+    +       '<div style="color:#cbd5e1;">→</div>'
+    +     '</div>'
+    +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid #f1f5f9;cursor:pointer;" onclick="switchTab(7)">'
+    +       '<div class="dp-tl-av dp-av-3">💬</div>'
+    +       '<div class="dp-tl-info"><div class="dp-tl-name">게시판·메시지</div><div class="dp-tl-meta">학부모 · 동료 라운지</div></div>'
+    +       '<div style="color:#cbd5e1;">→</div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+
+  html += '</div>'; // grid-2-eq end
+
+  root.innerHTML = html;
+
+  // ── 비동기: 라운지 답변 대기 메시지 ──
+  _dpLoadTeacherMessages();
+}
+
+// 라운지 1:1 메시지(private_admin) 중 본인이 보낸 게 아닌 것 = 받은 메시지
+function _dpLoadTeacherMessages() {
+  var msgEl = document.getElementById('dpTeacherMsgs');
+  var kpiEl = document.getElementById('dpTeacherMsgKpi');
+  var kpiSub = document.getElementById('dpTeacherMsgKpiSub');
+  if (!msgEl) return;
+  if (!currentUser || !currentUser.id) {
+    msgEl.innerHTML = '<div class="dp-empty">로그인 정보 확인 필요</div>';
+    return;
+  }
+  supaFetch('madi_lounge_posts?visibility=eq.private_admin&order=created_at.desc&limit=20', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows)) rows = [];
+      var received = rows.filter(function(p){
+        if (!p) return false;
+        // 본인이 작성한 글 제외
+        if (p.author_id && String(p.author_id) === String(currentUser.id)) return false;
+        if (!p.author_id && p.author_name && p.author_name === currentUser.name) return false;
+        return true;
+      });
+      // KPI 갱신
+      if (kpiEl) kpiEl.innerHTML = received.length + '<em> 건</em>';
+      if (kpiSub) {
+        if (received.length === 0) { kpiSub.textContent = '받은 메시지 없음'; kpiSub.className = 'dp-kpi-delta flat'; }
+        else {
+          // 가장 오래된 일 차이
+          var oldest = received[received.length - 1];
+          var dStr = oldest && oldest.created_at ? oldest.created_at.slice(0,10) : '';
+          var d = dStr ? Math.floor((nowKST() - new Date(dStr)) / 86400000) : 0;
+          kpiSub.textContent = '가장 오래된 ' + d + '일 전';
+          kpiSub.className = 'dp-kpi-delta warn';
+        }
+      }
+      if (received.length === 0) {
+        msgEl.innerHTML = '<div class="dp-empty">받은 메시지가 없습니다</div>';
+        return;
+      }
+      msgEl.innerHTML = received.slice(0,4).map(function(p){
+        var from = p.author_name || '익명';
+        var when = p.created_at ? p.created_at.slice(0,10) : '';
+        var preview = (p.content || p.title || '').toString().slice(0,80);
+        var days = when ? Math.floor((nowKST() - new Date(when)) / 86400000) : 0;
+        var timeText = days === 0 ? '오늘' : days + '일 전';
+        return ''
+          + '<div class="dp-msg-row" onclick="switchTab(7)">'
+          +   '<div class="dp-msg-av ' + _dpAvatarClass(from) + '">' + escHtml(_dpInitial(from)) + '</div>'
+          +   '<div class="dp-msg-info">'
+          +     '<div class="dp-msg-top">'
+          +       '<div class="dp-msg-from">' + escHtml(from) + '</div>'
+          +       '<div class="dp-msg-unread"></div>'
+          +       '<div class="dp-msg-time">' + timeText + '</div>'
+          +     '</div>'
+          +     '<div class="dp-msg-preview">' + escHtml(preview) + '</div>'
+          +   '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function() {
+      if (kpiEl) kpiEl.innerHTML = '-<em> 건</em>';
+      if (kpiSub) { kpiSub.textContent = '불러오기 실패'; kpiSub.className = 'dp-kpi-delta flat'; }
+      msgEl.innerHTML = '<div class="dp-empty">메시지를 불러오지 못했습니다</div>';
+    });
+}
+
+// ────────────────────────────────────────────────────────────────
+// Admin / Super 홈 (⑧)
+// ────────────────────────────────────────────────────────────────
+
+// 바우처 단가 추정표 (Option ⓒ — 실제 정산 테이블 미구현 상태 추정값)
+var _DP_VOUCHER_PRICE = {
+  '발달재활바우처':          33000,
+  '우리아이심리지원서비스바우처': 40000,
+  '꿈E든카드바우처':         30000,
+  '나래사랑카드바우처':       35000,
+  '일반':                  40000,
+  '':                      40000
+};
+function _dpEstSessionPrice(child) {
+  if (!child) return _DP_VOUCHER_PRICE['일반'];
+  var v = child.voucherType || '일반';
+  return _DP_VOUCHER_PRICE[v] != null ? _DP_VOUCHER_PRICE[v] : _DP_VOUCHER_PRICE['일반'];
+}
+function _dpFmtWon(n) {
+  if (!isFinite(n)) return '0';
+  return '₩' + Math.round(n).toLocaleString('ko-KR');
+}
+
+function renderDashboardAdmin() {
+  var root = document.getElementById('dashAdmin');
+  if (!root) return;
+  var myName = (currentUser && currentUser.name) || '';
+  var role = (currentUser && currentUser.role) || 'admin';
+  var todayDate = nowKST(); todayDate.setHours(0,0,0,0);
+  var todayStr = ymd(todayDate);
+  var mon = _dpMonday(todayDate), sun = _dpSunday(todayDate);
+  var monStr = ymd(mon), sunStr = ymd(sun);
+  // 이번 달
+  var monthStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+  var monthEnd   = new Date(todayDate.getFullYear(), todayDate.getMonth()+1, 0);
+  var monthStartStr = ymd(monthStart), monthEndStr = ymd(monthEnd);
+  // 지난 달
+  var lastMonthStart = new Date(todayDate.getFullYear(), todayDate.getMonth()-1, 1);
+  var lastMonthEnd   = new Date(todayDate.getFullYear(), todayDate.getMonth(), 0);
+  var lastMonthStartStr = ymd(lastMonthStart), lastMonthEndStr = ymd(lastMonthEnd);
+
+  // ── 데이터 계산 ──
+  var thisMonthSessions = sessionDB.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
+  var lastMonthSessions = sessionDB.filter(function(s){ return s.date >= lastMonthStartStr && s.date <= lastMonthEndStr; });
+  var thisMonthSched = scheduleDB.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });
+
+  // 매출 추정 = sum(완료 세션 × 바우처 단가)
+  var revenue = 0;
+  thisMonthSessions.forEach(function(s){
+    var c = childDB.find(function(cc){ return cc.id === s.childId; });
+    revenue += _dpEstSessionPrice(c);
+  });
+  var lastRevenue = 0;
+  lastMonthSessions.forEach(function(s){
+    var c = childDB.find(function(cc){ return cc.id === s.childId; });
+    lastRevenue += _dpEstSessionPrice(c);
+  });
+  var revenueDelta = revenue - lastRevenue;
+  var revenueDeltaPct = lastRevenue > 0 ? Math.round(revenueDelta / lastRevenue * 100) : 0;
+
+  // 정산 대기 = 이번 달 일정 중 세션 매칭 안된 것 (미완료 추정)
+  var pendingSched = thisMonthSched.filter(function(s){
+    if (s.date > todayStr) return false; // 미래는 정상
+    return !sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+  });
+  var pendingAmount = 0;
+  pendingSched.forEach(function(s){
+    var c = childDB.find(function(cc){ return cc.id === s.childId; });
+    pendingAmount += _dpEstSessionPrice(c);
+  });
+
+  // KPI
+  var kRegistered = childDB.filter(function(c){ return c.status === '등록'; }).length;
+  var kWaiting    = childDB.filter(function(c){ return c.status === '대기'; }).length;
+  var kClosedThisMonth = childDB.filter(function(c){
+    if (c.status !== '종결') return false;
+    var d = c.updatedAt || c.closedAt || c.endDate || '';
+    return d && d.slice(0,7) === monthStartStr.slice(0,7);
+  }).length;
+  var kTotal = childDB.length;
+
+  // 이번 주 변동
+  var weekChildren = childDB.filter(function(c){
+    var d = c.updatedAt || c.createdAt || c.regDate || '';
+    return d && d.slice(0,10) >= monStr && d.slice(0,10) <= sunStr;
+  });
+  var newThisWeek    = weekChildren.filter(function(c){ return c.status === '등록'; }).length;
+  var closedThisWeek = weekChildren.filter(function(c){ return c.status === '종결'; }).length;
+  var waitThisWeek   = weekChildren.filter(function(c){ return c.status === '대기'; }).length;
+
+  // 선생님 활동 — 일단 sessionDB / scheduleDB 의 teacher 이름들로 집계 (사용자 테이블 조회 없이 즉시)
+  var teacherStats = {};
+  scheduleDB.forEach(function(s){
+    if (!s.teacher) return;
+    if (!teacherStats[s.teacher]) teacherStats[s.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
+    teacherStats[s.teacher].children[s.childId] = true;
+    if (s.date >= monStr && s.date <= sunStr) teacherStats[s.teacher].weekSched++;
+  });
+  sessionDB.forEach(function(s){
+    if (!s.teacher) return;
+    if (!teacherStats[s.teacher]) teacherStats[s.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
+    teacherStats[s.teacher].children[s.childId] = true;
+    if (s.date >= monStr && s.date <= sunStr) teacherStats[s.teacher].weekSession++;
+  });
+  (typeof getUnwrittenSessions === 'function' ? getUnwrittenSessions() : []).forEach(function(u){
+    if (!u.teacher) return;
+    if (!teacherStats[u.teacher]) teacherStats[u.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
+    teacherStats[u.teacher].unwritten++;
+  });
+  var teacherList = Object.keys(teacherStats).map(function(name){
+    var s = teacherStats[name];
+    return { name:name, count: Object.keys(s.children).length, weekSched:s.weekSched, weekSession:s.weekSession, unwritten:s.unwritten };
+  }).sort(function(a,b){ return b.count - a.count; });
+
+  // 일별 카운트 (이번 달 추이 — 계획 vs 실제)
+  var daysInMonth = monthEnd.getDate();
+  var planByDay = [], realByDay = [];
+  for (var _i = 0; _i <= daysInMonth; _i++) { planByDay.push(0); realByDay.push(0); }
+  thisMonthSched.forEach(function(s){ var d = parseInt(s.date.slice(8,10), 10); if (d >= 1 && d <= daysInMonth) planByDay[d]++; });
+  thisMonthSessions.forEach(function(s){ var d = parseInt(s.date.slice(8,10), 10); if (d >= 1 && d <= daysInMonth) realByDay[d]++; });
+
+  // ── HTML ──
+  var titleText = _dpGreetingFor(myName, role);
+  var deltaTxt = lastRevenue > 0
+    ? '전월 대비 ' + (revenueDeltaPct >= 0 ? '+' : '') + revenueDeltaPct + '% (' + (revenueDelta >= 0 ? '+' : '') + _dpFmtWon(revenueDelta) + ')'
+    : '전월 데이터 없음';
+  var subText = '이번 달 세션 <b>' + thisMonthSessions.length + '건</b> 완료 · 정산 대기 <b>' + pendingSched.length + '건</b>' + (pendingSched.length > 0 ? ' (' + _dpFmtWon(pendingAmount) + ' 추정)' : '');
+
+  var html = ''
+    + '<div class="dp-head">'
+    +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner()) + '</div>'
+    +   '<h1 class="dp-title">' + titleText + '</h1>'
+    +   '<p class="dp-sub">' + subText + '</p>'
+    + '</div>';
+
+  // 매출 히어로 (추정값 라벨 명시)
+  html += ''
+    + '<div class="dp-rev">'
+    +   '<div class="dp-rev-main">'
+    +     '<div class="dp-rev-label">💰 이번 달 매출 (추정)</div>'
+    +     '<div class="dp-rev-num">' + _dpFmtWon(revenue) + '</div>'
+    +     '<div class="dp-rev-meta">' + escHtml(deltaTxt) + '</div>'
+    +     '<div class="dp-rev-tag">📌 바우처 단가 × 완료 세션 추정값</div>'
+    +   '</div>'
+    +   '<div class="dp-rev-sub">'
+    +     '<div class="dp-rev-sub-label">⏳ 정산 대기</div>'
+    +     '<div class="dp-rev-sub-num">' + _dpFmtWon(pendingAmount) + '</div>'
+    +     '<div class="dp-rev-sub-meta"><b>' + pendingSched.length + '건</b> · 이번 달 미작성 세션</div>'
+    +   '</div>'
+    +   '<div class="dp-rev-sub">'
+    +     '<div class="dp-rev-sub-label">📊 이번 달 세션</div>'
+    +     '<div class="dp-rev-sub-num">' + thisMonthSessions.length + ' <em>건</em></div>'
+    +     '<div class="dp-rev-sub-meta">계획 <b>' + thisMonthSched.length + '건</b> · 진도율 <b>' + (thisMonthSched.length ? Math.round(thisMonthSessions.length / thisMonthSched.length * 100) : 0) + '%</b></div>'
+    +   '</div>'
+    + '</div>';
+
+  // KPI
+  html += ''
+    + '<div class="dp-kpi-grid">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-green">👶</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">활동 중인 아동</div>'
+    +     '<div class="dp-kpi-num">' + kRegistered + '</div>'
+    +     '<div class="dp-kpi-delta ' + (newThisWeek ? '' : 'flat') + '">' + (newThisWeek ? '↑ +' + newThisWeek + ' 이번 주' : '변동 없음') + '</div>'
+    +   '</div></div>'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-amber">⏳</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">대기 / 초기 면담</div>'
+    +     '<div class="dp-kpi-num">' + kWaiting + '</div>'
+    +     '<div class="dp-kpi-delta ' + (waitThisWeek ? 'warn' : 'flat') + '">' + (waitThisWeek ? '+' + waitThisWeek + ' 이번 주 신규' : '변동 없음') + '</div>'
+    +   '</div></div>'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-blue">✓</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">이번 달 종결</div>'
+    +     '<div class="dp-kpi-num">' + kClosedThisMonth + '</div>'
+    +     '<div class="dp-kpi-delta flat">2026년 ' + (todayDate.getMonth()+1) + '월</div>'
+    +   '</div></div>'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-purple">🌳</div><div class="dp-kpi-info">'
+    +     '<div class="dp-kpi-label">전체 누적</div>'
+    +     '<div class="dp-kpi-num">' + kTotal + '</div>'
+    +     '<div class="dp-kpi-delta flat">아동 등록 합계</div>'
+    +   '</div></div>'
+    + '</div>';
+
+  // 2열: 선생님 활동 + 변동 아동
+  html += '<div class="dp-grid-2">';
+
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">👥 선생님별 활동 현황</div>'
+    +       '<div class="dp-panel-sub">이번 주 (' + _dpFmtMD(mon) + ' ~ ' + _dpFmtMD(sun) + ') · 선생님 ' + teacherList.length + '명</div></div>'
+    +     '<button class="dp-panel-link" onclick="switchTab(5)">관리 →</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">';
+  if (teacherList.length === 0) {
+    html += '<div class="dp-empty">선생님 활동 데이터가 없습니다</div>';
+  } else {
+    html += ''
+      + '<div class="dp-trow head">'
+      +   '<div></div><div>선생님</div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-label">담당</div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-label">세션/주</div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-label">미작성</div></div>'
+      + '</div>';
+    teacherList.slice(0, 8).forEach(function(t){
+      html += ''
+        + '<div class="dp-trow">'
+        +   '<div class="dp-tav ' + _dpAvatarClass(t.name) + '">' + escHtml(_dpInitial(t.name)) + '</div>'
+        +   '<div class="dp-tinfo"><div class="dp-tname">' + escHtml(t.name) + '</div><div class="dp-tmeta">활동 중</div></div>'
+        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + t.count + '</div><div class="dp-tstat-label">명</div></div>'
+        +   '<div class="dp-tstat"><div class="dp-tstat-num">' + t.weekSession + '<small style="color:#94a3b8;font-weight:600;">/' + t.weekSched + '</small></div><div class="dp-tstat-label"></div></div>'
+        +   '<div class="dp-tstat"><div class="dp-tstat-num ' + (t.unwritten ? 'warn' : '') + '">' + t.unwritten + '</div><div class="dp-tstat-label">건</div></div>'
+        + '</div>';
+    });
+  }
+  html += '</div></div>';
+
+  // 변동 아동
+  var sortedChanges = childDB.filter(function(c){
+    var d = c.updatedAt || c.createdAt || c.regDate || '';
+    return d && d.slice(0,10) >= monStr && d.slice(0,10) <= sunStr;
+  }).sort(function(a,b){
+    var da = (a.updatedAt || a.createdAt || a.regDate || '').slice(0,10);
+    var db = (b.updatedAt || b.createdAt || b.regDate || '').slice(0,10);
+    return da < db ? 1 : -1;
+  });
+
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">🔄 이번 주 아동 변동</div>'
+    +       '<div class="dp-panel-sub">신규·종결·대기 전환</div></div>'
+    +     '<button class="dp-panel-link" onclick="switchTab(1)">전체 →</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">'
+    +     '<div class="dp-change-sum">'
+    +       '<div class="dp-change-cell"><div class="dp-change-num up">+' + newThisWeek + '</div><div class="dp-change-label">신규 등록</div></div>'
+    +       '<div class="dp-change-cell"><div class="dp-change-num done">' + closedThisWeek + '</div><div class="dp-change-label">종결</div></div>'
+    +       '<div class="dp-change-cell"><div class="dp-change-num flat">+' + waitThisWeek + '</div><div class="dp-change-label">대기 추가</div></div>'
+    +     '</div>';
+
+  if (sortedChanges.length === 0) {
+    html += '<div class="dp-empty">이번 주 변동된 아동이 없습니다</div>';
+  } else {
+    sortedChanges.slice(0, 5).forEach(function(c){
+      var age = _dpAge(c.birth);
+      var nm = c.name || '?';
+      var tagClass = c.status === '종결' ? 'done' : c.status === '대기' ? 'wait' : 'new';
+      var tagLabel = c.status === '종결' ? '종결' : c.status === '대기' ? '대기' : '신규';
+      var detail = (c.type || '미지정') + (age ? ' · ' + age + '세' : '');
+      html += ''
+        + '<div class="dp-change-row" onclick="openChildDetail(' + c.id + ')" style="cursor:pointer;">'
+        +   '<div class="dp-tav ' + _dpAvatarClass(nm) + '">' + escHtml(_dpInitial(nm)) + '</div>'
+        +   '<div class="dp-change-content">'
+        +     '<div class="dp-change-title">' + escHtml(nm) + (age ? ' (' + age + '세)' : '') + '</div>'
+        +     '<div class="dp-change-detail">' + escHtml(detail) + '</div>'
+        +   '</div>'
+        +   '<div class="dp-change-tag ' + tagClass + '">' + tagLabel + '</div>'
+        + '</div>';
+    });
+  }
+  html += '</div></div>';
+  html += '</div>'; // grid-2 end
+
+  // 추이 그래프 (계획 vs 실제 · SVG)
+  var maxY = 1;
+  for (var i = 1; i <= daysInMonth; i++) {
+    if (planByDay[i] > maxY) maxY = planByDay[i];
+    if (realByDay[i] > maxY) maxY = realByDay[i];
+  }
+  var chartW = 700, chartH = 180;
+  function _pt(i, v) {
+    var x = ((i - 1) / Math.max(daysInMonth - 1, 1)) * chartW;
+    var y = chartH - (v / maxY) * chartH;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }
+  var planPts = [], realPts = [], realArea = ['0,' + chartH];
+  for (var d = 1; d <= daysInMonth; d++) {
+    planPts.push(_pt(d, planByDay[d]));
+    realPts.push(_pt(d, realByDay[d]));
+    realArea.push(_pt(d, realByDay[d]));
+  }
+  realArea.push(chartW + ',' + chartH);
+  var progressPct = thisMonthSched.length ? Math.round(thisMonthSessions.length / thisMonthSched.length * 100) : 0;
+
+  html += ''
+    + '<div class="dp-panel">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">📊 이번 달 세션 추이</div>'
+    +       '<div class="dp-panel-sub">' + (monthStart.getMonth()+1) + '월 일별 세션 (계획 vs 실제)</div></div>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">'
+    +     '<div class="dp-chart">'
+    +       '<div class="dp-chart-grid"><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div></div>'
+    +       '<svg class="dp-chart-svg" viewBox="0 0 ' + chartW + ' ' + chartH + '" preserveAspectRatio="none">'
+    +         '<defs><linearGradient id="dpGradActual" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f3b66" stop-opacity="0.2"/><stop offset="100%" stop-color="#0f3b66" stop-opacity="0"/></linearGradient></defs>'
+    +         '<polyline points="' + planPts.join(' ') + '" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,4"/>'
+    +         '<polygon points="' + realArea.join(' ') + '" fill="url(#dpGradActual)"/>'
+    +         '<polyline points="' + realPts.join(' ') + '" fill="none" stroke="#0f3b66" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    +       '</svg>'
+    +     '</div>'
+    +     '<div class="dp-chart-x">'
+    +       '<span>1일</span><span>' + Math.round(daysInMonth/4) + '일</span><span>' + Math.round(daysInMonth/2) + '일</span><span>' + Math.round(daysInMonth*3/4) + '일</span><span>' + daysInMonth + '일</span>'
+    +     '</div>'
+    +     '<div class="dp-chart-legend">'
+    +       '<div class="dp-chart-leg"><div class="dp-chart-leg-dot" style="background:#0f3b66;"></div>실제 (누적 ' + thisMonthSessions.length + '회)</div>'
+    +       '<div class="dp-chart-leg"><div class="dp-chart-leg-dot" style="background:#94a3b8;"></div>계획 (목표 ' + thisMonthSched.length + '회)</div>'
+    +       '<div class="dp-chart-leg ok">진도율 ' + progressPct + '%</div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+
+  root.innerHTML = html;
 }
