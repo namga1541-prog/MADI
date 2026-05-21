@@ -362,6 +362,58 @@ function getMadiLogoSVG(w, h) {
     + '<path d="M 65 54 C 65 54 92 52 91 32 C 90 20 68 28 65 44 Z" fill="white"/></svg>';
 }
 
+// ─── Web Vitals 계측 (2026-05-21 최적화 효과 검증용) ───
+// 핵심 지표: FCP / LCP / CLS / TTFB / domContentLoaded
+// 결과는 window.__madiVitals 에 모임 — DevTools console 에서 확인 가능
+// 별도 서버 전송은 없음 (PII·네트워크 절감)
+window.__madiVitals = { collectedAt: null };
+function _initWebVitals() {
+  try {
+    // FCP / LCP / CLS — PerformanceObserver 사용 (있는 브라우저만)
+    if (typeof PerformanceObserver === 'undefined') return;
+    // FCP
+    try {
+      new PerformanceObserver(function(list) {
+        list.getEntries().forEach(function(e) {
+          if (e.name === 'first-contentful-paint') window.__madiVitals.fcp = Math.round(e.startTime);
+        });
+      }).observe({ type: 'paint', buffered: true });
+    } catch (e) {}
+    // LCP (최종값은 사용자 인터랙션 직전까지 갱신)
+    try {
+      var lcpObs = new PerformanceObserver(function(list) {
+        var entries = list.getEntries();
+        var last = entries[entries.length - 1];
+        if (last) window.__madiVitals.lcp = Math.round(last.startTime);
+      });
+      lcpObs.observe({ type: 'largest-contentful-paint', buffered: true });
+    } catch (e) {}
+    // CLS (계속 누적)
+    try {
+      var clsValue = 0;
+      new PerformanceObserver(function(list) {
+        list.getEntries().forEach(function(e) {
+          if (!e.hadRecentInput) clsValue += e.value;
+        });
+        window.__madiVitals.cls = Math.round(clsValue * 1000) / 1000;
+      }).observe({ type: 'layout-shift', buffered: true });
+    } catch (e) {}
+    // 네비게이션 타이밍 (TTFB / domContentLoaded)
+    setTimeout(function() {
+      try {
+        var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+        if (nav) {
+          window.__madiVitals.ttfb = Math.round(nav.responseStart);
+          window.__madiVitals.domContentLoaded = Math.round(nav.domContentLoadedEventEnd);
+          window.__madiVitals.loadComplete = Math.round(nav.loadEventEnd);
+        }
+        window.__madiVitals.collectedAt = Date.now();
+      } catch (e) {}
+    }, 3000);
+  } catch (e) {}
+}
+_initWebVitals();
+
 document.addEventListener('DOMContentLoaded', function() {
   restoreSidebarState();
 

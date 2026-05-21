@@ -105,6 +105,8 @@ function _quickFindChild(childId) {
 function renderQuickCards() {
   var box = document.getElementById('quickCardList');
   if (!box) return;
+  // idle 시점에 1건씩 dataURL → Storage 백그라운드 백필
+  setTimeout(_quickBackfillOnePhoto, 2500);
   var scheds = _quickGetMySchedules();
   var sub = document.getElementById('quickHeaderSub');
   if (scheds.length === 0) {
@@ -543,6 +545,37 @@ function quickAiClean() {
     })
     .then(function() {
       if (btn) { btn.disabled = false; btn.textContent = '✨ AI 정리'; }
+    });
+}
+
+// ─────────────────────────────────────────────
+// 점진 백필 (2026-05-21): 카드 리스트 렌더 시점에 dataURL 사진을 발견하면
+// 1회당 1건만 백그라운드 업로드 후 jsonb 갱신. 사용자 인지 없이 천천히 마이그레이션.
+// 실패해도 dataURL 그대로 — 다음 기회에 재시도.
+// ─────────────────────────────────────────────
+var _quickBackfillBusy = false;
+function _quickBackfillOnePhoto() {
+  if (_quickBackfillBusy) return;
+  if (typeof sessionDB === 'undefined' || !sessionDB || !sessionDB.length) return;
+  // dataURL 이 들어있는 첫 세션 1건만
+  var target = null;
+  for (var i = 0; i < sessionDB.length; i++) {
+    var se = sessionDB[i];
+    if (se && se.photoUrl && String(se.photoUrl).indexOf('data:image/') === 0) {
+      target = se; break;
+    }
+  }
+  if (!target) return;
+  _quickBackfillBusy = true;
+  _quickUploadPhoto(target.photoUrl)
+    .then(function(url) {
+      if (!url || url.indexOf('http') !== 0) return;
+      target.photoUrl = url;
+      if (typeof saveSessions === 'function') saveSessions();
+    })
+    .catch(function() { /* 실패 — 다음에 재시도 */ })
+    .then(function() {
+      _quickBackfillBusy = false;
     });
 }
 
