@@ -2759,3 +2759,53 @@ body.dark-mode .sidebar-item.active { background:rgba(255,255,255,0.08) !importa
 body.dark-mode .breadcrumb-bar { background:#0f172a !important; border-bottom-color:rgba(255,255,255,0.06) !important; color:rgba(255,255,255,0.6) !important; }
 body.dark-mode .breadcrumb-bar .bc-home { color:white !important; }
 
+/* ═══════════════════════════════════════════════════════════
+   보고서 페이지 PC 레이아웃 (panel1 세션 / panel3 평가 / panel5 리포트 / panelSI 감통)
+   - .content-wide: 860 → 1280 최대폭 확장 (PC 가로 활용)
+   - .rep-grid-2 / .rep-grid-3: 카드 다열 그리드 (≥1024px)
+   - PC에서 form-input 폰트·패딩 축소 (모바일 16px 줌 가드는 PC 에서 과함)
+   ═══════════════════════════════════════════════════════════ */
+
+.content-wide { max-width:1280px; }
+
+.rep-grid-2,
+.rep-grid-3 {
+  display:grid; gap:16px;
+  grid-template-columns:1fr;
+  align-items:start;
+  margin-bottom:14px;
+}
+.rep-grid-col { display:flex; flex-direction:column; gap:14px; }
+.rep-grid-col > .card { margin-bottom:0; }
+
+@media (min-width:1024px) {
+  .rep-grid-2            { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .rep-grid-2.rg-wide-left  { grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); }
+  .rep-grid-2.rg-wide-right { grid-template-columns:minmax(0,1fr) minmax(0,1.4fr); }
+  .rep-grid-3            { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .rep-grid-2 > .card,
+  .rep-grid-3 > .card    { margin-bottom:0; }
+
+  /* 보고서 sub-panel 들의 form-input PC 톤 축소 */
+  #panel1.sub-panel .form-input,
+  #panel3.sub-panel .form-input,
+  #panel5.sub-panel .form-input,
+  #panelSI.sub-panel .form-input { font-size:14px; padding:9px 12px; }
+  #panel1.sub-panel .form-label,
+  #panel3.sub-panel .form-label,
+  #panel5.sub-panel .form-label,
+  #panelSI.sub-panel .form-label { font-size:11.5px; }
+
+  /* 카드 padding 약간 보강 (PC 여유 활용) */
+  #panel1.sub-panel .card,
+  #panel3.sub-panel .card,
+  #panel5.sub-panel .card,
+  #panelSI.sub-panel .card { padding:20px; }
+
+  /* 텍스트영역 / 셀렉트 가독성 */
+  #panel1.sub-panel textarea.form-input,
+  #panel3.sub-panel textarea.form-input,
+  #panel5.sub-panel textarea.form-input,
+  #panelSI.sub-panel textarea.form-input { line-height:1.55; }
+}
+
