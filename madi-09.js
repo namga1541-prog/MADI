@@ -417,7 +417,18 @@ function generatePortfolio() {
       // 학부모용 포트폴리오 — 한자어·비표준 용어 자동 치환
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       var p = parseJSON(raw);
-      renderPortfolio(p, child, month, sessions, goalProgress);
+      // ★ DB 저장 (UPSERT — 동일 child·month 재생성 시 본문 교체, parent_visible 보존)
+      _savePortfolioToDB(child, month, p, sessions, goalProgress)
+        .then(function(row) {
+          renderPortfolio(p, child, month, sessions, goalProgress, row);
+          renderPortfolioHistory(child.id);
+        })
+        .catch(function(saveErr) {
+          // 저장 실패해도 화면은 일단 보여줌 (사용자 작업물 보호)
+          if (window.console && console.warn) console.warn('[portfolio save]', saveErr && saveErr.message);
+          showToast('⚠️ 포트폴리오 저장 실패 — 화면에는 표시됩니다. 다시 시도해주세요.');
+          renderPortfolio(p, child, month, sessions, goalProgress, null);
+        });
     })
     .catch(function(err) {
       resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
@@ -429,9 +440,176 @@ function generatePortfolio() {
     });
 }
 
-function renderPortfolio(p, child, month, sessions, goalProgress) {
+// ─── 포트폴리오 DB 저장 (UPSERT) ───
+// 동일 (center_id, child_id, month) 존재 시 content 만 교체, parent_visible 보존.
+function _savePortfolioToDB(child, month, content, sessions, goalProgress) {
+  var centerId = (typeof getCenterId === 'function') ? getCenterId() : (currentUser && currentUser.center_id) || '';
+  if (!centerId) return Promise.reject(new Error('센터 정보 없음'));
+
+  var statsSnapshot = {
+    sessionCount: sessions.length,
+    goalProgress: goalProgress  // 그래프·요약 재현용 메타데이터
+  };
+
+  // 기존 row 확인 → 있으면 PATCH, 없으면 POST (parent_visible 보존을 위해)
+  var pathQuery = 'madi_portfolios?center_id=eq.' + encodeURIComponent(centerId)
+    + '&child_id=eq.' + child.id + '&month=eq.' + encodeURIComponent(month)
+    + '&select=id,parent_visible';
+
+  return supaFetch(pathQuery, 'GET').then(function(rows) {
+    var existing = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+    if (existing) {
+      // PATCH — content + stats 만 갱신, parent_visible 유지
+      return supaFetch('madi_portfolios?id=eq.' + existing.id, 'PATCH', {
+        content: { ai: content, stats: statsSnapshot, childName: child.name, childAge: child.age, childType: child.type },
+        created_by: currentUser && currentUser.id,
+        created_by_name: currentUser && currentUser.name
+      }).then(function() {
+        return Object.assign({}, existing, { id: existing.id, parent_visible: existing.parent_visible });
+      });
+    } else {
+      // POST — 신규 (parent_visible 기본 false)
+      return supaFetch('madi_portfolios', 'POST', [{
+        center_id: centerId,
+        child_id: child.id,
+        month: month,
+        content: { ai: content, stats: statsSnapshot, childName: child.name, childAge: child.age, childType: child.type },
+        created_by: currentUser && currentUser.id,
+        created_by_name: currentUser && currentUser.name,
+        parent_visible: false
+      }]).then(function(res) {
+        // PostgREST 는 POST 시 Prefer: return=representation 헤더 없으면 빈 응답.
+        // supaFetch 내부 동작에 의존하지 않고 다시 조회.
+        return supaFetch(pathQuery, 'GET').then(function(rows2) {
+          var row = Array.isArray(rows2) && rows2.length > 0 ? rows2[0] : { id: null, parent_visible: false };
+          return row;
+        });
+      });
+    }
+  });
+}
+
+// ─── 포트폴리오 가시성 토글 (선생님 OPEN/CLOSE) ───
+function togglePortfolioVisibility(portfolioId, makeVisible) {
+  if (!portfolioId) { showToast('⚠️ 저장된 포트폴리오만 공개 설정 가능합니다.'); return; }
+  var payload = { parent_visible: !!makeVisible };
+  if (makeVisible) {
+    payload.opened_by = currentUser && currentUser.id;
+    // opened_at 은 트리거가 자동 기록
+  }
+  supaFetch('madi_portfolios?id=eq.' + portfolioId, 'PATCH', payload)
+    .then(function() {
+      showToast(makeVisible ? '👁️ 학부모에게 공개됨' : '🔒 학부모 비공개로 전환됨');
+      // 현재 child 의 히스토리 재렌더
+      var childIdEl = document.getElementById('portfolioChild');
+      var childId   = childIdEl ? parseInt(childIdEl.value) : 0;
+      if (childId) renderPortfolioHistory(childId);
+      // 결과 영역의 토글 상태도 즉시 반영
+      var btn = document.getElementById('portfolioVisToggleBtn');
+      if (btn) {
+        btn.dataset.visible = makeVisible ? '1' : '0';
+        btn.textContent = makeVisible ? '🔒 학부모 공개 끄기' : '👁️ 학부모에게 공개';
+        btn.style.background = makeVisible ? '#fef3c7' : '#dcfce7';
+        btn.style.color      = makeVisible ? '#92400e' : '#166534';
+      }
+    })
+    .catch(function(err) {
+      showToast('❌ 공개 설정 실패 — ' + (err && err.message || ''));
+    });
+}
+
+// ─── 포트폴리오 히스토리 로드·렌더 ───
+function renderPortfolioHistory(childId) {
+  var box = document.getElementById('portfolioHistory');
+  if (!box) return;
+  if (!childId) {
+    box.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">아동을 선택하면 저장된 포트폴리오가 표시됩니다.</div>';
+    return;
+  }
+  var centerId = (typeof getCenterId === 'function') ? getCenterId() : '';
+  if (!centerId) { box.innerHTML = ''; return; }
+
+  box.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">불러오는 중...</div>';
+  supaFetch('madi_portfolios?center_id=eq.' + encodeURIComponent(centerId)
+    + '&child_id=eq.' + childId
+    + '&select=id,month,parent_visible,opened_at,created_at,created_by_name'
+    + '&order=month.desc&limit=24', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        box.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">저장된 포트폴리오가 없습니다.</div>';
+        return;
+      }
+      box.innerHTML = rows.map(function(r) {
+        var visible = !!r.parent_visible;
+        var tag = visible
+          ? '<span style="background:#dcfce7;color:#166534;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;">👁️ 학부모 공개</span>'
+          : '<span style="background:#f1f5f9;color:#64748b;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;">🔒 비공개</span>';
+        var byTxt = r.created_by_name ? ' · ' + escHtml(r.created_by_name) : '';
+        var createdShort = (r.created_at || '').slice(0, 10);
+        var btnLabel = visible ? '🔒 비공개로' : '👁️ 학부모 공개';
+        var btnBg    = visible ? '#fef3c7' : '#dcfce7';
+        var btnCol   = visible ? '#92400e' : '#166534';
+        return '<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          + '<div style="flex:1;min-width:0;">'
+          +   '<div style="font-size:13px;font-weight:700;color:var(--text);">📁 ' + escHtml(r.month || '') + ' 포트폴리오 ' + tag + '</div>'
+          +   '<div style="font-size:11px;color:var(--text2);margin-top:3px;">생성 ' + escHtml(createdShort) + byTxt + '</div>'
+          + '</div>'
+          + '<button onclick="togglePortfolioVisibility(' + r.id + ',' + (visible ? 'false' : 'true') + ')" '
+          +   'style="background:' + btnBg + ';color:' + btnCol + ';border:none;border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">'
+          +   btnLabel + '</button>'
+          + '<button onclick="deletePortfolio(' + r.id + ')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">🗑️</button>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function() {
+      box.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">불러오기 실패</div>';
+    });
+}
+
+// ─── 포트폴리오 삭제 ───
+function deletePortfolio(portfolioId) {
+  if (!portfolioId) return;
+  showConfirm('이 포트폴리오를 삭제할까요?\n(학부모 공개 중이면 즉시 비공개됩니다)', function() {
+    supaFetch('madi_portfolios?id=eq.' + portfolioId, 'DELETE')
+      .then(function() {
+        showToast('🗑️ 포트폴리오 삭제됨');
+        var childIdEl = document.getElementById('portfolioChild');
+        var childId   = childIdEl ? parseInt(childIdEl.value) : 0;
+        if (childId) renderPortfolioHistory(childId);
+      })
+      .catch(function() { showToast('❌ 삭제 실패'); });
+  });
+}
+
+// ─── 아동 선택 변경 시 히스토리 자동 로드 ───
+function onPortfolioChildChange() {
+  var childIdEl = document.getElementById('portfolioChild');
+  var childId   = childIdEl ? parseInt(childIdEl.value) : 0;
+  renderPortfolioHistory(childId);
+}
+
+function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
+  // 학부모 공개 토글 (DB 저장된 경우만 표시)
+  var visToggleHtml = '';
+  if (savedRow && savedRow.id) {
+    var visible = !!savedRow.parent_visible;
+    var btnLabel = visible ? '🔒 학부모 공개 끄기' : '👁️ 학부모에게 공개';
+    var btnBg    = visible ? '#fef3c7' : '#dcfce7';
+    var btnCol   = visible ? '#92400e' : '#166534';
+    visToggleHtml = '<div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+      + '<div style="flex:1;min-width:200px;">'
+      +   '<div style="font-size:12.5px;font-weight:700;color:var(--text);">👨‍👩‍👧 학부모 공개 여부</div>'
+      +   '<div style="font-size:11px;color:var(--text2);margin-top:3px;line-height:1.55;">기본 <b>비공개</b>입니다. 선생님이 검토 후 직접 공개해야 학부모가 열람할 수 있어요.</div>'
+      + '</div>'
+      + '<button id="portfolioVisToggleBtn" data-visible="' + (visible ? '1' : '0') + '" '
+      +   'onclick="togglePortfolioVisibility(' + savedRow.id + ', this.dataset.visible !== \'1\')" '
+      +   'style="background:' + btnBg + ';color:' + btnCol + ';border:none;border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;">'
+      +   btnLabel + '</button>'
+      + '</div>';
+  }
+
   // 통계 박스
-  var statsHtml = '<div class="portfolio-section">'
+  var statsHtml = visToggleHtml + '<div class="portfolio-section">'
     + '<div class="portfolio-section-title">📊 ' + month + ' 월간 통계</div>'
     + '<div class="portfolio-stat"><span class="portfolio-stat-label">아동</span><span class="portfolio-stat-value">' + escHtml(child.name) + ' (' + escHtml(child.age) + ')</span></div>'
     + '<div class="portfolio-stat"><span class="portfolio-stat-label">장애 유형</span><span class="portfolio-stat-value">' + escHtml(child.type) + '</span></div>'

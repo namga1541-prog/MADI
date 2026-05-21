@@ -769,7 +769,7 @@ function _initParentSidebar() {
     '<button id="ptBtnSched" class="psb-btn" onclick="switchParentTab(\'sched\')">' +
     '<span class="psb-icon">📅</span><span class="psb-label">일정</span></button>' +
     '<button id="ptBtnReport" class="psb-btn" onclick="switchParentTab(\'report\')">' +
-    '<span class="psb-icon">📋</span><span class="psb-label">리포트</span></button>' +
+    '<span class="psb-icon">📁</span><span class="psb-label">포트폴리오</span></button>' +
     '<button id="ptBtnNotice" class="psb-btn" onclick="switchParentTab(\'notice\')">' +
     '<span class="psb-icon">📢</span><span class="psb-label">공지</span></button>';
   var _appLayout = document.querySelector('.app-layout');

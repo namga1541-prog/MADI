@@ -62,7 +62,8 @@ const ALLOWED_TABLES = [
   'madi_schedules', 'madi_assessments', 'madi_activities',
   'madi_iep_history', 'madi_notices', 'madi_settings', 'madi_programs',
   'madi_global_notices', 'madi_lounge_posts', 'madi_lounge_comments', 'madi_parent_invites',
-  'madi_parent_children', 'madi_push_subscriptions', 'madi_licenses', 'madi_error_logs', 'madi_notifications'
+  'madi_parent_children', 'madi_push_subscriptions', 'madi_licenses', 'madi_error_logs', 'madi_notifications',
+  'madi_portfolios'
 ]
 
 // 관리자 이상만 모든 조작 가능
@@ -89,7 +90,13 @@ const GLOBAL_TABLES = [
 const PARENT_READONLY_TABLES = [
   'madi_children', 'madi_sessions', 'madi_schedules',
   'madi_assessments', 'madi_activities', 'madi_iep_history',
-  'madi_programs', 'madi_notices'
+  'madi_programs', 'madi_notices', 'madi_portfolios'
+]
+
+// ★ 학부모 전체 차단 테이블 — READ 도 불허 (선생님 보호 정책 2026-05-21)
+// 세션 기록은 학부모에게 노출되지 않고, 가시성 OPEN 된 madi_portfolios 만 정제된 단일 채널로 사용.
+const PARENT_BLOCKED_TABLES = [
+  'madi_sessions'
 ]
 
 // 학부모 user_id 스코프 테이블
@@ -101,6 +108,17 @@ const PARENT_USER_SCOPED: Record<string, string> = {
 // ★ 학부모 child_id 기반 필터가 필요한 테이블 (data JSON 내 childId 필드)
 const PARENT_CHILD_FILTER_TABLES = [
   'madi_sessions', 'madi_schedules', 'madi_assessments', 'madi_iep_history'
+]
+
+// ★ child_id 가 실 컬럼인 테이블 (data JSON 아님) — 별도 처리
+const PARENT_CHILD_COLUMN_TABLES = [
+  'madi_portfolios'
+]
+
+// ★ 학부모에게 노출하기 전 parent_visible 플래그를 강제 검사할 테이블
+// 선생님이 명시적으로 OPEN 한 row 만 학부모가 볼 수 있음.
+const PARENT_VISIBLE_GATED_TABLES = [
+  'madi_portfolios'
 ]
 
 Deno.serve(async (req: Request) => {
@@ -188,6 +206,11 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: '학부모는 해당 데이터를 수정할 수 없습니다' }), { status: 403, headers: CORS })
     }
 
+    // ★ 학부모 전체 차단 — 세션 기록 등 (선생님 보호 정책)
+    if (user.role === 'parent' && PARENT_BLOCKED_TABLES.includes(tableName)) {
+      return new Response(JSON.stringify({ error: '학부모는 해당 데이터를 열람할 수 없습니다' }), { status: 403, headers: CORS })
+    }
+
     // ══════════════════════════════════════════════════════════
     // ★ madi_users 추가 보강 — 시니어 보안 진단 후속
     //   1) 비밀번호 해시 컬럼이 응답에 절대 노출되지 않게 select 정제
@@ -258,7 +281,15 @@ Deno.serve(async (req: Request) => {
           extraFilter += '&id=eq.' + parentChildId
         } else if (PARENT_CHILD_FILTER_TABLES.includes(tableName)) {
           extraFilter += '&data->>childId=eq.' + parentChildId
+        } else if (PARENT_CHILD_COLUMN_TABLES.includes(tableName)) {
+          // child_id 가 실 컬럼인 테이블 (madi_portfolios 등)
+          extraFilter += '&child_id=eq.' + parentChildId
         }
+      }
+
+      // ★ parent_visible 가시성 강제 — 선생님이 OPEN 한 row 만 노출
+      if (PARENT_VISIBLE_GATED_TABLES.includes(tableName)) {
+        extraFilter += '&parent_visible=eq.true'
       }
 
       finalPath = path + (path.includes('?') ? '&' : '?') + extraFilter

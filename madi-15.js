@@ -105,6 +105,8 @@ function setActiveParentChild(idx) {
   window._parentChildData = null;
   window._parentUpcoming = null;
   window._parentSessionsCache = null;
+  window._parentPortfolioCount = 0;
+  window._parentUpcomingCount = 0;
   document.querySelectorAll('.parentChildNameLabel').forEach(function(el){ el.textContent = c.name || ''; });
   renderParentChildSwitcher();
   // 현재 활성 탭 다시 로드
@@ -198,23 +200,12 @@ function loadParentHome() {
         if (sEl) sEl.textContent = '';
       });
 
-    // 3) 이번 주 세션 기록 (서버에서 child_id 필터링)
-    supaFetch('madi_sessions?center_id=eq.' + encodeURIComponent(centerId)
-      + '&child_id=eq.' + encodeURIComponent(childId)
-      + '&order=id.desc&limit=20', 'GET')
-      .then(function(rows) {
-        if (!Array.isArray(rows)) rows = [];
-        // 2차 필터 — 서버 필터 우회 방어선
-        var mine = rows.filter(function(s) {
-          var data = s.data || s;
-          return String(data.childId || data.child_id) === String(childId);
-        }).map(function(s){ return s.data || s; });
-        window._parentSessionsCache = mine; // 평가 fallback 용
-        _renderParentWeekSessions(mine);
-        // 평가 데이터 우선 시도, 없으면 세션 기반
-        _loadParentAssessments(childId, centerId, mine);
-      })
-      .catch(function(e){ if(window.console&&console.warn) console.warn('[silent madi-15 sess]', e && e.message); });
+    // 3) ★ 세션 기록 직접 노출 차단 (선생님 보호 정책 — 2026-05-21)
+    //    madi_sessions 는 학부모에게 Edge Function 단에서 차단됨.
+    //    대신 '공개된 포트폴리오' 패널을 렌더 + 평가 데이터로 그래프 fallback.
+    window._parentSessionsCache = []; // 세션 캐시 비우기
+    _renderParentRecentPortfolios(childId);
+    _loadParentAssessments(childId, centerId, []);
 
     // 4) 선생님 메시지 (라운지 private_admin 중 본인 외 작성자)
     _loadParentTeacherMessages();
@@ -264,19 +255,76 @@ function _renderParentHero(d) {
 }
 
 // 자녀 발달 통계 (히어로 stats) — 세션·평가 기반
-function _renderParentHeroStats(sessions) {
+// 히어로 통계 — 세션 직접 노출 차단 후, 포트폴리오·일정 기반으로 재구성
+// (sessions 인자는 하위 호환을 위해 받지만 사용하지 않음 — _renderParentRecentPortfolios 가 캐싱한 값 사용)
+function _renderParentHeroStats(_unusedSessions) {
   var statsEl = document.getElementById('parentHeroStats');
   if (!statsEl) return;
-  var total = sessions.length;
-  // 평가 점수: 마지막 평가의 점수 표기 시도 (없으면 회차만)
+  var portfolioCount = (typeof window._parentPortfolioCount === 'number') ? window._parentPortfolioCount : 0;
+  var upcomingCount  = (typeof window._parentUpcomingCount === 'number')  ? window._parentUpcomingCount  : 0;
   statsEl.innerHTML = ''
-    + '<div class="dp-p-hero-stat"><b>' + total + '<small style="font-size:11px;font-weight:600;color:#94a3b8;"> 회</small></b>총 세션</div>'
-    + '<div class="dp-p-hero-stat"><b>' + (sessions.filter(function(s){ var d = new Date(s.date); var t = new Date(); return (t - d) <= 7*86400000; }).length) + '<small style="font-size:11px;font-weight:600;color:#94a3b8;"> 회</small></b>이번 주</div>'
+    + '<div class="dp-p-hero-stat"><b>' + portfolioCount + '<small style="font-size:11px;font-weight:600;color:#94a3b8;"> 권</small></b>공개 포트폴리오</div>'
+    + '<div class="dp-p-hero-stat"><b>' + upcomingCount + '<small style="font-size:11px;font-weight:600;color:#94a3b8;"> 건</small></b>다가오는 일정</div>'
     + '<div class="dp-p-hero-stat"><b class="good">↗</b>꾸준히 진행 중</div>';
+}
+
+// 공개된 포트폴리오 — 홈 상단 패널 (이번 주 세션 → 포트폴리오 카드로 교체)
+// Edge Function 에서 parent_visible=true 강제되므로 클라이언트는 추가 필터 불필요.
+function _renderParentRecentPortfolios(_childId) {
+  var el      = document.getElementById('parentWeekDetails');
+  var rangeEl = document.getElementById('parentWeekRange');
+  if (!el) return;
+
+  supaFetch('madi_portfolios?select=id,month,content,opened_at,created_by_name'
+    + '&order=month.desc&limit=4', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows)) rows = [];
+      window._parentPortfolioCount = rows.length;
+      // 통계 영역도 갱신 (포트폴리오 권 수 반영)
+      _renderParentHeroStats();
+      if (rangeEl) {
+        rangeEl.textContent = rows.length > 0
+          ? '최신 ' + rows.length + '권 공개 중'
+          : '공개된 포트폴리오 없음';
+      }
+      if (rows.length === 0) {
+        el.innerHTML = '<div class="dp-empty">선생님이 월간 포트폴리오를 공개하면 이곳에 표시됩니다.</div>';
+        return;
+      }
+      el.innerHTML = rows.slice(0, 3).map(function(r){
+        var content = r.content || {};
+        var ai      = content.ai || {};
+        var month   = r.month || '';
+        var preview = (ai.overview || ai.parentMessage || '').toString().slice(0, 90);
+        var who     = r.created_by_name ? '담당 ' + escHtml(r.created_by_name) + ' 선생님' : '';
+        return ''
+          + '<div class="dp-p-sess" onclick="switchParentTab(\'report\')">'
+          +   '<div class="dp-p-sess-date">'
+          +     '<div class="dp-p-sess-date-num">📁</div>'
+          +     '<div class="dp-p-sess-date-day">' + escHtml(month.slice(2)) + '</div>'  // 'YY-MM'
+          +   '</div>'
+          +   '<div class="dp-p-sess-content">'
+          +     '<div class="dp-p-sess-title">' + escHtml(month) + ' 포트폴리오</div>'
+          +     (preview ? '<div class="dp-p-sess-desc">' + escHtml(preview) + (preview.length >= 90 ? '...' : '') + '</div>' : '')
+          +     (who ? '<div class="dp-p-sess-desc" style="margin-top:2px;font-size:11px;">' + who + '</div>' : '')
+          +   '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(){
+      el.innerHTML = '<div class="dp-empty">불러오기 실패</div>';
+      window._parentPortfolioCount = 0;
+      _renderParentHeroStats();
+    });
 }
 
 // 다음 세션 — 히어로 우측 카드
 function _renderParentNextSchedule(upcoming) {
+  // 다가오는 일정 카운트 캐싱 — 히어로 통계에 사용
+  window._parentUpcomingCount = (upcoming && upcoming.length) || 0;
+  // 히어로 통계 갱신 (다른 비동기 호출이 끝났을 수 있어 즉시 재렌더 안전)
+  _renderParentHeroStats();
+
   var timeEl = document.getElementById('parentNextSchedText');
   var dateEl = document.getElementById('parentNextSchedSub');
   var teacherEl = document.getElementById('parentNextSchedTeacher');
@@ -521,7 +569,7 @@ function _renderParentChart(sessions) {
   var subEl = document.getElementById('parentChartSub');
   if (!bodyEl) return;
   if (!sessions || sessions.length === 0) {
-    bodyEl.innerHTML = '<div class="dp-empty">아직 진행된 세션이 없어요.<br>첫 세션 후 발달 추이가 표시됩니다.</div>';
+    bodyEl.innerHTML = '<div class="dp-empty">평가 점수가 등록되면 발달 추이가 표시됩니다.<br>선생님이 평가를 진행 중이에요.</div>';
     return;
   }
 
@@ -655,15 +703,21 @@ function _redrawParentVoucherPanel() {
 
   el.innerHTML = html;
 
-  // 사용 회차 계산 — 자녀 ID 기반으로 세션 카운트 (cached)
+  // 사용 회차 계산 — madi_sessions 는 학부모 차단되어 madi_schedules 의 과거 일정 수로 대체
+  // (정확도는 약간 떨어지지만 학부모가 보는 바우처 잔여 추정으로 충분)
   if (vLimit > 0 && window._parentVoucherUsed == null && window._parentChildId) {
     var centerId = window._parentCenterId;
-    supaFetch('madi_sessions?center_id=eq.' + encodeURIComponent(centerId)
+    var todayStr = getTodayKST();
+    supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId)
       + '&child_id=eq.' + encodeURIComponent(window._parentChildId)
-      + '&select=id&limit=200', 'GET')
+      + '&select=id,data&limit=300', 'GET')
       .then(function(rows) {
-        var n = Array.isArray(rows) ? rows.length : 0;
-        window._parentVoucherUsed = n;
+        if (!Array.isArray(rows)) rows = [];
+        var past = rows.filter(function(r){
+          var d = r.data || r;
+          return (d.date || '') < todayStr;
+        });
+        window._parentVoucherUsed = past.length;
         _redrawParentVoucherPanel();
       })
       .catch(function(){});
@@ -755,7 +809,7 @@ function _showParentOnboarding() {
     + '<div style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px;">환영합니다!</div>'
     + '<div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px;">'
     + '담당 선생님이 아이 정보를 연결해드리면<br>'
-    + '일정과 치료 리포트를 확인하실 수 있습니다.<br><br>'
+    + '일정과 월간 포트폴리오를 확인하실 수 있습니다.<br><br>'
     + '연결이 완료되면 알림으로 안내드립니다. 😊'
     + '</div>'
     + '<div style="background:#f0fdfa;border-radius:10px;padding:12px 16px;font-size:12px;color:#0f766e;">'
@@ -808,7 +862,11 @@ function loadParentSched() {
 }
 
 // ─── 리포트 탭 ───
-function loadParentReport() {
+// ─── 학부모 포트폴리오 탭 ───
+// 선생님이 "학부모 공개" 토글을 켠 포트폴리오만 노출.
+// Edge Function api/index.ts 에서 parent_visible=eq.true 강제 + child_id=eq.X.
+// 세션 기록(madi_sessions) 은 학부모에게 차단 — 정제된 포트폴리오만 유일한 채널.
+function loadParentPortfolio() {
   var el     = document.getElementById('parentReportList');
   var nameEl = document.getElementById('parentReportChildName');
   if (!el) return;
@@ -817,45 +875,64 @@ function loadParentReport() {
   getMyChildInfo(function(childId, centerId) {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
 
-    supaFetch('madi_sessions?center_id=eq.' + centerId
-      + '&child_id=eq.' + encodeURIComponent(childId)
-      + '&order=id.desc&limit=30', 'GET')
+    supaFetch('madi_portfolios?select=id,month,content,opened_at,created_at,created_by_name'
+      + '&order=month.desc&limit=24', 'GET')
       .then(function(rows) {
-        if (!Array.isArray(rows)) { el.innerHTML = '<div class="empty"><p>리포트 없음</p></div>'; return; }
-        // 서버 필터 우회 방어선
-        var mine = rows.filter(function(s) {
-          var d = s.data || s;
-          return String(d.childId || d.child_id) === String(childId);
-        });
-        if (mine.length === 0) {
-          el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>작성된 리포트가 없습니다</p></div>';
+        if (!Array.isArray(rows) || rows.length === 0) {
+          el.innerHTML = '<div class="empty"><div class="empty-icon">📁</div>'
+            + '<p style="font-size:14px;font-weight:600;margin-bottom:4px;">공개된 포트폴리오가 없습니다</p>'
+            + '<p style="font-size:12px;color:var(--text2);line-height:1.6;">선생님이 월간 포트폴리오를 작성하고 공개로 설정하면 이곳에 표시됩니다.</p>'
+            + '</div>';
           return;
         }
-        el.innerHTML = mine.map(function(s) {
-          var d       = s.data || s;
-          var date    = d.date || '';
-          var note    = d.aiNote || d.note || '';
-          var teacher = d.therapist || d.teacher || '';
-          var goals   = d.goals || [];
-          return '<div class="session-item" style="margin-bottom:10px;">'
-            + '<div class="session-header">'
-            + '<span class="session-date">📋 ' + escHtml(date) + '</span>'
-            + (teacher ? '<span style="font-size:11px;color:var(--text2);">👩‍⚕️ ' + escHtml(teacher) + '</span>' : '')
-            + '</div>'
-            + (goals.length > 0
-              ? '<div class="session-goals">'
-                + goals.slice(0,3).map(function(g) {
-                    var score = typeof g.score === 'number' ? g.score : 0;
-                    var cls   = score >= 80 ? 'good' : score >= 50 ? 'mid' : 'bad';
-                    return '<span class="goal-chip ' + cls + '">' + escHtml(g.name||'') + ' ' + score + '%</span>';
-                  }).join('')
-                + '</div>'
-              : '')
-            + (note ? '<div class="session-note" style="font-size:13px;color:var(--text2);">' + escHtml(note.slice(0,120)) + (note.length>120?'...':'') + '</div>' : '')
-            + '</div>';
-        }).join('');
-      }).catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
+        el.innerHTML = rows.map(_renderParentPortfolioCard).join('');
+      })
+      .catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
   });
+}
+
+// 하위 호환 — 기존 코드 진입점 (스위치/사이드바) 그대로 동작하도록 alias 유지
+function loadParentReport() { loadParentPortfolio(); }
+
+// 포트폴리오 카드 렌더링 (학부모 친화적 본문)
+function _renderParentPortfolioCard(row) {
+  var content = row.content || {};
+  var ai      = content.ai || {};
+  var month   = row.month || '';
+  var byTxt   = row.created_by_name ? '담당 ' + escHtml(row.created_by_name) + ' 선생님' : '담당 선생님';
+  var opened  = (row.opened_at || row.created_at || '').slice(0,10);
+
+  var bodyHtml = '';
+  if (ai.overview) {
+    bodyHtml += '<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">📝 종합 평가</div>'
+      + '<div style="font-size:13px;line-height:1.75;color:var(--text2);">' + escHtml(ai.overview) + '</div></div>';
+  }
+  if (ai.keyAchievements && ai.keyAchievements.length > 0) {
+    bodyHtml += '<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">🌟 주요 성취</div>'
+      + '<ul style="padding-left:18px;font-size:12.5px;line-height:1.75;color:var(--text2);margin:0;">'
+      + ai.keyAchievements.map(function(a){ return '<li>' + escHtml(a) + '</li>'; }).join('')
+      + '</ul></div>';
+  }
+  if (ai.parentMessage) {
+    bodyHtml += '<div style="margin-bottom:8px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;padding:10px 12px;">'
+      + '<div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:4px;">💛 보호자님께</div>'
+      + '<div style="font-size:13px;line-height:1.75;color:#78350f;">' + escHtml(ai.parentMessage) + '</div></div>';
+  }
+  if (ai.nextMonthPlan) {
+    bodyHtml += '<div style="margin-bottom:4px;"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">🗓️ 다음 달 방향</div>'
+      + '<div style="font-size:12.5px;line-height:1.75;color:var(--text2);">' + escHtml(ai.nextMonthPlan) + '</div></div>';
+  }
+  if (!bodyHtml) {
+    bodyHtml = '<div style="font-size:12px;color:var(--text2);font-style:italic;">본문이 비어 있습니다.</div>';
+  }
+
+  return '<div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:10px;flex-wrap:wrap;">'
+    +   '<div style="font-size:15px;font-weight:800;color:var(--text);">📁 ' + escHtml(month) + ' 월간 포트폴리오</div>'
+    +   '<div style="font-size:11px;color:var(--text2);">공개 ' + escHtml(opened) + ' · ' + byTxt + '</div>'
+    + '</div>'
+    + bodyHtml
+    + '</div>';
 }
 
 // ─── 공지 탭 ───

@@ -1002,7 +1002,7 @@
 <div class="tabs" id="parentTabs" style="display:none;">
   <button class="tab-btn active" id="ptBtnHome" onclick="switchParentTab('home')"><span class="tab-ico">🏠</span><span class="tab-lbl">홈</span></button>
   <button class="tab-btn" id="ptBtnSched" onclick="switchParentTab('sched')"><span class="tab-ico">📅</span><span class="tab-lbl">일정</span></button>
-  <button class="tab-btn" id="ptBtnReport" onclick="switchParentTab('report')"><span class="tab-ico">📋</span><span class="tab-lbl">리포트</span></button>
+  <button class="tab-btn" id="ptBtnReport" onclick="switchParentTab('report')"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
   <button class="tab-btn" id="ptBtnNotice" onclick="switchParentTab('notice')"><span class="tab-ico">📢</span><span class="tab-lbl">공지</span></button>
 </div>
 
@@ -1547,7 +1547,7 @@
     <div class="card">
       <div class="form-group">
         <label class="form-label">아동 선택</label>
-        <div class="ss-wrap" style="position: relative; display: block;"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off" style="width: 100%; box-sizing: border-box; padding-right: 36px;"><div class="ss-wrap" style="position: relative; display: block;"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off" style="width: 100%; box-sizing: border-box; padding-right: 36px;"><select class="form-input" id="portfolioChild" style="display: none;"><option value="">아동 검색...</option></select><button type="button" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; cursor: pointer; font-size: 11px; color: rgb(148, 163, 184); padding: 4px; touch-action: manipulation;">▼</button><div class="ss-drop"></div></div><button type="button" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; cursor: pointer; font-size: 11px; color: rgb(148, 163, 184); padding: 4px; touch-action: manipulation;">▼</button><div class="ss-drop"></div></div>
+        <div class="ss-wrap" style="position: relative; display: block;"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off" style="width: 100%; box-sizing: border-box; padding-right: 36px;"><div class="ss-wrap" style="position: relative; display: block;"><input type="text" class="form-input ss-input" placeholder="이름 검색..." autocomplete="off" style="width: 100%; box-sizing: border-box; padding-right: 36px;"><select class="form-input" id="portfolioChild" onchange="onPortfolioChildChange()" style="display: none;"><option value="">아동 검색...</option></select><button type="button" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; cursor: pointer; font-size: 11px; color: rgb(148, 163, 184); padding: 4px; touch-action: manipulation;">▼</button><div class="ss-drop"></div></div><button type="button" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; cursor: pointer; font-size: 11px; color: rgb(148, 163, 184); padding: 4px; touch-action: manipulation;">▼</button><div class="ss-drop"></div></div>
       </div>
       <div class="form-group">
         <label class="form-label">대상 월</label>
@@ -1557,6 +1557,20 @@
     </div>
 
     <div id="portfolioResult"></div>
+
+    <!-- 저장된 포트폴리오 히스토리 (학부모 공개 토글) -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📂 저장된 포트폴리오</div>
+        <span style="font-size:11px;color:var(--text2);font-weight:400;">학부모 공개 관리</span>
+      </div>
+      <p style="font-size:11.5px;color:var(--text2);line-height:1.6;margin:0 0 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;">
+        ⚠️ 기본은 <b>비공개</b>입니다. 선생님이 검토 후 직접 「학부모 공개」를 눌러야 학부모 앱에서 보입니다.
+      </p>
+      <div id="portfolioHistory">
+        <div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">아동을 선택하면 저장된 포트폴리오가 표시됩니다.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1812,8 +1826,8 @@
       <div class="dp-panel">
         <div class="dp-panel-head">
           <div>
-            <div class="dp-panel-title">📖 이번 주 세션</div>
-            <div class="dp-panel-sub" id="parentWeekRange">최근 진행 기록</div>
+            <div class="dp-panel-title">📁 공개된 포트폴리오</div>
+            <div class="dp-panel-sub" id="parentWeekRange">선생님이 공개한 월간 기록</div>
           </div>
           <button class="dp-panel-link dp-p-link" onclick="switchParentTab('report')">전체 →</button>
         </div>
@@ -1896,17 +1910,17 @@
   </div>
 </div>
 
-<!-- 학부모 리포트 -->
+<!-- 학부모 포트폴리오 (선생님이 공개로 설정한 월간 포트폴리오만 노출) -->
 <div class="tab-panel" id="parentPanelReport" style="display:none;">
-  <div class="content">
+  <div class="content content-wide">
     <div class="card">
       <div class="card-title">
-        <div class="card-title-left">📋 세션 리포트</div>
+        <div class="card-title-left">📁 포트폴리오</div>
         <span id="parentReportChildName" style="font-size:12px;color:var(--text2);"></span>
       </div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7;">선생님이 작성하고 공개한 세션 기록입니다.</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7;">선생님이 검토 후 <b>공개로 설정한 월간 포트폴리오</b>만 표시됩니다. 세션별 상세 기록은 비공개 정책이에요.</p>
       <div id="parentReportList">
-        <div class="loading"><div class="spinner"></div><p>리포트 불러오는 중...</p></div>
+        <div class="loading"><div class="spinner"></div><p>불러오는 중...</p></div>
       </div>
     </div>
   </div>
