@@ -534,7 +534,8 @@ var ASSESS_SCHEMA = {
     {key:'wordAccuracy', label:'낱말수준 자음정확도(%)', type:'num', ph:'예: 85.5'},
     {key:'wordJudge',    label:'낱말수준 판정', type:'text', ph:'자동 계산됩니다'},
     {key:'sentAccuracy', label:'문장수준 자음정확도(%)', type:'num', ph:'예: 82.0'},
-    {key:'sentJudge',    label:'문장수준 판정', type:'text', ph:'자동 계산됩니다'}
+    {key:'sentJudge',    label:'문장수준 판정', type:'text', ph:'자동 계산됩니다'},
+    {key:'errorPatterns', label:'관찰된 음운오류패턴', type:'textarea', ph:'예: 어말종성생략, 치경마찰음 파열음화(ㅅ→ㄷ), 유음 활음화(ㄹ→j) / 비발달적 패턴 없음'}
   ],
   'APAC': [
     {key:'wordRaw',   label:'낱말수준 원점수', type:'num'},
@@ -581,9 +582,18 @@ function renderAssessFields() {
   if (!el) return;
   cw.style.display = t === 'OTHER' ? 'block' : 'none';
   var schema = ASSESS_SCHEMA[t] || ASSESS_SCHEMA['OTHER'];
-  // 2열 그리드로 렌더링
+  // 2열 그리드로 렌더링 (type:'textarea'인 항목은 전체 너비로 단독 렌더링)
   var rows = '';
   for (var i = 0; i < schema.length; i += 2) {
+    var f0 = schema[i];
+    if (f0.type === 'textarea') {
+      rows += '<div class="form-row" style="margin-bottom:8px;">'
+        + '<div style="flex:1;"><label class="form-label" style="font-size:11px;">' + f0.label + '</label>'
+        + '<textarea class="form-input" id="af_' + f0.key + '"'
+        + (f0.ph ? ' placeholder="' + f0.ph + '"' : '')
+        + ' rows="2" style="resize:vertical;width:100%;box-sizing:border-box;font-size:12px;line-height:1.5;"></textarea></div></div>';
+      continue;
+    }
     rows += '<div class="form-row" style="margin-bottom:8px;">';
     for (var j = i; j < Math.min(i+2, schema.length); j++) {
       var f = schema[j];
@@ -827,7 +837,17 @@ function generateAssessReport() {
     + '      한국 음소 안정화(90% 정조음): ㅂㅁㄴㅇ ~2세, ㄷㅌ ~3세, ㄱㅋㅎ ~3.5세, ㅈㅊ ~4.5세, ㅅㅆ ~5세, ㄹ ~6세\n'
     + '      오류 패턴 일반 소실 연령: 파열음화·전방화 ~4세, 후방화·마찰음화·초성생략 ~3세, 활음화 ~5세, 자음군축약 ~6세\n'
     + '  (4) 자극반응도(SR) 또는 일관성 코멘트 (정보 있을 때)\n'
-    + '- 표준 용어만 사용: "파열음화"(중지화/폐쇄음화/저해음화 X), 전방화, 후방화, 마찰음화, 파찰음화, 활음화, 비음화, 탈비음화, 음절생략, 종성생략, 초성생략, 자음군축약, 순행동화, 역행동화\n'
+    + '- U-TAP 음운오류패턴 분류 체계 (U-TAP 실시 시 이 분류로 기술):\n'
+    + '  · 음절구조변동: 음절생략 / 이중초성생략 / 어말종성생략\n'
+    + '  · 대치변동 — 유음 오류: 유음생략 / 활음화 / 비음화 / 파열음화\n'
+    + '  · 대치변동 — 치경마찰음 오류: 파열음화(ㅅ·ㅆ→파열음) / 파찰음화(ㅅ·ㅆ→파찰음)\n'
+    + '  · 대치변동 — 파찰음 오류: 파열음화(파찰음→파열음) / 연구개음 전방화\n'
+    + '  · 대치변동 — 경음화: 평음의 경음화 / 격음의 경음화\n'
+    + '  · 대치변동 — 동화: 이중초성 역행동화\n'
+    + '  · 기타변동 — 약모음: 치경마찰음의 치(간)음화 / 치경마찰음의 경구개음화 / 치경마찰음의 설측음화 / 탄설음의 설측음화\n'
+    + '  · 기타변동 — 모음: 단모음화\n'
+    + '  · 비발달적 음운오류패턴: 2회 이상 관찰된 기타 오류는 별도로 기재\n'
+    + '- 표준 용어만 사용: "파열음화"(중지화/폐쇄음화/저해음화 X), 전방화, 연구개음 전방화, 후방화, 마찰음화, 파찰음화, 활음화, 비음화, 탈비음화, 경음화, 치(간)음화, 설측음화, 단모음화, 음절생략, 어말종성생략, 이중초성생략, 유음생략, 종성생략, 초성생략, 자음군축약, 역행동화, 이중초성 역행동화\n'
     + '- 오류 분석 표 예시 형식:\n'
     + '  | 목표 → 오류 | 적용 오류 패턴 | 발달성 판단 |\n'
     + '  | 사탕→타탕 (ㅅ→ㅌ) | 파열음화 | 만 4세 이후이므로 비발달적 |\n'
