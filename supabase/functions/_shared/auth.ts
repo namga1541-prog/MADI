@@ -108,6 +108,72 @@ export async function signJwt(payload: Record<string, unknown>, secret: string):
   return `${header}.${body}.${b64url(sigBuf)}`
 }
 
+// ── TOTP (RFC 6238) — 2FA 유틸 (SEC6, 2026-05-24) ────────────────────────
+// secret 은 base32 인코딩된 공유 키, code 는 사용자 입력 6자리 문자열.
+// window=1 → 이전/현재/다음 30초 step 까지 허용 (clock skew 허용).
+const _TOTP_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+
+export function base32Encode(bytes: Uint8Array): string {
+  let buf = 0, bits = 0, out = ''
+  for (const b of bytes) {
+    buf = (buf << 8) | b; bits += 8
+    while (bits >= 5) { out += _TOTP_ALPHABET[(buf >> (bits - 5)) & 0x1F]; bits -= 5 }
+  }
+  if (bits > 0) out += _TOTP_ALPHABET[(buf << (5 - bits)) & 0x1F]
+  return out
+}
+
+export function base32Decode(b32: string): Uint8Array {
+  const clean = b32.toUpperCase().replace(/=+$/, '').replace(/\s+/g, '')
+  const bytes: number[] = []
+  let buf = 0, bits = 0
+  for (const ch of clean) {
+    const v = _TOTP_ALPHABET.indexOf(ch)
+    if (v < 0) continue
+    buf = (buf << 5) | v; bits += 5
+    if (bits >= 8) { bytes.push((buf >> (bits - 8)) & 0xFF); bits -= 8 }
+  }
+  return new Uint8Array(bytes)
+}
+
+async function _hotp(secret: string, counter: number): Promise<string> {
+  const keyBytes = base32Decode(secret)
+  // counter 를 8바이트 big-endian 으로
+  const cnt = new Uint8Array(8)
+  const dv  = new DataView(cnt.buffer)
+  dv.setUint32(0, Math.floor(counter / 0x100000000))
+  dv.setUint32(4, counter & 0xFFFFFFFF)
+  const key   = await crypto.subtle.importKey('raw', keyBytes,
+    { name: 'HMAC', hash: 'SHA-1' }, false, ['sign'])
+  const sig   = new Uint8Array(await crypto.subtle.sign('HMAC', key, cnt))
+  const off   = sig[sig.length - 1] & 0xF
+  const code  = ((sig[off] & 0x7F) << 24) |
+                ((sig[off + 1] & 0xFF) << 16) |
+                ((sig[off + 2] & 0xFF) << 8)  |
+                 (sig[off + 3] & 0xFF)
+  return String(code % 1000000).padStart(6, '0')
+}
+
+export async function verifyTotp(secret: string, code: string, window: number = 1): Promise<boolean> {
+  if (!secret || !/^\d{6}$/.test(code)) return false
+  const step    = Math.floor(Date.now() / 30000)
+  for (let w = -window; w <= window; w++) {
+    if (await _hotp(secret, step + w) === code) return true
+  }
+  return false
+}
+
+export function generateTotpSecret(byteLength: number = 20): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(byteLength))
+  return base32Encode(bytes)
+}
+
+export function totpOtpauthUri(issuer: string, account: string, secret: string): string {
+  // Authenticator 앱(Google·Authy·1Password 등)이 인식하는 표준 URI
+  const enc = encodeURIComponent
+  return `otpauth://totp/${enc(issuer)}:${enc(account)}?secret=${secret}&issuer=${enc(issuer)}&algorithm=SHA1&digits=6&period=30`
+}
+
 // ── Rate Limit (madi_rate_limit_hit RPC) ─────────────────────────────────
 // 분/시간 윈도우 카운터를 DB 상에서 단일 트랜잭션으로 증가시키고 결과 반환.
 // 실패 시 fail-open (다른 보안 계층에 의존).

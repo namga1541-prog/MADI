@@ -224,8 +224,9 @@ Deno.serve(async (req: Request) => {
     //   1) 비밀번호 해시 컬럼이 응답에 절대 노출되지 않게 select 정제
     //   2) PATCH 로 role/permissions 변경은 superadmin 만, 그 외에는 본인 row 의 이름/색상만
     // ══════════════════════════════════════════════════════════
-    const USER_SENSITIVE_COLS = new Set(['password', 'password_hash', 'pw', 'pwd'])
-    const USER_SAFE_DEFAULTS  = 'id,username,name,role,center_id,color,permissions'
+    // SEC6: totp_secret 도 절대 응답에 노출 금지 (저장된 secret 이 새면 2FA 우회 가능)
+    const USER_SENSITIVE_COLS = new Set(['password', 'password_hash', 'pw', 'pwd', 'totp_secret'])
+    const USER_SAFE_DEFAULTS  = 'id,username,name,role,center_id,color,permissions,totp_enabled'
 
     if (tableName === 'madi_users') {
       // ── select 파라미터 정제 ──

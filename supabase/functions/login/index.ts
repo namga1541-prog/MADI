@@ -11,7 +11,7 @@
  */
 
 import bcrypt from "npm:bcryptjs@2.4.3"
-import { makeCORS as makeBaseCORS, signJwt, checkRateLimit } from '../_shared/auth.ts'
+import { makeCORS as makeBaseCORS, signJwt, checkRateLimit, verifyTotp } from '../_shared/auth.ts'
 
 function makeCORS(origin: string | null): Record<string, string> {
   return makeBaseCORS(origin, { headers: 'content-type' })
@@ -60,13 +60,14 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: '서버 설정 오류' }), { status: 500, headers: CORS })
   }
 
-  let body: { username?: string; password?: string }
+  let body: { username?: string; password?: string; totp_code?: string }
   try { body = await req.json() } catch {
     return new Response(JSON.stringify({ error: '잘못된 요청 형식' }), { status: 400, headers: CORS })
   }
 
-  const username = (body.username || '').trim()
-  const password = body.password || ''
+  const username  = (body.username || '').trim()
+  const password  = body.password || ''
+  const totpCode  = (body.totp_code || '').trim()
   if (!username || !password) {
     return new Response(JSON.stringify({ error: '아이디와 비밀번호를 입력해주세요' }), { status: 400, headers: CORS })
   }
@@ -85,11 +86,12 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  // DB에서 사용자 조회 (SEC4: 잠금 상태 컬럼도 같이 가져옴)
+  // DB에서 사용자 조회 (SEC4: 잠금 + SEC6: 2FA 컬럼도 같이)
   const userRes = await fetch(
     SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username)
       + '&select=id,username,name,password,role,center_id,color,permissions,status'
-      + ',failed_login_count,last_failed_at,locked_until',
+      + ',failed_login_count,last_failed_at,locked_until'
+      + ',totp_secret,totp_enabled',
     { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
   )
   if (!userRes.ok) {
@@ -148,6 +150,40 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ error: msg }),
       { status: willLock ? 423 : 401, headers: CORS }
     )
+  }
+
+  // ── SEC6: 2FA 검증 — 비번 통과 후, totp_enabled 면 6자리 코드 요구 ──
+  if (user.totp_enabled && user.totp_secret) {
+    if (!totpCode) {
+      return new Response(
+        JSON.stringify({ require_totp: true, error: '6자리 인증 코드를 입력해주세요' }),
+        { status: 401, headers: CORS }
+      )
+    }
+    if (!/^\d{6}$/.test(totpCode)) {
+      return new Response(JSON.stringify({ require_totp: true, error: '6자리 숫자 코드 형식 오류' }), { status: 401, headers: CORS })
+    }
+    const totpOk = await verifyTotp(String(user.totp_secret), totpCode, 1)
+    if (!totpOk) {
+      // 잘못된 TOTP 도 실패 카운터에 합산 (brute-force 방어)
+      const within = user.last_failed_at && (now - new Date(user.last_failed_at).getTime()) < COUNT_WINDOW_MS
+      const newCount = within ? Number(user.failed_login_count || 0) + 1 : 1
+      const willLock = newCount >= LOCK_THRESHOLD
+      const update: Record<string, unknown> = {
+        failed_login_count: newCount,
+        last_failed_at:     new Date(now).toISOString(),
+      }
+      if (willLock) update.locked_until = new Date(now + LOCK_DURATION_MS).toISOString()
+      fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+        body:    JSON.stringify(update),
+      }).catch(() => {})
+      return new Response(
+        JSON.stringify({ require_totp: true, error: '인증 코드가 올바르지 않습니다' }),
+        { status: 401, headers: CORS }
+      )
+    }
   }
 
   // ── SEC4: 성공 시 카운터·잠금 리셋 ──

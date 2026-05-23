@@ -117,7 +117,7 @@ function doSignup() {
     .catch(function(err) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '✨ 가입하기'; errEl.textContent = '❌ ' + (err.message || '가입에 실패했습니다.'); });
 }
 
-function doLogin() {
+function doLogin(_totpCode) {
   var unEl = document.getElementById('loginUsernameInput'), pwEl = document.getElementById('loginPwInput');
   var errEl = document.getElementById('loginError'), btn = document.getElementById('loginSubmitBtn');
   var un = unEl ? unEl.value.trim() : '', pw = pwEl ? pwEl.value : '';
@@ -125,10 +125,17 @@ function doLogin() {
   if (!un) { if (errEl) errEl.textContent = '아이디를 입력해주세요.'; return; }
   if (!pw) { if (errEl) errEl.textContent = '비밀번호를 입력해주세요.'; return; }
   if (btn) { if (btn.dataset.busy === '1') return; btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '로그인 중...'; }
-  fetchWithRetry(EDGE_URL + '/login', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: un, password: pw }) }, { retries: 1, label: '로그인' })
+  var payload = { username: un, password: pw };
+  if (_totpCode) payload.totp_code = _totpCode;
+  fetchWithRetry(EDGE_URL + '/login', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, { retries: 1, label: '로그인' })
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
+    // ── SEC6: 2FA 필요 시 6자리 입력 모달 표시 ──
+    if (data.require_totp) {
+      _promptTotpCode(un, pw, data.error);
+      return;
+    }
     if (data.error) { if (errEl) errEl.textContent = data.error; return; }
     // 토큰은 서버가 httpOnly 쿠키로 발급 — 클라이언트는 user 정보만 저장
     currentUser = data.user;
@@ -140,6 +147,28 @@ function doLogin() {
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  });
+}
+
+// SEC6: 2FA 코드 입력 프롬프트 (showInputPrompt 헬퍼 사용)
+function _promptTotpCode(username, password, prevErr) {
+  if (typeof showInputPrompt !== 'function') {
+    // 폴백: native prompt
+    var code = window.prompt(prevErr || '인증 코드 6자리');
+    if (code) doLogin(code.trim());
+    return;
+  }
+  showInputPrompt({
+    title:    '🔐 2단계 인증',
+    label:    prevErr ? (prevErr + ' — 다시 입력해주세요') : 'Authenticator 앱의 6자리 코드',
+    type:     'text',
+    placeholder: '000000',
+    okLabel:  '확인',
+    validate: function(v) {
+      if (!/^\d{6}$/.test((v || '').trim())) return '6자리 숫자를 입력해주세요';
+      return null;
+    },
+    onOk: function(code) { doLogin(code.trim()); }
   });
 }
 

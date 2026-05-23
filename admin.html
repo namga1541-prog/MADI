@@ -625,6 +625,46 @@
 <div class="panel active" id="panelAdminSettings">
   <div class="content">
 
+    <!-- 2단계 인증 (SEC6, 2026-05-24) -->
+    <div class="card" style="border:2px solid #4f46e5;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#4f46e5;">🔐 2단계 인증 (2FA)</div>
+        <span style="font-size:11px;color:var(--text2);">관리자 권장</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+        Google Authenticator·Authy·1Password 같은 OTP 앱과 연동해 로그인 보안을 강화합니다.
+        설정 후엔 로그인 시 비밀번호 + 6자리 코드가 모두 필요합니다.
+      </p>
+      <div id="totpStatusBox" style="font-size:13px;margin-bottom:10px;color:var(--text2);">상태 확인 중...</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="totpSetupBtn"   class="btn btn-primary"  onclick="totpStartSetup()"  style="font-size:13px;">🆕 2FA 활성화</button>
+        <button id="totpDisableBtn" class="btn-outline"      onclick="totpStartDisable()" style="font-size:13px;display:none;">🔓 2FA 해제</button>
+      </div>
+      <div id="totpSetupArea" style="display:none;margin-top:14px;padding:14px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;">
+        <div style="font-size:13px;font-weight:700;color:#3730a3;margin-bottom:8px;">📱 Authenticator 앱 등록</div>
+        <ol style="font-size:12px;color:#3730a3;line-height:1.7;padding-left:18px;margin-bottom:10px;">
+          <li>Google Authenticator(또는 다른 OTP 앱) 열기 → "+" → "키 직접 입력"</li>
+          <li>아래 키를 복사하거나 QR 을 스캔하세요</li>
+          <li>앱이 보여주는 6자리 코드를 아래에 입력해 등록 완료</li>
+        </ol>
+        <div style="background:white;border-radius:8px;padding:10px;margin-bottom:10px;">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Secret Key (base32):</div>
+          <input id="totpSecretText" readonly style="width:100%;font-family:monospace;font-size:13px;padding:8px;border:1px solid var(--border);border-radius:6px;background:#f9fafb;" onclick="this.select();">
+          <div style="font-size:11px;color:var(--text2);margin-top:6px;">
+            <a id="totpOtpauthLink" href="#" target="_blank" rel="noopener" style="color:#4f46e5;">📲 모바일에서 한 번에 등록 (otpauth 링크)</a>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <div style="flex:1;">
+            <label style="font-size:12px;color:var(--text2);">앱에 표시된 6자리 코드</label>
+            <input id="totpConfirmCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" style="width:100%;font-size:18px;letter-spacing:6px;font-family:monospace;padding:10px;border:1.5px solid var(--border);border-radius:8px;text-align:center;margin-top:4px;">
+          </div>
+          <button class="btn btn-primary" onclick="totpConfirmEnroll()" style="font-size:13px;height:46px;">✅ 등록 완료</button>
+        </div>
+        <div id="totpSetupErr" style="font-size:12px;color:#dc2626;margin-top:8px;min-height:14px;"></div>
+      </div>
+    </div>
+
     <!-- 센터 AI 키 관리 -->
     <div class="card" style="border:2px solid var(--mint);">
       <div class="card-title">
@@ -1971,6 +2011,96 @@ function resetStaffPassword(id, name) {
         showToast('❌ 재설정 실패: ' + escHtml(err.message || '오류'));
       });
   }, { danger: false, okLabel: '재설정' });
+}
+
+// ── 2FA (TOTP) 관리 (SEC6, 2026-05-24) ──
+function totpApi(action, body) {
+  body = body || {};
+  body.action = action;
+  return fetchWithRetry(EDGE_URL + '/totp', {
+    method: 'POST', credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }, { retries: 0, label: 'totp' }).then(function(r){ return r.json(); });
+}
+function totpRefreshStatus() {
+  var box = document.getElementById('totpStatusBox');
+  if (!box) return;
+  box.innerHTML = '상태 확인 중...';
+  totpApi('status').then(function(data) {
+    var enabled = !!(data && data.enabled);
+    var setupBtn  = document.getElementById('totpSetupBtn');
+    var disableBtn = document.getElementById('totpDisableBtn');
+    var setupArea  = document.getElementById('totpSetupArea');
+    if (enabled) {
+      box.innerHTML = '<span style="color:var(--green);font-weight:700;">✅ 2FA 활성화됨 — 로그인 시 6자리 코드 입력 필요</span>';
+      if (setupBtn)   setupBtn.style.display = 'none';
+      if (disableBtn) disableBtn.style.display = '';
+      if (setupArea)  setupArea.style.display = 'none';
+    } else {
+      box.innerHTML = '<span style="color:var(--text2);">⚪ 2FA 미설정 — 비밀번호만으로 로그인 가능</span>';
+      if (setupBtn)   setupBtn.style.display = '';
+      if (disableBtn) disableBtn.style.display = 'none';
+    }
+  }).catch(function(){ box.innerHTML = '<span style="color:#dc2626;">상태 조회 실패</span>'; });
+}
+function totpStartSetup() {
+  totpApi('setup').then(function(data){
+    if (!data || !data.secret) { showToast('⚠️ 설정 시작 실패'); return; }
+    var area = document.getElementById('totpSetupArea');
+    var sec  = document.getElementById('totpSecretText');
+    var link = document.getElementById('totpOtpauthLink');
+    var code = document.getElementById('totpConfirmCode');
+    var err  = document.getElementById('totpSetupErr');
+    if (sec)  sec.value = data.secret;
+    if (link) link.href  = data.otpauth_uri || '#';
+    if (code) code.value = '';
+    if (err)  err.textContent = '';
+    if (area) area.style.display = '';
+  }).catch(function(){ showToast('⚠️ 설정 시작 실패'); });
+}
+function totpConfirmEnroll() {
+  var sec  = document.getElementById('totpSecretText');
+  var code = document.getElementById('totpConfirmCode');
+  var err  = document.getElementById('totpSetupErr');
+  if (!sec || !code) return;
+  var secret = (sec.value || '').trim();
+  var c      = (code.value || '').trim();
+  if (!/^\d{6}$/.test(c)) { if (err) err.textContent = '6자리 숫자를 입력해주세요'; return; }
+  totpApi('confirm', { secret: secret, code: c }).then(function(data){
+    if (data && data.ok) {
+      showToast('✅ 2FA 등록 완료! 다음 로그인부터 코드 입력이 필요합니다.');
+      totpRefreshStatus();
+    } else {
+      if (err) err.textContent = (data && data.error) || '등록 실패';
+    }
+  }).catch(function(){ if (err) err.textContent = '서버 오류'; });
+}
+function totpStartDisable() {
+  showInputPrompt({
+    title:    '🔓 2FA 해제',
+    label:    '현재 Authenticator 앱의 6자리 코드를 입력해 본인을 인증합니다',
+    type:     'text',
+    placeholder: '000000',
+    okLabel:  '해제',
+    validate: function(v){ return /^\d{6}$/.test((v||'').trim()) ? null : '6자리 숫자 필요'; },
+    onOk: function(code){
+      totpApi('disable', { code: code.trim() }).then(function(data){
+        if (data && data.ok) {
+          showToast('🔓 2FA 가 해제되었습니다');
+          totpRefreshStatus();
+        } else {
+          showToast('⚠️ ' + (data && data.error || '해제 실패'));
+        }
+      }).catch(function(){ showToast('⚠️ 서버 오류'); });
+    }
+  });
+}
+// 페이지 로드 시 상태 한 번 갱신
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', totpRefreshStatus);
+} else {
+  setTimeout(totpRefreshStatus, 200);
 }
 
 // ── API 키 관리 ──
