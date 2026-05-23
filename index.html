@@ -31,6 +31,15 @@
   <!-- CDN preconnect: defer 스크립트들이 더 빨리 시작 -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <!-- dns-prefetch: preconnect 미지원 구형 브라우저(특히 사파리 14↓) 폴백 -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://ujxdhafzjyrglaclarwe.supabase.co">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <!-- 핵심 부트스트랩 스크립트 preload: HTML 파싱 중 병렬 다운로드 -->
+  <link rel="preload" as="script" href="./madi-vocab.js">
+  <link rel="preload" as="script" href="./madi-01.js">
+  <link rel="preload" as="script" href="./madi-01-auth.js">
+  <link rel="preload" as="script" href="./madi-01-app.js">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <!-- Chart.js (~200KB) 도 ensureChart() lazy 로 분리 — 첫 차트 렌더 시점에만 로드 -->
   <!-- xlsx (~900KB) 는 initial bundle 에서 제외 — ensureXLSX() 가 필요 시점에 동적 로드 -->
