@@ -54,6 +54,48 @@ const PARENT_USER_SCOPED: Record<string, string> = {
   'madi_notifications':   'user_id',
 }
 
+// ── 민감 설정 SELECT 감사 ──────────────────────────────────────────────
+// 외부 보안 감사 후속 (2026-05-23) — admin 권한자가 madi_settings(특히 api_key) 를
+// 조회한 흐름을 madi_audit_log 에 기록. fire-and-forget — 로깅 실패는 본 요청에 영향 X.
+async function logSettingsAccess(
+  supaUrl: string,
+  supaKey: string,
+  user: Record<string, unknown>,
+  req: Request,
+  path: string,
+  method: string,
+): Promise<void> {
+  try {
+    // ?key=eq.<XXX> 또는 ?key=in.(...) 패턴에서 조회 대상 키 식별 (없으면 'all')
+    let keyName = 'all'
+    const m = path.match(/[?&]key=(?:eq|in)\.([^&]+)/)
+    if (m) keyName = decodeURIComponent(m[1]).slice(0, 64)
+
+    const ip  = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || ''
+    const ua  = req.headers.get('user-agent') || ''
+
+    await fetch(`${supaUrl}/rest/v1/madi_audit_log`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${supaKey}`,
+        'apikey':        supaKey,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({
+        actor_id:    user.sub      ?? null,
+        actor_role:  user.role     ?? null,
+        action:      (!method || method === 'GET') ? 'SELECT' : method,
+        table_name:  'madi_settings',
+        row_id:      keyName,
+        center_id:   user.center_id ?? null,
+        client_ip:   ip.slice(0, 64),
+        user_agent:  ua.slice(0, 256),
+      }),
+    })
+  } catch (_) { /* fire-and-forget */ }
+}
+
 // ★ 학부모 child_id 기반 필터가 필요한 테이블 (data JSON 내 childId 필드)
 const PARENT_CHILD_FILTER_TABLES = [
   'madi_sessions', 'madi_schedules', 'madi_assessments', 'madi_iep_history'
@@ -134,6 +176,13 @@ Deno.serve(async (req: Request) => {
     // 관리자 전용 테이블 체크
     if (ADMIN_ONLY_TABLES.includes(tableName) && user.role !== 'admin' && user.role !== 'superadmin') {
       return new Response(JSON.stringify({ error: '관리자 권한이 필요합니다' }), { status: 403, headers: CORS })
+    }
+
+    // ★ 민감 설정 SELECT 감사 — admin/superadmin 이 madi_settings 를 조회한 흐름을 추적.
+    //   API 키 등 민감값이 평문 저장돼 있어 조회만으로도 누가·언제·어떤 키를 봤는지 남긴다.
+    //   감사 INSERT 는 service_role 권한이라 사용자 RLS 와 무관, 본 요청 응답은 await 없이 진행.
+    if (tableName === 'madi_settings') {
+      logSettingsAccess(SUPA_URL, SUPA_KEY, user, req, path, method || 'GET')
     }
 
     // 관리자만 쓰기 가능 테이블 (GET은 허용)
