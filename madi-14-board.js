@@ -1,0 +1,807 @@
+/* ───────────────────────────────────────────────────────────
+   madi-14-board.js — 게시판 후반부
+   - 라운지(고객센터)
+   - 자료실
+   - 편집 모달 (openPostEditModal 및 4개 editXxx)
+
+   분리 사유: madi-14.js 가 1,375 라인으로 비대 → 공지(global/center)
+   는 madi-14.js 에 유지, 게시판·자료실은 본 파일로 분리.
+   동일 글로벌 스코프(defer 로드)이므로 함수 참조는 분리 전과 동일.
+   ─────────────────────────────────────────────────────────── */
+
+// ═══════════════════════════════════════════════════════════
+// 🍵 라운지 (5~6단계에서 구현)
+// ═══════════════════════════════════════════════════════════
+function renderLounge() {
+  loadLoungePosts();
+}
+
+// ───────── 라운지 글 — 권한 기반 필터링 ─────────
+// teacher는 Edge Function이 center_id 자동 필터, admin/superadmin은 클라이언트 필터
+function filterLoungePosts(posts, user) {
+  if (!user || !posts) return [];
+  var role = user.role, uid = user.id, cid = user.center_id;
+
+  return posts.filter(function(p) {
+    if (role === 'superadmin') {
+      // 슈퍼어드민: 모든 center 라운지 + 모든 private_super 1:1
+      return p.visibility === 'center' || p.visibility === 'private_super';
+    }
+    var isMine = p.author_id === uid;
+    if (role === 'admin') {
+      // 센터장: 자기 센터의 center/private_admin + 본인 발신 private_super
+      if (p.center_id !== cid) return false;
+      if (p.visibility === 'center') return true;
+      if (p.visibility === 'private_admin') return true;
+      if (p.visibility === 'private_super' && isMine) return true;
+      return false;
+    }
+    // teacher: 자기 센터 center(이미 Edge 필터됨) + 본인 발신 private_*
+    if (p.visibility === 'center') return true;
+    if (isMine) return true;
+    return false;
+  });
+}
+
+// visibility 표시 메타 (라벨/아이콘/색상)
+function visibilityMeta(vis) {
+  if (vis === 'private_super') return { label: '1:1 슈퍼관리자', icon: '🔒', color: '#8b5cf6', bg: '#ede9fe' };
+  if (vis === 'private_admin') return { label: '1:1 센터장', icon: '🔒', color: '#0ea5a0', bg: '#e0f7f6' };
+  return { label: '고객센터', icon: '📢', color: '#3b82f6', bg: '#dbeafe' };
+}
+
+function loadLoungePosts() {
+  var ui = document.getElementById('bdPanel_lounge');
+  if (!ui) return;
+  ui.innerHTML = '<div class="loading"><div class="spinner"></div><p>고객센터 글을 불러오는 중...</p></div>';
+
+  // superadmin은 전체 센터 조회, admin/teacher는 자기 센터만 (RLS 이중 방어)
+  var _loungeUser = currentUser || {};
+  var _loungePath = 'madi_lounge_posts?select=*&order=created_at.desc&limit=100';
+  if (_loungeUser.role !== 'superadmin' && _loungeUser.center_id) {
+    _loungePath += '&center_id=eq.' + encodeURIComponent(_loungeUser.center_id);
+  }
+  var gen = _boardLoadGen;
+  supaFetch(_loungePath, 'GET')
+    .then(function(data) {
+      if (gen !== _boardLoadGen) return;
+      loungePostsDB = data || [];
+      // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
+      if (currentUser && currentUser.role === 'superadmin') {
+        // ES5 호환: .finally() 미지원 환경 — then/catch 양쪽에서 동일 렌더
+        function _renderLoungeAfterCache() {
+          if (gen !== _boardLoadGen) return;
+          renderLoungeUI();
+        }
+        loadCentersByIdCache().then(_renderLoungeAfterCache, _renderLoungeAfterCache);
+      } else {
+        renderLoungeUI();
+      }
+    })
+    .catch(function(err) {
+      console.error('[loadLoungePosts]', err);
+      ui.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
+    });
+}
+
+function renderLoungeUI() {
+  var ui = document.getElementById('bdPanel_lounge');
+  if (!ui) return;
+
+  var user = currentUser || {};
+  var role = user.role;
+  var posts = filterLoungePosts(loungePostsDB, user);
+
+  // ── 작성 폼 ──
+  var formHtml = '';
+  if (role === 'teacher' || role === 'admin') {
+    var recipOpts = role === 'teacher'
+      ? '<option value="private_admin">📋 센터장에게 건의</option>'
+        + '<option value="private_super">📋 슈퍼관리자에게 건의</option>'
+      : '<option value="private_super">📋 슈퍼관리자에게 건의</option>';
+
+    formHtml = '<div class="card" style="margin-bottom:16px;border:1.5px solid var(--mint2);">'
+      + '<div class="card-title"><div class="card-title-left">✉️ 건의 / 문의하기</div></div>'
+      + '<div style="display:flex;flex-direction:column;gap:10px;">'
+      + '<div>'
+      +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">수신자</label>'
+      +   '<select id="loungeVisibility" class="form-input" style="font-size:14px;">' + recipOpts + '</select>'
+      + '</div>'
+      + '<div>'
+      +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">제목</label>'
+      +   '<input type="text" id="loungeTitle" class="form-input" placeholder="건의 제목을 입력해주세요" maxlength="100" style="margin-bottom:0;">'
+      + '</div>'
+      + '<div>'
+      +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">내용</label>'
+      +   '<textarea id="loungeContent" class="form-input" placeholder="건의 내용을 자세히 적어주세요..." rows="5" style="resize:vertical;font-family:inherit;margin-bottom:0;"></textarea>'
+      + '</div>'
+      + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
+      +   '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 이미지 첨부 (최대 3장, 선택)</div>'
+      +   '<input type="file" id="loungeImgInput" accept="image/*" multiple style="font-size:12px;" onchange="onLoungeImagesChange(this)">'
+      +   '<div id="loungeImgPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;"></div>'
+      + '</div>'
+      + '<button class="btn btn-primary" onclick="saveLoungePost()" style="font-size:14px;">📨 건의 보내기</button>'
+      + '</div>'
+      + '</div>';
+  } else if (role === 'superadmin') {
+    // 슈퍼관리자는 작성 폼 없음 — 받은 건의만 열람/답변
+    formHtml = '<div style="background:var(--mint2);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--mint);font-weight:600;">'
+      + '📞 모든 센터의 건의·문의를 수신합니다. 댓글로 답변해주세요.</div>';
+  }
+
+  // ── 글 목록 ──
+  // 관리자: 받은 건의 / 내가 보낸 건의 구분
+  var listHtml = '';
+  if (role === 'admin') {
+    var received = posts.filter(function(p){ return p.visibility === 'private_admin' && p.author_id !== user.id; });
+    var sent     = posts.filter(function(p){ return p.author_id === user.id; });
+
+    listHtml += '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;margin-top:4px;">📥 받은 건의 (' + received.length + ')</div>';
+    listHtml += received.length
+      ? received.map(function(p){ return renderInquiryCard(p, user); }).join('')
+      : '<div style="text-align:center;padding:24px;color:var(--text2);font-size:13px;background:var(--bg);border-radius:10px;margin-bottom:12px;">받은 건의가 없습니다.</div>';
+
+    listHtml += '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;margin-top:16px;">📤 내가 보낸 건의 (' + sent.length + ')</div>';
+    listHtml += sent.length
+      ? sent.map(function(p){ return renderInquiryCard(p, user); }).join('')
+      : '<div style="text-align:center;padding:24px;color:var(--text2);font-size:13px;background:var(--bg);border-radius:10px;">보낸 건의가 없습니다.</div>';
+  } else {
+    listHtml = posts.length === 0
+      ? '<div style="text-align:center;padding:40px 20px;color:var(--text2);font-size:13px;">등록된 건의가 없습니다.</div>'
+      : posts.map(function(p){ return renderInquiryCard(p, user); }).join('');
+  }
+
+  ui.innerHTML = formHtml + '<div style="display:flex;flex-direction:column;gap:10px;">' + listHtml + '</div>';
+}
+
+function renderInquiryCard(post, user) {
+  var isMine    = user && post.author_id === user.id;
+  var canDelete = (user && (user.role === 'superadmin' || isMine));
+
+  // 수신자 배지
+  var toLabel = post.visibility === 'private_super' ? '👑 슈퍼관리자' :
+                post.visibility === 'private_admin'  ? '🎯 센터장' : '📢 전체';
+  var toColor = post.visibility === 'private_super' ? '#d97706' :
+                post.visibility === 'private_admin'  ? '#0ea5a0' : '#3b82f6';
+  var toBg    = post.visibility === 'private_super' ? '#fef3c7' :
+                post.visibility === 'private_admin'  ? '#e0f7f6' : '#dbeafe';
+
+  // 발신자 표시
+  var fromLabel = post.author_role === 'superadmin' ? '👑 슈퍼관리자' :
+                  post.author_role === 'admin'      ? '🎯 센터장'    : '👤 선생님';
+
+  // 센터 이름 (슈퍼관리자용)
+  var centerBadge = '';
+  if (user && user.role === 'superadmin' && post.center_id) {
+    var centerName = (centersByIdCache && centersByIdCache[post.center_id]) || post.center_id;
+    centerBadge = '<span style="font-size:11px;color:var(--text2);margin-left:6px;">🏢 ' + escHtml(centerName) + '</span>';
+  }
+
+  var when = '';
+  try {
+    if (post.created_at) {
+      var d = new Date(post.created_at);
+      when = d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+  } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+
+  var editBtn = isMine
+    ? '<button class="btn-ghost" style="font-size:11px;color:#0c4a6e;border-color:#38bdf8;padding:4px 10px;flex-shrink:0;" onclick="editLoungePost(\'' + post.id + '\')">✏️ 수정</button>'
+    : '';
+  var deleteBtn = canDelete
+    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(\'' + post.id + '\')">삭제</button>'
+    : '';
+
+  return '<div class="card" style="border-left:4px solid ' + toColor + ';margin-bottom:4px;">'
+    // 헤더: 발신→수신 / 날짜 / 수정·삭제
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;">'
+    +   '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">'
+    +     (isMine ? '' : '<span style="font-size:12px;font-weight:700;color:var(--text);">' + escHtml(post.author_name||'') + '</span>')
+    +     '<span style="font-size:11px;color:var(--text2);">' + fromLabel + '</span>'
+    +     centerBadge
+    +     '<span style="font-size:11px;color:var(--text2);">→</span>'
+    +     '<span style="font-size:11px;font-weight:700;color:' + toColor + ';background:' + toBg + ';padding:2px 8px;border-radius:10px;">' + toLabel + '</span>'
+    +     (isMine ? '<span style="font-size:10px;color:var(--mint);background:var(--mint2);padding:2px 7px;border-radius:8px;font-weight:700;">내가 보낸 건의</span>' : '')
+    +   '</div>'
+    +   '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
+    +     '<span style="font-size:11px;color:var(--text2);">' + when + '</span>'
+    +     editBtn
+    +     deleteBtn
+    +   '</div>'
+    + '</div>'
+    // 제목
+    + '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">' + escHtml(post.title || '') + '</div>'
+    // 내용
+    + (post.content ? '<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;margin-bottom:10px;padding:10px 12px;background:var(--bg);border-radius:8px;">' + escHtml(post.content) + '</div>' : '')
+    + (post.image_urls && post.image_urls.length ? renderImageThumbs(post.image_urls) : '')
+    // 댓글 (답변)
+    + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:4px;">'
+    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + toColor + ';border-color:' + toColor + ';" onclick="toggleComments(\'' + post.id + '\')">💬 답변 <span id="commentCount_' + post.id + '"></span></button>'
+    +   '<div id="commentArea_' + post.id + '" style="display:none;margin-top:10px;"></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function saveLoungePost() {
+  var visEl     = document.getElementById('loungeVisibility');
+  var titleEl   = document.getElementById('loungeTitle');
+  var contentEl = document.getElementById('loungeContent');
+  if (!visEl || !titleEl || !contentEl) return;
+
+  var visibility = visEl.value;
+  var title      = (titleEl.value || '').trim();
+  var content    = (contentEl.value || '').trim();
+
+  if (!title)              { showToast('⚠️ 제목을 입력해주세요'); return; }
+  if (title.length > 100)  { showToast('⚠️ 제목은 100자 이하로 작성해주세요'); return; }
+
+  var user = currentUser || {};
+  if (!user.name || !user.role) { showToast('⚠️ 로그인 정보를 확인해주세요'); return; }
+
+  var post = {
+    center_id:   user.center_id || '',
+    author_id:   user.id,
+    author_name: user.name,
+    author_role: user.role,
+    visibility:  visibility,
+    title:       title,
+    content:     content
+  };
+
+  var btn = document.querySelector('button[onclick="saveLoungePost()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 등록 중...'; }
+
+  // 이미지 업로드 후 글 저장
+  var uploadPromises = _loungePostImages.map(function(f) {
+    return uploadBoardImage(f, 'posts');
+  });
+
+  Promise.all(uploadPromises)
+    .then(function(imageUrls) {
+      if (imageUrls.length > 0) post.image_urls = imageUrls;
+      return supaFetch('madi_lounge_posts', 'POST', post);
+    })
+    .then(function() {
+      titleEl.value = '';
+      contentEl.value = '';
+      _loungePostImages = [];
+      var imgInput = document.getElementById('loungeImgInput');
+      if (imgInput) imgInput.value = '';
+      var preview = document.getElementById('loungeImgPreview');
+      if (preview) preview.innerHTML = '';
+      showToast('✅ 글이 등록됐습니다');
+      loadLoungePosts();
+      // 성공(UI 재렌더) 후 btn은 이미 교체됐을 수 있으나 no-op으로 안전
+      if (btn) { btn.disabled = false; btn.textContent = '📨 건의 보내기'; }
+    })
+    .catch(function(err) {
+      showToast('⚠️ 등록 실패: ' + (err.message || ''));
+      if (btn) { btn.disabled = false; btn.textContent = '📨 건의 보내기'; }
+    });
+}
+
+function deleteLoungePost(id) {
+  showConfirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.', function() {
+    supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
+      .then(function() {
+        showToast('🗑️ 글이 삭제됐습니다');
+        loadLoungePosts();
+      })
+      .catch(function(err) {
+        showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+      });
+  });
+}
+
+// ───────── 라운지 댓글 (6단계) ─────────
+function toggleComments(postId) {
+  var area = document.getElementById('commentArea_' + postId);
+  if (!area) return;
+
+  if (loungeExpandedPosts[postId]) {
+    // 접기
+    area.style.display = 'none';
+    loungeExpandedPosts[postId] = false;
+  } else {
+    // 펼치기 + 댓글 로드
+    area.style.display = 'block';
+    loungeExpandedPosts[postId] = true;
+    loadComments(postId);
+  }
+}
+
+function loadComments(postId) {
+  var area = document.getElementById('commentArea_' + postId);
+  if (!area) return;
+  area.innerHTML = '<div style="font-size:11px;color:var(--text2);text-align:center;padding:8px;">댓글 불러오는 중...</div>';
+
+  supaFetch('madi_lounge_comments?post_id=eq.' + postId + '&select=*&order=created_at.asc', 'GET')
+    .then(function(data) {
+      loungeCommentsCache[postId] = data || [];
+      renderComments(postId);
+    })
+    .catch(function(err) {
+      console.error('[loadComments]', err);
+      area.innerHTML = '<div style="font-size:11px;color:#ef4444;padding:6px;">⚠️ 댓글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>';
+    });
+}
+
+function renderComments(postId) {
+  var area = document.getElementById('commentArea_' + postId);
+  var countEl = document.getElementById('commentCount_' + postId);
+  if (!area) return;
+
+  var comments = loungeCommentsCache[postId] || [];
+  var user = currentUser || {};
+
+  // 카운트 표시
+  if (countEl) countEl.textContent = comments.length > 0 ? '(' + comments.length + ')' : '';
+
+  // 댓글 목록 + 작성 폼
+  var listHtml = comments.length === 0
+    ? '<div style="font-size:11px;color:var(--text2);text-align:center;padding:8px;">아직 댓글이 없습니다.</div>'
+    : comments.map(function(c) {
+        var canDelete = (user.role === 'superadmin' || c.author_id === user.id);
+        var roleBadge = c.author_role === 'superadmin' ? '👑' :
+                        c.author_role === 'admin'      ? '🎯' : '👤';
+        var when = '';
+        try {
+          if (c.created_at) {
+            var d = new Date(c.created_at);
+            when = d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          }
+        } catch (e) { when = ''; }
+
+        return '<div style="background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px;">'
+          +   '<div style="font-size:11px;color:var(--text2);">'
+          +     '<span style="font-weight:600;color:var(--text);">' + roleBadge + ' ' + escHtml(c.author_name || '익명') + '</span> · ' + when
+          +   '</div>'
+          + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(\'' + postId + '\',\'' + c.id + '\')">🗑️</button>' : '')
+          + '</div>'
+          + '<div style="font-size:13px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + escHtml(c.content) + '</div>'
+        + (c.image_url ? '<a href="' + escHtml(c.image_url) + '" target="_blank" rel="noopener">'
+          + '<img src="' + escHtml(c.image_url) + '" loading="lazy" '
+          + 'style="margin-top:6px;max-height:120px;max-width:100%;border-radius:8px;" '
+          + 'onerror="this.remove()"></a>' : '')
+          + '</div>';
+      }).join('');
+
+  // 작성 폼
+  var formHtml = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'
+    + '<div style="display:flex;gap:6px;">'
+    + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeydown="if(event.key===\'Enter\'&&!event.isComposing) saveComment(\'' + postId + '\')">'
+    + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(\'' + postId + '\')">📝 등록</button>'
+    + '</div>'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;">'
+    + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(\'' + postId + '\',this)"></label>'
+    + '</div>';
+
+  area.innerHTML = listHtml + formHtml;
+}
+
+function saveComment(postId) {
+  var inputEl = document.getElementById('newComment_' + postId);
+  if (!inputEl) return;
+  var content = (inputEl.value || '').trim();
+
+  if (!content) { showToast('⚠️ 댓글 내용을 입력해주세요'); return; }
+  if (content.length > 500) { showToast('⚠️ 댓글은 500자 이하로'); return; }
+
+  var user = currentUser || {};
+  if (!user.name || !user.role) { showToast('⚠️ 로그인 정보를 확인해주세요'); return; }
+
+  var comment = {
+    post_id:     postId,
+    author_id:   user.id,
+    author_name: user.name,
+    author_role: user.role,
+    content:     content
+  };
+
+  // 이미지 첨부 있으면 업로드 후 저장
+  var imgFile = _loungeCommentImages[postId] || null;
+  var uploadP = imgFile ? uploadBoardImage(imgFile, 'comments') : Promise.resolve(null);
+
+  uploadP
+    .then(function(imageUrl) {
+      if (imageUrl) comment.image_url = imageUrl;
+      return supaFetch('madi_lounge_comments', 'POST', comment);
+    })
+    .then(function() {
+      inputEl.value = '';
+      delete _loungeCommentImages[postId];
+      loadComments(postId);
+    })
+    .catch(function(err) {
+      showToast('⚠️ 댓글 등록 실패: ' + (err.message || ''));
+    });
+}
+
+function deleteComment(postId, commentId) {
+  showConfirm('이 댓글을 삭제하시겠습니까?', function() {
+    supaFetch('madi_lounge_comments?id=eq.' + encodeURIComponent(commentId), 'DELETE')
+      .then(function() {
+        showToast('🗑️ 댓글이 삭제됐습니다');
+        loadComments(postId);
+      })
+      .catch(function(err) {
+        showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+      });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 📚 자료실
+// ═══════════════════════════════════════════════════════════
+var _libraryFiles = []; // 자료 첨부 File 객체 배열 (최대 5개)
+
+var LIBRARY_CATEGORIES = ['조음·음운', '언어발달', '유창성', '인지·학습', '부모교육', '평가도구', '기타'];
+
+function renderLibrary() {
+  var el = document.getElementById('bdLibraryContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><p>자료실을 불러오는 중...</p></div>';
+
+  supaFetch('madi_lounge_posts?visibility=eq.resource&order=created_at.desc&limit=200', 'GET')
+    .then(function(data) {
+      _renderLibraryUI(data || []);
+    })
+    .catch(function(err) {
+      el.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+    });
+}
+
+function _renderLibraryUI(posts) {
+  var el = document.getElementById('bdLibraryContent');
+  if (!el) return;
+  var user = currentUser || {};
+  var canWrite = user.role === 'teacher' || user.role === 'admin' || user.role === 'superadmin';
+
+  // 카테고리 필터 상태
+  var activeCat = window._libActiveCat || '';
+
+  var catHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">'
+    + '<button onclick="setLibCat(\'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===''?'var(--mint)':'var(--border)')+';background:'+(activeCat===''?'var(--mint)':'var(--card)')+';color:'+(activeCat===''?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">전체</button>'
+    + LIBRARY_CATEGORIES.map(function(c) {
+        return '<button onclick="setLibCat(\''+c+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+c+'</button>';
+      }).join('')
+    + '</div>';
+
+  var formHtml = '';
+  if (canWrite) {
+    formHtml = '<div class="card" style="margin-bottom:16px;">'
+      + '<div class="card-title"><div class="card-title-left">📤 자료 올리기</div></div>'
+      + '<div style="display:flex;flex-direction:column;gap:10px;">'
+      + '<select id="libCategory" class="form-input" style="font-size:14px;">'
+      + LIBRARY_CATEGORIES.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('')
+      + '</select>'
+      + '<input type="text" id="libTitle" class="form-input" placeholder="자료 제목 (필수)" maxlength="100">'
+      + '<textarea id="libContent" class="form-input" placeholder="자료 설명 (선택)" rows="3" style="resize:vertical;font-family:inherit;"></textarea>'
+      + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
+      + '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 파일 첨부 (이미지·PDF, 최대 5개)</div>'
+      + '<input type="file" id="libFileInput" accept="image/*,application/pdf" multiple style="font-size:12px;" onchange="onLibFilesChange(this)">'
+      + '<div id="libFilePreview" style="margin-top:6px;"></div>'
+      + '</div>'
+      + '<button class="btn btn-primary" onclick="saveLibraryPost()" style="font-size:14px;">📚 자료 등록</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  var filtered = activeCat ? posts.filter(function(p){ return (p.note||'') === activeCat; }) : posts;
+
+  var listHtml = '';
+  if (!filtered.length) {
+    listHtml = '<div class="empty"><div class="empty-icon">📭</div><p>등록된 자료가 없습니다.</p></div>';
+  } else {
+    listHtml = filtered.map(function(p) {
+      var isMine = !!(user && p.author_id === user.id);
+      var canDel = user.role === 'superadmin' || isMine;
+      var imgs = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [];
+      var dt = p.created_at ? new Date(p.created_at).toLocaleDateString('ko-KR') : '';
+      var editBtn = isMine
+        ? '<button onclick="editLibraryPost(\''+p.id+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #38bdf8;background:#e0f2fe;color:#0c4a6e;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>'
+        : '';
+      var delBtn = canDel
+        ? '<button onclick="deleteLibraryPost(\''+p.id+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>'
+        : '';
+      return '<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);">'
+        + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
+        + '<div style="min-width:0;flex:1;">'
+        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'
+        + '<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--mint2);color:var(--mint);font-weight:700;">' + escHtml(p.note||'기타') + '</span>'
+        + '<span style="font-size:13px;font-weight:700;">' + escHtml(p.title||'') + '</span>'
+        + '</div>'
+        + (p.content ? '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;white-space:pre-wrap;">' + escHtml(p.content) + '</div>' : '')
+        + (imgs.length ? renderImageThumbs(imgs) : '')
+        + '<div style="font-size:11px;color:var(--text2);margin-top:6px;">' + escHtml(p.author_name||'') + ' · ' + dt + '</div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">' + editBtn + delBtn + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  el.innerHTML = '<div class="card"><div class="card-title"><div class="card-title-left">📚 자료실</div><span style="font-size:11px;color:var(--text2);">언어치료 자료 공유</span></div>'
+    + catHtml + '</div>'
+    + formHtml
+    + '<div id="libPostList">' + listHtml + '</div>';
+}
+
+function setLibCat(cat) {
+  window._libActiveCat = cat;
+  renderLibrary();
+}
+
+function onLibFilesChange(input) {
+  _libraryFiles = [];
+  var preview = document.getElementById('libFilePreview');
+  if (!input.files || !input.files.length) { if (preview) preview.innerHTML = ''; return; }
+  var allowed  = ALLOWED_IMAGE_MIMES.concat(['application/pdf']);
+  var MAX_LIB  = 10 * 1024 * 1024; // 10MB
+  var files    = Array.prototype.slice.call(input.files, 0, 5);
+  var rejected = [];
+  files.forEach(function(f){
+    if (allowed.indexOf(f.type) === -1) { rejected.push(f.name + ' (형식)'); return; }
+    if (f.size > MAX_LIB)                { rejected.push(f.name + ' (10MB 초과)'); return; }
+    _libraryFiles.push(f);
+  });
+  if (rejected.length > 0) {
+    showToast('⚠️ 첨부 거부: ' + rejected.join(', '));
+    if (_libraryFiles.length === 0) input.value = '';
+  }
+  if (preview) preview.innerHTML = _libraryFiles.map(function(f){ return '<div style="font-size:12px;color:var(--text2);">📄 '+escHtml(f.name)+'</div>'; }).join('');
+}
+
+function saveLibraryPost() {
+  var titleEl   = document.getElementById('libTitle');
+  var contentEl = document.getElementById('libContent');
+  var catEl     = document.getElementById('libCategory');
+  if (!titleEl || !titleEl.value.trim()) { showToast('⚠️ 자료 제목을 입력해주세요'); return; }
+
+  var title   = titleEl.value.trim();
+  var content = contentEl ? contentEl.value.trim() : '';
+  var cat     = catEl ? catEl.value : '기타';
+  var user    = currentUser || {};
+
+  var uploadAll = _libraryFiles.length
+    ? Promise.all(_libraryFiles.map(function(f){ return uploadBoardImage(f, 'posts'); })) // 'library'는 허용 폴더 아님
+    : Promise.resolve([]);
+
+  showToast('⏳ 자료 등록 중...');
+  uploadAll.then(function(urls) {
+    var post = {
+      id:          Date.now() + Math.floor(Math.random()*1000),
+      center_id:   user.center_id || null,
+      visibility:  'resource',
+      title:       title,
+      content:     content,
+      note:        cat,
+      author_id:   user.id,
+      author_name: user.name || user.username,
+      images:      JSON.stringify(urls)
+    };
+    return supaFetch('madi_lounge_posts', 'POST', post);
+  }).then(function() {
+    _libraryFiles = [];
+    showToast('✅ 자료가 등록됐습니다');
+    renderLibrary();
+  }).catch(function(err) {
+    showToast('⚠️ 등록 실패: ' + (err.message || ''));
+  });
+}
+
+function deleteLibraryPost(id) {
+  showConfirm('이 자료를 삭제할까요?', function() {
+    supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
+      .then(function() { showToast('🗑️ 자료 삭제됨'); renderLibrary(); })
+      .catch(function(err) { showToast('❌ 삭제 실패 — 다시 시도해주세요'); });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ✏️ 글 수정 — 4개 게시판 공통
+// ═══════════════════════════════════════════════════════════
+// 정책 (사용자 결정 2026-05-21):
+//  - 본인(author_id === currentUser.id) 만 수정 가능
+//  - 텍스트만 수정 (제목·본문·종류/카테고리). 첨부 이미지는 그대로 유지
+//  - visibility 는 변경 안 함 (보안·라우팅 혼란 방지)
+
+function _isMyPost(post) {
+  if (!currentUser || !post || !post.author_id) return false;
+  return post.author_id === currentUser.id;
+}
+
+// 공통 글 수정 모달
+// opts: {
+//   header:         '✏️ 마디 공지 수정',           // 모달 상단 타이틀
+//   currentTitle:   string,
+//   currentContent: string,
+//   selectField:    { label, current, options:[{value,label}] } | null,
+//   noteHint:       '첨부는 그대로 유지됩니다',      // 안내 문구 (옵션)
+//   maxTitle:       200,
+//   onSave:         function(values, closeFn)       // values: { title, content, selectValue }
+// }
+function openPostEditModal(opts) {
+  opts = opts || {};
+  var existing = document.getElementById('postEditModal');
+  if (existing) existing.remove();
+
+  var maxTitle = opts.maxTitle || 200;
+
+  var selectHtml = '';
+  if (opts.selectField && opts.selectField.options && opts.selectField.options.length > 0) {
+    var optsHtml = opts.selectField.options.map(function(o) {
+      var sel = (String(o.value) === String(opts.selectField.current)) ? ' selected' : '';
+      return '<option value="' + escHtml(String(o.value)) + '"' + sel + '>' + escHtml(o.label) + '</option>';
+    }).join('');
+    selectHtml =
+        '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin:10px 0 4px;">' + escHtml(opts.selectField.label || '종류') + '</label>'
+      + '<select id="peSelect" class="form-input" style="font-size:13px;padding:8px;width:100%;box-sizing:border-box;">' + optsHtml + '</select>';
+  }
+
+  var hintHtml = opts.noteHint
+    ? '<div style="font-size:11px;color:#64748b;background:#f1f5f9;border-radius:6px;padding:6px 10px;margin-top:10px;">ℹ️ ' + escHtml(opts.noteHint) + '</div>'
+    : '';
+
+  var overlay = document.createElement('div');
+  overlay.id = 'postEditModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML =
+      '<div style="background:white;border-radius:14px;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
+    +   '<div style="padding:16px 22px;border-bottom:1px solid #e2e8f0;font-size:15px;font-weight:700;color:#1e293b;">' + escHtml(opts.header || '✏️ 글 수정') + '</div>'
+    +   '<div style="padding:18px 22px;overflow-y:auto;flex:1;">'
+    +     '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">제목</label>'
+    +     '<input id="peTitle" class="form-input" maxlength="' + maxTitle + '" style="font-size:14px;padding:8px;width:100%;box-sizing:border-box;">'
+    +     selectHtml
+    +     '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin:10px 0 4px;">본문</label>'
+    +     '<textarea id="peContent" class="form-input" rows="6" style="font-size:13px;padding:8px;width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;"></textarea>'
+    +     hintHtml
+    +     '<div id="peError" style="font-size:12px;color:#ef4444;margin-top:8px;min-height:14px;word-break:break-word;"></div>'
+    +   '</div>'
+    +   '<div style="padding:14px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:flex-end;gap:8px;">'
+    +     '<button id="peCancel" style="padding:9px 18px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer;">취소</button>'
+    +     '<button id="peSave" style="padding:9px 18px;border:none;border-radius:8px;background:#0ea5a0;color:white;font-size:13px;font-weight:700;cursor:pointer;">💾 저장</button>'
+    +   '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+  // 값 채우기는 createElement 후에 .value 로 — escHtml 한 문자열을 value 에 직접 넣지 않기 위함
+  var titleEl   = document.getElementById('peTitle');
+  var contentEl = document.getElementById('peContent');
+  if (titleEl)   titleEl.value   = opts.currentTitle   || '';
+  if (contentEl) contentEl.value = opts.currentContent || '';
+  setTimeout(function(){ if (titleEl) titleEl.focus(); }, 50);
+
+  function _close() {
+    overlay.remove();
+    document.removeEventListener('keydown', _onKey);
+  }
+  function _onKey(e) { if (e.key === 'Escape') _close(); }
+
+  document.getElementById('peCancel').addEventListener('click', _close);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) _close(); });
+  document.addEventListener('keydown', _onKey);
+
+  document.getElementById('peSave').addEventListener('click', function() {
+    var errEl  = document.getElementById('peError');
+    errEl.textContent = '';
+    var title    = (titleEl.value || '').trim();
+    var content  = (contentEl.value || '').trim();
+    var selEl    = document.getElementById('peSelect');
+    var selValue = selEl ? selEl.value : null;
+    if (!title)                  { errEl.textContent = '제목을 입력해 주세요.'; return; }
+    if (!content)                { errEl.textContent = '본문을 입력해 주세요.'; return; }
+    if (title.length > maxTitle) { errEl.textContent = '제목은 ' + maxTitle + '자 이하로 작성해 주세요.'; return; }
+    if (typeof opts.onSave === 'function') {
+      opts.onSave({ title: title, content: content, selectValue: selValue }, _close);
+    }
+  });
+}
+
+var NOTICE_TYPE_OPTS = [
+  { value: 'info', label: '📢 일반' },
+  { value: 'pin',  label: '📍 중요 (상단 고정)' },
+  { value: 'imp',  label: '🚨 긴급 (상단 고정)' }
+];
+
+// ── 마디 공지 수정 ──
+function editGlobalNotice(id) {
+  var n = (globalNoticesDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!n) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(n)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  openPostEditModal({
+    header:         '✏️ 마디 공지 수정',
+    currentTitle:   n.title || '',
+    currentContent: n.content || '',
+    selectField:    { label: '종류', current: n.notice_type || 'info', options: NOTICE_TYPE_OPTS },
+    maxTitle:       200,
+    onSave: function(v, close) {
+      var ntype  = v.selectValue || 'info';
+      var pinned = (ntype !== 'info');
+      supaFetch('madi_global_notices?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:       v.title,
+        content:     v.content,
+        notice_type: ntype,
+        pinned:      pinned
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); loadGlobalNotices(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
+  });
+}
+
+// ── 센터 공지 수정 ──
+function editCenterNotice(id) {
+  var n = (centerNoticesDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!n) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(n)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  openPostEditModal({
+    header:         '✏️ 센터 공지 수정',
+    currentTitle:   n.title || '',
+    currentContent: n.content || '',
+    selectField:    { label: '종류', current: n.notice_type || 'info', options: NOTICE_TYPE_OPTS },
+    maxTitle:       200,
+    onSave: function(v, close) {
+      var ntype  = v.selectValue || 'info';
+      var pinned = (ntype !== 'info');
+      supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:       v.title,
+        content:     v.content,
+        notice_type: ntype,
+        pinned:      pinned
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); loadCenterNotices(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
+  });
+}
+
+// ── 고객센터(라운지) 수정 — visibility 는 변경 안 함 ──
+function editLoungePost(id) {
+  var p = (loungePostsDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!p) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(p)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  var hasImages = !!(p.image_urls && p.image_urls.length);
+  openPostEditModal({
+    header:         '✏️ 문의/건의 수정',
+    currentTitle:   p.title || '',
+    currentContent: p.content || '',
+    noteHint:       hasImages ? '첨부 이미지는 그대로 유지됩니다 (텍스트만 수정 가능)' : '',
+    maxTitle:       200,
+    onSave: function(v, close) {
+      supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:   v.title,
+        content: v.content
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); loadLoungePosts(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
+  });
+}
+
+// ── 자료실 수정 — note (카테고리) 도 함께 수정 ──
+function editLibraryPost(id) {
+  var p = (loungePostsDB || []).find(function(x){ return String(x.id) === String(id); });
+  if (!p) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
+  if (!_isMyPost(p)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
+  var hasFiles = !!(p.images && (typeof p.images === 'string' ? p.images.length > 2 : p.images.length));
+  var catOptions = LIBRARY_CATEGORIES.map(function(c){ return { value: c, label: c }; });
+  openPostEditModal({
+    header:         '✏️ 자료 수정',
+    currentTitle:   p.title || '',
+    currentContent: p.content || '',
+    selectField:    { label: '카테고리', current: p.note || LIBRARY_CATEGORIES[0], options: catOptions },
+    noteHint:       hasFiles ? '첨부 파일은 그대로 유지됩니다 (텍스트만 수정 가능)' : '',
+    maxTitle:       100,
+    onSave: function(v, close) {
+      supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'PATCH', {
+        title:   v.title,
+        content: v.content,
+        note:    v.selectValue || (p.note || '')
+      })
+        .then(function() { close(); showToast('✅ 수정됐습니다'); renderLibrary(); })
+        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+    }
+  });
+}

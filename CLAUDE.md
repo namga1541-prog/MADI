@@ -11,7 +11,9 @@
 |------|------|
 | `index.html` | 메인 앱 (선생님/관리자 UI) |
 | `admin.html` | 관리자 센터 |
-| `madi-01.js` | 로그인, 공통 유틸, supaFetch |
+| `madi-01.js` | 공통 유틸, 상수, supaFetch, supaCache |
+| `madi-01-auth.js` | 랜딩·로그인·회원가입·로그아웃·비밀번호 변경 |
+| `madi-01-app.js` | DB 로드, 다크모드, 헤더 시계, 네트워크 모니터, 학부모 UI |
 | `madi-02.js` | 세션 기록 |
 | `madi-03.js` | 홈·네비게이션·공지·서비스 설정 |
 | `madi-03-dashboard.js` | 페르소나별 대시보드 렌더링 (Teacher/Admin) |
@@ -26,8 +28,10 @@
 | `madi-12.js` | 감통 평가 + 권한·배포·PWA·IndexedDB·초기화 |
 | `madi-12-chat.js` | 플로팅 AI 비서 (chat / 매크로 / 음성) |
 | `madi-13.js` | 리포트·장단기계획 |
-| `madi-14.js` | 게시판 (공지·고객센터·자료실) |
-| `madi-15.js` | 학부모 포털 전용 |
+| `madi-14.js` | 게시판 — 공지 (글로벌·센터) |
+| `madi-14-board.js` | 게시판 — 라운지(고객센터)·자료실·편집 모달 |
+| `madi-15.js` | 학부모 포털 — 홈 대시보드 및 렌더러 |
+| `madi-15-pages.js` | 학부모 포털 — 일정·포트폴리오·리포트·알림·가입·푸시 |
 | `madi-16.js` | ⚡ 빠른 기록 모드 (선생님 모바일 우선) |
 | `madi-vocab.js` | 한국 임상 어휘 사전 + AI 후처리 검열기 (다른 madi-*.js 보다 먼저 로드) |
 | `madi.css` | 전역 스타일 |
