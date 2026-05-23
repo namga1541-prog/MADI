@@ -462,6 +462,11 @@ function autoCalcAssessScores() {
     if (btn.dataset.busy === '1') return;
     btn.dataset.busy = '1';
     btn.disabled = true; btn.textContent = '⏳ AI 보완 중...';
+    // ES5 호환: .finally() 미지원 환경 대응
+    var _resetAutoCalcBtn = function() {
+      var b = document.getElementById('autoCalcBtn');
+      if (b) { b.dataset.busy = ''; b.disabled = false; b.textContent = '🤖 원점수 → 등가연령·백분위 자동 계산'; }
+    };
     var testName = typeVal === 'OTHER' ? (document.getElementById('assessCustomNameInput').value||'직접입력') : typeVal;
     var rawInputs = rawKeys.map(function(f) { var el=document.getElementById('af_'+f.key); return f.label+': '+(el&&el.value?el.value:'미입력'); }).join(', ');
     var SYSTEM = '당신은 한국 표준화 언어검사 전문가입니다. 공식 규준집을 기반으로 누락된 등가연령/백분위를 계산하세요.\n'
@@ -480,11 +485,12 @@ function autoCalcAssessScores() {
           if(n){n.style.display='block';n.textContent='⚠️ AI 추정값 포함 — 공식 규준집으로 확인하세요';}
         }
       })
+      .then(function(){ _resetAutoCalcBtn(); })
       .catch(function(e) {
         if(window.console&&console.warn)console.warn('[madi-11 autoCalc]',e&&e.message);
         showToast('❌ 자동 계산 실패 — 다시 시도해주세요');
-      })
-      .finally(function(){ var btn=document.getElementById('autoCalcBtn');if(btn){btn.dataset.busy='';btn.disabled=false;btn.textContent='🤖 원점수 → 등가연령·백분위 자동 계산';} });
+        _resetAutoCalcBtn();
+      });
   } else {
     var b2 = document.getElementById('autoCalcBtn');
     if (b2) { b2.disabled = false; b2.textContent = '🤖 원점수 → 등가연령·백분위 자동 계산'; }
@@ -885,10 +891,11 @@ function generateAssessReport() {
         + '<button class="btn-outline" style="flex:1;padding:11px 16px;" onclick="downloadWordDoc(\'' + cn + '\')">📝 HWP/Word</button>'
         + '</div>';
     })
+    .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; })
     .catch(function(err) {
       result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
-    })
-    .finally(function() { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; });
+      btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성';
+    });
 }
 
 // ─────── 부모 교육 자료 ───────
@@ -932,10 +939,11 @@ function generateParentEdu() {
       result.innerHTML = '<div class="parent-edu-preview" id="eduText">' + escHtml(raw) + '</div>'
         + '<button class="print-btn" onclick="printParentEdu(\'' + escHtml(child.name) + '\')">🖨️ 인쇄하기</button>';
     })
+    .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성'; })
     .catch(function(err) {
       result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
-    })
-    .finally(function() { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성'; });
+      btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성';
+    });
 }
 
 function printParentEdu(childName) {

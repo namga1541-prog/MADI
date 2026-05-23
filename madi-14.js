@@ -636,10 +636,12 @@ function loadLoungePosts() {
       loungePostsDB = data || [];
       // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
       if (currentUser && currentUser.role === 'superadmin') {
-        loadCentersByIdCache().finally(function() {
+        // ES5 호환: .finally() 미지원 환경 — then/catch 양쪽에서 동일 렌더
+        function _renderLoungeAfterCache() {
           if (gen !== _boardLoadGen) return;
           renderLoungeUI();
-        });
+        }
+        loadCentersByIdCache().then(_renderLoungeAfterCache, _renderLoungeAfterCache);
       } else {
         renderLoungeUI();
       }
@@ -837,12 +839,11 @@ function saveLoungePost() {
       if (preview) preview.innerHTML = '';
       showToast('✅ 글이 등록됐습니다');
       loadLoungePosts();
+      // 성공(UI 재렌더) 후 btn은 이미 교체됐을 수 있으나 no-op으로 안전
+      if (btn) { btn.disabled = false; btn.textContent = '📨 건의 보내기'; }
     })
     .catch(function(err) {
       showToast('⚠️ 등록 실패: ' + (err.message || ''));
-    })
-    .finally(function() {
-      // 성공(UI 재렌더) 후 btn은 이미 교체됐을 수 있으나 no-op으로 안전
       if (btn) { btn.disabled = false; btn.textContent = '📨 건의 보내기'; }
     });
 }

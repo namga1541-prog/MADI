@@ -10,51 +10,7 @@
  * 응답: { ok, sent, parents, subs, reason? }
  */
 import webpush from "npm:web-push@3.6.7";
-
-// ── CORS ────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = new Set([
-  'https://namga1541-prog.github.io',
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'null',
-]);
-
-function makeCORS(origin: string | null): Record<string, string> {
-  const o = origin ?? 'null';
-  const acao = ALLOWED_ORIGINS.has(o) ? o : 'https://namga1541-prog.github.io';
-  return {
-    'Access-Control-Allow-Origin':      acao,
-    'Access-Control-Allow-Headers':     'authorization, content-type',
-    'Access-Control-Allow-Methods':     'POST, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
-    'Vary': 'Origin',
-  };
-}
-
-function getCookieToken(req: Request): string {
-  const cookie = req.headers.get('cookie') || '';
-  const match  = cookie.match(/(?:^|;\s*)madi_session=([^;]+)/);
-  return match ? match[1] : '';
-}
-
-// ── JWT 검증 (ai-proxy 패턴 재사용) ─────────────────────────────────────
-async function verifyJwt(token: string, secret: string) {
-  const [header, body, sig] = token.split('.');
-  if (!header || !body || !sig) throw new Error('JWT 형식 오류');
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
-  );
-  const b64 = sig.replace(/-/g, '+').replace(/_/g, '/');
-  const raw = atob(b64);
-  const sigBytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) sigBytes[i] = raw.charCodeAt(i);
-  const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(`${header}.${body}`));
-  if (!valid) throw new Error('JWT 서명 불일치');
-  const payload = JSON.parse(atob(body.replace(/-/g, '+').replace(/_/g, '/')));
-  if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) throw new Error('JWT 만료');
-  return payload;
-}
+import { makeCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts';
 
 // ── 메인 핸들러 ─────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
@@ -80,9 +36,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // 인증
-  const auth        = req.headers.get('Authorization') || '';
-  const bearerToken = auth.replace('Bearer ', '').trim();
-  const token       = getCookieToken(req) || bearerToken;
+  const token = getAuthToken(req);
   let user: Record<string, unknown>;
   try { user = await verifyJwt(token, JWT_SECRET); } catch {
     return new Response(JSON.stringify({ error: '인증이 필요합니다' }), { status: 401, headers: { ...CORS, 'Content-Type': 'application/json' } });

@@ -2,6 +2,18 @@
 var MODEL_HAIKU  = 'claude-haiku-4-5-20251001';
 var MODEL_SONNET = 'claude-sonnet-4-6';
 
+// 역할 상수 — DB 컬럼 madi_users.role 값. 신규 코드는 이 상수만 사용.
+// (점진 치환 정책: 기존 'admin'/'teacher'/'parent'/'superadmin' 리터럴은 다음 PR 부터 교체)
+var ROLES = {
+  ADMIN:      'admin',
+  SUPERADMIN: 'superadmin',
+  TEACHER:    'teacher',
+  PARENT:     'parent'
+};
+// 역할 묶음 — `[ROLES.ADMIN, ROLES.SUPERADMIN].indexOf(role) !== -1` 대체 헬퍼
+function isAdminRole(role) { return role === ROLES.ADMIN || role === ROLES.SUPERADMIN; }
+function isStaffRole(role) { return role === ROLES.ADMIN || role === ROLES.SUPERADMIN || role === ROLES.TEACHER; }
+
 /* ── KST(UTC+9) 날짜 유틸: 실행 환경 타임존과 무관하게 동작 ── */
 function toKST(d)      { return new Date(d.getTime() + d.getTimezoneOffset() * 60000 + 9 * 3600000); }
 function nowKST()      { return toKST(new Date()); }

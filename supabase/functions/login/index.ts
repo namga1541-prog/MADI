@@ -11,25 +11,10 @@
  */
 
 import bcrypt from "npm:bcryptjs@2.4.3"
-
-// ── CORS ──────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = new Set([
-  'https://namga1541-prog.github.io',
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'null',
-])
+import { makeCORS as makeBaseCORS, signJwt, checkRateLimit } from '../_shared/auth.ts'
 
 function makeCORS(origin: string | null): Record<string, string> {
-  const o = origin ?? 'null'
-  const acao = ALLOWED_ORIGINS.has(o) ? o : 'https://namga1541-prog.github.io'
-  return {
-    'Access-Control-Allow-Origin':      acao,
-    'Access-Control-Allow-Headers':     'content-type',
-    'Access-Control-Allow-Methods':     'POST, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
-    'Vary': 'Origin',
-  }
+  return makeBaseCORS(origin, { headers: 'content-type' })
 }
 
 
@@ -60,49 +45,7 @@ async function verifyPassword(plain: string, stored: string): Promise<{ ok: bool
   return { ok: false, needRehash: false }
 }
 
-// ── JWT 서명 ──────────────────────────────────────────────────────────────
-function b64url(buf: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-}
-
-async function signJwt(payload: Record<string, unknown>, secret: string): Promise<string> {
-  const header  = b64url(new TextEncoder().encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' })))
-  const body    = b64url(new TextEncoder().encode(JSON.stringify(payload)))
-  const key     = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-  const sigBuf  = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${header}.${body}`))
-  return `${header}.${body}.${b64url(sigBuf)}`
-}
-
-// ── Rate Limit (DB 기반: madi_rate_limit_hit RPC) ──────────────────────
-// 분당 10회, 시간당 50회 초과 시 차단. 실패해도 fail-open (다른 보안 계층 의존).
-async function checkLoginRateLimit(
-  key: string, supaUrl: string, supaKey: string, perMin: number, perHour: number
-): Promise<{ allowed: boolean; retryAfter?: number }> {
-  try {
-    const r = await fetch(`${supaUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
-      method:  'POST',
-      headers: {
-        'Authorization': `Bearer ${supaKey}`,
-        'apikey':        supaKey,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({ p_key: key, p_min_window_ms: 60_000, p_hour_window_ms: 3_600_000 }),
-    })
-    if (!r.ok) return { allowed: true } // fail-open
-    const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
-    if (d.count > perMin) {
-      const wait = Math.max(1, Math.ceil((new Date(d.window_start).getTime() + 60_000 - Date.now()) / 1000))
-      return { allowed: false, retryAfter: wait }
-    }
-    if (d.hour_count > perHour) {
-      const wait = Math.max(1, Math.ceil((new Date(d.hour_start).getTime() + 3_600_000 - Date.now()) / 1000))
-      return { allowed: false, retryAfter: wait }
-    }
-    return { allowed: true }
-  } catch (_) {
-    return { allowed: true } // fail-open
-  }
-}
+// JWT 서명 / Rate Limit 은 _shared/auth.ts 에서 import
 
 // ── 메인 핸들러 ───────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
@@ -134,7 +77,7 @@ Deno.serve(async (req: Request) => {
   const xffIp = xff ? xff.split(',').pop()!.trim() : ''
   const ip    = xffIp || req.headers.get('cf-connecting-ip') || 'unknown'
   const rlKey = `login:${ip}:${username.toLowerCase()}`
-  const rl    = await checkLoginRateLimit(rlKey, SUPA_URL, SUPA_KEY, 10, 50)
+  const rl    = await checkRateLimit(rlKey, SUPA_URL, SUPA_KEY, 10, 50)
   if (!rl.allowed) {
     return new Response(
       JSON.stringify({ error: `로그인 시도가 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),

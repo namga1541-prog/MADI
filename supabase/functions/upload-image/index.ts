@@ -11,22 +11,11 @@
  * - Supabase Storage board-images 버킷에 저장
  */
 
-const ALLOWED_ORIGINS = new Set([
-  'https://namga1541-prog.github.io',
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-])
+import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts'
 
+// upload-image: sandboxed iframe CSRF 차단 위해 'null' Origin 거부
 function makeCORS(origin: string | null): Record<string, string> {
-  const o    = origin ?? ''
-  const acao = ALLOWED_ORIGINS.has(o) ? o : 'https://namga1541-prog.github.io'
-  return {
-    'Access-Control-Allow-Origin':      acao,
-    'Access-Control-Allow-Headers':     'authorization, content-type',
-    'Access-Control-Allow-Methods':     'POST, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
-    'Vary': 'Origin',
-  }
+  return makeBaseCORS(origin, { allowNullOrigin: false })
 }
 
 // ── Magic Bytes 검증 ─────────────────────────────────────────────────────
@@ -70,44 +59,7 @@ const ALLOWED_EXTS  = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp'])
 const ALLOWED_MIMES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
 const MAX_BYTES     = 5 * 1024 * 1024 // 5MB
 
-// ── JWT 검증 ─────────────────────────────────────────────────────────────
-// exp 클레임을 필수로 요구 (없으면 무기한 유효 토큰 방지)
-async function verifyJwt(token: string, secret: string) {
-  const [header, body, sig] = token.split('.')
-  if (!header || !body || !sig) throw new Error('JWT 형식 오류')
-
-  // alg 검증 — alg:none 우회 또는 비대칭→대칭 confusion 공격 차단
-  let headerObj: { alg?: string; typ?: string }
-  try {
-    headerObj = JSON.parse(atob(header.replace(/-/g, '+').replace(/_/g, '/')))
-  } catch (_) {
-    throw new Error('JWT 헤더 파싱 실패')
-  }
-  if (headerObj.alg !== 'HS256') throw new Error('지원하지 않는 JWT 알고리즘')
-
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
-  )
-  const b64      = sig.replace(/-/g, '+').replace(/_/g, '/')
-  const raw      = atob(b64)
-  const sigBytes = new Uint8Array(raw.length)
-  for (let i = 0; i < raw.length; i++) sigBytes[i] = raw.charCodeAt(i)
-
-  const valid = await crypto.subtle.verify(
-    'HMAC', key, sigBytes,
-    new TextEncoder().encode(`${header}.${body}`)
-  )
-  if (!valid) throw new Error('JWT 서명 불일치')
-
-  const payload = JSON.parse(atob(body.replace(/-/g, '+').replace(/_/g, '/')))
-
-  // exp 클레임 필수 — 없으면 무기한 유효 토큰이 되므로 거부
-  if (!payload.exp) throw new Error('JWT 만료 정보 없음 (exp 필수)')
-  if (payload.exp < Math.floor(Date.now() / 1000)) throw new Error('JWT 만료')
-
-  return payload
-}
+// JWT 검증은 _shared/auth.ts 에서 import (alg:none 차단, exp 필수 강제 포함)
 
 // ── 메인 핸들러 ──────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
@@ -131,15 +83,8 @@ Deno.serve(async (req: Request) => {
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
   // httpOnly Cookie 우선, fallback으로 Authorization 헤더
-  let token = ''
-  const cookieHeader = req.headers.get('cookie') ?? ''
-  const cookieMatch  = cookieHeader.match(/madi_token=([^;]+)/)
-  if (cookieMatch) {
-    token = cookieMatch[1]
-  } else {
-    const authHeader = req.headers.get('authorization') ?? ''
-    token = authHeader.replace(/^Bearer\s+/i, '')
-  }
+  // (참고: 과거 코드는 madi_token 쿠키였으나 _shared/auth 의 getAuthToken 은 madi_session 사용 — 통일)
+  const token = getAuthToken(req)
 
   if (!token) {
     return new Response(JSON.stringify({ error: '인증 필요' }), {

@@ -412,6 +412,12 @@ function generatePortfolio() {
     + '세션 수: ' + sessions.length + '회\n\n'
     + '세션 상세 기록:\n' + sessionLog;
 
+  // ES5 호환: .finally() 미지원 환경 대응
+  function _resetPortfolioBtn() {
+    btn.dataset.busy = '';
+    btn.disabled = false;
+    btn.textContent = '📁 포트폴리오 생성';
+  }
   callClaude(SYSTEM, USER, 3000, getAIModel())
     .then(function(raw) {
       // 학부모용 포트폴리오 — 한자어·비표준 용어 자동 치환
@@ -429,14 +435,11 @@ function generatePortfolio() {
           showToast('⚠️ 포트폴리오 저장 실패 — 화면에는 표시됩니다. 다시 시도해주세요.');
           renderPortfolio(p, child, month, sessions, goalProgress, null);
         });
+      _resetPortfolioBtn();
     })
     .catch(function(err) {
       resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
-    })
-    .finally(function() {
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '📁 포트폴리오 생성';
+      _resetPortfolioBtn();
     });
 }
 
@@ -722,19 +725,22 @@ function naturalSearch() {
     + '날짜, 수치 등 구체적인 정보를 포함하세요. 200자 내외의 친근한 한국어로 답변하세요. JSON 없이 일반 텍스트로 답변.';
   var USER = '치료 데이터:\n' + allData + '\n\n질문: ' + query;
 
+  // ES5 호환: .finally() 미지원 환경 대응
+  function _resetAskBtn() {
+    btn.dataset.busy = '';
+    btn.disabled = false;
+    btn.textContent = '🔍 AI에게 물어보기';
+  }
   callClaude(SYSTEM, USER, 800, getAIModel())
     .then(function(raw) {
       resultEl.innerHTML = '<div class="ai-response-box">'
         + '<div class="ai-response-label">🤖 AI 답변</div>'
         + '<div class="ai-response-text">' + escHtml(raw) + '</div></div>';
+      _resetAskBtn();
     })
     .catch(function(err) {
       resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
-    })
-    .finally(function() {
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '🔍 AI에게 물어보기';
+      _resetAskBtn();
     });
 }
 
@@ -773,6 +779,12 @@ function generateFAQ() {
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n'
     + '최근 세션:\n' + (summary || '없음') + '\n\n부모 질문: "' + question + '"';
 
+  // ES5 호환: .finally() 미지원 환경 대응
+  function _resetFAQBtn() {
+    btn.dataset.busy = '';
+    btn.disabled = false;
+    btn.textContent = '💬 답변 예시 생성';
+  }
   callClaude(SYSTEM, USER, 1000, getAIModel())
     .then(function(raw) {
       // 학부모 대상 — 자동 치환
@@ -782,14 +794,11 @@ function generateFAQ() {
         + '<div class="ai-response-text">' + escHtml(raw) + '</div>'
         + '<button class="btn-ghost" style="margin-top:10px;width:100%;" onclick="copyFAQText(this)">📋 답변 복사</button>'
         + '</div>';
+      _resetFAQBtn();
     })
     .catch(function(err) {
       resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
-    })
-    .finally(function() {
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '💬 답변 예시 생성';
+      _resetFAQBtn();
     });
 }
 

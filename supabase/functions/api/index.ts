@@ -1,60 +1,8 @@
-import bcrypt from "npm:bcryptjs@2.4.3"
+import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts'
 
-// 허용 Origin 목록 — 프로덕션 도메인 + 로컬 개발
-const ALLOWED_ORIGINS = new Set([
-  'https://namga1541-prog.github.io', // GitHub Pages 프로덕션
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  // file:// → Origin: null (로컬 파일 실행 배포용)
-  'null',
-])
-
+// api 함수는 x-client-info, apikey 헤더도 허용 (Supabase 클라이언트 SDK 호환)
 function makeCORS(origin: string | null): Record<string, string> {
-  const o = origin ?? 'null'
-  const acao = ALLOWED_ORIGINS.has(o) ? o : 'https://namga1541-prog.github.io'
-  return {
-    'Access-Control-Allow-Origin':      acao,
-    'Access-Control-Allow-Headers':     'authorization, content-type, x-client-info, apikey',
-    'Access-Control-Allow-Methods':     'POST, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
-    'Vary': 'Origin',
-  }
-}
-
-// httpOnly 쿠키에서 JWT 추출
-function getCookieToken(req: Request): string {
-  const cookie = req.headers.get('cookie') || ''
-  const match  = cookie.match(/(?:^|;\s*)madi_session=([^;]+)/)
-  return match ? match[1] : ''
-}
-
-async function verifyJwt(token: string, secret: string) {
-  const [header, body, sig] = token.split('.')
-  if (!header || !body || !sig) throw new Error('JWT 형식 오류')
-  // alg 검증 — alg:none / 대칭-비대칭 confusion 공격 차단
-  let headerObj: { alg?: string }
-  try {
-    headerObj = JSON.parse(atob(header.replace(/-/g, '+').replace(/_/g, '/')))
-  } catch (_) { throw new Error('JWT 헤더 파싱 실패') }
-  if (headerObj.alg !== 'HS256') throw new Error('지원하지 않는 JWT 알고리즘')
-
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
-  )
-  const b64  = sig.replace(/-/g, '+'). replace(/_/g, '/')
-  const raw  = atob(b64)
-  const sigBytes = new Uint8Array(raw.length)
-  for (let i = 0; i < raw.length; i++) sigBytes[i] = raw.charCodeAt(i)
-
-  const valid = await crypto.subtle.verify(
-    'HMAC', key, sigBytes,
-    new TextEncoder().encode(`${header}.${body}`)
-  )
-  if (!valid) throw new Error('JWT 서명 불일치')
-  const payload = JSON.parse(atob(body.replace(/-/g, '+').replace(/_/g, '/')))
-  if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) throw new Error('JWT 만료')
-  return payload
+  return makeBaseCORS(origin, { headers: 'authorization, content-type, x-client-info, apikey' })
 }
 
 const ALLOWED_TABLES = [
@@ -135,9 +83,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // 인증 토큰: httpOnly 쿠키 우선, Bearer 헤더 하위 호환 유지
-  const auth        = req.headers.get('Authorization') || ''
-  const bearerToken = auth.replace('Bearer ', '').trim()
-  const token       = getCookieToken(req) || bearerToken
+  const token = getAuthToken(req)
   let user: Record<string, unknown>
 
   try {

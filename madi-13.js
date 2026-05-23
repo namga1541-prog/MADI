@@ -414,13 +414,12 @@ function generateSIReport() {
         + '<div id="siReportText" style="white-space:pre-wrap;font-size:13px;line-height:1.8;color:var(--text);">' + escHtml(text) + '</div>'
         + '</div>';
       showToast('✅ 감통 보고서 생성 완료!');
+      btn.dataset.busy = ''; btn.disabled = false;
+      btn.textContent = '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)';
     })
     .catch(function(e) {
       result.innerHTML = '<div style="color:#ef4444;padding:10px;">❌ 오류: ' + escHtml(e.message||'알 수 없는 오류') + '</div>';
-    })
-    .finally(function() {
-      btn.dataset.busy = '';
-      btn.disabled = false;
+      btn.dataset.busy = ''; btn.disabled = false;
       btn.textContent = '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)';
     });
 }

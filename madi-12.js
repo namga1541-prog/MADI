@@ -1647,11 +1647,14 @@ function sendChat() {
       setTimeout(function() { executeAction(parsed.action); }, 600);
     }
   })
+  .then(function() {
+    chatWaiting = false;
+    document.getElementById('chatSendBtn').disabled = false;
+    document.getElementById('chatQuickBtns').style.display = 'flex';
+  })
   .catch(function(err) {
     hideTypingIndicator();
     addAiMsg('오류가 발생했어요 😅\n' + err.message);
-  })
-  .finally(function() {
     chatWaiting = false;
     document.getElementById('chatSendBtn').disabled = false;
     document.getElementById('chatQuickBtns').style.display = 'flex';

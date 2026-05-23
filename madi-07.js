@@ -73,6 +73,12 @@ function saveSessionAI() {
     + (_phonoGuide ? '\n' + _phonoGuide : '');
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n치료사 입력:\n' + aiText;
 
+  // ES5 호환: .finally() 미지원 환경 대응 — 양 분기에서 동일 cleanup
+  function _resetAISaveBtn() {
+    btn.dataset.busy = '';
+    btn.disabled = false;
+    btn.textContent = '🤖 AI 정리 후 저장';
+  }
   callClaude(SYSTEM, USER, 1200, MODEL_HAIKU)
     .then(function(raw) {
       var p = parseJSON(raw);
@@ -100,13 +106,9 @@ function saveSessionAI() {
       setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
       setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
       setTimeout(function() { checkAutoStagnation(childId); }, 1200);
+      _resetAISaveBtn();
     })
-    .catch(function(err) { showToast('❌ ' + err.message); })
-    .finally(function() {
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '🤖 AI 정리 후 저장';
-    });
+    .catch(function(err) { showToast('❌ ' + err.message); _resetAISaveBtn(); });
 }
 
 // ─────── 기능 2: 가정 활동 추천 AI ───────
@@ -724,16 +726,19 @@ function detectStagnation() {
   var stagnBtn = document.querySelector('[onclick*="detectStagnation"]');
   if (stagnBtn) { if (stagnBtn.dataset.busy === '1') return; stagnBtn.dataset.busy = '1'; stagnBtn.disabled = true; }
 
+  // ES5 호환: .finally() 미지원 환경 대응
+  function _resetStagnBtn() {
+    if (stagnBtn) { stagnBtn.dataset.busy = ''; stagnBtn.disabled = false; }
+  }
   callClaude(SYSTEM, USER, 1800, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
       renderStagnationResult(p, child.name, childId);
+      _resetStagnBtn();
     })
     .catch(function(err) {
       resultEl.innerHTML = '<div class="stagnation-card"><div class="stagnation-text">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
-    })
-    .finally(function() {
-      if (stagnBtn) { stagnBtn.dataset.busy = ''; stagnBtn.disabled = false; }
+      _resetStagnBtn();
     });
 }
 
