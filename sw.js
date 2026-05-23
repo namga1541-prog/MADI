@@ -7,7 +7,18 @@ var SKIP_PATH_FRAGMENTS = ["/functions/v1/","/rest/v1/","/storage/v1/","/auth/v1
 // SWR 대상 호스트 (정적 CDN)
 var SWR_HOSTS = ["cdnjs.cloudflare.com","cdn.jsdelivr.net","fonts.googleapis.com","fonts.gstatic.com"];
 
-self.addEventListener("install", function(e) { self.skipWaiting(); });
+// 오프라인 폴백 페이지 — 네트워크 실패 + 캐시 미스 시 표시
+var OFFLINE_URL = "./offline.html";
+
+self.addEventListener("install", function(e) {
+  // 설치 즉시 오프라인 페이지를 캐시에 적재 (네트워크 끊긴 상태에서도 표시 가능)
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(function(c) {
+      return c.add(new Request(OFFLINE_URL, { cache: "reload" }));
+    }).catch(function(){ /* 첫 설치 시 네트워크 실패해도 무시 */ })
+  );
+  self.skipWaiting();
+});
 self.addEventListener("activate", function(e) {
   e.waitUntil(
     caches.keys().then(function(keys) {
@@ -17,14 +28,21 @@ self.addEventListener("activate", function(e) {
 });
 
 // network-first: 매번 네트워크 시도 → 성공 시 캐시 갱신, 실패 시 캐시 폴백
-function networkFirst(req) {
+// HTML 문서는 캐시도 없으면 오프라인 페이지로 폴백
+function networkFirst(req, isHTML) {
   return fetch(req).then(function(res) {
     if (res && res.status === 200 && res.type !== "opaque") {
       var clone = res.clone();
       caches.open(CACHE_NAME).then(function(c) { c.put(req, clone); });
     }
     return res;
-  }).catch(function() { return caches.match(req); });
+  }).catch(function() {
+    return caches.match(req).then(function(cached) {
+      if (cached) return cached;
+      if (isHTML) return caches.match(OFFLINE_URL);
+      return Response.error();
+    });
+  });
 }
 
 // stale-while-revalidate: 캐시 즉시 응답 + 백그라운드 갱신
@@ -57,7 +75,7 @@ self.addEventListener("fetch", function(e) {
             || url.pathname.endsWith('.html')
             || url.pathname === '/' || url.pathname.endsWith('/');
   if (isHTML) {
-    e.respondWith(networkFirst(e.request));
+    e.respondWith(networkFirst(e.request, true));
     return;
   }
 

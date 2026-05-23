@@ -936,33 +936,8 @@ var _pwaPrompt = null;
 function initPWA() {
   var NL = String.fromCharCode(10);
 
-  var iconUrl192 = './icon-192.png';
-  var iconUrl512 = './icon-512.png';
-  var iconUrl180 = './icon-180.png';
-
-  var iconLink = document.getElementById('pwaIcon');
-  if (iconLink) iconLink.href = iconUrl180;
-
-  var manifest = {
-    name: '아이마디 — 언어치료 AI 비서',
-    short_name: '아이마디',
-    description: '언어치료사를 위한 AI 기반 세션 관리 앱',
-    start_url: './',
-    scope: './',
-    display: 'standalone',
-    background_color: '#0f2942',
-    theme_color: '#0ea5a0',
-    orientation: 'portrait-primary',
-    lang: 'ko',
-    icons: [
-      { src: iconUrl192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-      { src: iconUrl512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
-    ]
-  };
-  var manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-  var manifestUrl  = URL.createObjectURL(manifestBlob);
-  var manifestLink = document.getElementById('pwaManifest');
-  if (manifestLink) manifestLink.href = manifestUrl;
+  // 매니페스트와 아이콘은 정적 파일(./manifest.json, ./icon-*.png)에서 직접 로드
+  // — index.html / admin.html <head> 의 <link rel="manifest"> 가 처리
 
   // ── Service Worker 등록: ./sw.js 우선, 실패 시 Blob URL 폴백 ──
   if ('serviceWorker' in navigator) {

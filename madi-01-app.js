@@ -409,3 +409,33 @@ function applyUserUI() {
   var qb = document.getElementById('headerQuickBtn');
   if (qb) qb.style.display = (currentUser.role === 'teacher') ? 'inline-flex' : 'none';
 }
+
+/* ─── 모바일 키보드 대응 (iOS / Android) ──────────────────────────────
+   visualViewport.resize 로 가상 키보드 높이를 감지해
+   body 의 --kb-offset 변수에 반영. CSS 측에서 모달 등이 padding-bottom 으로
+   참조해 입력란이 키보드 뒤로 숨지 않도록 한다. */
+(function setupKeyboardOffset() {
+  if (!window.visualViewport) return;
+  var vv = window.visualViewport;
+  var lastOffset = 0;
+  function updateKbOffset() {
+    // 키보드가 올라오면 layout viewport - visual viewport 만큼 가려짐
+    var kb = Math.max(0, (window.innerHeight - vv.height) - vv.offsetTop);
+    // 50px 미만은 노이즈로 간주 (브라우저 주소창 토글 등)
+    if (kb < 50) kb = 0;
+    if (Math.abs(kb - lastOffset) < 8) return;
+    lastOffset = kb;
+    document.body.style.setProperty('--kb-offset', kb + 'px');
+    // 키보드 표시 중에는 포커스된 인풋을 화면 안으로 스크롤
+    if (kb > 0 && document.activeElement && document.activeElement.scrollIntoView) {
+      try {
+        var rect = document.activeElement.getBoundingClientRect();
+        if (rect.bottom > vv.height - 40) {
+          document.activeElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      } catch (e) {}
+    }
+  }
+  vv.addEventListener('resize', updateKbOffset);
+  vv.addEventListener('scroll', updateKbOffset);
+})();

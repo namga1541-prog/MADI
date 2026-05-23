@@ -2097,3 +2097,106 @@ body.dark-mode .breadcrumb-bar .bc-home { color:white; }
   #panelQuick textarea.form-input { font-size: 16px; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   📱 모바일 UX 보강 — 출시 전 검토 (2026-05-23)
+   ─ 다루는 항목:
+     1) 하단 fixed 요소 safe-area-inset-bottom (iPhone 홈인디케이터)
+     2) iOS Safari 자동 줌 방지 (input 16px 이상 보장)
+     3) .tab-btn / 핵심 버튼 터치 타깃 44px 확보
+     4) :hover sticky 방지 (@media (hover: none))
+     5) 인풋 포커스 시 텍스트 선택 부드럽게
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* (1) iPhone 홈인디케이터 대응 — bottom-fixed UI 요소 */
+.float-btn { bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important; }
+.chat-window { bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important; }
+.pwa-banner { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
+.toast { bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
+body.pwa-banner-open .float-btn { bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important; }
+body.pwa-banner-open .chat-window { bottom: calc(156px + env(safe-area-inset-bottom, 0px)) !important; }
+
+/* (2) iOS 자동 줌 방지 — 전역 폴백 (포커스된 인풋만 16px 적용해 레이아웃 영향 최소화) */
+@media (max-width: 768px) {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    font-size: max(16px, 1em);
+  }
+  /* 자주 쓰는 작은 인풋들도 평상시 16px 로 통일 (값 가독성도 ↑) */
+  .apikey-bar input,
+  .goal-name-input,
+  .goal-score-input,
+  .phoneme-input,
+  #panelSI.sub-panel .form-input,
+  .quick-form-card .form-input,
+  .quick-form-card textarea.form-input {
+    font-size: 16px;
+  }
+}
+
+/* (3) 상단 탭바 터치 타깃 44px 보장 (WCAG / Apple HIG / Material) */
+.tab-btn { min-height: 48px; }
+@media (max-width: 480px) {
+  .tab-btn { min-height: 46px; padding: 8px 2px; }
+}
+/* 핵심 액션 버튼이 너무 작은 경우 일괄 보강 */
+.week-nav-btn,
+.btn-del,
+.pwa-close-btn { min-height: 44px; min-width: 44px; }
+
+/* (4) 터치 단말에서 :hover sticky 방지 — 핵심 인터랙티브 요소만 차단 */
+@media (hover: none) {
+  .btn:hover,
+  .btn-primary:hover,
+  .btn-ghost:hover,
+  .sidebar-item:hover,
+  .child-card:hover,
+  .sched-block:hover,
+  .float-btn:hover,
+  .more-menu-item:hover,
+  .tab-btn:hover {
+    background-color: inherit;
+    box-shadow: inherit;
+    transform: none;
+    filter: none;
+  }
+  /* 탭/사이드바는 active 상태만 강조 (hover 무력화) */
+  .tab-btn:hover:not(.active) { color: var(--text2); }
+}
+
+/* (5) 인풋 포커스/롱탭 시 시각 피드백 부드럽게 + iOS Safari 인풋 ‘찰칵’ 회색 박스 제거 */
+input, textarea, select, button, a {
+  -webkit-tap-highlight-color: rgba(14, 165, 160, 0.12);
+}
+button, a {
+  touch-action: manipulation; /* 더블탭 줌 방지 — 단일 탭 응답 속도 ↑ */
+}
+
+/* (6) 가로 스크롤 방지 — 모바일에서 viewport 넘는 요소 차단 */
+html, body { overflow-x: hidden; }
+
+/* (7) 작은 폰트(<14px) 가독성 보강 — 모바일에서만 적용 */
+@media (max-width: 480px) {
+  .child-meta,
+  .child-session-count,
+  .month-day-label,
+  .stat-lbl { line-height: 1.5; }
+}
+
+/* (8) iOS Safari visualViewport 키보드 대응 — body 에 --kb-offset 변수 활용
+       (madi-01-app.js 에서 visualViewport.resize 로 변수 세팅) */
+body {
+  --kb-offset: 0px;
+}
+.sched-modal-overlay,
+#deleteConfirmModal,
+#bulkClosedDateModal {
+  padding-bottom: calc(20px + var(--kb-offset, 0px));
+  transition: padding-bottom 0.2s ease;
+}
+
+/* (9) 다크모드 대비 보강 — 모바일에서 카드 경계 가시성 ↑ */
+@media (max-width: 768px) {
+  body.dark-mode .card { border: 1px solid var(--border); }
+}
+
