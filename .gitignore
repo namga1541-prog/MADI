@@ -24,3 +24,6 @@ supabase/.temp/
 
 # 스토어 출시 시 사업자 정보·계정 비밀번호 등 비공개 자료 (로컬·비밀번호 매니저에만 보관)
 store-assets/private/
+
+# AI 코드 리뷰용 번들 — .local-scripts/build-review-bundle.js 로 언제든 재생성 가능
+review-bundle/
