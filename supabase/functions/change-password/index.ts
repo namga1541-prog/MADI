@@ -69,6 +69,37 @@ async function verifyPassword(plain: string, stored: string): Promise<boolean> {
   return (await sha256Hex(plain)) === stored
 }
 
+// ── Rate Limit (madi_rate_limit_hit RPC) ───────────────────────────────
+// 비밀번호 변경 시도: 시간당 5회 제한 (잘못된 currentPassword 반복 차단)
+async function checkPasswordRateLimit(
+  key: string, supaUrl: string, supaKey: string
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  try {
+    const r = await fetch(`${supaUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${supaKey}`,
+        'apikey':        supaKey,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ p_key: key, p_min_window_ms: 60_000, p_hour_window_ms: 3_600_000 }),
+    })
+    if (!r.ok) return { allowed: true }
+    const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
+    if (d.count > 3) {
+      const wait = Math.max(1, Math.ceil((new Date(d.window_start).getTime() + 60_000 - Date.now()) / 1000))
+      return { allowed: false, retryAfter: wait }
+    }
+    if (d.hour_count > 5) {
+      const wait = Math.max(1, Math.ceil((new Date(d.hour_start).getTime() + 3_600_000 - Date.now()) / 1000))
+      return { allowed: false, retryAfter: wait }
+    }
+    return { allowed: true }
+  } catch (_) {
+    return { allowed: true }
+  }
+}
+
 // ── 메인 핸들러 ───────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   const CORS = makeCORS(req.headers.get('origin'))
@@ -91,6 +122,15 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: '인증이 필요합니다' }), { status: 401, headers: CORS })
   }
 
+  // ── Rate Limit: 사용자별 분당 3회 / 시간당 5회 ──
+  const rl = await checkPasswordRateLimit(`pwchange:${String(user.sub)}`, SUPA_URL, SUPA_KEY)
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ error: `비밀번호 변경 시도가 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),
+      { status: 429, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(rl.retryAfter ?? 60) } }
+    )
+  }
+
   let body: { currentPassword?: string; newPassword?: string }
   try { body = await req.json() } catch {
     return new Response(JSON.stringify({ error: '잘못된 요청 형식' }), { status: 400, headers: CORS })
@@ -100,6 +140,12 @@ Deno.serve(async (req: Request) => {
   const newPw     = body.newPassword     || ''
   if (!currentPw || !newPw) {
     return new Response(JSON.stringify({ error: '현재 비밀번호와 새 비밀번호를 모두 입력해주세요' }), { status: 400, headers: CORS })
+  }
+  if (newPw.length < 8) {
+    return new Response(JSON.stringify({ error: '새 비밀번호는 8자 이상이어야 합니다' }), { status: 400, headers: CORS })
+  }
+  if (newPw.length > 128) {
+    return new Response(JSON.stringify({ error: '새 비밀번호는 128자 이하여야 합니다' }), { status: 400, headers: CORS })
   }
   if (currentPw === newPw) {
     return new Response(JSON.stringify({ error: '현재 비밀번호와 동일합니다' }), { status: 400, headers: CORS })

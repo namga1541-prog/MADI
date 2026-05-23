@@ -6,13 +6,15 @@
  * - 전화번호 포맷 서버 검증
  * - 아동 조회: PostgREST JSONB 필터 (limit 없음, 서버 측 필터링)
  * - 아동 정보 최소한만 반환 (childId·이름만 — center_id 미노출)
- * - 회원가입 시 SHA-256 해싱 (/login 검증 방식과 동일)
+ * - 회원가입 시 bcrypt(cost=12) 해싱 — 첫 로그인부터 강력 해시 보장
  * - signup 시 phone-child 매핑 재검증 (임의 childId 주입 방지)
  * - CORS: 'null' Origin 제거 (sandboxed iframe CSRF 방지)
  *
  * action: 'lookup'  — 전화번호로 아동 조회 + 중복 계정 확인
  * action: 'signup'  — 학부모 계정 생성 + madi_parent_children 연결
  */
+
+import bcrypt from "npm:bcryptjs@2.4.3"
 
 const ALLOWED_ORIGINS = new Set([
   'https://namga1541-prog.github.io',
@@ -119,9 +121,11 @@ Deno.serve(async (req: Request) => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-           ?? req.headers.get('cf-connecting-ip')
-           ?? 'unknown'
+  // x-forwarded-for 의 가장 오른쪽 IP — proxy chain 상 클라이언트와 가장 가까운 신뢰 가능 IP.
+  // 가장 왼쪽을 쓰면 공격자가 임의 IP 를 prepend 해 rate limit 우회 가능.
+  const xff   = req.headers.get('x-forwarded-for') ?? ''
+  const xffIp = xff ? xff.split(',').pop()!.trim() : ''
+  const ip    = xffIp || req.headers.get('cf-connecting-ip') || 'unknown'
 
   let body: { action?: string; phone?: string; password?: string; childIds?: string[] }
   try {
@@ -280,8 +284,9 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // SHA-256 해싱 (기존 /login 검증 방식과 동일)
-    const hashedPassword = await sha256Hex(password)
+    // bcrypt(cost=12) 즉시 해싱 — /login 의 verifyPassword 가 bcrypt 우선 매칭.
+    // 기존 SHA-256 lazy-migration 경로는 첫 로그인 시점에야 강화되는 약점이 있어 회원가입부터 강력 해시 적용.
+    const hashedPassword = await bcrypt.hash(password, 12)
 
     // madi_users 삽입
     const userId  = crypto.randomUUID()

@@ -1039,7 +1039,9 @@ function _dpFreshnessLabel() {
 }
 
 // 신선도 라벨 30초마다 자동 갱신 — 폴링이 10초 간격이지만 라벨 자체는 분 단위로 변하므로 30초면 충분
-if (typeof window !== 'undefined' && !window._dpFreshnessTimer) {
+// 백그라운드에서는 정지 (모바일 배터리 절약)
+function _startDpFreshnessTimer() {
+  if (typeof window === 'undefined' || window._dpFreshnessTimer) return;
   window._dpFreshnessTimer = setInterval(function() {
     var labels = document.querySelectorAll('.dp-freshness');
     if (!labels.length) return;
@@ -1048,6 +1050,21 @@ if (typeof window !== 'undefined' && !window._dpFreshnessTimer) {
       labels[i].textContent = txt ? ' · ' + txt : '';
     }
   }, 30000);
+}
+function _stopDpFreshnessTimer() {
+  if (typeof window !== 'undefined' && window._dpFreshnessTimer) {
+    clearInterval(window._dpFreshnessTimer);
+    window._dpFreshnessTimer = null;
+  }
+}
+_startDpFreshnessTimer();
+if (typeof window !== 'undefined' && !window._dpFreshnessUnloadBound) {
+  window._dpFreshnessUnloadBound = true;
+  window.addEventListener('beforeunload', _stopDpFreshnessTimer);
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') _stopDpFreshnessTimer();
+    else _startDpFreshnessTimer();
+  });
 }
 
 // ────────────────────────────────────────────────────────────────

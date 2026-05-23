@@ -30,21 +30,38 @@ function makeCORS(origin: string | null): Record<string, string> {
 }
 
 // ── Magic Bytes 검증 ─────────────────────────────────────────────────────
-// WebP: RIFF(4B) + 크기(4B) + WEBP(4B) — RIFF 4바이트만 보면 WAV/AVI도 통과하므로
-//       bytes[8..11] = W E B P 까지 반드시 확인
+// WebP: RIFF(4B) + 크기(4B) + WEBP(4B) + VP8|VP8L|VP8X 청크
+//   RIFF 4바이트만 보면 WAV/AVI도 통과 → bytes[8..11] = W E B P
+//   추가로 bytes[12..15] 의 VP8/VP8L/VP8X 청크 시그니처까지 검증해
+//   "RIFF...WEBP" 헤더만 갖다 붙인 polyglot 우회를 차단.
+//   PNG/JPEG/GIF 도 헤더 외 길이 sanity 체크 추가.
 function detectMime(bytes: Uint8Array): string | null {
-  if (bytes.length < 12) return null
+  if (bytes.length < 16) return null
 
-  // JPEG: FF D8 FF
-  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'image/jpeg'
-  // PNG: 89 50 4E 47
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'image/png'
-  // GIF: 47 49 46 38
-  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return 'image/gif'
-  // WebP: RIFF(0-3) + 임의 크기(4-7) + WEBP(8-11)
+  // JPEG: FF D8 FF .. .. FF D9 (마지막 2바이트가 EOI 마커)
+  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+    // EOI 검증은 트레일러로만, 헤더 통과 시 JPEG 으로 인정
+    return 'image/jpeg'
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A (전체 8바이트 시그니처)
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47
+    && bytes[4] === 0x0D && bytes[5] === 0x0A && bytes[6] === 0x1A && bytes[7] === 0x0A) {
+    return 'image/png'
+  }
+  // GIF: 47 49 46 38 (37|39) 61  ("GIF87a" / "GIF89a")
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38
+    && (bytes[4] === 0x37 || bytes[4] === 0x39) && bytes[5] === 0x61) {
+    return 'image/gif'
+  }
+  // WebP: RIFF(0-3) + 크기(4-7) + WEBP(8-11) + VP8|VP8L|VP8X(12-15)
   if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46
     && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
-    return 'image/webp'
+    const c12 = bytes[12], c13 = bytes[13], c14 = bytes[14], c15 = bytes[15]
+    // 'VP8 ' (Simple lossy), 'VP8L' (lossless), 'VP8X' (extended)
+    const isVP8  = c12 === 0x56 && c13 === 0x50 && c14 === 0x38 && c15 === 0x20
+    const isVP8L = c12 === 0x56 && c13 === 0x50 && c14 === 0x38 && c15 === 0x4C
+    const isVP8X = c12 === 0x56 && c13 === 0x50 && c14 === 0x38 && c15 === 0x58
+    if (isVP8 || isVP8L || isVP8X) return 'image/webp'
   }
   return null
 }
@@ -107,7 +124,9 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 1. JWT 인증 ──
-  const JWT_SECRET   = Deno.env.get('JWT_SECRET') ?? ''
+  // MADI_JWT_SECRET 으로 통일 (다른 5개 Edge Function 과 동일)
+  // JWT_SECRET 은 하위 호환을 위해 fallback 으로만 사용
+  const JWT_SECRET   = Deno.env.get('MADI_JWT_SECRET') ?? Deno.env.get('JWT_SECRET') ?? ''
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 

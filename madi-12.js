@@ -182,6 +182,20 @@ function stopRealtime() {
   }
 }
 
+// 페이지 unload / 백그라운드 전환 시 폴링 정지 — 모바일에서 백그라운드 네트워크 낭비 방지
+if (typeof window !== 'undefined' && !window._madiPollUnloadBound) {
+  window._madiPollUnloadBound = true;
+  window.addEventListener('beforeunload', stopRealtime);
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+      stopRealtime();
+    } else if (document.visibilityState === 'visible' && typeof currentUser !== 'undefined' && currentUser) {
+      // 다시 활성화되면 폴링 재시작
+      initRealtime();
+    }
+  });
+}
+
 // ─────── 마디 폴더 핸들 관리 (IndexedDB) ───────
 function _openMadiDB() {
   return new Promise(function(resolve, reject) {

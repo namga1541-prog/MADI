@@ -37,6 +37,37 @@ function getCookieToken(req: Request): string {
   return match ? match[1] : ''
 }
 
+// ── Rate Limit (madi_rate_limit_hit RPC) ──────────────────────────────────
+// AI 호출 비용 폭주 차단. 사용자별 분당 10회, 시간당 60회.
+async function checkAiRateLimit(
+  key: string, supaUrl: string, supaKey: string
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  try {
+    const r = await fetch(`${supaUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${supaKey}`,
+        'apikey':        supaKey,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ p_key: key, p_min_window_ms: 60_000, p_hour_window_ms: 3_600_000 }),
+    })
+    if (!r.ok) return { allowed: true }
+    const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
+    if (d.count > 10) {
+      const wait = Math.max(1, Math.ceil((new Date(d.window_start).getTime() + 60_000 - Date.now()) / 1000))
+      return { allowed: false, retryAfter: wait }
+    }
+    if (d.hour_count > 60) {
+      const wait = Math.max(1, Math.ceil((new Date(d.hour_start).getTime() + 3_600_000 - Date.now()) / 1000))
+      return { allowed: false, retryAfter: wait }
+    }
+    return { allowed: true }
+  } catch (_) {
+    return { allowed: true }
+  }
+}
+
 // ── JWT 검증 ──────────────────────────────────────────────────────────────
 async function verifyJwt(token: string, secret: string) {
   const [header, body, sig] = token.split('.')
@@ -81,6 +112,16 @@ Deno.serve(async (req: Request) => {
   const centerId = user.center_id as string
   if (!centerId) {
     return new Response(JSON.stringify({ error: '센터 정보 없음' }), { status: 403, headers: CORS })
+  }
+
+  // ── Rate Limit: 사용자별 분당 10회 / 시간당 60회 ──
+  // Anthropic 토큰 비용 폭주 방지 (한 사용자가 분당 수백 콜 호출 차단)
+  const rl = await checkAiRateLimit(`aiproxy:${String(user.sub)}`, SUPA_URL, SUPA_KEY)
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ error: `AI 요청이 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),
+      { status: 429, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(rl.retryAfter ?? 60) } }
+    )
   }
 
   // 센터 Anthropic API 키 조회 (madi_settings는 center_id 컬럼 없음 — key만으로 조회)

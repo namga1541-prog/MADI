@@ -79,11 +79,19 @@ Edge Function이나 SQL에서 컬럼을 참조할 때는 아래 목록 기준으
 
 | 테이블 | 컬럼 |
 |--------|------|
-| `madi_users` | `id`, `username`, `name`, `password`, `role`, `center_id`, `color`, `permissions` |
-| `madi_parent_children` | `parent_user_id`, `child_id` |
+| `madi_users` | `id`, `username`, `name`, `password`, `role`, `center_id`, `color`, `permissions`, `password_changed_at`, `status` |
+| `madi_parent_children` | `parent_user_id`, `child_id`, `center_id` |
 | `madi_centers` | `id` (PK, center_id로 사용) |
+| `madi_notifications` | `id`, `user_id`, `center_id`, `type`, `title`, `body`, `link`, `read_at`, `created_at` |
+| `madi_audit_log` | `id`, `actor_id`, `actor_name`, `action`, `table_name`, `record_id`, `child_id`, `changed_cols`, `occurred_at` |
+| `madi_portfolios` | `id`, `child_id`, `center_id`, `parent_visible`, `created_by`, `opened_by`, `data`, `created_at` |
+| `madi_rate_limits` | `key` (PK), `count`, `window_start`, `hour_count`, `hour_start`, `updated_at` |
+| `madi_push_subscriptions` | `id`, `user_id`, `endpoint`, `p256dh`, `auth`, `created_at` |
+| `madi_push_settings` | `center_id`, `enabled`, `push_time`, `message_title`, `message_body`, `last_sent_date` |
+| `madi_settings` | `key` (PK), `value` — **전역 테이블, center_id 컬럼 없음** |
 
 > 위 목록에 없는 컬럼을 추가하려면 코드와 DB 스키마를 동시에 수정해야 함.
+> SQL 파일 실행 순서는 [MIGRATIONS_RUNBOOK.md](./MIGRATIONS_RUNBOOK.md) 참고.
 
 ## 테스트
 ```bash

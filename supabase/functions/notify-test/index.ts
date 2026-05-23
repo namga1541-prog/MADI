@@ -71,8 +71,12 @@ Deno.serve(async (req: Request) => {
   if (!JWT_SECRET || !SUPA_URL || !SUPA_KEY) {
     return new Response(JSON.stringify({ error: '서버 설정 오류' }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
-  if (!VAPID_PUB || !VAPID_PRIV) {
-    return new Response(JSON.stringify({ error: 'VAPID 키 미설정' }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+  // VAPID 키 placeholder 거부 — 'REPLACE_ME' 등이 설정되어 있으면 발송 실패가 무음으로 진행됨
+  const VAPID_BAD = !VAPID_PUB || !VAPID_PRIV
+    || VAPID_PUB === 'REPLACE_ME' || VAPID_PRIV === 'REPLACE_ME'
+    || VAPID_PUB.length < 43 || VAPID_PRIV.length < 43;
+  if (VAPID_BAD) {
+    return new Response(JSON.stringify({ error: 'VAPID 키가 설정되지 않았거나 placeholder 값입니다. Supabase Secrets 를 확인하세요.' }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
 
   // 인증

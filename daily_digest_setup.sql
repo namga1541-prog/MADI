@@ -93,6 +93,16 @@ BEGIN
 END;
 $$;
 
+-- ── pg_cron extension 활성화 (없으면 안내) ────────────────────────────
+-- Supabase 신규 프로젝트는 기본 비활성. Dashboard > Database > Extensions 에서 'pg_cron' 활성화 필요.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    RAISE EXCEPTION 'pg_cron extension 이 활성화되지 않았습니다. '
+                    'Supabase Dashboard > Database > Extensions 에서 pg_cron 을 활성화한 후 다시 실행하세요.';
+  END IF;
+END $$;
+
 -- ── pg_cron 스케줄 등록 ──────────────────────────────────────────────
 -- 09:00 UTC = KST 18:00 (오후 6시) — 운영 종료 시각에 다음날 점검 준비
 -- 기존 스케줄이 있으면 먼저 해제 후 재등록

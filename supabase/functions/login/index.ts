@@ -73,6 +73,37 @@ async function signJwt(payload: Record<string, unknown>, secret: string): Promis
   return `${header}.${body}.${b64url(sigBuf)}`
 }
 
+// ── Rate Limit (DB 기반: madi_rate_limit_hit RPC) ──────────────────────
+// 분당 10회, 시간당 50회 초과 시 차단. 실패해도 fail-open (다른 보안 계층 의존).
+async function checkLoginRateLimit(
+  key: string, supaUrl: string, supaKey: string, perMin: number, perHour: number
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  try {
+    const r = await fetch(`${supaUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${supaKey}`,
+        'apikey':        supaKey,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ p_key: key, p_min_window_ms: 60_000, p_hour_window_ms: 3_600_000 }),
+    })
+    if (!r.ok) return { allowed: true } // fail-open
+    const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
+    if (d.count > perMin) {
+      const wait = Math.max(1, Math.ceil((new Date(d.window_start).getTime() + 60_000 - Date.now()) / 1000))
+      return { allowed: false, retryAfter: wait }
+    }
+    if (d.hour_count > perHour) {
+      const wait = Math.max(1, Math.ceil((new Date(d.hour_start).getTime() + 3_600_000 - Date.now()) / 1000))
+      return { allowed: false, retryAfter: wait }
+    }
+    return { allowed: true }
+  } catch (_) {
+    return { allowed: true } // fail-open
+  }
+}
+
 // ── 메인 핸들러 ───────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   const CORS = makeCORS(req.headers.get('origin'))
@@ -95,6 +126,20 @@ Deno.serve(async (req: Request) => {
   const password = body.password || ''
   if (!username || !password) {
     return new Response(JSON.stringify({ error: '아이디와 비밀번호를 입력해주세요' }), { status: 400, headers: CORS })
+  }
+
+  // ── 레이트 리밋: IP+username 키, 분당 10회/시간당 50회 ──
+  // x-forwarded-for 의 가장 오른쪽 IP (proxy chain 상 신뢰 가능한 client IP)
+  const xff   = req.headers.get('x-forwarded-for') ?? ''
+  const xffIp = xff ? xff.split(',').pop()!.trim() : ''
+  const ip    = xffIp || req.headers.get('cf-connecting-ip') || 'unknown'
+  const rlKey = `login:${ip}:${username.toLowerCase()}`
+  const rl    = await checkLoginRateLimit(rlKey, SUPA_URL, SUPA_KEY, 10, 50)
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ error: `로그인 시도가 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),
+      { status: 429, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(rl.retryAfter ?? 60) } }
+    )
   }
 
   // DB에서 사용자 조회

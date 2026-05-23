@@ -31,6 +31,12 @@ function generateReport() {
     + _parentGuide;
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n세션:\n' + summary;
 
+  // ES5 호환: .finally() 미지원 환경(구버전 iOS Safari) 대응 — then/catch 양쪽에서 버튼 리셋
+  function resetBtn() {
+    btn.dataset.busy = '';
+    btn.disabled = false;
+    btn.textContent = '🤖 AI 보고서 생성';
+  }
   callClaude(SYSTEM, USER, 1500, getAIModel())
     .then(function(raw) {
       var p = parseJSON(raw);
@@ -40,14 +46,11 @@ function generateReport() {
         if (p.report) p.report = sanitizeSLPOutput(p.report, 'parent');
       }
       renderReport(p, child.name);
+      resetBtn();
     })
     .catch(function(err) {
       resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
-    })
-    .finally(function() {
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '🤖 AI 보고서 생성';
+      resetBtn();
     });
 }
 
@@ -302,6 +305,12 @@ function generateIEP() {
     + (trendLog ? NL + NL + '[목표별 달성률 추이]' + NL + trendLog : '')
     + (sessionLog ? NL + NL + '[최근 세션 ' + sessions.length + '회 상세]' + NL + sessionLog : '');
 
+  // ES5 호환: .finally() 미지원 환경 대응
+  function resetIEPBtn() {
+    btn.dataset.busy = '';
+    btn.disabled = false;
+    btn.textContent = '📋 장단기계획(IEP) 초안 생성 (AI)';
+  }
   callClaude(SYSTEM, USER, 2500, getAIModel())
     .then(function(raw) {
       // IEP 는 부모도 보는 문서 — 학부모 어휘 정책 적용
@@ -309,14 +318,11 @@ function generateIEP() {
       var p = parseJSON(raw);
       if (!p || !p.longTermGoals) throw new Error('IEP 파싱 실패');
       renderIEP(p, child.name);
+      resetIEPBtn();
     })
     .catch(function(err) {
       document.getElementById('iepResult').innerHTML = '<div style="padding:12px;color:var(--red);font-size:13px;">❌ ' + escHtml(err.message) + '</div>';
-    })
-    .finally(function() {
-      btn.dataset.busy = '';
-      btn.disabled = false;
-      btn.textContent = '📋 장단기계획(IEP) 초안 생성 (AI)';
+      resetIEPBtn();
     });
 }
 

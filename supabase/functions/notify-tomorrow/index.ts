@@ -39,8 +39,11 @@ async function sp(table: string, filter: string, data: Record<string, unknown>) 
 
 // ── 메인 ─────────────────────────────────────────────────────────────
 Deno.serve(async () => {
-  if (!VAPID_PUB || !VAPID_PRIV || VAPID_PUB === 'REPLACE_ME') {
-    return new Response(JSON.stringify({ ok: false, reason: 'VAPID 키 미설정' }), { status: 200 });
+  const VAPID_BAD = !VAPID_PUB || !VAPID_PRIV
+    || VAPID_PUB === 'REPLACE_ME' || VAPID_PRIV === 'REPLACE_ME'
+    || VAPID_PUB.length < 43 || VAPID_PRIV.length < 43;
+  if (VAPID_BAD) {
+    return new Response(JSON.stringify({ ok: false, reason: 'VAPID 키 미설정 또는 placeholder' }), { status: 200 });
   }
 
   try {
@@ -123,7 +126,10 @@ Deno.serve(async () => {
       }
 
       // ⑥ 학부모별 1회 발송 (다자녀면 첫 번째 자녀 기준)
+      //    발송 성공/실패 카운트를 추적해 모든 발송이 fatal 실패면 last_sent_date 갱신 보류 → 다음 cron 에서 재시도
       const sentParents = new Set<string>();
+      let centerSent = 0;
+      let centerFatalFail = 0; // 410/404 외의 진짜 실패 (네트워크 오류 등)
       for (const link of links) {
         if (sentParents.has(link.parent_user_id)) continue;
         // madi_schedules.child_id=bigint, madi_parent_children.child_id=text
@@ -149,22 +155,34 @@ Deno.serve(async () => {
               payload
             );
             totalSent++;
+            centerSent++;
           } catch (e: unknown) {
             const status = (e as { statusCode?: number }).statusCode;
+            const msg    = e instanceof Error ? e.message : String(e);
             if (status === 410 || status === 404) {
-              // 만료된 구독 삭제
+              // 만료된 구독 삭제 — 정상 정리 흐름이라 실패로 카운트하지 않음
               await fetch(`${SUPA_URL}/rest/v1/madi_push_subscriptions?endpoint=eq.${enc(sub.endpoint)}`, {
                 method: 'DELETE',
                 headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
               });
+            } else {
+              // 네트워크 / 인증 / 기타 — 진짜 실패. 추적 후 임계치 초과 시 재시도용으로 last_sent_date 미갱신.
+              centerFatalFail++;
+              console.error(`[push] sendNotification fail status=${status} endpoint=${sub.endpoint.slice(0, 80)}... msg=${msg}`);
             }
           }
         }
         sentParents.add(link.parent_user_id);
       }
 
-      // ⑦ 오늘 발송 완료 기록
-      await sp('madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+      // ⑦ 발송 완료 기록
+      //    - 한 명이라도 성공했으면 오늘 분 완료로 마킹 (중복 발송 방지)
+      //    - 모두 fatal 실패면 미마킹 → 다음 10분 cron 에서 재시도
+      if (centerSent > 0 || centerFatalFail === 0) {
+        await sp('madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+      } else {
+        console.warn(`[push] center ${cfg.center_id}: 전송 ${centerSent}/${centerFatalFail} — last_sent_date 미갱신 (다음 cron 재시도)`);
+      }
     } catch (e) {
       console.error(`[push] center ${cfg.center_id}:`, e);
     }

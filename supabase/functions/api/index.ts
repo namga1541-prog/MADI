@@ -265,6 +265,9 @@ Deno.serve(async (req: Request) => {
     // ══════════════════════════════════════════════════════════
     // ★ 학부모 전용 READ 필터 — child_id 기반 서버 격리
     // 같은 센터 내 다른 아동 데이터 노출 차단
+    // JWT claim 의 parent_child_id 는 서명되어 있어 위조 불가하지만,
+    // 토큰 발급 이후 연결이 끊긴 경우(아동 이관·학부모 권한 회수)를 대비해
+    // 매 요청 madi_parent_children 매핑을 재검증한다.
     // ══════════════════════════════════════════════════════════
     if (user.role === 'parent' && PARENT_READONLY_TABLES.includes(tableName) && (!method || method === 'GET')) {
       const centerId      = user.center_id as string
@@ -272,6 +275,31 @@ Deno.serve(async (req: Request) => {
 
       if (!centerId) {
         return new Response(JSON.stringify({ error: '센터 정보 없음' }), { status: 403, headers: CORS })
+      }
+
+      // 서버측 재검증: (parent_user_id, child_id) 쌍이 실제 존재해야 함
+      if (parentChildId) {
+        try {
+          const linkRes = await fetch(
+            SUPA_URL + '/rest/v1/madi_parent_children'
+              + '?parent_user_id=eq.' + encodeURIComponent(String(user.sub))
+              + '&child_id=eq.'       + encodeURIComponent(String(parentChildId))
+              + '&select=child_id&limit=1',
+            { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+          )
+          if (!linkRes.ok) {
+            return new Response(JSON.stringify({ error: '권한 검증 실패' }), { status: 500, headers: CORS })
+          }
+          const linkRows = await linkRes.json() as Array<{ child_id: string }>
+          if (!Array.isArray(linkRows) || linkRows.length === 0) {
+            return new Response(
+              JSON.stringify({ error: '연결된 아동 정보가 없습니다. 다시 로그인해주세요.' }),
+              { status: 403, headers: CORS }
+            )
+          }
+        } catch (_) {
+          return new Response(JSON.stringify({ error: '권한 검증 실패' }), { status: 500, headers: CORS })
+        }
       }
 
       // 기본: center_id 필터
@@ -429,8 +457,10 @@ Deno.serve(async (req: Request) => {
     )
 
   } catch (e) {
+    // 내부 메시지·스택은 서버 로그에만 남기고 클라이언트엔 generic 응답
+    console.error('[api] unhandled error:', (e as Error).message, (e as Error).stack)
     return new Response(
-      JSON.stringify({ error: '서버 오류: ' + (e as Error).message }),
+      JSON.stringify({ error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }),
       { status: 500, headers: CORS }
     )
   }
