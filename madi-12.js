@@ -170,7 +170,7 @@ function initRealtime() {
       loadDBFromSupabase(true);
     }
   }, _pollInterval);
-  console.log('✅ 폴링 동기화 시작 (' + (_pollInterval/1000) + '초 간격)');
+  if (window.console && console.debug) console.debug('✅ 폴링 동기화 시작 (' + (_pollInterval/1000) + '초 간격)');
 }
 
 function markMyChange() { _myChangeTs = Date.now(); }
