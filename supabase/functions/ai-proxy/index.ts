@@ -48,17 +48,24 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  // 센터 Anthropic API 키 조회 (madi_settings는 center_id 컬럼 없음 — key만으로 조회)
-  const settingsRes = await fetch(
-    SUPA_URL + '/rest/v1/madi_settings?key=eq.api_key&select=value&limit=1',
-    { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
-  )
-  const settings = await settingsRes.json()
-  const apiKey = Array.isArray(settings) && settings[0] ? settings[0].value : null
+  // ── Anthropic API 키 조회 ──────────────────────────────────────────────
+  // 우선순위 1: 환경변수 ANTHROPIC_API_KEY (마디 통합 키 — 권장)
+  //   → admin 권한자도 키 값을 볼 수 없음. 내부자 위협 모델링 후속 (2026-05-24).
+  // 우선순위 2: madi_settings.api_key (구 방식 fallback — 단계적 폐기 예정)
+  //   → 환경변수 미설정 환경(개발·테스트)에서만 사용.
+  let apiKey: string | null = Deno.env.get('ANTHROPIC_API_KEY') || null
+  if (!apiKey) {
+    const settingsRes = await fetch(
+      SUPA_URL + '/rest/v1/madi_settings?key=eq.api_key&select=value&limit=1',
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+    )
+    const settings = await settingsRes.json()
+    apiKey = Array.isArray(settings) && settings[0] ? settings[0].value : null
+  }
 
   if (!apiKey || !apiKey.startsWith('sk-ant')) {
     return new Response(
-      JSON.stringify({ error: '센터 AI API 키가 설정되지 않았습니다. 관리자에게 문의하세요.' }),
+      JSON.stringify({ error: 'AI 서비스가 일시적으로 사용 불가합니다. 관리자에게 문의하세요.' }),
       { status: 402, headers: CORS }
     )
   }

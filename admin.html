@@ -631,15 +631,22 @@
         <div class="card-title-left" style="color:var(--mint);">🔑 센터 AI 키 관리</div>
         <span style="font-size:11px;color:var(--text2);">슈퍼관리자 전용</span>
       </div>
+      <!-- 마디 통합 키 운영 안내 (2026-05-24~) -->
+      <div style="background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:13px;line-height:1.7;color:#065f46;">
+        <strong>✅ 마디 통합 키 운영 중</strong><br>
+        AI 기능은 마디가 운영하는 단일 Anthropic 계정으로 제공됩니다. 별도 키 입력이 필요 없으며,
+        아래 입력란은 비상 폴백(서버 환경변수 미설정 시 자동 사용)으로만 남아 있습니다.<br>
+        <span style="color:#047857;font-weight:600;">→ 평상시에는 만지지 않는 것이 안전합니다.</span>
+      </div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
-        여기에 키를 저장하면 <strong>모든 선생님이 별도 입력 없이</strong> AI 기능을 바로 사용할 수 있습니다.
+        <strong>비상 폴백</strong>: 마디 통합 키가 일시적으로 비활성화된 경우, 여기에 저장된 키로 자동 전환됩니다.
       </p>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-        <input type="password" class="form-input" id="centerApiKeyInput" placeholder="sk-ant-api03-..." style="flex:1;font-family:monospace;font-size:14px;" autocomplete="off">
+        <input type="password" class="form-input" id="centerApiKeyInput" placeholder="sk-ant-api03-... (비상시에만 입력)" style="flex:1;font-family:monospace;font-size:14px;" autocomplete="off">
         <button type="button" class="btn-ghost" onclick="toggleCenterKeyVisibility()" id="centerKeyEye" style="flex-shrink:0;padding:10px 14px;">👁️</button>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveCenterApiKey()">💾 Supabase에 저장</button>
+        <button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveCenterApiKey()">💾 비상 폴백으로 저장</button>
         <button class="btn-outline" style="flex:0.5;" onclick="loadCenterApiKey(true)">🔄 불러오기</button>
       </div>
       <div id="centerKeyStatus" style="font-size:12px;margin-top:8px;"></div>
