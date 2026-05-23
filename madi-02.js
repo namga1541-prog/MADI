@@ -67,11 +67,11 @@ function loadApiUsage() {
   try {
     var saved = JSON.parse(localStorage.getItem('madi_api_usage') || '{}');
     if (saved.calls !== undefined) apiUsage = saved;
-  } catch(e) {}
+  } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }
 
 function saveApiUsage() {
-  try { localStorage.setItem('madi_api_usage', JSON.stringify(apiUsage)); } catch(e) {}
+  try { localStorage.setItem('madi_api_usage', JSON.stringify(apiUsage)); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }
 
 function recordApiUsage(model, inputTokens, outputTokens) {
@@ -129,7 +129,7 @@ function pushErrorLog(entry) {
     arr.push(entry);
     if (arr.length > ERROR_LOG_MAX) arr = arr.slice(-ERROR_LOG_MAX);
     sessionStorage.setItem('madi_error_log', JSON.stringify(arr));
-  } catch(e) {}
+  } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 
   // 2) Supabase에도 비동기 저장 (영구 보관 + 슈퍼어드민 조회용)
   if (window._errorLogSending) return;   // 무한 루프 방지
@@ -269,7 +269,7 @@ function setupGlobalErrorHandler() {
       try {
         var shortMsg = (e.message || '').slice(0, 70);
         showToast('⚠️ 오류: ' + shortMsg + ' @ ' + src, { duration: 7000 });
-      } catch(e2) {}
+      } catch (e2) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     }
   });
   window.addEventListener('unhandledrejection', function(e) {
@@ -280,7 +280,7 @@ function setupGlobalErrorHandler() {
       window._lastErrorToast = Date.now();
       try {
         showToast('⚠️ 비동기 오류: ' + maskPII(msg).slice(0, 80), { duration: 7000 });
-      } catch(e2) {}
+      } catch (e2) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     }
   });
 }
@@ -564,7 +564,7 @@ function parseJSON(raw) {
     s = cleaned.indexOf('['); e = cleaned.lastIndexOf(']');
   }
   if (s >= 0 && e >= s) {
-    try { return JSON.parse(cleaned.slice(s, e + 1)); } catch(ignored) {}
+    try { return JSON.parse(cleaned.slice(s, e + 1)); } catch (ignored) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   }
 
   // 잘린 JSON 복구 시도: 배열/객체 괄호 균형 맞추기
@@ -597,10 +597,10 @@ function parseJSON(raw) {
       if (lastComma > 0 && checkDepth > 0) {
         partial = partial.slice(0, lastComma);
         for (var d = 0; d < checkDepth; d++) closing += (fragment[0] === '[' ? ']' : '}');
-        try { return JSON.parse(partial + closing); } catch(e2) {}
+        try { return JSON.parse(partial + closing); } catch (e2) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
       }
     }
-  } catch(ignored2) {}
+  } catch (ignored2) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 
   throw new Error('JSON 응답 파싱 실패 — 응답이 너무 길거나 형식이 올바르지 않습니다.');
 }

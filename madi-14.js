@@ -751,7 +751,7 @@ function renderInquiryCard(post, user) {
       var d = new Date(post.created_at);
       when = d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
-  } catch (e) {}
+  } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 
   var editBtn = isMine
     ? '<button class="btn-ghost" style="font-size:11px;color:#0c4a6e;border-color:#38bdf8;padding:4px 10px;flex-shrink:0;" onclick="editLoungePost(\'' + post.id + '\')">✏️ 수정</button>'

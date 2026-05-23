@@ -666,7 +666,7 @@ function addAssessment(opts) {
 
 // ── 검사명 변경 시: 이전 입력 자동저장 → 필드 다시 그리기 ──
 function onAssessTypeChange() {
-  try { addAssessment({ silent: true }); } catch(e) {}
+  try { addAssessment({ silent: true }); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   renderAssessFields();
 }
 

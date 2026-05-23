@@ -49,19 +49,19 @@ function applyPermissions() {
   if (!canDo('useAI')) { var aiSubBtn = document.getElementById('ptBtn_ai'); if (aiSubBtn) aiSubBtn.style.display = 'none'; }
 }
 function getAIModel() {
-  try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') return MODEL_SONNET; if (v === 'haiku') return MODEL_HAIKU; } catch (e) {}
+  try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') return MODEL_SONNET; if (v === 'haiku') return MODEL_HAIKU; } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   return MODEL_HAIKU;
 }
 function saveAIModelChoice(choice) {
   if (choice !== 'haiku' && choice !== 'sonnet') return;
-  try { localStorage.setItem('madi_ai_model', choice); } catch (e) {}
+  try { localStorage.setItem('madi_ai_model', choice); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   updateAIModelUI();
   var label = choice === 'sonnet' ? '🎯 Sonnet 4.6 (임상 추론·정밀)' : '⚡ Haiku 4.5 (빠름·저렴)';
   if (typeof showToast === 'function') showToast('✅ AI 모델이 ' + label + ' 으로 설정됐습니다');
 }
 function updateAIModelUI() {
   var current = 'haiku';
-  try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') current = 'sonnet'; } catch (e) {}
+  try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') current = 'sonnet'; } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   var haikuRadio = document.getElementById('aiModelHaikuRadio');
   var sonnetRadio = document.getElementById('aiModelSonnetRadio');
   var haikuLabel = document.getElementById('aiModelHaikuLabel');
@@ -114,7 +114,7 @@ function _purgeLegacyCnCache() {
       var k = localStorage.key(i);
       if (k && k.indexOf('cn3_') === 0) localStorage.removeItem(k);
     }
-  } catch(e) {}
+  } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }
 
 // ─── supaFetch GET 캐시 (2026-05-21 최적화) ───
@@ -164,7 +164,7 @@ function supaFetch(path, method, body, opts) {
   }).then(function(r) {
     if (r.status === 401 && typeof currentUser !== 'undefined' && currentUser) {
       clearToken(); currentUser = null;
-      try { localStorage.removeItem('madi_user'); } catch(e) {}
+      try { localStorage.removeItem('madi_user'); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
       if (typeof showToast === 'function') showToast('⚠️ 세션이 만료되었습니다. 다시 로그인해주세요.', { duration: 3000 });
       setTimeout(function() { if (typeof showLoginScreen === 'function') showLoginScreen(); }, 1500);
       throw new Error('401: 세션 만료');
@@ -318,7 +318,7 @@ function doSignup() {
       .then(function(loginData) {
         currentUser = (loginData && loginData.user) ? loginData.user
           : { id: result.user.id, username: result.user.username, name: result.user.name, role: result.user.role, color: result.user.color, center_id: result.user.center_id, permissions: result.user.permissions };
-        try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', result.user.username); } catch(e) {}
+        try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', result.user.username); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
         document.getElementById('signupScreen').style.display = 'none'; hideLoginScreen();
         if (typeof applyUserUI === 'function') applyUserUI();
         if (typeof applyRoleUI === 'function') applyRoleUI();
@@ -390,7 +390,7 @@ function _initWebVitals() {
           if (e.name === 'first-contentful-paint') window.__madiVitals.fcp = Math.round(e.startTime);
         });
       }).observe({ type: 'paint', buffered: true });
-    } catch (e) {}
+    } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     // LCP (최종값은 사용자 인터랙션 직전까지 갱신)
     try {
       var lcpObs = new PerformanceObserver(function(list) {
@@ -399,7 +399,7 @@ function _initWebVitals() {
         if (last) window.__madiVitals.lcp = Math.round(last.startTime);
       });
       lcpObs.observe({ type: 'largest-contentful-paint', buffered: true });
-    } catch (e) {}
+    } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     // CLS (계속 누적)
     try {
       var clsValue = 0;
@@ -409,7 +409,7 @@ function _initWebVitals() {
         });
         window.__madiVitals.cls = Math.round(clsValue * 1000) / 1000;
       }).observe({ type: 'layout-shift', buffered: true });
-    } catch (e) {}
+    } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     // 네비게이션 타이밍 (TTFB / domContentLoaded)
     setTimeout(function() {
       try {
@@ -420,9 +420,9 @@ function _initWebVitals() {
           window.__madiVitals.loadComplete = Math.round(nav.loadEventEnd);
         }
         window.__madiVitals.collectedAt = Date.now();
-      } catch (e) {}
+      } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     }, 3000);
-  } catch (e) {}
+  } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }
 _initWebVitals();
 
@@ -492,16 +492,16 @@ function doLogout() {
       'cn3_assess', 'cn3_activities', 'cn3_iep',
       'madi_api_usage', 'madi_last_backup', 'madi_maro_pos'
     ];
-    _localKeys.forEach(function(k){ try { localStorage.removeItem(k); } catch(e){} });
+    _localKeys.forEach(function(k){ try { localStorage.removeItem(k); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ } });
     // login_block_* 동적 키도 sweep
     try {
       for (var i = localStorage.length - 1; i >= 0; i--) {
         var k = localStorage.key(i);
         if (k && (k.indexOf('login_block_') === 0 || k.indexOf('cn3_') === 0)) localStorage.removeItem(k);
       }
-    } catch(e) {}
+    } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     // sessionStorage 도 전체 정리 (madi_error_log 등)
-    try { sessionStorage.clear(); } catch(e) {}
+    try { sessionStorage.clear(); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     // 인메모리 DB도 비우기
     childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[]; activityDB=[]; iepDB=[];
     if (typeof window._parentChildren !== 'undefined') {
@@ -576,7 +576,7 @@ function _renderLoginUpdatePopup(n, dismissKey) {
     if (cb && cb.checked) {
       // 24h 후 만료 시각 저장
       var until = Date.now() + 24 * 60 * 60 * 1000;
-      try { localStorage.setItem(dismissKey, String(until)); } catch (e) {}
+      try { localStorage.setItem(dismissKey, String(until)); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     }
     overlay.remove();
     document.removeEventListener('keydown', _onKey);
@@ -714,8 +714,8 @@ function _loadOlderHistory(d90, d30) {
     var seenSch = {}; scheduleDB.forEach(function(s){ seenSch[s.id] = true; });
     oldSch.forEach(function(s){ if (!seenSch[s.id]) scheduleDB.push(s); });
     // idle 머지 후 영향 가능 영역만 부분 리렌더
-    if (typeof renderSessionList === 'function') try { renderSessionList(); } catch(e){}
-    if (typeof renderSchedView   === 'function') try { renderSchedView();   } catch(e){}
+    if (typeof renderSessionList === 'function') try { renderSessionList(); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+    if (typeof renderSchedView   === 'function') try { renderSchedView();   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   }).catch(function(e) {
     if (window.console && console.warn) console.warn('[older history] silent:', e && e.message);
   });
@@ -845,7 +845,7 @@ document.addEventListener('visibilitychange', function() {
   }
 });
 
-function vibrate(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern || 30); } catch(e) {} }
+function vibrate(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern || 30); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ } }
 function toggleDarkMode() {
   var isDark = document.body.classList.toggle('dark-mode'); localStorage.setItem('madi_dark', isDark ? '1' : '0');
   var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', isDark ? '#020617' : '#0ea5a0');

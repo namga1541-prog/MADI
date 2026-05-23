@@ -14,7 +14,7 @@ function saveSession(aiNote) {
   sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
   saveSessions();
   // 저장된 날짜를 기억 (소급 입력 시 다음 세션도 같은 날짜로 편의 제공)
-  try { localStorage.setItem('madi_last_session_date', date); } catch(e) {}
+  try { localStorage.setItem('madi_last_session_date', date); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   renderSessionList();
   renderChildGrid();
   document.getElementById('sessionMemo').value = '';
@@ -95,7 +95,7 @@ function saveSessionAI() {
       });
       saveSessions();
       // 저장된 날짜를 기억
-      try { localStorage.setItem('madi_last_session_date', date); } catch(e) {}
+      try { localStorage.setItem('madi_last_session_date', date); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
       renderSessionList();
       vibrate(40);  // UX: 햅틱 피드백
       // 학부모 알림 fanout (fire-and-forget — 실패해도 세션 저장에 영향 없음)

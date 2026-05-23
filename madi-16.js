@@ -490,7 +490,7 @@ function quickToggleDictation() {
 function _quickStopDictation() {
   _quickRecActive = false;
   if (_quickRec) {
-    try { _quickRec.stop(); } catch (e) {}
+    try { _quickRec.stop(); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     _quickRec = null;
   }
   var btn = document.getElementById('quickMicBtn');

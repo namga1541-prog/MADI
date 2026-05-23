@@ -55,7 +55,7 @@ function confirmBulkClosedDate() {
   var modal = document.getElementById('bulkClosedDateModal');
   if (!modal) return;
   var ids = [];
-  try { ids = JSON.parse(modal.dataset.ids || '[]'); } catch(e) {}
+  try { ids = JSON.parse(modal.dataset.ids || '[]'); } catch (e) { if (window.console && console.warn) console.warn('[bulkClose ids parse]', e && e.message); }
   if (!ids.length) { closeBulkClosedDateModal(); return; }
 
   var date = (document.getElementById('bcdDateInput') || {}).value || '';

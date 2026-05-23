@@ -13,7 +13,8 @@
 | `admin.html` | 관리자 센터 |
 | `madi-01.js` | 로그인, 공통 유틸, supaFetch |
 | `madi-02.js` | 세션 기록 |
-| `madi-03.js` | 홈·대시보드 |
+| `madi-03.js` | 홈·네비게이션·공지·서비스 설정 |
+| `madi-03-dashboard.js` | 페르소나별 대시보드 렌더링 (Teacher/Admin) |
 | `madi-04.js` | 아동 관리 |
 | `madi-05.js` | 아동 상세 |
 | `madi-06.js` | 성장 기록 |
@@ -22,7 +23,8 @@
 | `madi-09.js` | 학부모 포털 |
 | `madi-10.js` | 스케줄·캘린더 |
 | `madi-11.js` | 표준화검사 (AI 언어평가) |
-| `madi-12.js` | 감통 평가 (AI 발달평가) |
+| `madi-12.js` | 감통 평가 + 권한·배포·PWA·IndexedDB·초기화 |
+| `madi-12-chat.js` | 플로팅 AI 비서 (chat / 매크로 / 음성) |
 | `madi-13.js` | 리포트·장단기계획 |
 | `madi-14.js` | 게시판 (공지·고객센터·자료실) |
 | `madi-15.js` | 학부모 포털 전용 |
