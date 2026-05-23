@@ -602,6 +602,9 @@
           <button class="btn btn-primary" style="flex:1;margin:0;" onclick="savePushSettings()">💾 저장</button>
           <button class="btn-outline" style="flex:0.4;" onclick="loadPushSettings()">🔄 불러오기</button>
         </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-outline" style="flex:1;margin:0;border-color:var(--accent);color:var(--accent);" onclick="sendPushTest()">🧪 지금 테스트 발송 (구독한 학부모 전원)</button>
+        </div>
         <div id="pushSettingsStatus" style="font-size:12px;color:var(--text2);min-height:14px;"></div>
       </div>
     </div>
@@ -983,6 +986,52 @@ function savePushSettings() {
     .catch(function(e) {
       showToast('⚠️ 저장 실패: ' + (e.message || ''));
     });
+}
+
+// 🧪 지금 테스트 발송 — 자기 센터 구독 학부모 전원에게 즉시 푸시 알림 1건
+function sendPushTest() {
+  if (!currentUser) return;
+  if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+    showToast('⚠️ 관리자만 호출 가능');
+    return;
+  }
+  var st = document.getElementById('pushSettingsStatus');
+
+  showConfirm('구독한 모든 학부모에게 테스트 알림을 발송할까요?\n(실제 알림이 발송됩니다)', function() {
+    if (st) st.textContent = '발송 중...';
+
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = getToken(); if (tok) headers['Authorization'] = 'Bearer ' + tok;
+
+    fetch(EDGE_URL + '/notify-test', {
+      method: 'POST',
+      credentials: 'include',
+      headers: headers,
+      body: JSON.stringify({})
+    })
+    .then(function(r) {
+      return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; });
+    })
+    .then(function(res) {
+      var d = res.data || {};
+      if (!res.ok) {
+        var err = d.error || ('HTTP ' + res.status);
+        showToast('⚠️ ' + err);
+        if (st) st.textContent = '실패: ' + err;
+        return;
+      }
+      var msg = '발송 ' + (d.sent || 0) + '/' + (d.subs || 0) + ' (학부모 ' + (d.parents || 0) + '명)';
+      if (d.reason)  msg += ' — ' + d.reason;
+      if (d.expired) msg += ', 만료된 구독 ' + d.expired + '개 정리';
+      showToast('✅ ' + msg);
+      if (st) st.textContent = msg;
+    })
+    .catch(function(e) {
+      var err = e.message || '호출 실패';
+      showToast('⚠️ ' + err);
+      if (st) st.textContent = '실패: ' + err;
+    });
+  }, { okLabel: '발송', danger: false });
 }
 
 function goBack() { window.location.href = 'index.html'; }
