@@ -19,6 +19,9 @@
   <meta name="apple-mobile-web-app-title" content="마디">
   <link rel="manifest" id="pwaManifest" href="./manifest.json">
   <link rel="apple-touch-icon" id="pwaIcon" href="./icon-180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="./icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="./icon-167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
   <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
@@ -884,7 +887,7 @@
           <div class="login-field">
             <label for="parentPhoneInput">휴대폰 번호</label>
             <input class="login-input" type="tel" id="parentPhoneInput" placeholder="010-1234-5678" maxlength="13"
-              oninput="formatParentPhone(this)" autocomplete="tel" style="letter-spacing:1px;">
+              oninput="formatParentPhone(this)" autocomplete="tel" inputmode="numeric" pattern="[0-9-]*" style="letter-spacing:1px;">
             <div class="login-field-hint">📌 센터에 등록된 보호자 번호와 동일해야 합니다</div>
           </div>
 
@@ -1160,7 +1163,7 @@
       <input type="text" id="childName">
       <input type="text" id="childBirth">
       <select id="childType"><option value="언어발달장애">언어발달장애</option><option value="조음음운장애">조음음운장애</option><option value="유창성장애">유창성장애</option><option value="자폐스펙트럼">자폐스펙트럼</option><option value="지적장애">지적장애</option><option value="청각장애">청각장애</option><option value="기타">기타</option></select>
-      <input type="tel" id="childPhone">
+      <input type="tel" id="childPhone" inputmode="numeric" pattern="[0-9-]*" autocomplete="tel">
       <select id="childStatus"><option value="등록">등록</option><option value="대기">대기</option><option value="종결">종결</option></select>
       <textarea id="childMemo"></textarea>
       <input type="text" id="childGoals">
@@ -1631,10 +1634,10 @@
 
 <!-- TAB 5: 서비스관리 (NEW) -->
 <div class="tab-panel" id="panelService" style="padding:0;overflow:hidden;">
-  <iframe id="adminServiceFrame" src="" style="width:100%;height:calc(100vh - 72px);border:none;display:block;" allowfullscreen></iframe>
+  <iframe id="adminServiceFrame" src="" style="width:100%;height:calc(100dvh - 72px);border:none;display:block;" allowfullscreen></iframe>
 </div>
 <div class="tab-panel" id="panel8" style="padding:0;overflow:hidden;">
-  <iframe id="adminSettingsFrame" src="" style="width:100%;height:calc(100vh - 72px);border:none;display:block;" allowfullscreen></iframe>
+  <iframe id="adminSettingsFrame" src="" style="width:100%;height:calc(100dvh - 72px);border:none;display:block;" allowfullscreen></iframe>
 </div>
 
 <!-- ─── 게시판 탭 패널 (2단계: 골격) ─── -->

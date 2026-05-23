@@ -206,7 +206,7 @@
     /* ─── PC 사이드바 레이아웃 (768px+) ─── */
     @media (min-width:768px) {
       .tabs { display:none !important; }
-      .app-layout { display:flex; height:calc(100vh - 72px); overflow:hidden; }
+      .app-layout { display:flex; height:calc(100vh - 72px); height:calc(100dvh - 72px); overflow:hidden; }
       .sidebar {
         width:180px; flex-shrink:0;
         background:var(--white); color:var(--text);

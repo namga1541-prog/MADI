@@ -119,7 +119,7 @@ function openChildRegModal() {
     + '</select></div>'
 
     + '<div class="form-group"><label class="form-label">연락처</label>'
-    + '<input class="form-input" type="tel" id="m_childPhone" placeholder="예: 010-1234-5678"></div>'
+    + '<input class="form-input" type="tel" id="m_childPhone" placeholder="예: 010-1234-5678" inputmode="numeric" pattern="[0-9-]*" autocomplete="tel"></div>'
 
     + '<div class="form-group"><label class="form-label">상태</label>'
     + '<select class="form-input" id="m_childStatus">'
@@ -304,7 +304,7 @@ function openEditModal(id) {
     + '</select></div>'
 
     + '<div class="form-group"><label class="form-label">연락처</label>'
-    + '<input class="form-input" type="tel" id="editPhone" value="' + escHtml(child.phone || '') + '" placeholder="010-0000-0000"></div>'
+    + '<input class="form-input" type="tel" id="editPhone" value="' + escHtml(child.phone || '') + '" placeholder="010-0000-0000" inputmode="numeric" pattern="[0-9-]*" autocomplete="tel"></div>'
 
     + '<div class="form-group"><label class="form-label">상태</label>'
     + '<select class="form-input" id="editStatus" onchange="var w=document.getElementById(\'editClosedAtWrap\');if(w)w.style.display=this.value===\'종결\'?\'\':\'none\';">'

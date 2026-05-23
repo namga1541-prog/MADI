@@ -505,6 +505,18 @@ function onPushToggleTap() {
 }
 
 function _subscribePush(reg) {
+  // iOS Safari 탭에서는 Web Push 미지원 — iOS 16.4+ 라도 홈화면 PWA 로 설치되어야 동작
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isStandalone = (window.navigator.standalone === true)
+    || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  if (isIOS && !isStandalone) {
+    showToast('📲 iOS에서는 먼저 "홈 화면에 추가" 후 알림을 켤 수 있어요. Safari 공유 → 홈 화면에 추가', { duration: 6000 });
+    return;
+  }
+  if (typeof Notification === 'undefined' || !Notification) {
+    showToast('⚠️ 이 브라우저는 푸시 알림을 지원하지 않습니다.');
+    return;
+  }
   if (Notification.permission === 'denied') {
     showToast('⚠️ 브라우저 알림이 차단됐습니다. 브라우저 설정에서 허용 후 다시 시도해주세요.');
     return;

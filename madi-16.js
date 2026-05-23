@@ -352,7 +352,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +   '<div class="quick-section">'
     +     '<label class="form-label">📷 사진 (선택)</label>'
     +     '<div id="quickPhotoBox">' + _quickPhotoHtml() + '</div>'
-    +     '<input type="file" id="quickPhotoInput" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif" onchange="quickPickPhoto(event)" style="display:none;">'
+    +     '<input type="file" id="quickPhotoInput" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif" capture="environment" onchange="quickPickPhoto(event)" style="display:none;">'
     +   '</div>'
 
     // 다음 목표 체크박스

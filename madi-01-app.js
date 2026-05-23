@@ -534,3 +534,25 @@ function applyUserUI() {
   vv.addEventListener('resize', updateKbOffset);
   vv.addEventListener('scroll', updateKbOffset);
 })();
+
+/* ─── iOS ITP 대응 ────────────────────────────────────────────────
+   Safari 13.1+ 는 7일 비활성 사이트의 localStorage 를 자동 삭제.
+   매 진입 시 last-seen 타임스탬프 갱신 → 활성 사이트로 인식되어 데이터 보호.
+   장기 미접속(>=7일) 후 재진입 감지 시 사용자에게 한 번 안내. */
+(function trackITPLastSeen() {
+  try {
+    var KEY = 'madi_last_seen_at';
+    var SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+    var prev = parseInt(localStorage.getItem(KEY) || '0', 10);
+    var now = Date.now();
+    if (prev && (now - prev) > SEVEN_DAYS) {
+      // 7일 이상 비활성 — 자동 wipe 가능성 안내 (실제 wipe 시엔 prev 자체가 사라져 이 분기 안 탐)
+      setTimeout(function() {
+        if (typeof showToast === 'function') {
+          showToast('👋 오랜만이에요! 로그인이 풀려있다면 다시 들어와주세요.', { duration: 4000 });
+        }
+      }, 1500);
+    }
+    localStorage.setItem(KEY, String(now));
+  } catch (e) { /* private mode / storage 차단 — silent */ }
+})();
