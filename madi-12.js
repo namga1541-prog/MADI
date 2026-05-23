@@ -963,21 +963,42 @@ function initPWA() {
   window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
     _pwaPrompt = e;
-    showPWABanner('android');
+    if (_pwaShouldShowBanner()) showPWABanner('android');
   });
 
   window.addEventListener('appinstalled', function() {
     _pwaPrompt = null;
     hidePWABanner();
+    try { localStorage.setItem('madi_pwa_installed', '1'); } catch (e) {}
     showToast('✅ 마디 앱 설치 완료!');
   });
 
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
   var isStandalone = window.navigator.standalone === true
     || window.matchMedia('(display-mode: standalone)').matches;
-  if (isIOS && !isStandalone) {
+  if (isIOS && !isStandalone && _pwaShouldShowBanner()) {
     setTimeout(function() { showPWABanner('ios'); }, 2500);
   }
+
+  // dismiss 이후의 방문 카운트 증가 (재안내 조건: 30일 + 5회 방문)
+  try {
+    if (localStorage.getItem('madi_pwa_dismissed_at')) {
+      var v = parseInt(localStorage.getItem('madi_pwa_visits_since_dismiss') || '0', 10) + 1;
+      localStorage.setItem('madi_pwa_visits_since_dismiss', String(v));
+    }
+  } catch (e) {}
+}
+
+// PWA 설치 배너 표시 여부 결정 — dismissed 후 30일 + 5회 방문 누적 시 다시 표시
+function _pwaShouldShowBanner() {
+  try {
+    if (localStorage.getItem('madi_pwa_installed') === '1') return false;
+    var dismissedAt = parseInt(localStorage.getItem('madi_pwa_dismissed_at') || '0', 10);
+    if (!dismissedAt) return true;  // 첫 노출
+    var THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    var visitsAfterDismiss = parseInt(localStorage.getItem('madi_pwa_visits_since_dismiss') || '0', 10);
+    return (Date.now() - dismissedAt) > THIRTY_DAYS && visitsAfterDismiss >= 5;
+  } catch (e) { return true; }
 }
 
 function showPWABanner(type) {
@@ -991,7 +1012,7 @@ function showPWABanner(type) {
     banner.innerHTML = '<div class="pwa-banner-icon">🗒️</div>'
       + '<div class="pwa-banner-text">'
       + '<div class="pwa-banner-title">마디 앱 설치</div>'
-      + '<div class="pwa-banner-desc">홈 화면에 추가하여 앱잘맼 빠르게 실행하세요</div>'
+      + '<div class="pwa-banner-desc">홈 화면에 추가하여 앱처럼 빠르게 실행하세요</div>'
       + '</div>'
       + '<button class="pwa-install-btn" onclick="triggerPWAInstall()">설치</button>'
       + '<button class="pwa-close-btn" onclick="hidePWABanner()">✕</button>';
@@ -1013,10 +1034,16 @@ function showPWABanner(type) {
 
 function hidePWABanner() {
   var b = document.getElementById('pwaBanner');
-  if (b) b.remove();
+  if (!b) return;
+  b.remove();
   document.body.classList.remove('pwa-banner-open');
   var toast = document.getElementById('toast');
   if (toast) toast.style.bottom = '';
+  // 사용자가 ✕ 로 닫은 경우 30일 + 5회 방문 후 재안내
+  try {
+    localStorage.setItem('madi_pwa_dismissed_at', String(Date.now()));
+    localStorage.setItem('madi_pwa_visits_since_dismiss', '0');
+  } catch (e) {}
 }
 
 function triggerPWAInstall() {

@@ -138,6 +138,102 @@ function loadActivitiesFromSupa() {
 }
 
 // ── 커스텀 confirm 모달 (브라우저 confirm 대체) ──
+/* ─── 모달 공통 a11y 헬퍼 ───────────────────────────────────────────
+   ESC 닫기 + 포커스 트래핑(Tab 순환) + 호출 전 활성 요소로 포커스 복원.
+   사용:
+     var release = attachModalA11y(overlayElement, onClose);
+     // 모달 닫을 때:
+     release();   // 리스너 제거 + 포커스 복원
+   ─────────────────────────────────────────────────────────────── */
+function attachModalA11y(overlay, onClose) {
+  if (!overlay) return function(){};
+  var prevFocus = document.activeElement;
+  function focusables() {
+    return overlay.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), ' +
+      'textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      if (typeof onClose === 'function') onClose();
+      return;
+    }
+    if (e.key === 'Tab') {
+      var list = focusables();
+      if (!list.length) return;
+      var first = list[0], last = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
+  }
+  document.addEventListener('keydown', onKey, true);
+  return function release() {
+    document.removeEventListener('keydown', onKey, true);
+    try { if (prevFocus && prevFocus.focus) prevFocus.focus(); } catch (e) {}
+  };
+}
+
+/* ─── 인풋 모달 (날짜·텍스트 등 단일 입력) ─────────────────────────
+   기존 native prompt() 대체. 모바일에서 네이티브 데이트픽커가 뜨고,
+   탭/ESC/오버레이 클릭 모두 정상 동작. */
+function showInputPrompt(opts) {
+  opts = opts || {};
+  var title    = opts.title    || '입력';
+  var label    = opts.label    || '';
+  var initial  = opts.value    || '';
+  var type     = opts.type     || 'text';  // text | date | number
+  var placeholder = opts.placeholder || '';
+  var okLabel  = opts.okLabel  || '확인';
+  var cancelLabel = opts.cancelLabel || '취소';
+  var onOk     = opts.onOk     || function(){};
+  var onCancel = opts.onCancel || function(){};
+  var validate = opts.validate || null;  // function(value) -> errMsg or null
+
+  var ov = document.createElement('div');
+  ov.className = 'confirm-ov';
+  ov.innerHTML = '<div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="ipTitle">'
+    + '<p id="ipTitle" class="confirm-msg" style="font-weight:700;">' + escHtml(title) + '</p>'
+    + (label ? '<label for="ipInput" style="display:block;font-size:12px;color:var(--text2,#64748b);margin:6px 0 4px;">' + escHtml(label) + '</label>' : '')
+    + '<input id="ipInput" type="' + type + '" value="' + escHtml(initial) + '" placeholder="' + escHtml(placeholder) + '" '
+    + 'style="width:100%;padding:11px 12px;font-size:16px;border:1.5px solid var(--border,#e2e8f0);border-radius:10px;font-family:inherit;box-sizing:border-box;">'
+    + '<div id="ipErr" style="color:#ef4444;font-size:12px;margin-top:6px;min-height:14px;"></div>'
+    + '<div class="confirm-btns">'
+    + '<button class="btn btn-ghost confirm-cancel">' + escHtml(cancelLabel) + '</button>'
+    + '<button class="btn btn-primary confirm-ok">' + escHtml(okLabel) + '</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+
+  var input = ov.querySelector('#ipInput');
+  var errBox = ov.querySelector('#ipErr');
+  var release = null;
+
+  function close() {
+    if (release) release();
+    if (ov.parentNode) document.body.removeChild(ov);
+  }
+  function doCancel() { close(); onCancel(); }
+  function doOk() {
+    var v = input.value;
+    if (validate) {
+      var err = validate(v);
+      if (err) { errBox.textContent = err; input.focus(); return; }
+    }
+    close(); onOk(v);
+  }
+
+  ov.querySelector('.confirm-cancel').onclick = doCancel;
+  ov.querySelector('.confirm-ok').onclick = doOk;
+  ov.addEventListener('click', function(e) { if (e.target === ov) doCancel(); });
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') doOk(); });
+  release = attachModalA11y(ov, doCancel);
+  setTimeout(function() { input.focus(); if (type !== 'date') input.select(); }, 50);
+}
+
 function showConfirm(msg, onOk, opts) {
   opts = opts || {};
   var okLabel     = opts.okLabel     || '확인';
@@ -152,14 +248,13 @@ function showConfirm(msg, onOk, opts) {
     + '<button class="btn ' + (danger ? 'btn-del' : 'btn-primary') + ' confirm-ok">' + escHtml(okLabel) + '</button>'
     + '</div></div>';
   document.body.appendChild(ov);
-  function close() { if (ov.parentNode) document.body.removeChild(ov); document.removeEventListener('keydown', _onKey); }
-  function _onKey(e) {
-    if (e.key === 'Escape') { close(); if (opts.onCancel) opts.onCancel(); }
-  }
-  ov.querySelector('.confirm-cancel').onclick = function() { close(); if (opts.onCancel) opts.onCancel(); };
+  var release = null;
+  function close() { if (release) release(); if (ov.parentNode) document.body.removeChild(ov); }
+  function doCancel() { close(); if (opts.onCancel) opts.onCancel(); }
+  ov.querySelector('.confirm-cancel').onclick = doCancel;
   ov.querySelector('.confirm-ok').onclick = function() { close(); onOk(); };
-  ov.addEventListener('click', function(e) { if (e.target === ov) { close(); if (opts.onCancel) opts.onCancel(); } });
-  document.addEventListener('keydown', _onKey);
+  ov.addEventListener('click', function(e) { if (e.target === ov) doCancel(); });
+  release = attachModalA11y(ov, doCancel);
   setTimeout(function() { var b = ov.querySelector('.confirm-ok'); if (b) b.focus(); }, 50);
 }
 

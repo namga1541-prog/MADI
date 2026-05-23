@@ -20,6 +20,59 @@ var _QUICK_SUMMARY_MAX_LEN   = 1500;              // 한 줄 요약 최대 길�
 var _QUICK_AI_INPUT_MAX_LEN  = 8000;              // AI 정리 입력 최대 길이 (서버 413 방지)
 var _QUICK_GOAL_MAX_LEN      = 100;               // 다음 목표 1건 최대 길이
 var _QUICK_GOAL_MAX_COUNT    = 20;                // 다음 목표 최대 개수
+var _QUICK_DRAFT_KEY_PREFIX  = 'madi_quick_draft_'; // sessionStorage 임시저장 키 prefix
+var _QUICK_DRAFT_TTL_MS      = 6 * 60 * 60 * 1000;  // 임시저장 유효 시간: 6시간
+
+// ─────────────────────────────────────────────
+// 임시저장 (sessionStorage) — 입력 중 새로고침/통화 끊김 시 데이터 보호
+// ─────────────────────────────────────────────
+function _quickDraftKey(schedId) { return _QUICK_DRAFT_KEY_PREFIX + String(schedId); }
+
+function _quickSaveDraft() {
+  if (!_quickCurrentSchedId) return;
+  try {
+    var ta = document.getElementById('quickSummary');
+    var pv = document.getElementById('quickParentVisible');
+    var draft = {
+      schedId: _quickCurrentSchedId,
+      summary: ta ? ta.value : '',
+      parentVisible: !!(pv && pv.checked),
+      nextGoals: _quickNextGoals || [],
+      savedAt: Date.now()
+    };
+    // 사진 dataURL 은 용량 부담(2MB+) 으로 임시저장에 포함하지 않음
+    sessionStorage.setItem(_quickDraftKey(_quickCurrentSchedId), JSON.stringify(draft));
+  } catch (e) { /* sessionStorage 풀 / private mode — silent */ }
+}
+
+function _quickLoadDraft(schedId) {
+  try {
+    var raw = sessionStorage.getItem(_quickDraftKey(schedId));
+    if (!raw) return null;
+    var d = JSON.parse(raw);
+    if (!d || (Date.now() - (d.savedAt || 0)) > _QUICK_DRAFT_TTL_MS) {
+      sessionStorage.removeItem(_quickDraftKey(schedId));
+      return null;
+    }
+    return d;
+  } catch (e) { return null; }
+}
+
+function _quickClearDraft(schedId) {
+  try { sessionStorage.removeItem(_quickDraftKey(schedId)); } catch (e) {}
+}
+
+// debounce 미정의 환경(madi-01 로드 전) 폴백
+var _quickSaveDraftDeb = (typeof debounce === 'function') ? debounce(_quickSaveDraft, 600) : _quickSaveDraft;
+
+function _quickAttachDraftListeners() {
+  var ta = document.getElementById('quickSummary');
+  if (ta) {
+    ta.addEventListener('input', _quickSaveDraftDeb);
+  }
+  var pv = document.getElementById('quickParentVisible');
+  if (pv) pv.addEventListener('change', _quickSaveDraft);
+}
 
 // ─────────────────────────────────────────────
 // 진입점: 패널 활성화 + 카드 리스트 렌더
@@ -202,7 +255,36 @@ function openQuickForm(schedId) {
   if (form) {
     form.style.display = '';
     form.innerHTML = _quickFormHtml(sched, name, age, diag, existing);
+
+    // 임시저장 복원 — 직전 미저장 입력이 있으면 사용자 확인 후 복원
+    var draft = _quickLoadDraft(schedId);
+    if (draft && (draft.summary || (draft.nextGoals && draft.nextGoals.length))) {
+      var existingSummary = existing ? (existing.summary || existing.memo || '') : '';
+      // 이미 저장된 내용과 같으면 draft 의미 없음 — 정리
+      if (draft.summary && draft.summary !== existingSummary) {
+        showConfirm('💾 작성 중이던 내용이 있어요.\n복원해서 이어 쓸까요?', function() {
+          var ta = document.getElementById('quickSummary');
+          if (ta && draft.summary) ta.value = draft.summary;
+          var pv = document.getElementById('quickParentVisible');
+          if (pv) pv.checked = !!draft.parentVisible;
+          if (draft.nextGoals && draft.nextGoals.length) {
+            _quickNextGoals = draft.nextGoals;
+            _quickRenderNextGoals();
+          }
+          if (typeof showToast === 'function') showToast('↩️ 임시저장 복원됨');
+        }, {
+          okLabel: '복원',
+          cancelLabel: '새로 작성',
+          danger: false,
+          onCancel: function() { _quickClearDraft(schedId); }
+        });
+      } else {
+        _quickClearDraft(schedId);
+      }
+    }
+
     _quickRenderNextGoals();
+    _quickAttachDraftListeners();
   }
 }
 
@@ -348,10 +430,12 @@ function _quickRenderNextGoals() {
 function _quickToggleGoal(idx) {
   if (_quickNextGoals[idx]) _quickNextGoals[idx].checked = !_quickNextGoals[idx].checked;
   _quickRenderNextGoals();
+  _quickSaveDraft();
 }
 function _quickRemoveGoal(idx) {
   _quickNextGoals.splice(idx, 1);
   _quickRenderNextGoals();
+  _quickSaveDraft();
 }
 function quickAddGoal() {
   var inp = document.getElementById('quickGoalInput');
@@ -367,6 +451,7 @@ function quickAddGoal() {
   _quickNextGoals.push({ name: v, checked: false });
   inp.value = '';
   _quickRenderNextGoals();
+  _quickSaveDraft();
 }
 
 // ─────────────────────────────────────────────
@@ -423,17 +508,24 @@ function quickToggleDictation() {
     return;
   }
   // 보안 안내: 음성이 브라우저 벤더(Google 등)의 음성 인식 서버로 전송될 수 있음 — 첫 사용 시 1회 확인
-  try {
-    if (!localStorage.getItem('madi_quick_dict_notice')) {
-      var msg = '🎤 받아쓰기 안내\n\n'
-        + '음성은 브라우저(Chrome/Edge 등)의 음성 인식 서버로 전송되어 텍스트로 변환됩니다.\n'
-        + '아동 실명·진단명 등 민감 정보는 음성으로 말하지 마시고,\n'
-        + '음성으로는 "오늘 발음 70%" 같이 일반적인 표현만 사용해주세요.\n\n'
-        + '계속하시겠어요?';
-      if (!confirm(msg)) return;
-      localStorage.setItem('madi_quick_dict_notice', '1');
-    }
-  } catch (e) { /* localStorage 차단 환경에서도 동작 */ }
+  var alreadyAgreed = false;
+  try { alreadyAgreed = !!localStorage.getItem('madi_quick_dict_notice'); } catch (e) { alreadyAgreed = true; }
+  if (!alreadyAgreed) {
+    var msg = '🎤 받아쓰기 안내\n\n'
+      + '음성은 브라우저(Chrome/Edge 등)의 음성 인식 서버로 전송되어 텍스트로 변환됩니다.\n'
+      + '아동 실명·진단명 등 민감 정보는 음성으로 말하지 마시고,\n'
+      + '"오늘 발음 70%" 같이 일반적인 표현만 사용해주세요.\n\n'
+      + '계속하시겠어요?';
+    showConfirm(msg, function() {
+      try { localStorage.setItem('madi_quick_dict_notice', '1'); } catch (e) {}
+      _startQuickDictation(SR);
+    }, { okLabel: '동의하고 시작', cancelLabel: '취소', danger: false });
+    return;
+  }
+  _startQuickDictation(SR);
+}
+
+function _startQuickDictation(SR) {
   try {
     _quickRec = new SR();
   } catch (e) {
@@ -680,6 +772,7 @@ function quickSave() {
         sessionDB.push(newRow);
       }
       if (typeof saveSessions === 'function') saveSessions();
+      _quickClearDraft(_quickCurrentSchedId);
       if (typeof showToast === 'function') showToast('✅ 저장됨');
       if (typeof vibrate === 'function') vibrate(40);
 

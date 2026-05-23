@@ -313,23 +313,31 @@ function renderSessionList() {
 function editSessionDate(id) {
   var s = sessionDB.find(function(x){ return x.id === id; });
   if (!s) return;
-  var newDate = prompt('날짜를 입력하세요 (예: 2026-04-29)', s.date);
-  if (!newDate || !newDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    if (newDate !== null) showToast('❌ 날짜 형식을 확인해주세요 (예: 2026-04-29)');
-    return;
-  }
-  // 거짓 날짜 차단: new Date('2026-02-30') 은 3/2 로 자동 보정되므로 라운드트립 검증
-  var parsed = new Date(newDate + 'T00:00:00');
-  if (isNaN(parsed.getTime())
-      || parsed.getFullYear() !== parseInt(newDate.slice(0,4), 10)
-      || (parsed.getMonth() + 1) !== parseInt(newDate.slice(5,7), 10)
-      || parsed.getDate() !== parseInt(newDate.slice(8,10), 10)) {
-    showToast('❌ 유효하지 않은 날짜입니다'); return;
-  }
-  s.date = newDate;
-  saveSessions();
-  renderSessionList();
-  showToast('✅ 날짜 수정 완료!');
+  showInputPrompt({
+    title: '세션 날짜 변경',
+    label: '날짜를 선택해주세요',
+    type: 'date',
+    value: s.date,
+    okLabel: '저장',
+    validate: function(v) {
+      if (!v || !v.match(/^\d{4}-\d{2}-\d{2}$/)) return '날짜 형식이 올바르지 않습니다 (예: 2026-04-29)';
+      // 거짓 날짜 차단: new Date('2026-02-30') 은 3/2 로 자동 보정되므로 라운드트립 검증
+      var p = new Date(v + 'T00:00:00');
+      if (isNaN(p.getTime())
+          || p.getFullYear() !== parseInt(v.slice(0,4), 10)
+          || (p.getMonth() + 1) !== parseInt(v.slice(5,7), 10)
+          || p.getDate() !== parseInt(v.slice(8,10), 10)) {
+        return '유효하지 않은 날짜입니다';
+      }
+      return null;
+    },
+    onOk: function(newDate) {
+      s.date = newDate;
+      saveSessions();
+      renderSessionList();
+      showToast('✅ 날짜 수정 완료!');
+    }
+  });
 }
 
 // ─────── 삭제 확인 모달 ───────
