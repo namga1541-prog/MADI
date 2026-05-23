@@ -2175,6 +2175,11 @@ button, a {
 /* (6) 가로 스크롤 방지 — 모바일에서 viewport 넘는 요소 차단 */
 html, body { overflow-x: hidden; }
 
+/* (6-1) Android Chrome 풀투리프레시 / 스크롤 체이닝 차단 (iOS bounce 도 일부 영향)
+   - 빠른 기록 모드 등에서 스와이프로 페이지가 리프레시되는 사고 방지
+   - contain: 부모 스크롤만, none: 완전 차단 */
+html, body { overscroll-behavior-y: contain; }
+
 /* (7) 작은 폰트(<14px) 가독성 보강 — 모바일에서만 적용 */
 @media (max-width: 480px) {
   .child-meta,

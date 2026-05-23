@@ -1,0 +1,19 @@
+[
+  {
+    "_comment": "TWA(Trusted Web Activity) 배포 시 작성하는 Digital Asset Links 템플릿입니다.",
+    "_instructions": [
+      "1. Bubblewrap/PWABuilder 로 AAB 빌드 후 출력되는 SHA-256 fingerprint 를 sha256_cert_fingerprints 에 입력하세요.",
+      "2. package_name 은 Play Console 의 앱 패키지명과 정확히 일치해야 합니다 (예: kr.madi.app).",
+      "3. ⚠️ 이 파일이 https://<domain>/.well-known/assetlinks.json 경로에서 200 OK 로 응답해야 TWA 의 Chrome URL 바가 사라집니다.",
+      "4. GitHub Pages 프로젝트 페이지(/MADI/) 는 도메인 루트 .well-known 을 호스팅할 수 없습니다 — store-assets/06-SUBMISSION_RUNBOOK.md 의 도메인 전략 참고."
+    ],
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "kr.madi.app",
+      "sha256_cert_fingerprints": [
+        "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00"
+      ]
+    }
+  }
+]
