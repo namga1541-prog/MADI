@@ -91,15 +91,22 @@ self.addEventListener("fetch", function(e) {
 });
 
 // ─── Web Push 핸들러 ───────────────────────────────────────────────
+// 아이콘·기본 URL 은 self.registration.scope 기반으로 동적 생성 →
+// 커스텀 도메인 이전 시(예: madi.kr) 자동 적응. 하드코딩 금지.
+function _scopeUrl(rel) {
+  try { return new URL(rel, self.registration.scope).href; }
+  catch (e) { return rel; }
+}
+
 self.addEventListener("push", function(e) {
   var data = {};
   try { if (e.data) data = e.data.json(); } catch(_) {}
   var title = data.title || '마디';
   var opts = {
     body: data.body || '',
-    icon: '/MADI/icon-192.png',
-    badge: '/MADI/icon-192.png',
-    data: { url: data.url || 'https://namga1541-prog.github.io/MADI/' },
+    icon:  _scopeUrl('icon-192.png'),
+    badge: _scopeUrl('icon-192.png'),
+    data:  { url: data.url || self.registration.scope },
     requireInteraction: false
   };
   e.waitUntil(self.registration.showNotification(title, opts));
@@ -108,10 +115,11 @@ self.addEventListener("push", function(e) {
 self.addEventListener("notificationclick", function(e) {
   e.notification.close();
   var target = (e.notification.data && e.notification.data.url)
-    || 'https://namga1541-prog.github.io/MADI/';
+    || self.registration.scope;
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
       for (var i = 0; i < list.length; i++) {
+        // 같은 origin·scope 의 창이 이미 있으면 그리로 포커스
         if ('focus' in list[i]) return list[i].focus();
       }
       if (clients.openWindow) return clients.openWindow(target);

@@ -25,16 +25,7 @@ function calcAgeFromBirth(birthStr) {
   return months === 0 ? years + '세' : years + '세 ' + months + '개월';
 }
 
-function escHtml(str) {
-  if (str === null || str === undefined) return '';
-  // 작은따옴표(') 도 escape — inline onclick='...' 안에 사용자 문자열이 들어가도 안전하도록
-  return String(str)
-    .replace(/&/g,  '&amp;')
-    .replace(/</g,  '&lt;')
-    .replace(/>/g,  '&gt;')
-    .replace(/"/g,  '&quot;')
-    .replace(/'/g,  '&#39;');
-}
+// escHtml 정의는 madi-01.js 로 통합됨 (외부 리뷰 R1, 2026-05-23)
 
 // ─────── 미작성 세션 알림 ───────
 function getUnwrittenSessions() {

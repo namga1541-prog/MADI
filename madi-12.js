@@ -946,9 +946,14 @@ function initPWA() {
       window.location.reload();
     });
     // 1차 시도: 배포된 ./sw.js (GitHub Pages 환경)
-    navigator.serviceWorker.register('./sw.js')
+    // updateViaCache: 'none' — sw.js 자체가 HTTP 캐시에서 서빙되지 않도록 강제.
+    //   배포 직후 새 sw.js 가 즉시 감지되어 cache 갱신 race 가 짧아짐 (외부 리뷰 R5)
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
       .then(function(reg) {
         if (window.console && console.debug) console.debug('[마디 PWA] sw.js 등록 성공');
+        // 장시간 열려있는 탭(학부모가 화면을 켜둔 채로 며칠) 대비:
+        //   1시간마다 SW 업데이트 체크 — 변경 있으면 controllerchange 트리거 → 자동 reload
+        try { setInterval(function() { reg.update(); }, 60 * 60 * 1000); } catch (e) {}
       })
       .catch(function() {
         // 2차 시도: Blob URL (로컈 개발 / sw.js 미배포 환경)

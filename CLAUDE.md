@@ -46,7 +46,9 @@
 ## 핵심 규칙
 
 ### 코딩 컨벤션
-- 바닐라 JS (ES5 호환) — `var`, `function`, `.then()` 사용
+- 바닐라 JS (ES2015+ 사용, 모던 브라우저 타겟) — `var`/`function`/`.then()` 일관성 유지
+  · arrow function·class·let·const 미사용 — 코드 통일성 + 호이스팅 일관성
+  · template literal(백틱) 자유롭게 사용 (이미 다수). IE11 등 ES5 단독 환경은 미지원
 - 전역 변수: `childDB`, `sessionDB`, `scheduleDB`, `assessmentDB` 등
 - DB 접근: 반드시 `supaFetch()` 경유 (직접 Supabase anon key 사용 금지)
 - HTML ID 네이밍: camelCase (`schedChildSel`, `bdPanel_lounge`)
