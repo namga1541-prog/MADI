@@ -1118,7 +1118,7 @@ function initFloatBtnDrag() {
     _startTop   = rect.top;
     _startRight = window.innerWidth - rect.right;
     btn.classList.add('dragging');
-    e.preventDefault();
+    // preventDefault는 실제 드래그가 시작될 때만 (onMove) 호출 — 안 그러면 모바일 탭 click이 차단됨
   }
 
   function onMove(e) {
