@@ -5,18 +5,19 @@
        【아키텍처 현황 2026-05-23】
        이 파일은 두 개의 디자인 레이어가 누적된 상태:
          1) 초기 다크 그라데이션 헤더·큰 사이드바 디자인 (~2620라인까지)
-         2) Linear Minimal 톤 (2622~끝, 모든 헤더/사이드바 override)
+         2) Linear Minimal 톤 (2641~끝, 모든 헤더/사이드바 override)
 
-       현재 (2) 가 활성 디자인이며, (1) 위에 !important 로 덮어쓰는 구조.
-       이로 인해 madi.css 전체에 111곳의 !important 가 존재.
+       (2) 가 활성 디자인이며 `<body class="theme-linear">` prefix 로
+       자연 specificity 우위 (0,2,*) > (0,1,*) 를 확보. !important 불필요.
 
-       【향후 마이그레이션 계획 (별도 PR)】
-       a. <body class="theme-linear"> 클래스 도입 (이번 PR 에서 인프라만 추가)
-       b. Linear Minimal 섹션의 모든 셀렉터를 `body.theme-linear ${selector}` 로 prefix
-       c. specificity 가 자연스럽게 (0,1,2) > (0,0,1) 가 되어 !important 제거 가능
-       d. 시각 회귀 테스트(데스크탑/모바일/다크모드/관리자 등) 통과 후 반영
+       【남아 있는 !important 의 합법적 용도】
+        - @media (max-width) / (min-width) 의 모바일·PC 폼팩터 override
+        - @media print 의 인쇄 전용 규칙
+        - body.dark-mode 의 일부 라인 (Linear 와 동일 specificity 라
+          소스 순서로 이기지만, 과거 호환을 위해 일부는 제거 보류)
+        - 모달/사이드바 close 등 강제 hide 가 필요한 유틸 클래스
 
-       당장은 작동에 문제 없음. !important 가 design intent 를 정확히 표현.
+       그 외 디자인 의도용 !important 는 모두 제거됨 (Q5, 2026-05-23).
        ═══════════════════════════════════════════════════════════════ */
     :root {
       --mint:#0ea5a0; --mint2:#e0f7f6; --navy:#0f2942; --navy2:#1a3a5c;
@@ -2642,111 +2643,116 @@ button.dp-rev-tag:hover { background:rgba(252,211,77,0.32); color:#fef3c7; }
    ① Linear Minimal — 헤더 · 사이드바 톤 통일
    기존 다크 그라데이션 헤더 / 큰 사이드바를 흰 배경 + 가는 보더 +
    미니멀 톤으로 override.
+
+   모든 셀렉터에 body.theme-linear prefix 를 붙여 specificity 를
+   (0,2,*) 로 끌어올리고, 기존 (0,1,*) 베이스 룰을 자연스럽게 이긴다.
+   → !important 불필요. 다크모드 override 는 같은 specificity 이지만
+   소스 순서상 뒤에 위치하여 우선 적용된다.
    ═══════════════════════════════════════════════════════════ */
 
 /* 헤더 — 흰 배경 + 미세 보더 */
-.header {
-  background:white !important;
-  box-shadow:none !important;
+body.theme-linear .header {
+  background:white;
+  box-shadow:none;
   border-bottom:1px solid #e7ecf2;
-  padding:10px 24px !important;
+  padding:10px 24px;
   min-height:56px;
 }
-@media (max-width:767px) { .header { padding:calc(10px + env(safe-area-inset-top, 0px)) 16px 10px !important; } }
+@media (max-width:767px) { body.theme-linear .header { padding:calc(10px + env(safe-area-inset-top, 0px)) 16px 10px; } }
 
 /* 로고 톤 */
-.header .logo-icon { background:linear-gradient(135deg,#0ea5a0,#22c9c3); border:none; box-shadow:0 2px 8px rgba(14,165,160,0.18); width:34px !important; height:34px !important; border-radius:9px !important; }
-.header .logo-icon .madi-icon { width:34px !important; height:34px !important; border-radius:9px !important; }
-.header .logo-text h1 { color:#0a0a0a; font-size:17px !important; letter-spacing:-0.3px; }
-.header .logo-text p { color:#737373 !important; opacity:1 !important; font-size:10.5px !important; }
+body.theme-linear .header .logo-icon { background:linear-gradient(135deg,#0ea5a0,#22c9c3); border:none; box-shadow:0 2px 8px rgba(14,165,160,0.18); width:34px; height:34px; border-radius:9px; }
+body.theme-linear .header .logo-icon .madi-icon { width:34px; height:34px; border-radius:9px; }
+body.theme-linear .header .logo-text h1 { color:#0a0a0a; font-size:17px; letter-spacing:-0.3px; }
+body.theme-linear .header .logo-text p { color:#737373; opacity:1; font-size:10.5px; }
 
 /* 사이드바 토글 — 흰 헤더에 맞춰 회색 톤 */
-.sidebar-toggle-btn {
-  background:#f4f4f5 !important;
-  color:#404040 !important;
-  border:1px solid #e5e5e5 !important;
+body.theme-linear .sidebar-toggle-btn {
+  background:#f4f4f5;
+  color:#404040;
+  border:1px solid #e5e5e5;
 }
-.sidebar-toggle-btn:hover { background:#e5e5e5 !important; }
+body.theme-linear .sidebar-toggle-btn:hover { background:#e5e5e5; }
 
 /* 배포 버튼 — 흰 헤더에 맞춰 */
-#headerDeployBtn {
-  background:#fafafa !important;
-  border:1px solid #e5e5e5 !important;
-  color:#404040 !important;
-  font-weight:600 !important;
-  font-size:11.5px !important;
-  padding:6px 11px !important;
-  border-radius:7px !important;
+body.theme-linear #headerDeployBtn {
+  background:#fafafa;
+  border:1px solid #e5e5e5;
+  color:#404040;
+  font-weight:600;
+  font-size:11.5px;
+  padding:6px 11px;
+  border-radius:7px;
 }
-#headerDeployBtn:hover { background:#f4f4f5 !important; }
+body.theme-linear #headerDeployBtn:hover { background:#f4f4f5; }
 
 /* 헤더 시계 */
-.header .header-clock { color:#404040 !important; }
-.header .header-clock #clockTime { color:#0a0a0a !important; font-size:12.5px !important; font-weight:700; }
-.header .header-clock #clockNext { color:#737373 !important; font-size:11px !important; }
+body.theme-linear .header .header-clock { color:#404040; }
+body.theme-linear .header .header-clock #clockTime { color:#0a0a0a; font-size:12.5px; font-weight:700; }
+body.theme-linear .header .header-clock #clockNext { color:#737373; font-size:11px; }
 
 /* 헤더 사용자 영역 */
-.header .header-user-name { color:#0a0a0a !important; font-size:13.5px !important; font-weight:700; }
-.header .header-user-badge {
-  background:#f4f4f5 !important;
-  color:#0a0a0a !important;
-  border:1px solid #e5e5e5 !important;
-  font-size:10.5px !important;
-  padding:2px 8px !important;
-  border-radius:6px !important;
+body.theme-linear .header .header-user-name { color:#0a0a0a; font-size:13.5px; font-weight:700; }
+body.theme-linear .header .header-user-badge {
+  background:#f4f4f5;
+  color:#0a0a0a;
+  border:1px solid #e5e5e5;
+  font-size:10.5px;
+  padding:2px 8px;
+  border-radius:6px;
   font-weight:700;
 }
-.header .header-logout-btn {
-  background:#fafafa !important;
-  color:#404040 !important;
-  border:1px solid #e5e5e5 !important;
-  font-size:11.5px !important;
-  font-weight:600 !important;
-  padding:6px 10px !important;
-  border-radius:7px !important;
+body.theme-linear .header .header-logout-btn {
+  background:#fafafa;
+  color:#404040;
+  border:1px solid #e5e5e5;
+  font-size:11.5px;
+  font-weight:600;
+  padding:6px 10px;
+  border-radius:7px;
 }
-.header .header-logout-btn:hover { background:#f4f4f5 !important; color:#0a0a0a !important; }
+body.theme-linear .header .header-logout-btn:hover { background:#f4f4f5; color:#0a0a0a; }
 
 /* PC 전용 — 사이드바 미니멀화 */
 @media (min-width:768px) {
-  .app-layout { height:calc(100dvh - 56px) !important; }
-  .sidebar {
-    width:220px !important;
-    background:white !important;
-    border-right:1px solid #ebebeb !important;
+  body.theme-linear .app-layout { height:calc(100dvh - 56px); }
+  body.theme-linear .sidebar {
+    width:220px;
+    background:white;
+    border-right:1px solid #ebebeb;
   }
-  .sidebar.collapsed { width:54px !important; }
-  .sidebar-nav { padding:14px 10px !important; gap:1px !important; }
-  .sidebar-item {
-    padding:8px 10px !important;
-    border-radius:6px !important;
-    font-size:13px !important;
-    font-weight:500 !important;
-    color:#404040 !important;
+  body.theme-linear .sidebar.collapsed { width:54px; }
+  body.theme-linear .sidebar-nav { padding:14px 10px; gap:1px; }
+  body.theme-linear .sidebar-item {
+    padding:8px 10px;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:500;
+    color:#404040;
   }
-  .sidebar-item:hover { background:#f4f4f5 !important; color:#0a0a0a !important; }
-  .sidebar-item.active {
-    background:#f4f4f5 !important;
-    color:#0a0a0a !important;
-    font-weight:600 !important;
-    box-shadow:none !important;
+  body.theme-linear .sidebar-item:hover { background:#f4f4f5; color:#0a0a0a; }
+  body.theme-linear .sidebar-item.active {
+    background:#f4f4f5;
+    color:#0a0a0a;
+    font-weight:600;
+    box-shadow:none;
   }
-  .sidebar.collapsed .sidebar-item.active { box-shadow:inset 3px 0 0 #0a0a0a !important; }
-  .sidebar-item .s-ico { font-size:14px !important; width:18px !important; opacity:0.8; }
-  .sidebar-item.active .s-ico { opacity:1; }
-  .sidebar-item .s-lbl { font-size:13px !important; }
-  .sidebar-divider { background:#f4f4f5 !important; margin:8px 12px !important; }
+  body.theme-linear .sidebar.collapsed .sidebar-item.active { box-shadow:inset 3px 0 0 #0a0a0a; }
+  body.theme-linear .sidebar-item .s-ico { font-size:14px; width:18px; opacity:0.8; }
+  body.theme-linear .sidebar-item.active .s-ico { opacity:1; }
+  body.theme-linear .sidebar-item .s-lbl { font-size:13px; }
+  body.theme-linear .sidebar-divider { background:#f4f4f5; margin:8px 12px; }
 
   /* Breadcrumb — 더 가볍게 */
-  .breadcrumb-bar {
-    padding:11px 28px !important;
-    background:white !important;
-    border-bottom:1px solid #ebebeb !important;
-    font-size:13px !important;
-    color:#737373 !important;
+  body.theme-linear .breadcrumb-bar {
+    padding:11px 28px;
+    background:white;
+    border-bottom:1px solid #ebebeb;
+    font-size:13px;
+    color:#737373;
   }
-  .breadcrumb-bar .bc-home { color:#0a0a0a !important; font-weight:600 !important; }
-  .breadcrumb-bar .bc-current { color:#737373 !important; }
+  body.theme-linear .breadcrumb-bar .bc-home { color:#0a0a0a; font-weight:600; }
+  body.theme-linear .breadcrumb-bar .bc-current { color:#737373; }
 }
 
 /* 카테고리 라벨 (PC 사이드바) — JS 가 추가하거나 HTML에 들어가는 경우 */
@@ -2760,23 +2766,25 @@ button.dp-rev-tag:hover { background:rgba(252,211,77,0.32); color:#fef3c7; }
 }
 .sidebar.collapsed .sidebar-label { display:none; }
 
-/* 다크모드는 기존 톤 유지하기 위해 위 override 일부 무효화 */
-body.dark-mode .header { background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%) !important; border-bottom-color:rgba(255,255,255,0.06); }
+/* 다크모드는 기존 톤 유지하기 위해 위 override 일부 무효화
+   (body.dark-mode 와 body.theme-linear 는 동일 specificity 0,2,*.
+    소스 순서상 이 블록이 뒤에 위치하므로 다크모드가 우선 적용됨) */
+body.dark-mode .header { background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%); border-bottom-color:rgba(255,255,255,0.06); }
 body.dark-mode .header .logo-text h1,
 body.dark-mode .header .header-user-name,
-body.dark-mode .header .header-clock #clockTime { color:white !important; }
+body.dark-mode .header .header-clock #clockTime { color:white; }
 body.dark-mode .header .logo-text p,
 body.dark-mode .header .header-clock,
-body.dark-mode .header .header-clock #clockNext { color:rgba(255,255,255,0.7) !important; }
-body.dark-mode .header .header-user-badge { background:rgba(255,255,255,0.12) !important; border-color:rgba(255,255,255,0.2) !important; color:white !important; }
+body.dark-mode .header .header-clock #clockNext { color:rgba(255,255,255,0.7); }
+body.dark-mode .header .header-user-badge { background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.2); color:white; }
 body.dark-mode .header .header-logout-btn,
-body.dark-mode #headerDeployBtn { background:rgba(255,255,255,0.08) !important; border-color:rgba(255,255,255,0.18) !important; color:rgba(255,255,255,0.9) !important; }
-body.dark-mode .sidebar { background:#0f172a !important; border-right-color:rgba(255,255,255,0.06) !important; }
-body.dark-mode .sidebar-item { color:rgba(255,255,255,0.7) !important; }
-body.dark-mode .sidebar-item:hover { background:rgba(255,255,255,0.06) !important; color:white !important; }
-body.dark-mode .sidebar-item.active { background:rgba(255,255,255,0.08) !important; color:white !important; }
-body.dark-mode .breadcrumb-bar { background:#0f172a !important; border-bottom-color:rgba(255,255,255,0.06) !important; color:rgba(255,255,255,0.6) !important; }
-body.dark-mode .breadcrumb-bar .bc-home { color:white !important; }
+body.dark-mode #headerDeployBtn { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); color:rgba(255,255,255,0.9); }
+body.dark-mode .sidebar { background:#0f172a; border-right-color:rgba(255,255,255,0.06); }
+body.dark-mode .sidebar-item { color:rgba(255,255,255,0.7); }
+body.dark-mode .sidebar-item:hover { background:rgba(255,255,255,0.06); color:white; }
+body.dark-mode .sidebar-item.active { background:rgba(255,255,255,0.08); color:white; }
+body.dark-mode .breadcrumb-bar { background:#0f172a; border-bottom-color:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); }
+body.dark-mode .breadcrumb-bar .bc-home { color:white; }
 
 /* ═══════════════════════════════════════════════════════════
    보고서 페이지 PC 레이아웃 (panel1 세션 / panel3 평가 / panel5 리포트 / panelSI 감통)
