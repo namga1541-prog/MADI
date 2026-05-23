@@ -135,23 +135,35 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 세션 무효화 검증 ──
-  // 비밀번호 변경 후 발급된 토큰만 유효. 토큰의 iat 가 password_changed_at 보다 이전이면 거부.
+  // ① 비밀번호 변경 시 (password_changed_at) → 옛 토큰 거부
+  // ② 강제 로그아웃 시 (session_revoked_at, SEC3) → admin 이 즉시 강등 가능
   try {
     const tokenIat = Number(user.iat || 0)
     if (tokenIat > 0) {
       const pwdRes = await fetch(
-        SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub)) + '&select=password_changed_at',
+        SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub))
+          + '&select=password_changed_at,session_revoked_at',
         { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
       )
       if (pwdRes.ok) {
-        const r = await pwdRes.json() as Array<{ password_changed_at?: string }>
+        const r = await pwdRes.json() as Array<{ password_changed_at?: string; session_revoked_at?: string }>
         const pwAtStr = r && r[0] ? r[0].password_changed_at : null
+        const rvAtStr = r && r[0] ? r[0].session_revoked_at : null
         if (pwAtStr) {
           const pwAt = Math.floor(new Date(pwAtStr).getTime() / 1000)
           // 1초 여유 — 동일 초 발급된 토큰은 유효 (clock skew 보정)
           if (tokenIat + 1 < pwAt) {
             return new Response(
               JSON.stringify({ error: '비밀번호가 변경되어 세션이 만료되었습니다. 다시 로그인해주세요.' }),
+              { status: 401, headers: CORS }
+            )
+          }
+        }
+        if (rvAtStr) {
+          const rvAt = Math.floor(new Date(rvAtStr).getTime() / 1000)
+          if (tokenIat + 1 < rvAt) {
+            return new Response(
+              JSON.stringify({ error: '관리자에 의해 세션이 종료되었습니다. 다시 로그인해주세요.' }),
               { status: 401, headers: CORS }
             )
           }

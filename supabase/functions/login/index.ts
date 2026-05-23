@@ -85,9 +85,11 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  // DB에서 사용자 조회
+  // DB에서 사용자 조회 (SEC4: 잠금 상태 컬럼도 같이 가져옴)
   const userRes = await fetch(
-    SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username) + '&select=id,username,name,password,role,center_id,color,permissions',
+    SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username)
+      + '&select=id,username,name,password,role,center_id,color,permissions,status'
+      + ',failed_login_count,last_failed_at,locked_until',
     { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
   )
   if (!userRes.ok) {
@@ -97,6 +99,7 @@ Deno.serve(async (req: Request) => {
   const user  = Array.isArray(users) ? users[0] : null
 
   if (!user) {
+    // 타이밍 공격 방어 — 사용자 없어도 bcrypt 한 번 돌려 응답시간 정상화
     await bcrypt.hash('dummy', 10)
     return new Response(JSON.stringify({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' }), { status: 401, headers: CORS })
   }
@@ -105,9 +108,55 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: '비활성화된 계정입니다. 관리자에게 문의하세요.' }), { status: 403, headers: CORS })
   }
 
+  // ── SEC4: 계정 잠금 체크 ──
+  // 5회 연속 실패 시 30분 잠금. 잠금 시간이 지나면 자동 해제 (다음 실패가 카운터를 0부터 다시).
+  const LOCK_THRESHOLD     = 5
+  const LOCK_DURATION_MS   = 30 * 60 * 1000      // 30분
+  const COUNT_WINDOW_MS    = 30 * 60 * 1000      // 30분 윈도우 — 그 안의 실패만 누적
+  const now                = Date.now()
+
+  if (user.locked_until && new Date(user.locked_until).getTime() > now) {
+    const remainSec = Math.ceil((new Date(user.locked_until).getTime() - now) / 1000)
+    const remainMin = Math.ceil(remainSec / 60)
+    return new Response(
+      JSON.stringify({ error: `계정이 일시 잠금되었습니다. ${remainMin}분 후 다시 시도해주세요.` }),
+      { status: 423, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(remainSec) } }
+    )
+  }
+
   const { ok, needRehash } = await verifyPassword(password, user.password)
   if (!ok) {
-    return new Response(JSON.stringify({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' }), { status: 401, headers: CORS })
+    // ── SEC4: 실패 카운터 증가 + 임계 도달 시 잠금 설정 ──
+    const within = user.last_failed_at && (now - new Date(user.last_failed_at).getTime()) < COUNT_WINDOW_MS
+    const newCount = within ? Number(user.failed_login_count || 0) + 1 : 1
+    const willLock = newCount >= LOCK_THRESHOLD
+    const update: Record<string, unknown> = {
+      failed_login_count: newCount,
+      last_failed_at:     new Date(now).toISOString(),
+    }
+    if (willLock) update.locked_until = new Date(now + LOCK_DURATION_MS).toISOString()
+    fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+      body:    JSON.stringify(update),
+    }).catch(() => { /* fire-and-forget */ })
+
+    const msg = willLock
+      ? `로그인 5회 실패 — 계정이 30분간 잠금되었습니다.`
+      : `아이디 또는 비밀번호가 올바르지 않습니다. (남은 시도 ${LOCK_THRESHOLD - newCount}회)`
+    return new Response(
+      JSON.stringify({ error: msg }),
+      { status: willLock ? 423 : 401, headers: CORS }
+    )
+  }
+
+  // ── SEC4: 성공 시 카운터·잠금 리셋 ──
+  if (user.failed_login_count || user.locked_until) {
+    fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+      body:    JSON.stringify({ failed_login_count: 0, locked_until: null, last_failed_at: null }),
+    }).catch(() => { /* fire-and-forget */ })
   }
 
   // Lazy bcrypt 마이그레이션: SHA-256 해시 → bcrypt 로 재해싱

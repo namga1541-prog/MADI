@@ -53,6 +53,7 @@ assessments_user_id_migration.sql   — 평가에 user_id 추가
 audit_log_setup.sql                 — 감사 로그
 rate_limits_setup.sql               — Edge Function rate limit 백엔드
 session_invalidation_setup.sql      — 비밀번호 변경 시 세션 무효화
+session_security_setup.sql          — 강제 로그아웃·계정 잠금 컬럼 (SEC3+SEC4, 2026-05-24)
 madi_notifications_setup.sql        — 앱 내 알림
 madi_portfolios_setup.sql           — 학부모 포트폴리오
 madi_push_setup.sql                 — Web Push 구독
