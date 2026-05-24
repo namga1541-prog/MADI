@@ -42,8 +42,10 @@ function onAssessChildChange() {
     el.style.color = 'var(--mint)';
     el.style.background = '#f0fdf4';
     el.style.borderColor = 'var(--mint)';
-    // 보고서 생성 시 사용할 수 있도록 child 객체에도 캐시 (다른 함수에서 child.age 사용)
-    if (child) child.age = ageStr;
+    // 검사일 기준 연령을 별도 프로퍼티에 캐시 — child.age 덮어쓰기 금지
+    // (child.age 는 DB 저장 "X세 X개월" 형식; calcLivingAge 는 "Xy Xm" 형식 →
+    //  parseAgeToMonths 가 둘 다 파싱 가능하지만 DB 원본을 보존하는 게 안전)
+    if (child) child._testAge = ageStr;
   } else {
     el.textContent = '생활연령';
     el.style.color = '#94a3b8';
@@ -310,11 +312,17 @@ function lookupSynComp(ageYears, raw) {
 }
 
 // ── 생활연령 파싱 (age 문자열 → 개월수) ──
+// "7y 3m" (calcLivingAge 출력·검사보고서 표준) 과
+// "7세 3개월" (childDB.age DB 저장값) 양쪽 모두 처리
 function parseAgeToMonths(ageStr) {
   if (!ageStr) return null;
-  var m = ageStr.match(/(\d+)세\s*(?:(\d+)개월)?/);
-  if (!m) return null;
-  return parseInt(m[1]) * 12 + (m[2] ? parseInt(m[2]) : 0);
+  // "Xy Xm" / "Xy" 형식 (calcLivingAge 반환값)
+  var yMatch = ageStr.match(/^(\d+)y(?:\s*(\d+)m)?/);
+  if (yMatch) return parseInt(yMatch[1]) * 12 + (yMatch[2] ? parseInt(yMatch[2]) : 0);
+  // "X세 X개월" / "X세" 형식 (DB 저장값)
+  var koMatch = ageStr.match(/(\d+)세\s*(?:(\d+)개월)?/);
+  if (!koMatch) return null;
+  return parseInt(koMatch[1]) * 12 + (koMatch[2] ? parseInt(koMatch[2]) : 0);
 }
 
 // ── 통합 자동 계산 함수 ──
@@ -335,7 +343,8 @@ function autoCalcAssessScores() {
   });
   if (!hasRaw) { showToast('원점수를 먼저 입력해주세요.'); return; }
 
-  var ageMonths = parseAgeToMonths(child.age);
+  // 검사일 기준 연령 우선 (_testAge), 없으면 DB 저장값(child.age) 사용
+  var ageMonths = parseAgeToMonths(child._testAge || child.age);
   var ageYears  = ageMonths ? Math.floor(ageMonths / 12) : null;
   var filled    = 0;
   var usedNorm  = false;
@@ -864,7 +873,7 @@ function generateAssessReport() {
 
   var USER = '【아동 정보】\n'
     + '이름: ' + child.name + '\n'
-    + '생활연령: ' + child.age + '\n'
+    + '생활연령: ' + (child._testAge || child.age) + '\n'
     + '장애유형: ' + child.type + '\n'
     + (institution  ? '기관명: ' + institution + '\n' : '')
     + (evaluator    ? '평가자: ' + evaluator + '\n' : '')
