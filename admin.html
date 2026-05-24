@@ -612,7 +612,8 @@
           <button class="btn-outline" style="flex:0.4;" onclick="loadPushSettings()">🔄 불러오기</button>
         </div>
         <div style="display:flex;gap:8px;">
-          <button class="btn-outline" style="flex:1;margin:0;border-color:var(--accent);color:var(--accent);" onclick="sendPushTest()">🧪 지금 테스트 발송 (구독한 학부모 전원)</button>
+          <button class="btn-outline" style="flex:1;margin:0;border-color:var(--accent);color:var(--accent);" onclick="sendPushTest()">🔔 웹 푸시 테스트 (구독 학부모 전원)</button>
+          <button class="btn-outline" style="flex:1;margin:0;border-color:#0ea5a0;color:#0ea5a0;" onclick="sendInAppNotifTest()">📬 인앱 알림 테스트 (학부모 전원)</button>
         </div>
         <div id="pushSettingsStatus" style="font-size:12px;color:var(--text2);min-height:14px;"></div>
       </div>
@@ -1149,6 +1150,49 @@ function sendPushTest() {
       showToast('⚠️ ' + err);
       if (st) st.textContent = '실패: ' + err;
     });
+  }, { okLabel: '발송', danger: false });
+}
+
+// 📬 인앱 알림 테스트 — 자기 센터 학부모 전원의 madi_notifications 에 테스트 레코드 삽입
+function sendInAppNotifTest() {
+  if (!currentUser) return;
+  if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+    showToast('⚠️ 관리자만 호출 가능'); return;
+  }
+  var st = document.getElementById('pushSettingsStatus');
+  showConfirm('이 센터 학부모 전원의 앱 알림함에 테스트 알림을 추가할까요?\n(학부모가 다음 홈 진입 시 알림 카드로 표시됩니다)', function() {
+    if (st) st.textContent = '인앱 알림 발송 중...';
+    supaFetch('madi_users?role=eq.parent&center_id=eq.' + encodeURIComponent(currentUser.center_id) + '&select=id', 'GET')
+      .then(function(parents) {
+        if (!Array.isArray(parents) || parents.length === 0) {
+          if (st) st.textContent = '이 센터에 학부모 계정 없음';
+          showToast('⚠️ 이 센터에 학부모 계정이 없습니다');
+          return;
+        }
+        var now = new Date().toISOString();
+        var notifs = parents.map(function(p) {
+          return {
+            user_id: p.id,
+            center_id: currentUser.center_id,
+            type: 'notice',
+            title: '📬 테스트 알림 — 아이마디',
+            body: '관리자가 발송한 테스트 알림입니다. 인앱 알림이 정상 작동 중입니다.',
+            link: null,
+            created_at: now
+          };
+        });
+        return supaFetch('madi_notifications', 'POST', notifs)
+          .then(function() {
+            var msg = '인앱 알림 ' + parents.length + '명 발송 완료';
+            showToast('✅ ' + msg);
+            if (st) st.textContent = msg;
+          });
+      })
+      .catch(function(e) {
+        var err = e.message || '발송 실패';
+        showToast('⚠️ 인앱 알림 ' + err);
+        if (st) st.textContent = '인앱 알림 실패: ' + err;
+      });
   }, { okLabel: '발송', danger: false });
 }
 
