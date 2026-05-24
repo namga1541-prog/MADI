@@ -33,7 +33,9 @@ function toggleChat() {
   }
 }
 
-// ── 마로 버튼 드래그 이동 ──
+// ── 마로 버튼 드래그 이동 (Pointer Events API) ──
+// setPointerCapture 를 사용하므로 document 레벨 리스너 불필요
+// 마우스·터치·스타일러스를 단일 API 로 처리, iOS touchcancel 문제 원천 해결
 function initFloatBtnDrag() {
   var btn = document.getElementById('floatBtn');
   if (!btn) return;
@@ -42,8 +44,12 @@ function initFloatBtnDrag() {
   var _moved    = false;
   var _startX, _startY, _startTop, _startRight;
 
+  // touch-action:none — 브라우저가 이 요소의 터치를 스크롤/줌 제스처로 가로채지 않도록 설정
+  // Pointer Events 의 setPointerCapture 가 제대로 동작하려면 필수
+  btn.style.touchAction = 'none';
+
   var saved = null;
-  try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+  try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch (e) { /* silent: private mode / 구브라우저 */ }
   if (saved) {
     btn.style.top    = saved.top  + 'px';
     btn.style.bottom = 'auto';
@@ -52,32 +58,30 @@ function initFloatBtnDrag() {
     btn.style.transform = 'none';
   }
 
-  function getPos(e) {
-    return e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
-                     : { x: e.clientX,             y: e.clientY };
-  }
-
   function onStart(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+    // btn 내부의 텍스트 입력 요소를 터치한 경우 드래그 시작 안 함
+    // 기존 BUTTON 가드 제거 — btn 자체 및 자식 span/div/icon 모두 드래그 가능
+    var t = e.target;
+    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return;
+
     _dragging = true;
     _moved    = false;
-    var pos   = getPos(e);
-    _startX   = pos.x;
-    _startY   = pos.y;
+    _startX   = e.clientX;
+    _startY   = e.clientY;
     var rect  = btn.getBoundingClientRect();
     _startTop   = rect.top;
     _startRight = window.innerWidth - rect.right;
     btn.classList.add('dragging');
-    // move 리스너는 드래그 시작 시에만 동적 등록 — 평소엔 document에 non-passive 리스너 없음
-    document.addEventListener('mousemove', onMove, { passive: false });
-    document.addEventListener('touchmove', onMove, { passive: false });
+
+    // setPointerCapture: 이후 pointermove/pointerup/pointercancel 이 버튼 밖에서 발생해도
+    // 모두 btn 으로 라우팅됨 — document 리스너 없이도 끝까지 추적 가능
+    try { btn.setPointerCapture(e.pointerId); } catch (err) { /* 구형 브라우저 폴백 */ }
   }
 
   function onMove(e) {
     if (!_dragging) return;
-    var pos  = getPos(e);
-    var dx   = pos.x - _startX;
-    var dy   = pos.y - _startY;
+    var dx = e.clientX - _startX;
+    var dy = e.clientY - _startY;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _moved = true;
     if (!_moved) return;
 
@@ -89,16 +93,13 @@ function initFloatBtnDrag() {
     btn.style.right  = newRight + 'px';
     btn.style.left   = 'auto';
     btn.style.transform = 'none';
-    e.preventDefault(); // 실제 드래그 중일 때만 호출됨
+    // preventDefault 불필요: touch-action:none + setPointerCapture 가 스크롤 간섭 원천 차단
   }
 
   function onEnd(e) {
     if (!_dragging) return;
     _dragging = false;
     btn.classList.remove('dragging');
-    // 동적으로 등록한 move 리스너 정리 — 이후 touchmove 에 non-passive 리스너 없음
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('touchmove', onMove);
 
     if (_moved) {
       try {
@@ -106,18 +107,17 @@ function initFloatBtnDrag() {
           top:   parseInt(btn.style.top),
           right: parseInt(btn.style.right)
         }));
-      } catch (err) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+      } catch (err) { /* silent: private mode / 구브라우저 */ }
       btn.dataset.dragged = '1';
       setTimeout(function() { delete btn.dataset.dragged; }, 100);
     }
   }
 
-  btn.addEventListener('mousedown', onStart, { passive: false });
-  document.addEventListener('mouseup', onEnd);
-
-  btn.addEventListener('touchstart', onStart, { passive: false });
-  document.addEventListener('touchend',    onEnd);
-  document.addEventListener('touchcancel', onEnd); // iOS 스크롤 제스처 가로채기 시 _dragging 리셋
+  // Pointer Events 4종: 마우스·터치·스타일러스 통합 — document 리스너 전혀 없음
+  btn.addEventListener('pointerdown',   onStart);
+  btn.addEventListener('pointermove',   onMove);
+  btn.addEventListener('pointerup',     onEnd);
+  btn.addEventListener('pointercancel', onEnd); // iOS 제스처 충돌·시스템 인터럽트 시 리셋
 
   btn.removeAttribute('onclick');
   btn.addEventListener('click', function(e) {
