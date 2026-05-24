@@ -890,9 +890,11 @@ function cancelImport() {
 
 // ─────── 초기화 ───────
 function init() {
-  // 배포 버튼이 "배포 중..." 상태로 저장된 경우 강제 정상화
+  // 배포 버튼 / 토스트가 "배포 중..." 상태로 저장된 경우 강제 정상화
   var _db = document.getElementById('headerDeployBtn');
   if (_db) { _db.disabled = false; _db.textContent = '🚀 배포'; }
+  var _toast = document.getElementById('toast');
+  if (_toast) { _toast.classList.remove('show'); _toast.textContent = ''; _toast.style.pointerEvents = ''; }
   loadDarkMode();
   setTimeout(applyPermissions, 400);
   startHeaderClock();
