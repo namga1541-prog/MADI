@@ -12,7 +12,7 @@ function openBulkClosedDateModal(ids) {
   var preview = document.getElementById('bcdNamePreview');
   if (preview) {
     var names = ids.map(function(id) {
-      var c = childDB.find(function(c){ return c.id === id; });
+      var c = childDB.find(function(c){ return c.id == id; });
       return c ? escHtml(c.name) : '?';
     });
     var MAX_SHOW = 5;
@@ -72,7 +72,7 @@ function confirmBulkClosedDate() {
 
   // 최종 확인창
   var names = ids.map(function(id) {
-    var c = childDB.find(function(c){ return c.id === id; });
+    var c = childDB.find(function(c){ return c.id == id; });
     return c ? c.name : '?';
   });
   var preview = names.slice(0, 3).join(', ') + (names.length > 3 ? ' 외 ' + (names.length - 3) + '명' : '');
@@ -182,7 +182,7 @@ function toggleChildCard(id) {
 }
 
 function openChildDetail(id) {
-  var child = childDB.find(function(c) { return c.id === id; });
+  var child = childDB.find(function(c) { return c.id == id; });
   if (!child) return;
   var today = getTodayKST();
   var ss = sessionDB.filter(function(s) { return s.childId === id; })
@@ -252,7 +252,7 @@ function goToSession(id) {
   if (sel) {
     sel.value = id;
     if (sel._ssInp) {
-      var ch0 = childDB.find(function(c){ return c.id === id; });
+      var ch0 = childDB.find(function(c){ return c.id == id; });
       sel._ssInp.value = ch0 ? ch0.name + ' (' + (ch0.birth||'') + ' / ' + (ch0.age||'') + ')' : '';
     }
   }
@@ -262,7 +262,7 @@ function goToSession(id) {
     if (sel2) {
       sel2.value = id;
       if (sel2._ssInp) {
-        var ch = childDB.find(function(c){ return c.id === id; });
+        var ch = childDB.find(function(c){ return c.id == id; });
         sel2._ssInp.value = ch ? ch.name + ' (' + (ch.birth||'') + ' / ' + (ch.age||'') + ')' : '';
       }
       loadGoalRows(id);
@@ -275,7 +275,7 @@ function goToSession(id) {
 
 // ─────── 아동 편집 모달 ───────
 function openEditModal(id) {
-  var child = childDB.find(function(c) { return c.id === id; });
+  var child = childDB.find(function(c) { return c.id == id; });
   if (!child) return;
 
   var overlay = document.createElement('div');
@@ -479,7 +479,7 @@ function updateEditAge() {
 }
 
 function saveEditModal(id) {
-  var idx = childDB.findIndex(function(c) { return c.id === id; });
+  var idx = childDB.findIndex(function(c) { return c.id == id; });
   if (idx < 0) return;
 
   var name  = document.getElementById('editName').value.trim();

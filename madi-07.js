@@ -311,7 +311,7 @@ function renderSessionList() {
 }
 
 function editSessionDate(id) {
-  var s = sessionDB.find(function(x){ return x.id === id; });
+  var s = sessionDB.find(function(x){ return x.id == id; });
   if (!s) return;
   showInputPrompt({
     title: '세션 날짜 변경',
@@ -382,7 +382,7 @@ function deleteSession(id) {
     showToast('⚠️ 세션 삭제 권한이 없습니다');
     return;
   }
-  var backup = sessionDB.find(function(s) { return s.id === id; });
+  var backup = sessionDB.find(function(s) { return s.id == id; });
   if (!backup) return;
   showDeleteConfirm(
     '세션 기록을 삭제하시겠습니까?',

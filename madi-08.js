@@ -462,7 +462,7 @@ function renderIEPHistory(childId) {
 }
 
 function loadIEPRecord(id) {
-  var r = iepDB.find(function(x){ return x.id === id; });
+  var r = iepDB.find(function(x){ return x.id == id; });
   if (!r) return;
   window._iepData = r.data;
   window._iepChildName = r.childName;
@@ -517,7 +517,7 @@ function renderIEPView(p, childName) {
 }
 
 function downloadIEPPDFById(id) {
-  var r = iepDB.find(function(x){ return x.id === id; });
+  var r = iepDB.find(function(x){ return x.id == id; });
   if (!r) return;
   window._iepData = r.data;
   downloadIEPPDF(r.childName);
@@ -525,7 +525,7 @@ function downloadIEPPDFById(id) {
 
 function deleteIEPRecord(id) {
   showConfirm('이 장단기계획(IEP) 기록을 삭제할까요?', function() {
-    var r = iepDB.find(function(x){ return x.id === id; });
+    var r = iepDB.find(function(x){ return x.id == id; });
     var childId = r ? r.childId : 0;
     iepDB = iepDB.filter(function(x){ return x.id !== id; });
     saveIEP();
