@@ -545,6 +545,12 @@ function resetChatMicBtn() {
 function sendChat() {
   if (chatWaiting) return;
 
+  // useAI 권한 검사 — 권한 없는 선생님이 마로 채팅을 통해 AI를 우회 사용하는 것 차단
+  if (typeof canDo === 'function' && !canDo('useAI')) {
+    addAiMsg('AI 기능 사용 권한이 없습니다. 센터장에게 문의해주세요. 🔒');
+    return;
+  }
+
   var input = document.getElementById('chatInput');
   var text  = input.value.trim();
   if (!text) return;

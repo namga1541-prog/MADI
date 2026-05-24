@@ -158,14 +158,26 @@ function deleteStaff(id, name) {
 
 // ─────── 폴링 방식 동기화 (보안 강화 — Realtime 대체) ───────
 var _pollTimer = null;
-var _pollInterval = 10000; // 10초마다 갱신
+var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)
 var _myChangeTs = 0;
+var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)
+var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단
+
+// 활동 감지 리스너 — 클릭·키·터치 발생 시 _lastActivityTs 갱신
+if (typeof window !== 'undefined' && !window._madiActivityBound) {
+  window._madiActivityBound = true;
+  ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(function(ev) {
+    document.addEventListener(ev, function() { _lastActivityTs = Date.now(); }, { passive: true, capture: true });
+  });
+}
 
 function initRealtime() {
   stopRealtime();
   _pollTimer = setInterval(function() {
     // 내가 방금 저장한 경우 2초 동안 폴링 스킵 (중복 갱신 방지)
     if (_myChangeTs && Date.now() < _myChangeTs + 2000) return;
+    // 5분 이상 비활성 시 폴링 스킵 — 모바일 배터리·데이터 낭비 방지
+    if (Date.now() - _lastActivityTs > _IDLE_THRESHOLD) return;
     if (typeof loadDBFromSupabase === 'function') {
       loadDBFromSupabase(true);
     }
@@ -190,7 +202,9 @@ if (typeof window !== 'undefined' && !window._madiPollUnloadBound) {
     if (document.visibilityState === 'hidden') {
       stopRealtime();
     } else if (document.visibilityState === 'visible' && typeof currentUser !== 'undefined' && currentUser) {
-      // 다시 활성화되면 폴링 재시작
+      _lastActivityTs = Date.now(); // 탭 복귀 = 활동으로 간주
+      // 즉시 1회 갱신 — 탭 숨김 중 변경사항을 30초 기다리지 않고 즉시 반영
+      if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(true);
       initRealtime();
     }
   });

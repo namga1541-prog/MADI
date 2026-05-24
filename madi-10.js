@@ -950,7 +950,8 @@ function exportSchedule(format) {
 }
 
 function _printSchedule(rows, label) {
-  var html = '<html><head><meta charset="utf-8"><title>일정표 ' + label + '</title>'
+  var eh   = escHtml; // XSS 방어 — document.write 대상이므로 필수
+  var html = '<html><head><meta charset="utf-8"><title>일정표 ' + eh(label) + '</title>'
     + '<style>'
     + 'body{font-family:"맑은 고딕","Malgun Gothic",sans-serif;font-size:12px;padding:20px;}'
     + 'h2{font-size:16px;margin-bottom:12px;}'
@@ -960,14 +961,14 @@ function _printSchedule(rows, label) {
     + 'tr:nth-child(even){background:#f9fafb;}'
     + '@media print{@page{margin:15mm;}}'
     + '</style></head><body>'
-    + '<h2>📅 일정표 (' + label + ')</h2>'
+    + '<h2>📅 일정표 (' + eh(label) + ')</h2>'
     + '<table><thead><tr>'
     + '<th>날짜</th><th>시작</th><th>종료</th><th>이용자</th><th>선생님</th><th>프로그램유형</th><th>바우처</th><th>메모</th>'
     + '</tr></thead><tbody>'
     + rows.map(function(r) {
-        return '<tr><td>'+r.날짜+'</td><td>'+r.시작시간+'</td><td>'+r.종료시간+'</td>'
-          +'<td>'+r.이용자+'</td><td>'+r.선생님+'</td><td>'+r.프로그램유형+'</td>'
-          +'<td>'+r.바우처+'</td><td>'+r.메모+'</td></tr>';
+        return '<tr><td>'+eh(r.날짜||'')+'</td><td>'+eh(r.시작시간||'')+'</td><td>'+eh(r.종료시간||'')+'</td>'
+          +'<td>'+eh(r.이용자||'')+'</td><td>'+eh(r.선생님||'')+'</td><td>'+eh(r.프로그램유형||'')+'</td>'
+          +'<td>'+eh(r.바우처||'')+'</td><td>'+eh(r.메모||'')+'</td></tr>';
       }).join('')
     + '</tbody></table>'
     + '<p style="font-size:10px;color:#999;margin-top:12px;">출력일: ' + new Date().toLocaleDateString('ko-KR') + ' | 아이마디아이</p>'

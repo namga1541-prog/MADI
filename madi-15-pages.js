@@ -65,7 +65,18 @@ function loadParentPortfolio() {
   getMyChildInfo(function(childId, centerId) {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
 
+    // child_id 미연결 학부모 처리
+    if (!childId) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>'
+        + '<p style="font-size:14px;font-weight:600;margin-bottom:4px;">아동 연결 정보가 없습니다</p>'
+        + '<p style="font-size:12px;color:var(--text2);line-height:1.6;">담당 선생님에게 계정 연결을 요청해주세요.</p>'
+        + '</div>';
+      return;
+    }
+
+    // child_id 필터 필수 — 없으면 센터 내 모든 공개 포트폴리오가 내려와 타 아동 열람 가능 (PIPA 위반)
     supaFetch('madi_portfolios?select=id,month,content,opened_at,created_at,created_by_name'
+      + '&child_id=eq.' + encodeURIComponent(childId)
       + '&order=month.desc&limit=24', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows) || rows.length === 0) {
@@ -77,7 +88,14 @@ function loadParentPortfolio() {
         }
         el.innerHTML = rows.map(_renderParentPortfolioCard).join('');
       })
-      .catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
+      .catch(function(err) {
+        var isNet = err && err.message && err.message.toLowerCase().indexOf('fetch') !== -1;
+        var msg   = isNet
+          ? '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          : '포트폴리오를 불러오지 못했습니다. 앱을 새로고침 해보세요.';
+        el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>'
+          + '<p style="font-size:13px;color:var(--text2);">' + msg + '</p></div>';
+      });
   });
 }
 

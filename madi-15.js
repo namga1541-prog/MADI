@@ -272,13 +272,20 @@ function _renderParentHeroStats(_unusedSessions) {
 }
 
 // 공개된 포트폴리오 — 홈 상단 패널 (이번 주 세션 → 포트폴리오 카드로 교체)
-// Edge Function 에서 parent_visible=true 강제되므로 클라이언트는 추가 필터 불필요.
-function _renderParentRecentPortfolios(_childId) {
+// child_id 필터 필수 — 없으면 센터 내 모든 공개 포트폴리오가 내려와 타 아동 열람 가능 (PIPA 위반)
+function _renderParentRecentPortfolios(childId) {
   var el      = document.getElementById('parentWeekDetails');
   var rangeEl = document.getElementById('parentWeekRange');
   if (!el) return;
 
+  if (!childId) {
+    if (rangeEl) rangeEl.textContent = '아동 연결 필요';
+    el.innerHTML = '<div class="dp-empty">담당 선생님에게 계정 연결을 요청해주세요.</div>';
+    return;
+  }
+
   supaFetch('madi_portfolios?select=id,month,content,opened_at,created_by_name'
+    + '&child_id=eq.' + encodeURIComponent(childId)
     + '&order=month.desc&limit=4', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) rows = [];

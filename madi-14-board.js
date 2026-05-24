@@ -113,7 +113,7 @@ function renderLoungeUI() {
       + '</div>'
       + '<div>'
       +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">내용</label>'
-      +   '<textarea id="loungeContent" class="form-input" placeholder="건의 내용을 자세히 적어주세요..." rows="5" style="resize:vertical;font-family:inherit;margin-bottom:0;"></textarea>'
+      +   '<textarea id="loungeContent" class="form-input" placeholder="건의 내용을 자세히 적어주세요..." rows="5" maxlength="3000" style="resize:vertical;font-family:inherit;margin-bottom:0;"></textarea>'
       + '</div>'
       + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
       +   '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 이미지 첨부 (최대 3장, 선택)</div>'
@@ -232,8 +232,9 @@ function saveLoungePost() {
   var title      = (titleEl.value || '').trim();
   var content    = (contentEl.value || '').trim();
 
-  if (!title)              { showToast('⚠️ 제목을 입력해주세요'); return; }
-  if (title.length > 100)  { showToast('⚠️ 제목은 100자 이하로 작성해주세요'); return; }
+  if (!title)               { showToast('⚠️ 제목을 입력해주세요'); return; }
+  if (title.length > 100)   { showToast('⚠️ 제목은 100자 이하로 작성해주세요'); return; }
+  if (content.length > 3000) { showToast('⚠️ 본문은 3000자 이하로 작성해주세요 (' + content.length + '/3000)'); return; }
 
   var user = currentUser || {};
   if (!user.name || !user.role) { showToast('⚠️ 로그인 정보를 확인해주세요'); return; }
