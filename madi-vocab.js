@@ -72,6 +72,13 @@ var SLP_VOCAB_BLOCKED_ALL = {
   '중지화': '파열음화',
   '중지음화': '파열음화',
   '저해음화': '파열음화',
+  // 조기출산(미숙아) 관련 — 한국 임상 실무에서는 수정연령 없이 생활연령으로 결과 산출
+  // 출처: 현장 SLP 피드백 (2026-05-24)
+  '수정연령': '생활연령',
+  'corrected age': '생활연령',
+  'adjusted age': '생활연령',
+  'chronological age adjusted for prematurity': '생활연령',
+  'age adjusted for prematurity': '생활연령',
   'UTAP2': 'U-TAP',           // U-TAP은 1판이 표준 약어
   'UTAP': 'U-TAP',
   'U TAP': 'U-TAP',
@@ -329,7 +336,15 @@ var SLP_PROMPT_CLINICAL_GUIDE = ''
   + ' "아동발달검사(K-CDI)", "Denver Developmental Screening test(DDST)",'
   + ' "Korean Developmental Screening test(K-DST)", "Sensory Profile Ⅱ(SP2)".'
   + ' 문어체: 말·언어는 평어체 경어 "~함, ~됨, ~임, ~판단됨" / 감통은 서술체 "~하였다, ~보였다, ~사료된다".'
-  + ' 영어 임상 용어 그대로 사용 가능: attention, gesture, pointing, crane, conversational acts, primitive speech acts, Delayed language development, W-sitting, swing.';
+  + ' 영어 임상 용어 그대로 사용 가능: attention, gesture, pointing, crane, conversational acts, primitive speech acts, Delayed language development, W-sitting, swing.'
+  + ' 【조기출산(미숙아) 아동 필수 규칙】'
+  + ' ① "수정연령", "corrected age", "adjusted age", "age adjusted for prematurity" 절대 사용 금지.'
+  + ' ② 한국 임상 실무에서는 조기출산 아동도 생활연령 기준으로 검사 결과를 산출함.'
+  + '    ("수정연령을 고려하여야" 같은 문장은 실무에서 쓰지 않음 — 생활연령으로 결과 산출하는 것이 원칙.)'
+  + ' ③ 조기출산이 발달에 미치는 영향을 언급해야 할 경우,'
+  + '    "추적관찰 및 주기적인 평가 요망" 또는 "지속적인 추적 평가 필요"로 간결하게 표현.'
+  + '    (복잡한 수정연령 설명 대신 간결한 follow-up 권고로 대체.)';
+
 
 // 음운 오류 분석 의무 가이드 (조음음운장애 케이스에 부착)
 var SLP_PROMPT_PHONO_GUIDE = ''
