@@ -31,6 +31,7 @@ function loadDBFromSupabase(silent) {
     function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; }); }
     var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
     childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
+    refreshChildAges();   // 등록 시점 age → 오늘 기준으로 인메모리 갱신
     window._dataLoadedAt = Date.now();
     if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
     renderChildGrid(); populateChildSelects(); renderGoalRows(); renderSessionList(); renderUnwrittenAlert(); renderStaffCard();
@@ -111,6 +112,20 @@ var childDB = [], sessionDB = [], scheduleDB = [], assessmentDB = [], activityDB
 function loadDB() {
   // cn3_* localStorage 캐시 비활성 — PII 평문 저장 금지. 인메모리로 시작, loadDBFromSupabase 가 채움.
   childDB = []; sessionDB = []; scheduleDB = []; assessmentDB = []; activityDB = []; iepDB = [];
+}
+
+// ── 아동 연령 실시간 갱신 ────────────────────────────────────────────────
+// DB 에 저장된 age 는 '등록 시점' 기준 — 로드·복원·임포트 후 항상 호출해
+// 오늘 기준 연령으로 인메모리만 교체 (DB 는 saveChildren() 호출 시 반영)
+// calcAgeFromBirth 는 madi-10.js 에 정의 → typeof 가드 필수
+function refreshChildAges() {
+  if (typeof calcAgeFromBirth !== 'function') return;
+  childDB.forEach(function(c) {
+    if (c.birth) {
+      var fresh = calcAgeFromBirth(c.birth);
+      if (fresh) c.age = fresh;
+    }
+  });
 }
 function saveIEP() {
   safeSetItem('cn3_iep', JSON.stringify(iepDB));

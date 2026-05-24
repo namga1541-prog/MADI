@@ -831,6 +831,7 @@ function confirmImport() {
       addedCount++;
     }
   });
+  refreshChildAges();   // 임포트 직후 age 최신화
   saveChildren();
 
   sessions.forEach(function(s) {

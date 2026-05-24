@@ -454,6 +454,7 @@ function _execRestoreFromBackup(id) {
       activityDB   = backup.data.activities  || [];
       iepDB        = backup.data.iep         || [];
       _optionsCacheKey = null;  // 성능: 캐시 무효화
+      refreshChildAges();   // 백업 시점 age → 오늘 기준 갱신
       // 로컬 저장
       saveChildren(); saveSessions(); saveSchedule(); saveAssess();
       saveActivities(); saveIEP();
