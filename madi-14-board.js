@@ -805,3 +805,78 @@ function editLibraryPost(id) {
     }
   });
 }
+
+// ═══════════════════════════════════════════════════════════
+// 📋 어휘/표현 오류 신고 (현장 SLP 피드백 채널)
+// 제출 → madi_audit_log (action='vocab_feedback')
+// superadmin 은 admin.html 에서 피드백 목록 조회 가능
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * 신고 모달 열기.
+ * @param {string} [prefillWrong] - AI 보고서 텍스트에서 선택한 문구를 미리 채워 넣을 때 사용
+ */
+function openVocabFeedback(prefillWrong) {
+  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다'); return; }
+  var modal = document.getElementById('vocabFeedbackModal');
+  if (!modal) return;
+
+  // 폼 초기화
+  var typeEl    = document.getElementById('vfType');
+  var wrongEl   = document.getElementById('vfWrong');
+  var correctEl = document.getElementById('vfCorrect');
+  var contextEl = document.getElementById('vfContext');
+  var btnEl     = document.getElementById('vfSubmitBtn');
+  if (typeEl)    typeEl.selectedIndex = 0;
+  if (wrongEl)   wrongEl.value   = prefillWrong || '';
+  if (correctEl) correctEl.value = '';
+  if (contextEl) contextEl.value = '';
+  if (btnEl)     { btnEl.disabled = false; btnEl.textContent = '📨 신고 제출'; }
+
+  modal.style.display = 'flex';
+  if (typeof attachModalA11y === 'function') attachModalA11y(modal, closeVocabFeedbackModal);
+  setTimeout(function() { if (wrongEl) wrongEl.focus(); }, 80);
+}
+
+function closeVocabFeedbackModal() {
+  var modal = document.getElementById('vocabFeedbackModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function submitVocabFeedback() {
+  var type    = (document.getElementById('vfType')    || {}).value || '';
+  var wrong   = ((document.getElementById('vfWrong')   || {}).value || '').trim();
+  var correct = ((document.getElementById('vfCorrect') || {}).value || '').trim();
+  var context = ((document.getElementById('vfContext') || {}).value || '').trim();
+
+  if (!wrong) {
+    showToast('⚠️ 잘못된 표현을 입력해주세요');
+    var el = document.getElementById('vfWrong'); if (el) el.focus();
+    return;
+  }
+  if (wrong.length > 600) { showToast('⚠️ 600자 이내로 입력해주세요'); return; }
+
+  var btn = document.getElementById('vfSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 제출 중...'; }
+
+  var payload = {
+    actor_id:     currentUser.id,
+    actor_name:   currentUser.name,
+    action:       'vocab_feedback',
+    table_name:   'vocab',
+    record_id:    null,
+    child_id:     null,
+    changed_cols: JSON.stringify({ type: type, wrong: wrong, correct: correct, context: context }),
+    occurred_at:  new Date().toISOString()
+  };
+
+  supaFetch('madi_audit_log', 'POST', [payload])
+    .then(function() {
+      closeVocabFeedbackModal();
+      showToast('✅ 신고 접수 완료! 검토 후 어휘 사전에 반영됩니다 🙏', { duration: 4000 });
+    })
+    .catch(function(e) {
+      showToast('❌ 제출 실패 — ' + (e.message || '다시 시도해주세요'));
+      if (btn) { btn.disabled = false; btn.textContent = '📨 신고 제출'; }
+    });
+}

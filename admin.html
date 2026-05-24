@@ -747,6 +747,21 @@
       </div>
     </div>
 
+    <!-- 어휘 오류 신고 현황 (슈퍼관리자 전용) -->
+    <div class="card" id="vocabFeedbackSection" style="border:2px solid #7c3aed;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#7c3aed;">🗣️ 어휘 오류 신고 현황</div>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 12px;" onclick="loadVocabFeedback()">🔄 새로고침</button>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+        현장 SLP 선생님이 신고한 어휘·표현 오류 목록입니다.<br>
+        검토 후 <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;">madi-vocab.js</code>의 어휘 사전에 반영하세요.
+      </p>
+      <div id="vocabFeedbackList">
+        <div style="text-align:center;color:var(--text2);font-size:13px;padding:16px;">불러오는 중...</div>
+      </div>
+    </div>
+
 
   </div>
 </div>
@@ -995,6 +1010,7 @@ function showAdminTab(tab) {
     loadCenterApiKey(false);
     if (currentUser && currentUser.role === 'superadmin') {
       loadLicenseList();
+      loadVocabFeedback();
     }
   }
 }
@@ -2302,9 +2318,11 @@ window.addEventListener('DOMContentLoaded', function() {
   var licIssue   = document.getElementById('licIssueSuperadminSection');
   var licHistory = document.getElementById('licHistorySuperadminSection');
   var licMine    = document.getElementById('myLicenseAdminSection');
+  var vocabFB    = document.getElementById('vocabFeedbackSection');
   if (licIssue)   licIssue.style.display   = isSuper ? '' : 'none';
   if (licHistory) licHistory.style.display = isSuper ? '' : 'none';
   if (licMine)    licMine.style.display    = isSuper ? 'none' : '';
+  if (vocabFB)    vocabFB.style.display    = isSuper ? '' : 'none';
   loadAdminData();
   loadPrograms();
   loadTeacherList();
@@ -2945,6 +2963,74 @@ function activateLicense() {
         });
     })
     .catch(function(e) { showToast('❌ 활성화 실패: ' + (e.message || '')); });
+}
+
+// ══════════════════════════════
+// 어휘 오류 신고 현황 (슈퍼관리자)
+// ══════════════════════════════
+function loadVocabFeedback() {
+  if (!currentUser || currentUser.role !== 'superadmin') return;
+  var el = document.getElementById('vocabFeedbackList');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:16px;">불러오는 중...</div>';
+
+  supaFetch('madi_audit_log?action=eq.vocab_feedback&order=occurred_at.desc&limit=50', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px;">📭 신고된 어휘 오류가 없습니다.</div>';
+        return;
+      }
+      var typeLabels = {
+        wrong_term:   '잘못된 용어',
+        awkward_expr: '어색한 표현',
+        wrong_format: '형식 오류',
+        other:        '기타'
+      };
+      var html = rows.map(function(row) {
+        var data = {};
+        try { data = JSON.parse(row.changed_cols || '{}'); } catch(e) {}
+        var typeLabel = typeLabels[data.type] || data.type || '기타';
+        var dateStr = row.occurred_at ? row.occurred_at.slice(0, 16).replace('T', ' ') : '';
+        return '<div style="border:1px solid #ede9fe;border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#faf5ff;">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+          + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+          + '<span style="background:#ede9fe;color:#7c3aed;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">' + escHtml(typeLabel) + '</span>'
+          + '<span style="font-size:11px;color:var(--text2);">' + escHtml(row.actor_name || '(알 수 없음)') + ' · ' + escHtml(dateStr) + '</span>'
+          + '</div>'
+          + '<button onclick="deleteVocabFeedback(' + escHtml(String(row.id)) + ')" class="btn-ghost" style="font-size:11px;padding:4px 8px;color:#ef4444;flex-shrink:0;" title="처리 완료 후 삭제">🗑️</button>'
+          + '</div>'
+          + '<div style="font-size:13px;margin-bottom:6px;">'
+          + '<div style="color:var(--text2);font-size:11px;margin-bottom:2px;">❌ 잘못된 표현</div>'
+          + '<div style="color:#dc2626;font-weight:600;">' + escHtml(data.wrong || '(내용 없음)') + '</div>'
+          + '</div>'
+          + (data.correct
+            ? '<div style="font-size:13px;margin-bottom:6px;">'
+              + '<div style="color:var(--text2);font-size:11px;margin-bottom:2px;">✅ 올바른 표현</div>'
+              + '<div style="color:#059669;font-weight:600;">' + escHtml(data.correct) + '</div>'
+              + '</div>'
+            : '')
+          + (data.context
+            ? '<div style="font-size:12px;color:var(--text2);border-top:1px solid #ede9fe;padding-top:6px;margin-top:6px;line-height:1.6;word-break:break-all;">'
+              + '📄 ' + escHtml(data.context)
+              + '</div>'
+            : '')
+          + '</div>';
+      }).join('');
+      el.innerHTML = html;
+    })
+    .catch(function(e) {
+      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px;">❌ 불러오기 실패: ' + escHtml(e.message || '') + '</div>';
+    });
+}
+
+function deleteVocabFeedback(id) {
+  if (!confirm('검토 완료 후 이 신고 항목을 삭제하시겠습니까?')) return;
+  supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id), 'DELETE')
+    .then(function() {
+      showToast('🗑️ 항목 삭제 완료');
+      loadVocabFeedback();
+    })
+    .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
 }
 
 </script>
