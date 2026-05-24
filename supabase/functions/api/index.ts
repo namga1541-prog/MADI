@@ -140,11 +140,19 @@ Deno.serve(async (req: Request) => {
   try {
     const tokenIat = Number(user.iat || 0)
     if (tokenIat > 0) {
-      const pwdRes = await fetch(
+      // Defensive: session_revoked_at 컬럼 미존재(마이그레이션 전)면 base 컬럼만으로 retry
+      let pwdRes = await fetch(
         SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub))
           + '&select=password_changed_at,session_revoked_at',
         { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
       )
+      if (!pwdRes.ok) {
+        pwdRes = await fetch(
+          SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub))
+            + '&select=password_changed_at',
+          { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+        )
+      }
       if (pwdRes.ok) {
         const r = await pwdRes.json() as Array<{ password_changed_at?: string; session_revoked_at?: string }>
         const pwAtStr = r && r[0] ? r[0].password_changed_at : null

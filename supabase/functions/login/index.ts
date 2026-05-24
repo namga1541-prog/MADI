@@ -87,15 +87,26 @@ Deno.serve(async (req: Request) => {
   }
 
   // DB에서 사용자 조회 (SEC4: 잠금 + SEC6: 2FA 컬럼도 같이)
-  const userRes = await fetch(
-    SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username)
-      + '&select=id,username,name,password,role,center_id,color,permissions,status'
-      + ',failed_login_count,last_failed_at,locked_until'
-      + ',totp_secret,totp_enabled',
-    { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
-  )
+  // ⚠️ Defensive: 마이그레이션 전 환경에서도 동작하도록 단계적 select fallback.
+  //    1차: 신규 컬럼 포함 / 2차: base 컬럼만 (SEC3/4/6 기능 비활성, 로그인 자체는 살림)
+  // BASE_COLS: 원래부터 존재하는 컬럼만 (status 도 일부 DB 에는 없을 수 있음)
+  // EXT_COLS:  status + SEC3/4/6 신규 컬럼 (마이그레이션 후만)
+  const BASE_COLS = 'id,username,name,password,role,center_id,color,permissions'
+  const EXT_COLS  = BASE_COLS + ',status,failed_login_count,last_failed_at,locked_until,totp_secret,totp_enabled'
+  const userUrl = (cols: string) =>
+    SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username) + '&select=' + cols
+
+  let userRes = await fetch(userUrl(EXT_COLS), {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+  })
   if (!userRes.ok) {
-    return new Response(JSON.stringify({ error: '서버 오류가 발생했습니다.' }), { status: 500, headers: CORS })
+    // 컬럼 미존재 가능성 — base 컬럼만으로 재시도
+    userRes = await fetch(userUrl(BASE_COLS), {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    })
+    if (!userRes.ok) {
+      return new Response(JSON.stringify({ error: '서버 오류가 발생했습니다.' }), { status: 500, headers: CORS })
+    }
   }
   const users = await userRes.json()
   const user  = Array.isArray(users) ? users[0] : null
