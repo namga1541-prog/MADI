@@ -480,7 +480,7 @@ function autoCalcAssessScores() {
     var rawInputs = rawKeys.map(function(f) { var el=document.getElementById('af_'+f.key); return f.label+': '+(el&&el.value?el.value:'미입력'); }).join(', ');
     var SYSTEM = '당신은 한국 표준화 언어검사 전문가입니다. 공식 규준집을 기반으로 누락된 등가연령/백분위를 계산하세요.\n'
       + 'JSON만 응답: {"results":[{"key":"필드키","val":"값"}]}';
-    var USER = '검사: '+testName+', 생활연령: '+child.age+', 원점수: '+rawInputs
+    var USER = '검사: '+testName+', 생활연령: '+(child._testAge||child.age)+', 원점수: '+rawInputs
       + '\n누락 필드: '+missingFields.map(function(f){return f.key+'('+f.label+')'}).join(', ')
       + '\n이미 계산된 값: '+schema.filter(function(f){var el=document.getElementById('af_'+f.key);return el&&el.value;}).map(function(f){var el=document.getElementById('af_'+f.key);return f.label+'='+el.value;}).join(', ');
     callClaude(SYSTEM, USER, 500, getAIModel())
@@ -938,7 +938,7 @@ function generateParentEdu() {
     + '3. 부모님께 드리는 한마디\n'
     + '따뜻하고 실용적인 말투로, 부모가 바로 활용할 수 있게 작성하세요. JSON 없이 텍스트로.\n\n'
     + _parentGuide;
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n치료 목표: ' + (child.goals.join(', ')||'없음')
+  var USER = '아동: ' + child.name + ' (' + (child._testAge||child.age) + ', ' + child.type + ')\n치료 목표: ' + (child.goals.join(', ')||'없음')
     + '\n\n최근 세션:\n' + (sessionSummary || '세션 기록 없음');
 
   callClaude(SYSTEM, USER, 1500, getAIModel())
