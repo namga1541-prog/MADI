@@ -187,7 +187,7 @@ function loadParentHome() {
 
     // 2) 다음 일정 + 이번 주 일정 (히어로 다음 세션 + 바우처 패널 다가오는 예약)
     supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId)
-      + '&child_id=eq.' + encodeURIComponent(childId) + '&order=id.asc&limit=50', 'GET')
+      + '&data->>childId=eq.' + encodeURIComponent(childId) + '&order=id.asc&limit=50', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) rows = [];
         var upcoming = rows.map(function(s){ return s.data || s; })
@@ -720,7 +720,7 @@ function _redrawParentVoucherPanel() {
     var centerId = window._parentCenterId;
     var todayStr = getTodayKST();
     supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId)
-      + '&child_id=eq.' + encodeURIComponent(window._parentChildId)
+      + '&data->>childId=eq.' + encodeURIComponent(window._parentChildId)
       + '&select=id,data&limit=300', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) rows = [];
