@@ -40,6 +40,15 @@ function initFloatBtnDrag() {
   var btn = document.getElementById('floatBtn');
   if (!btn) return;
 
+  // 키보드 접근성: Space / Enter 로 채팅창 토글 (VoiceOver, TalkBack, 키보드 내비게이션)
+  btn.addEventListener('keydown', function(e) {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleChat(); }
+  });
+
+  // 데스크톱(≥768px): CSS 사이드 패널 탭 모드 — 드래그 비활성화
+  // (CSS @media(min-width:768px) 가 버튼을 right:0 고정 탭으로 관리함)
+  if (window.innerWidth >= 768) return;
+
   var _dragging = false;
   var _moved    = false;
   var _startX, _startY, _startTop, _startRight;
@@ -48,19 +57,32 @@ function initFloatBtnDrag() {
   // Pointer Events 의 setPointerCapture 가 제대로 동작하려면 필수
   btn.style.touchAction = 'none';
 
+  // ── 저장 위치 복원 (화면 회전·사이즈 변경 대비 클램핑) ──
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch (e) { /* silent: private mode / 구브라우저 */ }
   if (saved) {
-    btn.style.top    = saved.top  + 'px';
-    btn.style.bottom = 'auto';
-    btn.style.right  = saved.right + 'px';
-    btn.style.left   = 'auto';
+    var bw = btn.offsetWidth  || 56;
+    var bh = btn.offsetHeight || 56;
+    var clampedTop   = Math.max(0, Math.min(saved.top,   window.innerHeight - bh));
+    var clampedRight = Math.max(12, Math.min(saved.right, window.innerWidth  - bw - 12));
+    btn.style.top   = clampedTop   + 'px';
+    btn.style.setProperty('bottom', 'auto', 'important'); // CSS !important 규칙 덮어쓰기
+    btn.style.right = clampedRight + 'px';
+    btn.style.left  = 'auto';
     btn.style.transform = 'none';
   }
 
+  // ── 화면 회전 / 리사이즈 시 위치 재클램핑 ──
+  window.addEventListener('resize', function() {
+    if (!btn.style.top) return; // 저장 위치 없음 — CSS 기본값 유지
+    var bw2 = btn.offsetWidth  || 56;
+    var bh2 = btn.offsetHeight || 56;
+    btn.style.top   = Math.max(0, Math.min(parseFloat(btn.style.top),   window.innerHeight - bh2)) + 'px';
+    btn.style.right = Math.max(0, Math.min(parseFloat(btn.style.right), window.innerWidth  - bw2)) + 'px';
+  });
+
   function onStart(e) {
     // btn 내부의 텍스트 입력 요소를 터치한 경우 드래그 시작 안 함
-    // 기존 BUTTON 가드 제거 — btn 자체 및 자식 span/div/icon 모두 드래그 가능
     var t = e.target;
     if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return;
 
@@ -73,8 +95,7 @@ function initFloatBtnDrag() {
     _startRight = window.innerWidth - rect.right;
     btn.classList.add('dragging');
 
-    // setPointerCapture: 이후 pointermove/pointerup/pointercancel 이 버튼 밖에서 발생해도
-    // 모두 btn 으로 라우팅됨 — document 리스너 없이도 끝까지 추적 가능
+    // setPointerCapture: 버튼 밖에서 발생하는 이벤트도 btn 으로 라우팅 — document 리스너 불필요
     try { btn.setPointerCapture(e.pointerId); } catch (err) { /* 구형 브라우저 폴백 */ }
   }
 
@@ -88,10 +109,10 @@ function initFloatBtnDrag() {
     var newTop   = Math.max(0, Math.min(_startTop + dy, window.innerHeight - btn.offsetHeight));
     var newRight = Math.max(0, Math.min(_startRight - dx, window.innerWidth - btn.offsetWidth));
 
-    btn.style.top    = newTop   + 'px';
-    btn.style.bottom = 'auto';
-    btn.style.right  = newRight + 'px';
-    btn.style.left   = 'auto';
+    btn.style.top   = newTop   + 'px';
+    btn.style.setProperty('bottom', 'auto', 'important'); // CSS !important 규칙 덮어쓰기
+    btn.style.right = newRight + 'px';
+    btn.style.left  = 'auto';
     btn.style.transform = 'none';
     // preventDefault 불필요: touch-action:none + setPointerCapture 가 스크롤 간섭 원천 차단
   }
@@ -101,16 +122,31 @@ function initFloatBtnDrag() {
     _dragging = false;
     btn.classList.remove('dragging');
 
-    if (_moved) {
-      try {
-        localStorage.setItem('madi_maro_pos', JSON.stringify({
-          top:   parseInt(btn.style.top),
-          right: parseInt(btn.style.right)
-        }));
-      } catch (err) { /* silent: private mode / 구브라우저 */ }
-      btn.dataset.dragged = '1';
-      setTimeout(function() { delete btn.dataset.dragged; }, 100);
-    }
+    if (!_moved) return;
+
+    // ── 엣지 스냅: 버튼 중심 X 기준 가장 가까운 좌/우 엣지로 자동 흡착 ──
+    var bw3      = btn.offsetWidth || 56;
+    var curRight = parseFloat(btn.style.right) || 12;
+    var centerX  = window.innerWidth - curRight - bw3 / 2;
+    var snapRight = centerX < window.innerWidth / 2
+      ? window.innerWidth - bw3 - 12   // 왼쪽 엣지 (12px 여백)
+      : 12;                             // 오른쪽 엣지 (12px 여백)
+
+    // CSS .float-btn.snapping 에 transition 정의 — 스냅 이동을 부드럽게
+    btn.classList.add('snapping');
+    btn.style.right = snapRight + 'px';
+    setTimeout(function() { btn.classList.remove('snapping'); }, 230);
+
+    // 스냅된 최종 위치 저장
+    try {
+      localStorage.setItem('madi_maro_pos', JSON.stringify({
+        top:   parseInt(btn.style.top),
+        right: snapRight
+      }));
+    } catch (err) { /* silent: private mode / 구브라우저 */ }
+
+    btn.dataset.dragged = '1';
+    setTimeout(function() { delete btn.dataset.dragged; }, 150);
   }
 
   // Pointer Events 4종: 마우스·터치·스타일러스 통합 — document 리스너 전혀 없음
