@@ -455,7 +455,8 @@ function resetParentUI() {
   var breadcrumb = document.querySelector('.breadcrumb-bar');
   if (breadcrumb) breadcrumb.style.display = '';
   document.querySelectorAll('.tab-panel, .sub-panel').forEach(function(el) {
-    if (!el.id.startsWith('parentPanel')) el.style.display = '';
+    if (el.id.startsWith('parentPanel')) el.style.display = 'none'; // 학부모 패널 강제 숨김
+    else el.style.display = '';
   });
   var floatBtn = document.getElementById('floatBtn');
   if (floatBtn) floatBtn.style.display = '';

@@ -8,6 +8,7 @@ var MADI_VAPID_PUBLIC_KEY = 'BNH0y5wZW_nzhS5IG_6pMYAKmeDYoPWIkc9msFfNXyAsSxAeCzY
 
 // ─── 탭 전환 ───
 function switchParentTab(tab) {
+  if (!currentUser || currentUser.role !== 'parent') return; // 비-학부모 계정에서 실수 호출 방지
   _parentCurrentTab = tab;
   window._parentActiveTab = tab; // setActiveParentChild 가 재로드 대상 판별에 사용
   var tabs = ['home','sched','report','notice'];
