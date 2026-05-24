@@ -98,7 +98,7 @@ Edge Function이나 SQL에서 컬럼을 참조할 때는 아래 목록 기준으
 | `madi_centers` | `id` (PK, center_id로 사용) |
 | `madi_notifications` | `id`, `user_id`, `center_id`, `type`, `title`, `body`, `link`, `read_at`, `created_at` |
 | `madi_audit_log` | `id`, `actor_id`, `actor_name`, `action`, `table_name`, `record_id`, `child_id`, `changed_cols`, `occurred_at` |
-| `madi_portfolios` | `id`, `child_id`, `center_id`, `parent_visible`, `created_by`, `opened_by`, `data`, `created_at` |
+| `madi_portfolios` | `id`, `child_id`, `center_id`, `parent_visible`, `created_by`, `created_by_name`, `opened_by`, `opened_at`, `month`, `content`, `data`, `created_at` |
 | `madi_rate_limits` | `key` (PK), `count`, `window_start`, `hour_count`, `hour_start`, `updated_at` |
 | `madi_push_subscriptions` | `id`, `user_id`, `endpoint`, `p256dh`, `auth`, `created_at` |
 | `madi_push_settings` | `center_id`, `enabled`, `push_time`, `message_title`, `message_body`, `last_sent_date` |

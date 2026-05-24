@@ -404,7 +404,8 @@ function _loadParentTeacherMessages() {
   var el = document.getElementById('parentTeacherMsgs');
   var subEl = document.getElementById('parentTeacherMsgSub');
   if (!el) return;
-  supaFetch('madi_lounge_posts?visibility=eq.private_admin&order=created_at.desc&limit=10', 'GET')
+  var _centerId = window._parentCenterId || (currentUser && currentUser.center_id) || '';
+  supaFetch('madi_lounge_posts?visibility=eq.private_admin&center_id=eq.' + encodeURIComponent(_centerId) + '&order=created_at.desc&limit=10', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) rows = [];
       var received = rows.filter(function(p){
@@ -448,7 +449,8 @@ function _loadParentTeacherMessages() {
 
 // 평가 점수 조회 → 점수 기반 그래프, 실패/빈 경우 세션 기반 fallback
 function _loadParentAssessments(childId, centerId, sessionsFallback) {
-  supaFetch('madi_assessments?child_id=eq.' + encodeURIComponent(childId)
+  supaFetch('madi_assessments?center_id=eq.' + encodeURIComponent(centerId)
+    + '&data->>childId=eq.' + encodeURIComponent(childId)
     + '&order=id.desc&limit=30', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) rows = [];
