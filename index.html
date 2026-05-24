@@ -43,6 +43,7 @@
   <link rel="preload" as="script" href="./madi-01.js">
   <link rel="preload" as="script" href="./madi-01-auth.js">
   <link rel="preload" as="script" href="./madi-01-app.js">
+  <link rel="preload" as="script" href="./madi-icons.js">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <!-- Chart.js (~200KB) 도 ensureChart() lazy 로 분리 — 첫 차트 렌더 시점에만 로드 -->
   <!-- xlsx (~900KB) 는 initial bundle 에서 제외 — ensureXLSX() 가 필요 시점에 동적 로드 -->
@@ -53,55 +54,57 @@
 </head>
 <body class="theme-linear">
 
-<!-- 삭제 확인 모달 -->
-<div id="deleteConfirmModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:white;border-radius:20px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    <div style="text-align:center;font-size:36px;margin-bottom:12px;">⚠️</div>
-    <div id="dcmTitle" style="text-align:center;font-size:17px;font-weight:700;color:#1e293b;margin-bottom:6px;"></div>
-    <div id="dcmSubtitle" style="text-align:center;font-size:12px;color:#64748b;margin-bottom:16px;line-height:1.6;"></div>
-    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:6px;">확인 문구</div>
-      <div id="dcmKeyword" style="font-size:13px;font-weight:700;color:#dc2626;background:white;border-radius:6px;padding:6px 10px;text-align:center;margin-bottom:8px;letter-spacing:0.5px;"></div>
-      <input id="dcmInput" type="text" placeholder="확인 문구를 입력하면 버튼이 활성화됩니다" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;box-sizing:border-box;text-align:center;" oninput="checkDcmInput()">
+<!-- 삭제 확인 모달 (D2: 인라인 → 클래스) -->
+<div id="deleteConfirmModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header danger">
+      <div class="modal-ico" data-icon="alert-tri" data-icon-size="26"></div>
+      <h3 id="dcmTitle" class="modal-title"></h3>
+      <p id="dcmSubtitle" class="modal-subtitle"></p>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-ghost" style="flex:1;padding:12px;" onclick="closeDcmModal()">아니요</button>
-      <button id="dcmConfirmBtn" disabled="" style="flex:1;padding:12px;background:#ef4444;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;opacity:0.4;transition:opacity 0.2s;" onclick="executeDcm()">네, 삭제하겠습니다.</button>
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r-sm);padding:12px;margin-bottom:14px;">
+      <div style="font-size:var(--fs-xs);font-weight:700;color:#dc2626;margin-bottom:6px;">확인 문구</div>
+      <div id="dcmKeyword" style="font-size:var(--fs-base);font-weight:700;color:#dc2626;background:white;border-radius:var(--r-sm);padding:6px 10px;text-align:center;margin-bottom:8px;letter-spacing:0.5px;"></div>
+      <input id="dcmInput" class="form-input" type="text" placeholder="확인 문구를 입력하면 버튼이 활성화됩니다" style="text-align:center;" oninput="checkDcmInput()">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDcmModal()">아니요</button>
+      <button id="dcmConfirmBtn" class="btn btn-del" disabled style="opacity:0.4;" onclick="executeDcm()">네, 삭제하겠습니다.</button>
     </div>
   </div>
 </div>
 
-<!-- 일괄 종결일 입력 모달 -->
-<div id="bulkClosedDateModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:white;border-radius:20px;padding:24px 22px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto;">
-    <div style="text-align:center;font-size:36px;margin-bottom:8px;">🔒</div>
-    <div style="text-align:center;font-size:17px;font-weight:700;color:#1e293b;margin-bottom:4px;">일괄 종결 처리</div>
-    <div style="text-align:center;font-size:13px;color:#64748b;margin-bottom:12px;">
-      <span id="bcdCount" style="color:#0ea5a0;font-weight:700;">0</span>명 아동을 종결 처리합니다
+<!-- 일괄 종결일 입력 모달 (D2: 인라인 → 클래스) -->
+<div id="bulkClosedDateModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header warning">
+      <div class="modal-ico" data-icon="lock" data-icon-size="26"></div>
+      <h3 class="modal-title">일괄 종결 처리</h3>
+      <p class="modal-subtitle">
+        <span id="bcdCount" style="color:var(--mint);font-weight:700;">0</span>명 아동을 종결 처리합니다
+      </p>
     </div>
 
     <!-- 선택된 아동 이름 미리보기 -->
-    <div id="bcdNamePreview" style="background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#475569;line-height:1.7;max-height:80px;overflow-y:auto;"></div>
+    <div id="bcdNamePreview" style="background:#f8fafc;border-radius:var(--r-sm);padding:10px 12px;margin-bottom:14px;font-size:var(--fs-sm);color:var(--text2);line-height:1.7;max-height:80px;overflow-y:auto;"></div>
 
-    <!-- 종결일 -->
-    <label style="font-size:12px;font-weight:700;color:#475569;display:block;margin-bottom:6px;">종결일</label>
-    <input id="bcdDateInput" type="date" class="form-input" style="width:100%;font-size:16px;margin-bottom:12px;">
+    <label class="form-label">종결일</label>
+    <input id="bcdDateInput" type="date" class="form-input" style="width:100%;margin-bottom:12px;">
 
-    <!-- 종결 사유 -->
-    <label style="font-size:12px;font-weight:700;color:#475569;display:block;margin-bottom:6px;">종결 사유</label>
-    <select id="bcdReasonSelect" class="form-input" style="width:100%;font-size:16px;margin-bottom:6px;" onchange="toggleBcdReasonEtc()">
-      <option value="치료 완료">✅ 치료 완료</option>
-      <option value="자발적 종결">🙋 자발적 종결 (보호자 요청)</option>
-      <option value="이사">📦 이사</option>
-      <option value="기관 이전">🏥 기관 이전</option>
-      <option value="경제적 사유">💰 경제적 사유</option>
-      <option value="기타">✏️ 기타 (직접 입력)</option>
+    <label class="form-label">종결 사유</label>
+    <select id="bcdReasonSelect" class="form-input" style="width:100%;margin-bottom:6px;" onchange="toggleBcdReasonEtc()">
+      <option value="치료 완료">치료 완료</option>
+      <option value="자발적 종결">자발적 종결 (보호자 요청)</option>
+      <option value="이사">이사</option>
+      <option value="기관 이전">기관 이전</option>
+      <option value="경제적 사유">경제적 사유</option>
+      <option value="기타">기타 (직접 입력)</option>
     </select>
-    <input id="bcdReasonEtc" type="text" class="form-input" placeholder="직접 입력" style="width:100%;font-size:16px;display:none;margin-bottom:0;">
+    <input id="bcdReasonEtc" type="text" class="form-input" placeholder="직접 입력" style="width:100%;display:none;margin-bottom:0;">
 
-    <div style="display:flex;gap:8px;margin-top:14px;">
-      <button class="btn-ghost" style="flex:1;padding:12px;" onclick="closeBulkClosedDateModal()">취소</button>
-      <button style="flex:1;padding:12px;background:#f59e0b;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;" onclick="confirmBulkClosedDate()">🔒 종결 처리</button>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeBulkClosedDateModal()">취소</button>
+      <button class="btn" style="background:var(--color-warning);color:white;" onclick="confirmBulkClosedDate()">종결 처리</button>
     </div>
   </div>
 </div>
@@ -990,38 +993,38 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" id="tabBtnHome" onclick="showDashboard()"><span class="tab-ico">🏠</span><span class="tab-lbl">홈</span></button>
-  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico">📅</span><span class="tab-lbl">캘린더</span></button>
-  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico">👤</span><span class="tab-lbl">아동</span></button>
-  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico">📊</span><span class="tab-lbl">보고서</span></button>
-  <button class="tab-btn" id="tabBtnMore" onclick="toggleMoreMenu(event)" style="position:relative;"><span class="tab-ico">⋯</span><span class="tab-lbl">더보기</span></button>
+  <button class="tab-btn active" id="tabBtnHome" onclick="showDashboard()"><span class="tab-ico" data-icon="home" data-icon-size="22"></span><span class="tab-lbl">홈</span></button>
+  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico" data-icon="calendar" data-icon-size="22"></span><span class="tab-lbl">캘린더</span></button>
+  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico" data-icon="user" data-icon-size="22"></span><span class="tab-lbl">아동</span></button>
+  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico" data-icon="chart" data-icon-size="22"></span><span class="tab-lbl">보고서</span></button>
+  <button class="tab-btn" id="tabBtnMore" onclick="toggleMoreMenu(event)" style="position:relative;"><span class="tab-ico" data-icon="more-h" data-icon-size="22"></span><span class="tab-lbl">더보기</span></button>
 </div>
 
 <!-- ─── 더보기 드롭다운 메뉴 (탭바 아래) ─── -->
-<div id="moreMenu" style="display:none;position:fixed;top:60px;right:8px;background:var(--card-bg,white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.18);z-index:300;min-width:180px;overflow:hidden;">
-  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(3);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
-    <span style="font-size:18px;">📁</span><span>성장기록</span>
+<div id="moreMenu" class="more-menu" style="display:none;">
+  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(3);">
+    <span class="mmi-ico" data-icon="folder" data-icon-size="18"></span><span>성장기록</span>
   </button>
-  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(4);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
-    <span style="font-size:18px;">📋</span><span>게시판</span>
+  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(4);">
+    <span class="mmi-ico" data-icon="clipboard" data-icon-size="18"></span><span>게시판</span>
   </button>
-  <button class="more-menu-item" id="moreItemService" onclick="closeMoreMenu();goToAdmin('service');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
-    <span style="font-size:18px;">🛠️</span><span>서비스 관리</span>
+  <button class="more-menu-item" id="moreItemService" onclick="closeMoreMenu();goToAdmin('service');">
+    <span class="mmi-ico" data-icon="settings" data-icon-size="18"></span><span>서비스 관리</span>
   </button>
-  <button class="more-menu-item" id="moreItemAdmin" onclick="closeMoreMenu();goToAdmin('settings');" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
-    <span style="font-size:18px;">⚙️</span><span>관리자 설정</span>
+  <button class="more-menu-item" id="moreItemAdmin" onclick="closeMoreMenu();goToAdmin('settings');">
+    <span class="mmi-ico" data-icon="shield" data-icon-size="18"></span><span>관리자 설정</span>
   </button>
-  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(6);" style="width:100%;padding:14px 18px;border:none;background:none;text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;">
-    <span style="font-size:18px;">🔧</span><span>설정</span>
+  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(6);">
+    <span class="mmi-ico" data-icon="settings" data-icon-size="18"></span><span>설정</span>
   </button>
 </div>
 
 <!-- ─── 학부모 전용 탭바 (parent 역할 로그인 시에만 표시) ─── -->
 <div class="tabs" id="parentTabs" style="display:none;">
-  <button class="tab-btn active" id="ptBtnHome" onclick="switchParentTab('home')"><span class="tab-ico">🏠</span><span class="tab-lbl">홈</span></button>
-  <button class="tab-btn" id="ptBtnSched" onclick="switchParentTab('sched')"><span class="tab-ico">📅</span><span class="tab-lbl">일정</span></button>
-  <button class="tab-btn" id="ptBtnReport" onclick="switchParentTab('report')"><span class="tab-ico">📁</span><span class="tab-lbl">포트폴리오</span></button>
-  <button class="tab-btn" id="ptBtnNotice" onclick="switchParentTab('notice')"><span class="tab-ico">📢</span><span class="tab-lbl">공지</span></button>
+  <button class="tab-btn active" id="ptBtnHome" onclick="switchParentTab('home')"><span class="tab-ico" data-icon="home" data-icon-size="22"></span><span class="tab-lbl">홈</span></button>
+  <button class="tab-btn" id="ptBtnSched" onclick="switchParentTab('sched')"><span class="tab-ico" data-icon="calendar" data-icon-size="22"></span><span class="tab-lbl">일정</span></button>
+  <button class="tab-btn" id="ptBtnReport" onclick="switchParentTab('report')"><span class="tab-ico" data-icon="folder" data-icon-size="22"></span><span class="tab-lbl">포트폴리오</span></button>
+  <button class="tab-btn" id="ptBtnNotice" onclick="switchParentTab('notice')"><span class="tab-ico" data-icon="bell" data-icon-size="22"></span><span class="tab-lbl">공지</span></button>
 </div>
 
 <!-- ─── PC 사이드바 + 메인 래퍼 ─── -->
@@ -2010,6 +2013,7 @@
 <div id="schedPrintArea" style="display:none;"></div>
 
 <!-- defer: HTML 파싱과 병렬 다운로드, DOMContentLoaded 직전 순서대로 실행 -->
+<script defer src="madi-icons.js"></script>
 <script defer src="madi-vocab.js"></script>
 <script defer src="madi-01.js"></script>
 <script defer src="madi-01-auth.js"></script>
