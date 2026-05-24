@@ -93,7 +93,7 @@ Edge Function이나 SQL에서 컬럼을 참조할 때는 아래 목록 기준으
 
 | 테이블 | 컬럼 |
 |--------|------|
-| `madi_users` | `id`, `username`, `name`, `password`, `role`, `center_id`, `color`, `permissions`, `password_changed_at`, `status` |
+| `madi_users` | `id`, `username`, `name`, `password`, `role`, `center_id`, `color`, `permissions`, `password_changed_at`, `status`, `session_revoked_at`, `failed_login_count`, `last_failed_at`, `locked_until`, `totp_secret`, `totp_enabled`, `totp_enrolled_at` |
 | `madi_parent_children` | `parent_user_id`, `child_id`, `center_id` |
 | `madi_centers` | `id` (PK, center_id로 사용) |
 | `madi_notifications` | `id`, `user_id`, `center_id`, `type`, `title`, `body`, `link`, `read_at`, `created_at` |
