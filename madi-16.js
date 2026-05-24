@@ -9,6 +9,7 @@ var _quickRecActive = false;   // 받아쓰기 진행 중 여부
 var _quickCurrentSchedId = null;  // 현재 폼이 열린 스케줄 id
 var _quickPhotoDataUrl = '';   // 사진 dataURL (선택 시)
 var _quickNextGoals = [];      // 다음 목표 체크박스 상태 [{name, checked}]
+var _quickOriginalSummary = ''; // 폼 열릴 때 요약 초기값 (미저장 감지용)
 
 // ─────────────────────────────────────────────
 // 보안 상수
@@ -255,6 +256,10 @@ function openQuickForm(schedId) {
   if (form) {
     form.style.display = '';
     form.innerHTML = _quickFormHtml(sched, name, age, diag, existing);
+
+    // 폼 열릴 때 요약 초기값 기록 — 미저장 변경 감지에 사용
+    var _ta0 = document.getElementById('quickSummary');
+    _quickOriginalSummary = _ta0 ? _ta0.value : '';
 
     // 임시저장 복원 — 직전 미저장 입력이 있으면 사용자 확인 후 복원
     var draft = _quickLoadDraft(schedId);
@@ -628,9 +633,13 @@ function quickAiClean() {
   var USER = '원문:\n' + raw;
   callClaude(SYSTEM, USER, 300, (typeof MODEL_HAIKU !== 'undefined') ? MODEL_HAIKU : undefined)
     .then(function(out) {
-      var clean = String(out || '').trim().replace(/^["']|["']$/g, '').replace(/\n+/g, ' ').slice(0, 240);
+      var raw2 = String(out || '').trim().replace(/^["']|["']$/g, '').replace(/\n+/g, ' ');
+      var clean = raw2.slice(0, 240);
       if (clean) ta.value = clean;
-      if (typeof showToast === 'function') showToast('✨ AI 정리 완료');
+      if (typeof showToast === 'function') {
+        if (raw2.length > 240) showToast('✨ AI 정리 완료 (240자 초과분 자동 축약)');
+        else showToast('✨ AI 정리 완료');
+      }
     })
     .catch(function(e) {
       if (typeof showToast === 'function') showToast('⚠️ AI 정리 실패: ' + (e && e.message ? e.message : e));
@@ -798,7 +807,28 @@ function quickSave() {
 }
 
 function closeQuickForm() {
+  // 미저장 변경 감지 — 요약 내용이 폼 열릴 때와 달라졌으면 경고
+  var ta = document.getElementById('quickSummary');
+  var currentVal = ta ? ta.value.trim() : '';
+  var origVal    = (_quickOriginalSummary || '').trim();
+  if (currentVal && currentVal !== origVal) {
+    if (typeof showConfirm === 'function') {
+      showConfirm('✏️ 저장하지 않은 내용이 있습니다.\n닫으면 작성 중인 내용이 사라집니다.', function() {
+        _quickCurrentSchedId = null;
+        _quickOriginalSummary = '';
+        _showQuickCardList();
+        renderQuickCards();
+      }, { okLabel: '닫기', cancelLabel: '계속 작성', danger: true });
+    } else {
+      _quickCurrentSchedId = null;
+      _quickOriginalSummary = '';
+      _showQuickCardList();
+      renderQuickCards();
+    }
+    return;
+  }
   _quickCurrentSchedId = null;
+  _quickOriginalSummary = '';
   _showQuickCardList();
   renderQuickCards();
 }

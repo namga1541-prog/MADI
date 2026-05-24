@@ -247,3 +247,63 @@ function centerFilter() {
   var cid = getCenterId();
   return cid ? 'center_id=eq.' + cid : 'center_id=eq.INVALID';
 }
+
+// ─────── 글로벌 에러 모니터링 ───────
+// 운영 중 JS 오류를 madi_audit_log(action='client_error')에 기록
+// → admin.html에서 조회 가능, 재현·진단 근거로 활용
+var _errReportCount = 0;
+var _ERR_REPORT_MAX  = 5; // 세션당 최대 5건 — DB 폭주 방지
+
+function _reportClientError(msg, src, lineno, colno, err) {
+  // 세션 한도 초과 / 로그인 전 / 서드파티 스크립트 에러는 무시
+  if (_errReportCount >= _ERR_REPORT_MAX) return;
+  if (!currentUser || !currentUser.id) return;
+  if (src && src.indexOf(location.hostname) === -1) return;
+  // 무해한 노이즈 제거
+  var m = String(msg || '');
+  if (m.indexOf('Script error') === 0) return;
+  if (m.indexOf('ResizeObserver') !== -1) return;
+  if (m.indexOf('Non-Error promise rejection') !== -1) return;
+
+  _errReportCount++;
+  var payload = {
+    actor_id:     currentUser.id,
+    actor_name:   currentUser.name || '',
+    action:       'client_error',
+    table_name:   (src || location.pathname).slice(0, 200),
+    changed_cols: JSON.stringify({
+      message: m.slice(0, 500),
+      stack:   (err && err.stack) ? String(err.stack).slice(0, 1000) : '',
+      line:    lineno || 0,
+      col:     colno  || 0,
+      ua:      navigator.userAgent.slice(0, 200),
+      url:     location.href.slice(0, 200)
+    })
+  };
+  // supaFetch 대신 직접 fetch — 에러 리포터 자체가 에러를 일으키는 순환 방지
+  try {
+    fetch(EDGE_URL + '/api', {
+      method:      'POST',
+      credentials: 'include',
+      headers:     { 'Content-Type': 'application/json' },
+      body:        JSON.stringify({ path: 'madi_audit_log', method: 'POST', body: payload })
+    }).catch(function() { /* silent: 리포팅 실패는 조용히 무시 */ });
+  } catch (e) { /* silent */ }
+}
+
+if (typeof window !== 'undefined' && !window._madiErrorBound) {
+  window._madiErrorBound = true;
+  window.onerror = function(msg, src, lineno, colno, err) {
+    _reportClientError(msg, src, lineno, colno, err);
+    return false; // 브라우저 기본 콘솔 에러 출력 유지
+  };
+  window.addEventListener('unhandledrejection', function(e) {
+    var reason = e.reason || {};
+    _reportClientError(
+      reason.message || String(reason),
+      location.href,
+      0, 0,
+      reason instanceof Error ? reason : null
+    );
+  });
+}
