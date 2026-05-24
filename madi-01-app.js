@@ -17,6 +17,12 @@ function _isoDaysAgo(n) {
 }
 
 function loadDBFromSupabase(silent) {
+  // 학부모 계정은 이 함수로 데이터를 로드하지 않음.
+  // madi_sessions 이 PARENT_BLOCKED_TABLES 에 포함되어 있어 Edge Function 이 403 을 반환하고
+  // Promise.all 전체가 reject 되는 버그 방지.
+  // 학부모 포털 데이터(아동·일정·포트폴리오 등)는 madi-15.js 가 자체적으로 로드한다.
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'parent') return;
+
   if (!silent) showToast('📡 데이터 불러오는 중...');
   _optionsCacheKey = null;
   // 세션: 최근 90일, 일정: 최근 30일~미래 전체 (캘린더는 미래 일정 필요)
@@ -50,6 +56,7 @@ function loadDBFromSupabase(silent) {
 // 90일 이전 세션 + 30일 이전 일정 백그라운드 로드 → 머지
 // 성장 기록·포트폴리오·연간 통계 등 과거 데이터 필요 영역을 위함
 function _loadOlderHistory(d90, d30) {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'parent') return;
   if (window._olderHistoryLoaded) return;
   window._olderHistoryLoaded = true;
   Promise.all([
