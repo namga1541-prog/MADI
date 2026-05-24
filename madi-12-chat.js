@@ -68,7 +68,9 @@ function initFloatBtnDrag() {
     _startTop   = rect.top;
     _startRight = window.innerWidth - rect.right;
     btn.classList.add('dragging');
-    // preventDefault는 실제 드래그가 시작될 때만 (onMove) 호출 — 안 그러면 모바일 탭 click이 차단됨
+    // move 리스너는 드래그 시작 시에만 동적 등록 — 평소엔 document에 non-passive 리스너 없음
+    document.addEventListener('mousemove', onMove, { passive: false });
+    document.addEventListener('touchmove', onMove, { passive: false });
   }
 
   function onMove(e) {
@@ -87,13 +89,16 @@ function initFloatBtnDrag() {
     btn.style.right  = newRight + 'px';
     btn.style.left   = 'auto';
     btn.style.transform = 'none';
-    e.preventDefault();
+    e.preventDefault(); // 실제 드래그 중일 때만 호출됨
   }
 
   function onEnd(e) {
     if (!_dragging) return;
     _dragging = false;
     btn.classList.remove('dragging');
+    // 동적으로 등록한 move 리스너 정리 — 이후 touchmove 에 non-passive 리스너 없음
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('touchmove', onMove);
 
     if (_moved) {
       try {
@@ -107,13 +112,12 @@ function initFloatBtnDrag() {
     }
   }
 
-  btn.addEventListener('mousedown',  onStart, { passive: false });
-  document.addEventListener('mousemove', onMove,  { passive: false });
-  document.addEventListener('mouseup',   onEnd);
+  btn.addEventListener('mousedown', onStart, { passive: false });
+  document.addEventListener('mouseup', onEnd);
 
   btn.addEventListener('touchstart', onStart, { passive: false });
-  document.addEventListener('touchmove',  onMove,  { passive: false });
-  document.addEventListener('touchend',   onEnd);
+  document.addEventListener('touchend',    onEnd);
+  document.addEventListener('touchcancel', onEnd); // iOS 스크롤 제스처 가로채기 시 _dragging 리셋
 
   btn.removeAttribute('onclick');
   btn.addEventListener('click', function(e) {
