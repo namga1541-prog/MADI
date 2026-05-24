@@ -1,6 +1,6 @@
 // ─────── 세션 저장 ───────
 function saveSession(aiNote) {
-  var childId = parseInt(document.getElementById('sessionChild').value);
+  var childId = String(document.getElementById('sessionChild').value);
   var date = document.getElementById('sessionDate').value;
   var memo = document.getElementById('sessionMemo').value.trim();
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
@@ -36,7 +36,7 @@ function saveSession(aiNote) {
 function saveSessionAI() {
   if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('sessionChild').value);
+  var childId = String(document.getElementById('sessionChild').value);
   var date = document.getElementById('sessionDate').value;
   var aiText = document.getElementById('aiInput').value.trim();
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
@@ -311,7 +311,7 @@ function renderSessionList() {
 }
 
 function editSessionDate(id) {
-  var s = sessionDB.find(function(x){ return x.id == id; });
+  var s = sessionDB.find(function(x){ return x.id === id; });
   if (!s) return;
   showInputPrompt({
     title: '세션 날짜 변경',
@@ -382,7 +382,7 @@ function deleteSession(id) {
     showToast('⚠️ 세션 삭제 권한이 없습니다');
     return;
   }
-  var backup = sessionDB.find(function(s) { return s.id == id; });
+  var backup = sessionDB.find(function(s) { return s.id === id; });
   if (!backup) return;
   showDeleteConfirm(
     '세션 기록을 삭제하시겠습니까?',
@@ -418,7 +418,7 @@ function deleteSession(id) {
 // ─────── 차트 ───────
 var devChartObj = null;
 function renderChart() {
-  var childId = parseInt(document.getElementById('chartChild').value);
+  var childId = String(document.getElementById('chartChild').value);
   if (!childId) return;
   var child = childDB.find(function(c) { return c.id === childId; });
   var allSessions = sessionDB.filter(function(s) { return s.childId === childId; })
@@ -692,19 +692,19 @@ function togglePhonemeFilter(phoneme) {
   } else {
     _selectedPhonemes.push(phoneme);
   }
-  var childId = parseInt(document.getElementById('chartChild').value);
+  var childId = String(document.getElementById('chartChild').value);
   if (childId) renderPhonemeChart(childId);
 }
 
 function setPhonemePos(pos) {
   _phonemePos = pos;
-  var childId = parseInt(document.getElementById('chartChild').value);
+  var childId = String(document.getElementById('chartChild').value);
   if (childId) renderPhonemeChart(childId);
 }
 
 function detectStagnation() {
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('chartChild').value);
+  var childId = String(document.getElementById('chartChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
 
   var child = childDB.find(function(c) { return c.id === childId; });

@@ -34,7 +34,7 @@ function loadDBFromSupabase(silent) {
     supaFetch('madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc'),
     supaFetch('madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc')
   ]).then(function(results) {
-    function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; }); }
+    function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
     var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
     childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
     refreshChildAges();   // 등록 시점 age → 오늘 기준으로 인메모리 갱신
@@ -63,7 +63,7 @@ function _loadOlderHistory(d90, d30) {
     supaFetch('madi_sessions?'  + centerFilter() + '&data->>date=lt.' + d90 + '&select=id,data&order=id.desc'),
     supaFetch('madi_schedules?' + centerFilter() + '&data->>date=lt.' + d30 + '&select=id,data&order=id.desc')
   ]).then(function(results) {
-    function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; }); }
+    function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
     var oldSe  = safeMap(results[0]);
     var oldSch = safeMap(results[1]);
     var seenSe = {}; sessionDB.forEach(function(s){ seenSe[s.id] = true; });
@@ -495,14 +495,13 @@ function validatePasswordStrength(pw) {
 
 // ─────── ID 생성 유틸 (cowork #5 개선: 충돌 확률 1/10,000 → 1/1,000,000) ───────
 function generateClientId() {
+  // 항상 문자열 반환 — safeMap 이 DB id 를 String() 으로 정규화하므로 타입 일관성 유지
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     var arr = new Uint32Array(1);
     crypto.getRandomValues(arr);
-    // 초 단위 타임스탬프(10자리) × 10^6 + 랜덤 6자리 → 16자리 숫자
-    // Number.MAX_SAFE_INTEGER(9.0×10^15) 범위 내 유지, DB 타입 호환
-    return Math.floor(Date.now() / 1000) * 1000000 + (arr[0] % 1000000);
+    return String(Math.floor(Date.now() / 1000) * 1000000 + (arr[0] % 1000000));
   }
-  return Date.now() + Math.floor(Math.random() * 10000);
+  return String(Date.now() + Math.floor(Math.random() * 10000));
 }
 
 function applyUserUI() {

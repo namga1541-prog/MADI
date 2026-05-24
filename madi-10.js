@@ -593,7 +593,7 @@ function toggleDayChip(btn) { btn.classList.toggle('sel'); }
 function closeSchedModal() { var m = document.getElementById('schedModal'); if (m) m.remove(); }
 
 function saveSchedFromModal() {
-  var childId   = parseInt(document.getElementById('schedChildSel').value);
+  var childId   = String(document.getElementById('schedChildSel').value);
   var date      = document.getElementById('schedDateInput').value;
   var startTime = document.getElementById('schedStartTime').value;
   var duration  = parseInt(document.getElementById('schedDuration').value) || 0;
@@ -632,7 +632,7 @@ function saveSchedFromModal() {
 }
 
 function openEditSchedModal(id) {
-  var s = scheduleDB.find(function(x){ return x.id == id; });
+  var s = scheduleDB.find(function(x){ return x.id === id; });
   if (!s) return;
   var child = childDB.find(function(c){ return c.id === s.childId; });
   var hasGroup = s.groupId && scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; }).length > 1;
@@ -793,7 +793,7 @@ function execSchedDeleteChoice(id) {
 }
 
 function execSchedDelete(id, future) {
-  var s = scheduleDB.find(function(x){ return x.id == id; });
+  var s = scheduleDB.find(function(x){ return x.id === id; });
   if (!s) return;
   var toDeleteItems = future && s.groupId
     ? scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; })
@@ -833,7 +833,7 @@ function execSchedDelete(id, future) {
 }
 
 function saveEditSched(id) {
-  var idx = scheduleDB.findIndex(function(x){ return x.id == id; });
+  var idx = scheduleDB.findIndex(function(x){ return x.id === id; });
   if (idx < 0) return;
   var date    = (document.getElementById('editSchedDate')||{}).value || '';
   var start   = (document.getElementById('editSchedStart')||{}).value || '';
