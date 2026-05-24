@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-/* Stop hook — 마지막 assistant 응답에 "🔮 추가 개선 제안" 섹션이 있는지 검증.
- * CLAUDE.md 규칙(작업 완료 시 개선 제안 2건+ 첨부) 자동 강제.
+/* Stop hook — 개선 제안 섹션 존재 여부 로깅 (강제 아님).
+ * CLAUDE.md 규칙: 진짜 발견한 것만, 없으면 섹션 생략 가능 — 억지 강제 금지.
  *
  * 입력: stdin 으로 hook payload JSON
  *   { "transcript_path": "...", "stop_hook_active": bool, ... }
@@ -8,9 +8,9 @@
  * 동작:
  *   - stop_hook_active=True → 무한 루프 방지, 조용히 종료
  *   - transcript 없음/읽기 실패 → 조용히 종료
- *   - 짧은 응답(<200자) → 강제 안 함 (대화·짧은 답)
- *   - 마지막 assistant 텍스트에 "🔮" 있음 → 확인 메시지
- *   - 없음 → exit 2 + stderr (Claude 가 다음 응답에 반영하도록)
+ *   - 짧은 응답(<200자) → 단순 대화, 검사 안 함
+ *   - 마지막 assistant 텍스트에 "🔮" 있음 → 확인 로그
+ *   - 없음 → 조용히 종료 (제안은 선택 사항이므로 차단 안 함)
  */
 
 var fs = require('fs');
@@ -54,15 +54,9 @@ process.stdin.on('end', function () {
 
   if (lastText.indexOf('🔮') !== -1) {
     process.stdout.write("[제안 검증] ✓ '🔮 추가 개선 제안' 포함\n");
-    process.exit(0);
   }
-
-  // 누락 — exit 2 + stderr 로 Claude 에게 알림 (자기 검증 + 다음 응답에 반영)
-  process.stderr.write(
-    "[제안 검증] ⚠️ '🔮 추가 개선 제안' 섹션이 누락된 것 같습니다. " +
-    "CLAUDE.md '작업 완료 시 개선 제안' 규칙 확인 후 응답을 보강하세요.\n"
-  );
-  process.exit(2);
+  // 없어도 정상 — 제안은 선택 사항 (CLAUDE.md: 억지 제안 금지)
+  process.exit(0);
 });
 
 // stdin 이 닫혀있는 환경(직접 호출 등) 대응 — 5초 안에 입력 없으면 그냥 종료
