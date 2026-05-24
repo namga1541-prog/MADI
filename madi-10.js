@@ -517,6 +517,24 @@ function renderSessionListForPeriod(dates) {
 }
 
 var _schedModalDate = null;
+
+// 아동 카드 "📅 일정" 버튼 → 해당 아동 미리 선택된 채로 모달 오픈
+function openSchedModalForChild(childId) {
+  openSchedModal(getTodayKST(), null);
+  // 모달이 DOM에 추가된 직후 아동 선택기 값 설정
+  setTimeout(function() {
+    var sel = document.getElementById('schedChildSel');
+    if (sel) {
+      sel.value = String(childId);
+      // makeSearchable 이 _ssInp 을 달아둔 경우 표시 텍스트도 갱신
+      if (sel._ssInp) {
+        var c = childDB.find(function(x){ return x.id === String(childId); });
+        if (c) sel._ssInp.value = c.name;
+      }
+    }
+  }, 0);
+}
+
 function openSchedModal(date, schedId) {
   _schedModalDate = date;
   var opts = childDB.length === 0 ? '<option value="">아동 없음</option>'
