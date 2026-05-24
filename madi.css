@@ -856,6 +856,8 @@
     .chat-window.open {
       transform: scale(1) translateY(0); opacity: 1; pointer-events: auto;
     }
+    /* 마로 버튼 왼쪽 엣지 스냅 시 채팅창도 왼쪽에 표시 */
+    body.maro-left .chat-window { right: auto; left: 12px; }
     /* 마로 버튼 기본 (모바일): 라벨 숨김 */
     .float-name, .float-sub { display: none; }
     /* 데스크톱(768px↑): 우측 사이드 슬라이드 패널 + 마로 탭 버튼 */
@@ -987,8 +989,11 @@
       background: var(--card-bg, white); color: var(--mint); cursor: pointer;
       font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       white-space: nowrap;
+      /* 터치 타깃 최소 높이 확보 (iOS·Android HIG 권장 44px 근사) */
+      min-height: 36px; display: inline-flex; align-items: center;
     }
-    .quick-btn:hover { background: var(--mint); color: white; }
+    .quick-btn:hover  { background: var(--mint); color: white; }
+    .quick-btn:active { background: #0c8c88; color: white; transform: scale(0.95); }
 
     @media (min-width: 768px) {
       .subtab-btn { flex: 1; }

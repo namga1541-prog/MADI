@@ -70,6 +70,8 @@ function initFloatBtnDrag() {
     btn.style.right = clampedRight + 'px';
     btn.style.left  = 'auto';
     btn.style.transform = 'none';
+    // 저장된 스냅 방향을 body 클래스에 반영 — 채팅창 위치 연동
+    document.body.classList[clampedRight > window.innerWidth / 2 ? 'add' : 'remove']('maro-left');
   }
 
   // ── 화면 회전 / 리사이즈 시 위치 재클램핑 ──
@@ -128,9 +130,13 @@ function initFloatBtnDrag() {
     var bw3      = btn.offsetWidth || 56;
     var curRight = parseFloat(btn.style.right) || 12;
     var centerX  = window.innerWidth - curRight - bw3 / 2;
-    var snapRight = centerX < window.innerWidth / 2
+    var isLeft   = centerX < window.innerWidth / 2;
+    var snapRight = isLeft
       ? window.innerWidth - bw3 - 12   // 왼쪽 엣지 (12px 여백)
       : 12;                             // 오른쪽 엣지 (12px 여백)
+
+    // 스냅 방향을 body 클래스에 반영 — 채팅창 위치 연동 (CSS body.maro-left .chat-window)
+    document.body.classList[isLeft ? 'add' : 'remove']('maro-left');
 
     // CSS .float-btn.snapping 에 transition 정의 — 스냅 이동을 부드럽게
     btn.classList.add('snapping');
