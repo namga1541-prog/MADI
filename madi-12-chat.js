@@ -45,6 +45,12 @@ function initFloatBtnDrag() {
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleChat(); }
   });
 
+  // 클릭 토글 — 데스크톱·모바일 공통 (드래그 중 클릭은 무시)
+  btn.addEventListener('click', function() {
+    if (btn.dataset.dragged) return;
+    toggleChat();
+  });
+
   // 데스크톱(≥768px): CSS 사이드 패널 탭 모드 — 드래그 비활성화
   // (CSS @media(min-width:768px) 가 버튼을 right:0 고정 탭으로 관리함)
   if (window.innerWidth >= 768) return;
@@ -161,11 +167,7 @@ function initFloatBtnDrag() {
   btn.addEventListener('pointerup',     onEnd);
   btn.addEventListener('pointercancel', onEnd); // iOS 제스처 충돌·시스템 인터럽트 시 리셋
 
-  btn.removeAttribute('onclick');
-  btn.addEventListener('click', function(e) {
-    if (btn.dataset.dragged) return;
-    toggleChat();
-  });
+  btn.removeAttribute('onclick'); // 혹시 남아있을 inline onclick 제거
 }
 
 function getChatGreeting() {
