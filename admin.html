@@ -747,6 +747,28 @@
       </div>
     </div>
 
+    <!-- ⚠️ RLS 미실행 경고 (슈퍼관리자 전용) -->
+    <div id="rlsWarningBanner" style="display:none;background:#fef2f2;border:2px solid #ef4444;border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:14px;color:#dc2626;margin-bottom:4px;">⚠️ RLS 정책 미적용 상태</div>
+          <div style="font-size:12px;color:#7f1d1d;line-height:1.7;">
+            <code>supabase/rls_policies.sql</code> 파일이 Supabase DB에 아직 실행되지 않았습니다.<br>
+            현재 anon key로 DB 직접 접근이 가능한 상태입니다. 즉시 실행하세요.
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0;">
+          <a href="https://supabase.com/dashboard/project/ujxdhafzjyrglaclarwe/sql/new" target="_blank" rel="noopener noreferrer"
+             style="display:inline-flex;align-items:center;gap:5px;background:#dc2626;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">
+            🔗 SQL Editor 열기
+          </a>
+          <button onclick="dismissRlsBanner()" class="btn-ghost" style="font-size:11px;padding:6px 10px;color:#7f1d1d;border:1px solid #fca5a5;border-radius:8px;background:#fff;">
+            ✅ 적용 완료 · 닫기
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 어휘 오류 신고 현황 (슈퍼관리자 전용) -->
     <div class="card" id="vocabFeedbackSection" style="border:2px solid #7c3aed;">
       <div class="card-title">
@@ -1027,6 +1049,7 @@ function showAdminTab(tab) {
       loadLicenseList();
       loadVocabFeedback();
       loadClientErrors();
+      checkRlsStatus();
     }
   }
 }
@@ -3042,13 +3065,14 @@ function loadVocabFeedback() {
 }
 
 function deleteVocabFeedback(id) {
-  if (!confirm('검토 완료 후 이 신고 항목을 삭제하시겠습니까?')) return;
-  supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id), 'DELETE')
-    .then(function() {
-      showToast('🗑️ 항목 삭제 완료');
-      loadVocabFeedback();
-    })
-    .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  showConfirm('🗑️ 이 신고 항목을 삭제하시겠습니까?\n검토 완료 후에만 삭제하세요.', function() {
+    supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id), 'DELETE')
+      .then(function() {
+        showToast('🗑️ 항목 삭제 완료');
+        loadVocabFeedback();
+      })
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  }, { okLabel: '삭제', cancelLabel: '취소', danger: true });
 }
 
 // ══════════════════════════════
@@ -3099,14 +3123,39 @@ function loadClientErrors() {
     });
 }
 
+// ══════════════════════════════
+// RLS 적용 확인 배너 (슈퍼관리자)
+// — anon key를 클라이언트에 두는 것은 보안 금지 사항이므로
+//   자동 감지 대신 "수동 확인 후 닫기" 방식으로 처리
+// ══════════════════════════════
+var _RLS_DISMISSED_KEY = 'madi_rls_applied_confirmed';
+function checkRlsStatus() {
+  if (!currentUser || currentUser.role !== 'superadmin') return;
+  var banner = document.getElementById('rlsWarningBanner');
+  if (!banner) return;
+  // 이미 확인·닫은 경우 숨김 유지
+  if (localStorage.getItem(_RLS_DISMISSED_KEY) === '1') {
+    banner.style.display = 'none';
+    return;
+  }
+  banner.style.display = '';
+}
+function dismissRlsBanner() {
+  localStorage.setItem(_RLS_DISMISSED_KEY, '1');
+  var banner = document.getElementById('rlsWarningBanner');
+  if (banner) banner.style.display = 'none';
+  showToast('✅ RLS 적용 완료로 기록했습니다');
+}
+
 function deleteClientError(id) {
-  if (!confirm('이 오류 항목을 삭제하시겠습니까?')) return;
-  supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id), 'DELETE')
-    .then(function() {
-      showToast('🗑️ 항목 삭제 완료');
-      loadClientErrors();
-    })
-    .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  showConfirm('🗑️ 이 오류 항목을 삭제하시겠습니까?', function() {
+    supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id), 'DELETE')
+      .then(function() {
+        showToast('🗑️ 항목 삭제 완료');
+        loadClientErrors();
+      })
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+  }, { okLabel: '삭제', cancelLabel: '취소', danger: true });
 }
 
 </script>

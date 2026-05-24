@@ -19,6 +19,17 @@ rls_security_setup.sql
 - 모든 사용자 데이터 테이블에 RLS 활성화
 - 기본 SELECT/INSERT/UPDATE/DELETE 정책 정의
 
+## 1-B. 직접 접근 차단 정책 — **⚠️ 미실행 시 anon key로 DB 직접 접근 가능**
+
+```
+supabase/rls_policies.sql
+```
+
+- 전 테이블(10개) RLS 활성화 + anon/authenticated 직접 접근 전면 차단
+- **service_role(Edge Function)은 RLS를 우회하므로 기존 앱 동작은 무변경**
+- 이 파일을 실행하지 않으면 RLS가 꺼진 상태로 운영 중인 것임
+- Supabase Dashboard → SQL Editor → 전체 내용 붙여넣기 → Run
+
 ## 2. 학부모 격리 (1번 의존)
 
 ```
