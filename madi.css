@@ -718,10 +718,13 @@
     .lp-feature-card p { font-size:13px; color:#64748b; line-height:1.65; margin:0; }
     .lp-footer { text-align:center; padding:20px; font-size:12px; color:#94a3b8; border-top:1px solid #e8f5f4; background:white; }
     @media(max-width:640px){
-      .lp-nav { padding:0 18px; }
-      .lp-nav-logo span { font-size:17px; }
+      .lp-nav { padding:0 16px; height:58px; }
+      .lp-nav-logo span { font-size:16px; }
+      .lp-nav-btns { gap:8px; }
+      .lp-btn-login  { padding:7px 14px; font-size:13px; }
+      .lp-btn-signup { padding:7px 14px; font-size:13px; }
       .lp-features { grid-template-columns:1fr; max-width:380px; }
-      .lp-hero { padding:50px 20px 30px; }
+      .lp-hero { padding:68px 20px 40px; }
     }
     .header-user { display:flex; align-items:center; gap:8px; }
     .header-user-name { color:white; font-size:12px; font-weight:700; }
