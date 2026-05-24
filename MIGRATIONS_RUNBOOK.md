@@ -69,6 +69,7 @@ madi_notifications_setup.sql        — 앱 내 알림
 madi_portfolios_setup.sql           — 학부모 포트폴리오
 madi_push_setup.sql                 — Web Push 구독
 login_popup_setup.sql               — 로그인 후 1회성 팝업
+prog_types_migration.sql            — 선생님 담당 프로그램 유형 컬럼 추가 (admin 교사관리)
 ```
 
 ## 6. 자동화 (5번 의존)
