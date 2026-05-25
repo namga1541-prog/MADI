@@ -410,7 +410,7 @@ function autoCalcAssessScores() {
       if (ageMonths) {
         var key = getREVTAgeKey(ageMonths);
         var tbl = key ? REVT_PCT_TABLE[key] : null;
-        if (tbl) { var pct = interpolatePct(tbl, rv, 1); if (pct) { setField('receptivePct', pct); usedNorm = true; } }
+        if (tbl) { var pct = interpolatePct(tbl, rv, 1); if (pct !== null && pct !== undefined) { setField('receptivePct', pct); usedNorm = true; } }
       }
     }
     if (rExpRaw && rExpRaw.value) {
@@ -419,7 +419,7 @@ function autoCalcAssessScores() {
       if (ageMonths) {
         var ekey = getREVTAgeKey(ageMonths);
         var etbl = ekey ? REVT_PCT_TABLE[ekey] : null;
-        if (etbl) { var epct = interpolatePct(etbl, ev, 2); if (epct) { setField('expressivePct', epct); usedNorm = true; } }
+        if (etbl) { var epct = interpolatePct(etbl, ev, 2); if (epct !== null && epct !== undefined) { setField('expressivePct', epct); usedNorm = true; } }
       }
     }
   }
@@ -475,6 +475,7 @@ function autoCalcAssessScores() {
   });
   if (missingFields.length > 0 && getApiKeyOrAlert()) {
     var btn = document.getElementById('autoCalcBtn');
+    if (!btn) return;
     if (btn.dataset.busy === '1') return;
     btn.dataset.busy = '1';
     btn.disabled = true; btn.textContent = '⏳ AI 보완 중...';
@@ -693,7 +694,7 @@ function formatAssessScores(a) {
   schema.forEach(function(f) {
     var v = scores[f.key];
     if (v !== null && v !== undefined && v !== '') {
-      parts.push('<span style="font-size:11px;color:var(--text2);">' + f.label.replace(' 원점수','').replace(' %ile','') + ':</span> <strong>' + v + '</strong>' + (f.label.includes('%ile') ? '%ile' : ''));
+      parts.push('<span style="font-size:11px;color:var(--text2);">' + escHtml(f.label.replace(' 원점수','').replace(' %ile','')) + ':</span> <strong>' + escHtml(String(v)) + '</strong>' + (f.label.includes('%ile') ? '%ile' : ''));
     }
   });
   return parts.length > 0 ? parts.join(' &nbsp;|&nbsp; ') : '점수 없음';
@@ -710,7 +711,7 @@ function renderAssessmentList() {
   list.forEach(function(a) {
     html += '<div class="test-card">'
       + '<div class="test-header"><span class="test-name">' + escHtml(a.testName) + '</span>'
-      + '<span class="test-date">📅 ' + a.date + '</span></div>'
+      + '<span class="test-date">📅 ' + escHtml(a.date) + '</span></div>'
       + '<div style="font-size:12px;line-height:1.8;margin-top:6px;">' + formatAssessScores(a) + '</div>'
       + (a.memo ? '<div style="font-size:11px;color:var(--text2);margin-top:5px;">' + escHtml(a.memo) + '</div>' : '')
       + '<button class="btn-del" style="margin-top:8px;" onclick="deleteAssessment(\'' + a.id + '\')">삭제</button>'
@@ -774,6 +775,7 @@ function generateAssessReport() {
 
   var btn    = document.getElementById('assessReportBtn');
   var result = document.getElementById('assessReportResult');
+  if (!btn || !result) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true; btn.textContent = '⏳ 보고서 생성 중...';
@@ -927,6 +929,7 @@ function generateParentEdu() {
 
   var btn    = document.getElementById('eduBtn');
   var result = document.getElementById('eduResult');
+  if (!btn || !result) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true; btn.textContent = '⏳ 생성 중...';
@@ -945,7 +948,7 @@ function generateParentEdu() {
     + '3. 부모님께 드리는 한마디\n'
     + '따뜻하고 실용적인 말투로, 부모가 바로 활용할 수 있게 작성하세요. JSON 없이 텍스트로.\n\n'
     + _parentGuide;
-  var USER = '아동: ' + child.name + ' (' + (child._testAge||child.age) + ', ' + child.type + ')\n치료 목표: ' + (child.goals.join(', ')||'없음')
+  var USER = '아동: ' + child.name + ' (' + (child._testAge||child.age) + ', ' + child.type + ')\n치료 목표: ' + ((child.goals || []).join(', ')||'없음')
     + '\n\n최근 세션:\n' + (sessionSummary || '세션 기록 없음');
 
   callClaude(SYSTEM, USER, 1500, getAIModel())

@@ -1,4 +1,5 @@
 function generateReport() {
+  if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
   if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('reportChild').value);
   var period = document.getElementById('reportPeriod').value;
@@ -12,12 +13,12 @@ function generateReport() {
   if (target.length === 0) { showToast('세션 기록이 없습니다.'); return; }
 
   var btn = document.getElementById('reportBtn');
+  var resultEl = document.getElementById('reportResult');
+  if (!btn || !resultEl) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 생성 중...';
-
-  var resultEl = document.getElementById('reportResult');
   resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>부모 보고서를 생성 중입니다...</p></div>';
 
   var summary = target.map(function(s) {
@@ -29,7 +30,7 @@ function generateReport() {
   var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 부모님께 보낼 보고서를 두 형식으로 작성하세요. 순수 JSON만:'
     + ' {"kakao":"카카오톡 메시지 (이모지, 친근한 존댓말, 200자 내외)","report":"전문 보고서 (치료 경과, 목표 달성, 가정 지도, 존댓말, 400자 내외)"}\n\n'
     + _parentGuide;
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n세션:\n' + summary;
+  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + ((child.goals || []).join(', ') || '없음') + '\n\n세션:\n' + summary;
 
   // ES5 호환: .finally() 미지원 환경(구버전 iOS Safari) 대응 — then/catch 양쪽에서 버튼 리셋
   function resetBtn() {
@@ -226,6 +227,7 @@ function toggleReportEdit() {
 
 // ─────── 장단기계획(IEP) 자동 생성 ───────
 function generateIEP() {
+  if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
   if (!getApiKeyOrAlert()) return;
   var childId = parseInt(document.getElementById('iepChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
@@ -248,11 +250,13 @@ function generateIEP() {
   }
 
   var btn = document.getElementById('iepBtn');
+  var iepResultEl = document.getElementById('iepResult');
+  if (!btn || !iepResultEl) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 장단기계획(IEP) 생성 중...';
-  document.getElementById('iepResult').innerHTML = '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px;">🤖 AI가 3개월 치료 계획을 작성 중입니다...</div>';
+  iepResultEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px;">🤖 AI가 3개월 치료 계획을 작성 중입니다...</div>';
 
   // 목표별 달성률 추이 계산
   var goalTrend = {};
@@ -423,7 +427,8 @@ function renderIEP(p, childName) {
   var _iepCId = String(parseInt((document.getElementById('iepChild') || {}).value) || 0);
   window._iepDataMap[_iepCId] = p;
   var _iepResEl = document.getElementById('iepResult');
-  if (_iepResEl) _iepResEl.dataset.iepChildId = _iepCId;
+  if (!_iepResEl) return;
+  _iepResEl.dataset.iepChildId = _iepCId;
   _iepResEl.innerHTML = html;
   window._iepData = p;            // 하위 호환 유지
   window._iepChildName = childName;
@@ -534,7 +539,9 @@ function renderIEPView(p, childName) {
     + '<button class="btn btn-purple" style="flex:1;" onclick="downloadIEPPDF(\'' + escHtml(childName) + '\')">🖨️ PDF 출력</button>'
     + '<button class="btn-ghost" style="flex:0.5;" onclick="document.getElementById(\'iepResult\').innerHTML=\'\'">닫기</button>'
     + '</div></div>';
-  document.getElementById('iepResult').innerHTML = html;
+  var iepViewEl = document.getElementById('iepResult');
+  if (!iepViewEl) return;
+  iepViewEl.innerHTML = html;
 }
 
 function downloadIEPPDFById(id) {
