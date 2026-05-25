@@ -9,9 +9,12 @@ var chatOpen    = false;
 var chatWaiting = false;
 
 function toggleChat() {
+  var chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
   chatOpen = !chatOpen;
-  document.getElementById('chatWindow').classList[chatOpen ? 'add' : 'remove']('open');
-  document.getElementById('unreadDot').classList.remove('show');
+  chatWindow.classList[chatOpen ? 'add' : 'remove']('open');
+  var unreadDot = document.getElementById('unreadDot');
+  if (unreadDot) unreadDot.classList.remove('show');
 
   var floatBtn = document.getElementById('floatBtn');
   if (floatBtn) floatBtn.classList[chatOpen ? 'add' : 'remove']('chat-is-open');
@@ -173,8 +176,8 @@ function initFloatBtnDrag() {
 function getChatGreeting() {
   var hour = new Date().getHours();
   var time = hour < 12 ? '오늘도 좋은 하루 시작해요' : hour < 18 ? '즐거운 오후 되세요' : '오늘 하루도 수고하셨어요';
-  var cnt  = childDB.length;
-  var uw   = getUnwrittenSessions().length;
+  var cnt  = childDB ? childDB.length : 0;
+  var uw   = (typeof getUnwrittenSessions === 'function' ? getUnwrittenSessions() : []).length;
   var msg  = time + '! 👋 저는 마디의 AI 길잡이 마로예요.\n현재 등록된 아동 ' + cnt + '명의 데이터를 알고 있어요.';
   if (uw > 0) msg += '\n\n⚠️ 미작성 세션이 ' + uw + '개 있어요. 확인해볼까요?';
   else        msg += '\n\n아동·세션·치료 계획 무엇이든 물어보세요!';
@@ -194,7 +197,7 @@ function addAiMsg(text) {
   chatHistory.push({ role: 'assistant', content: text });
   trimChatHistory();
   renderChatMessages();
-  if (!chatOpen) document.getElementById('unreadDot').classList.add('show');
+  if (!chatOpen) { var _dot = document.getElementById('unreadDot'); if (_dot) _dot.classList.add('show'); }
 }
 
 function addUserMsg(text) {
@@ -349,7 +352,7 @@ function actOpenSessionForChild(a) {
   if (!a.childId) return;
   var child = childDB.find(function(c) { return c.id === a.childId; });
   if (!child) { showToast('❌ 아동을 찾을 수 없습니다'); return; }
-  switchTab(2);
+  if (typeof switchTab === 'function') switchTab(2);
   setTimeout(function() {
     var sel = document.getElementById('sessionChild');
     if (sel) {
@@ -365,8 +368,8 @@ function actOpenParentReport(a) {
   if (!a.childId) return;
   var child = childDB.find(function(c) { return c.id === a.childId; });
   if (!child) { showToast('❌ 아동을 찾을 수 없습니다'); return; }
-  switchTab(2);
-  switchReportTab('report');
+  if (typeof switchTab === 'function') switchTab(2);
+  if (typeof switchReportTab === 'function') switchReportTab('report');
   setTimeout(function() {
     var sel = document.getElementById('reportChild');
     if (sel) sel.value = a.childId;
@@ -377,13 +380,13 @@ function actOpenParentReport(a) {
 
 function actSwitchTab(a) {
   if (typeof a.tab !== 'number' || a.tab < 0 || a.tab > 6) return;
-  switchTab(a.tab);
+  if (typeof switchTab === 'function') switchTab(a.tab);
   if (chatOpen) toggleChat();
 }
 
 function actShowUnwritten() {
-  switchTab(2);
-  switchReportTab('session');
+  if (typeof switchTab === 'function') switchTab(2);
+  if (typeof switchReportTab === 'function') switchReportTab('session');
   setTimeout(function() {
     var alertEl = document.getElementById('unwrittenAlert');
     if (alertEl) alertEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -564,6 +567,8 @@ function resetChatMicBtn() {
 function sendChat() {
   if (chatWaiting) return;
 
+  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
+
   // useAI 권한 검사 — 권한 없는 선생님이 마로 채팅을 통해 AI를 우회 사용하는 것 차단
   if (typeof canDo === 'function' && !canDo('useAI')) {
     addAiMsg('AI 기능 사용 권한이 없습니다. 센터장에게 문의해주세요. 🔒');
@@ -656,15 +661,19 @@ function sendChat() {
   })
   .then(function() {
     chatWaiting = false;
-    document.getElementById('chatSendBtn').disabled = false;
-    document.getElementById('chatQuickBtns').style.display = 'flex';
+    var _sendBtn = document.getElementById('chatSendBtn');
+    if (_sendBtn) _sendBtn.disabled = false;
+    var _quickBtns = document.getElementById('chatQuickBtns');
+    if (_quickBtns) _quickBtns.style.display = 'flex';
   })
   .catch(function(err) {
     hideTypingIndicator();
-    addAiMsg('오류가 발생했어요 😅\n' + err.message);
+    addAiMsg('오류가 발생했어요 😅\n' + (err && err.message ? err.message : '알 수 없는 오류가 발생했습니다.'));
     chatWaiting = false;
-    document.getElementById('chatSendBtn').disabled = false;
-    document.getElementById('chatQuickBtns').style.display = 'flex';
+    var _sendBtn2 = document.getElementById('chatSendBtn');
+    if (_sendBtn2) _sendBtn2.disabled = false;
+    var _quickBtns2 = document.getElementById('chatQuickBtns');
+    if (_quickBtns2) _quickBtns2.style.display = 'flex';
   });
 }
 

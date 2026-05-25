@@ -263,7 +263,7 @@ function renderSIReport() {
     var wrap = document.getElementById('siChildWrap');
     if (wrap) {
       wrap.innerHTML = '<select class="form-input" id="siChild" onchange="onSIChildChange()"><option value="">아동 선택...</option>'
-        + childDB.map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age||'') + ')</option>'; }).join('')
+        + (Array.isArray(childDB) ? childDB : []).map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age||'') + ')</option>'; }).join('')
         + '</select>';
       if (typeof makeSearchable === 'function') makeSearchable('siChild');
     }
@@ -355,6 +355,7 @@ function generateSIReport() {
 
   var btn    = document.getElementById('siReportBtn');
   var result = document.getElementById('siReportResult');
+  if (!btn || !result) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
@@ -368,8 +369,9 @@ function generateSIReport() {
   var ddstText  = d.ddst && d.ddst.length > 0  ? d.ddst.map(fmtDevRow).join(NL)  : '입력 없음';
   var kdstText  = d.kdst && d.kdst.length > 0  ? d.kdst.map(fmtDevRow).join(NL)  : '입력 없음';
 
-  var sp2Text = d.sp2.length > 0
-    ? d.sp2.map(function(r){
+  var _sp2Arr = Array.isArray(d.sp2) ? d.sp2 : [];
+  var sp2Text = _sp2Arr.length > 0
+    ? _sp2Arr.map(function(r){
         return '· [' + r.section + '] ' + r.domain + ': ' + (r.level||'-') + (r.note ? ' (' + r.note + ')' : '');
       }).join(NL)
     : '입력 없음';
@@ -391,7 +393,7 @@ function generateSIReport() {
     + '평가일: ' + d.date + ' / 정보제공자: ' + d.informant + NL + NL
     + '[I. 배경 정보]' + NL + d.bg + NL + NL
     + '[II. 검사 태도]' + NL + d.attitude + NL + NL
-    + '[III. 실시한 검사]' + NL + d.tests.map(function(t){ return '· ' + t; }).join(NL) + NL + NL
+    + '[III. 실시한 검사]' + NL + (Array.isArray(d.tests) ? d.tests : []).map(function(t){ return '· ' + t; }).join(NL) + NL + NL
     + '[IV-A. DDST 발달 검사 결과]' + NL + ddstText + NL + NL
     + '[IV-B. K-DST 발달 검사 결과]' + NL + kdstText + NL + NL
     + '[IV-C. SP2 감각 처리 영역별 결과]' + NL + sp2Text + NL + NL
@@ -432,16 +434,15 @@ function copySIReport() {
   var el = document.getElementById('siReportText');
   if (!el) return;
   var text = el.textContent || el.innerText;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function(){ showToast('📋 클립보드에 복사됐습니다!'); });
-  } else {
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select(); document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('📋 클립보드에 복사됐습니다!');
+  if (!navigator.clipboard) {
+    showToast('⚠️ 이 브라우저는 클립보드 복사를 지원하지 않습니다.');
+    return;
   }
+  navigator.clipboard.writeText(text).then(function() {
+    showToast('📋 클립보드에 복사됐습니다!');
+  }).catch(function() {
+    showToast('⚠️ 복사에 실패했습니다.');
+  });
 }
 
 // ─────── 감통보고서 — 사용자 정의 검사명 입력 ───────
