@@ -648,14 +648,25 @@ function saveSchedFromModal() {
   var _saveBtn = document.querySelector('#schedModal .btn-primary');
   if (_saveBtn && _saveBtn.dataset.busy) return;
   if (_saveBtn) _saveBtn.dataset.busy = '1';
-  var childId   = String(document.getElementById('schedChildSel').value);
-  var date      = document.getElementById('schedDateInput').value;
-  var startTime = document.getElementById('schedStartTime').value;
-  var duration  = parseInt(document.getElementById('schedDuration').value) || 0;
-  var endTime   = document.getElementById('schedEndTime').value;
-  var repeat    = document.getElementById('schedRepeat').value;
+  var childSelEl  = document.getElementById('schedChildSel');
+  var dateEl      = document.getElementById('schedDateInput');
+  var startTimeEl = document.getElementById('schedStartTime');
+  var durationEl  = document.getElementById('schedDuration');
+  var endTimeEl   = document.getElementById('schedEndTime');
+  var repeatEl    = document.getElementById('schedRepeat');
+  var noteEl      = document.getElementById('schedNote');
+  if (!childSelEl || !dateEl || !startTimeEl || !durationEl || !endTimeEl || !repeatEl || !noteEl) {
+    if (_saveBtn) delete _saveBtn.dataset.busy;
+    return;
+  }
+  var childId   = String(childSelEl.value);
+  var date      = dateEl.value;
+  var startTime = startTimeEl.value;
+  var duration  = parseInt(durationEl.value) || 0;
+  var endTime   = endTimeEl.value;
+  var repeat    = repeatEl.value;
   var until     = repeat !== 'none' ? document.getElementById('schedRepeatUntil').value : '';
-  var note      = document.getElementById('schedNote').value.trim();
+  var note      = noteEl.value.trim();
   var teacher   = (document.getElementById('schedTeacher') || {}).value || '';
   if (!childId) { if (_saveBtn) delete _saveBtn.dataset.busy; showToast('아동을 선택해주세요.'); return; }
   if (!date)    { if (_saveBtn) delete _saveBtn.dataset.busy; showToast('날짜를 선택해주세요.'); return; }
@@ -901,6 +912,7 @@ function saveEditSched(id) {
   var endTime = '';
   if (start && dur) {
     var parts = start.split(':');
+    if (!parts || parts.length < 2) { saveSchedule(); var ol2 = document.getElementById('editSchedOverlay'); if (ol2) ol2.remove(); renderSchedView(); showToast('✅ 일정 수정 완료!'); return; }
     var mins  = parseInt(parts[0]) * 60 + parseInt(parts[1]) + dur;
     endTime = String(Math.floor(mins/60)%24).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
   }
@@ -982,8 +994,11 @@ function _getExportRows() {
 function exportSchedule(format) {
   var rows = _getExportRows();
   if (!rows) return;
-  var from = document.getElementById('exportDateFrom').value;
-  var to   = document.getElementById('exportDateTo').value;
+  var fromEl = document.getElementById('exportDateFrom');
+  var toEl   = document.getElementById('exportDateTo');
+  if (!fromEl || !toEl) return;
+  var from = fromEl.value;
+  var to   = toEl.value;
   var label = from + '~' + to;
 
   if (format === 'excel') {
