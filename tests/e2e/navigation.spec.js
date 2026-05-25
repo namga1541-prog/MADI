@@ -46,7 +46,8 @@ test.describe('네비게이션', () => {
     await expect(page.locator('#panelBoard')).toBeVisible({ timeout: 8000 });
     await page.waitForTimeout(500);
     await page.locator('#bdBtn_library').click();
-    await expect(page.getByText('자료실')).toBeVisible({ timeout: 6000 });
+    // strict mode 방지: 자료실 버튼이 active 클래스 보유 확인
+    await expect(page.locator('#bdBtn_library')).toHaveClass(/active/, { timeout: 5000 });
   });
 
   test('보고서 탭 — AI 언어평가보고서 메뉴 표시', async ({ page }) => {

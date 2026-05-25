@@ -114,10 +114,10 @@ test.describe('👶 아동 탭 버튼', () => {
   });
 
   test('아동 목록 렌더링 확인', async ({ page }) => {
-    // #childGrid는 빈 상태에서 height:0 (flex 컨테이너) → child-card 렌더 후 visible
+    // #childGrid는 빈 상태에서 height:0 → child-card 렌더 후 visible
     const grid = page.locator('#childGrid');
-    // 아동 카드 또는 빈 상태 메시지가 나타날 때까지 대기
-    await expect(grid.locator('.child-card').first().or(page.locator('#childGrid:not(:empty)'))).toBeVisible({ timeout: 15000 });
+    // 아동 카드 첫 번째가 나타날 때까지 대기 (DB 로드 완료 후 렌더)
+    await expect(grid.locator('.child-card').first()).toBeVisible({ timeout: 15000 });
     const content = await grid.textContent();
     expect(content?.trim()).toBeTruthy();
   });
@@ -268,6 +268,7 @@ test.describe('📢 게시판 탭 버튼', () => {
   test('자료실 탭 — 카테고리 필터 노출', async ({ page }) => {
     await expect(page.locator('#bdBtn_library')).toBeVisible({ timeout: 8000 });
     await page.locator('#bdBtn_library').click();
-    await expect(page.getByText('자료실')).toBeVisible({ timeout: 6000 });
+    // getByText('자료실') strict mode 방지 → 자료실 패널 표시 확인
+    await expect(page.locator('#bdBtn_library')).toHaveClass(/active/, { timeout: 5000 });
   });
 });
