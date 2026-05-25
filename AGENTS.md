@@ -27,6 +27,43 @@
 
 ---
 
+## 공통 컨텍스트 블록 (Slim Briefing) ✨ NEW
+
+**목적**: 에이전트 브리핑 시 AGENTS.md 전체를 복사하는 대신, 이 블록 + 해당 도메인 파티션 행만 붙여넣는다.
+토큰 40~60% 절약, 에이전트가 관련 없는 도메인 정보에 혼동되는 현상 방지.
+
+**사용법**: 아래 블록을 각 에이전트 브리핑 상단에 삽입하고, 파티션 테이블에서는 해당 도메인 행만 발췌.
+
+```
+──────── MADI 공통 컨텍스트 ────────
+프로젝트: 언어치료 센터 관리 웹앱 / GitHub Pages 정적 배포
+경로: C:\Users\남재현\Desktop\madi-app
+
+[코딩 규칙]
+- var / function / .then() 패턴 엄수 — let/const/화살표함수/class 금지
+- template literal(백틱) 사용 가능
+- console.log 운영 코드 추가 금지
+- escHtml() 없이 innerHTML에 사용자 데이터 삽입 금지
+
+[DB 접근]
+- 반드시 supaFetch() 경유 (직접 fetch + anon key 금지)
+- 패턴: supaFetch('table?col=eq.val', 'GET').then(function(rows){...}).catch(function(e){ showToast('⚠️ '+e.message); })
+
+[UI 패턴]
+- 성공: showToast('✅ 저장됨')   오류: showToast('⚠️ 메시지')
+- 역할 분기: if(currentUser.role==='superadmin'){} else if(currentUser.role==='admin'){} else {} // teacher
+
+[커밋 규칙]
+- 파일마다 Read → Edit 순서 (Read 없이 Edit 금지)
+- 작업 완료 후 반드시: git add -A && git commit && git push origin main
+────────────────────────────────────
+```
+
+> Slim Briefing을 쓰면 각 에이전트 프롬프트에 AGENTS.md 전체(~400줄)를 넣을 필요 없이
+> 공통 블록(~20줄) + 도메인 파티션(~3줄) 만으로 충분하다.
+
+---
+
 ## 파티션 테이블
 
 | 도메인 | 담당 파일 | 비고 |
@@ -80,8 +117,11 @@
 4. Fix 하네스로 연결하거나 보고서 출력
 
 **에이전트 브리핑 템플릿** (각 도메인 에이전트에 이 구조 사용):
+> 💡 **Slim Briefing 적용**: 공통 컨텍스트 블록 + 이 도메인 파티션 행만 포함. AGENTS.md 전체 불필요.
 
 ```
+[공통 컨텍스트 블록 붙여넣기 — 위 섹션 참조]
+
 [도메인명] 감사 에이전트
 
 프로젝트 경로: C:\Users\남재현\Desktop\madi-app
@@ -158,8 +198,11 @@
 6. 완료 후 나머지 교차-도메인 이슈 순차 처리
 
 **에이전트 브리핑 템플릿**:
+> 💡 **Slim Briefing 적용**: 공통 컨텍스트 블록 + 이 도메인 파티션 행만 포함. AGENTS.md 전체 불필요.
 
 ```
+[공통 컨텍스트 블록 붙여넣기 — 위 섹션 참조]
+
 [도메인명] 수정 에이전트
 
 프로젝트 경로: C:\Users\남재현\Desktop\madi-app
@@ -194,8 +237,11 @@
 | 4. 검증 (순차) | Fix-Verify 루프 | lint + smoke + E2E (패턴 6) |
 
 **구현 에이전트 브리핑 템플릿**:
+> 💡 **Slim Briefing 적용**: 공통 컨텍스트 블록 + 이 도메인 파티션 행만 포함. AGENTS.md 전체 불필요.
 
 ```
+[공통 컨텍스트 블록 붙여넣기 — 위 섹션 참조]
+
 [기능명] 구현 에이전트 — [역할: core/UI/로직/edge 중 하나]
 
 프로젝트 경로: C:\Users\남재현\Desktop\madi-app
@@ -339,6 +385,44 @@ Step 3 — E2E 테스트 (도메인 매핑 테이블 기준)
 
 ---
 
+### 7. Post-Deploy Sentinel ✨ NEW
+
+**목적**: `git push` 후 GitHub Pages 배포(1~2분) 완료 시점에 라이브 URL을 검증한다.
+로컬 Fix-Verify 루프를 통과했지만 "배포 후 깨짐" 케이스를 잡아낸다.
+
+**사용 시점**: `git push` 직후, 1~2분 대기 후 실행
+
+**실행 명령**:
+```bash
+npx playwright test --project=sentinel
+```
+
+**검증 내용** (`tests/e2e/sentinel.spec.js` — 인증 불필요, 약 20초 소요):
+1. 랜딩 페이지 렌더링 (`#landingScreen` 노출)
+2. 로그인 버튼 노출 + 활성화
+3. 로그인 폼 렌더링 (`#loginScreen`, 필드 3개)
+4. 로그인 성공 후 메인 앱 진입 (TEST_PASSWORD 있을 때)
+
+**실패 시 처리**:
+```
+라이브 에러 메시지 + 스크린샷 → 해당 도메인 에이전트에 전달 → 재수정 → 재push
+최대 1회 재시도. 2회 실패 시 대장님께 즉시 보고.
+```
+
+**playwright.config.js sentinel 프로젝트**:
+```js
+{
+  name: 'sentinel',
+  testMatch: '**/sentinel.spec.js',
+  use: {
+    ...devices['Desktop Chrome'],
+    baseURL: 'https://namga1541-prog.github.io',
+  },
+}
+```
+
+---
+
 ## 충돌 방지 체크리스트
 
 에이전트 spawn 전 반드시 확인:
@@ -370,13 +454,13 @@ static (index.html)
 
 ## 웨이브 크기 가이드
 
-| 작업 유형 | Pre-Scout | 웨이브 크기 | 검증 |
-|----------|-----------|------------|------|
-| 전체 감사 | ✅ 실행 | 최대 6 + 6 (2 웨이브) | Fix-Verify 루프 |
-| 부분 감사 | ✅ 실행 | Pre-Scout 결과 기반 (1~6) | Fix-Verify 루프 |
-| 수정 작업 | 선택 | 4~5 (1 웨이브) | Fix-Verify 루프 필수 |
-| 기능 구현 | 선택 | 3~4 (1 웨이브) | Fix-Verify 루프 필수 |
-| 배포 전 리뷰 | ✅ 실행 | 최대 6 + 6 (2 웨이브) | E2E 전체 실행 |
+| 작업 유형 | Pre-Scout | 웨이브 크기 | 검증 | 배포 후 Sentinel |
+|----------|-----------|------------|------|----------------|
+| 전체 감사 | ✅ 실행 | 최대 6 + 6 (2 웨이브) | Fix-Verify 루프 | ✅ 실행 |
+| 부분 감사 | ✅ 실행 | Pre-Scout 결과 기반 (1~6) | Fix-Verify 루프 | ✅ 실행 |
+| 수정 작업 | 선택 | 4~5 (1 웨이브) | Fix-Verify 루프 필수 | ✅ 실행 |
+| 기능 구현 | 선택 | 3~4 (1 웨이브) | Fix-Verify 루프 필수 | ✅ 실행 |
+| 배포 전 리뷰 | ✅ 실행 | 최대 6 + 6 (2 웨이브) | E2E 전체 실행 | ✅ 실행 |
 
 ---
 

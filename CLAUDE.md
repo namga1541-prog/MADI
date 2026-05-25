@@ -136,12 +136,25 @@ Edge Function이나 SQL에서 컬럼을 참조할 때는 아래 목록 기준으
 | `sonnet` | 기본 코드 작업, 수정, 기능 구현 (기본값) |
 | `opus` | 아키텍처 설계, 복잡한 리팩토링, 보안 심층 감사 |
 
+### Slim Briefing (에이전트 브리핑 경량화)
+- 에이전트 브리핑에 AGENTS.md 전체 대신 **공통 컨텍스트 블록 + 해당 도메인 파티션 행만** 포함
+- AGENTS.md `## 공통 컨텍스트 블록` 섹션을 복사해 각 에이전트 브리핑 상단에 붙여넣기
+- 토큰 40~60% 절약, 에이전트 포커스 향상
+
 ### Fix-Verify Loop (수정 후 필수)
 ```
 npm run lint  →  node tests/smoke.js  →  npx playwright test
 ```
 - 각 단계 실패 시 즉시 재수정, 최대 2회 재시도
 - 모든 단계 통과 후 커밋·푸시
+
+### Post-Deploy Sentinel (배포 후 필수)
+```
+npx playwright test --project=sentinel
+```
+- `git push` 직후 1~2분 대기 후 실행 (GitHub Pages 배포 완료 대기)
+- 약 20초 소요, 라이브 URL 대상 스모크 4개 테스트
+- 실패 시 해당 도메인 에이전트 재수정 → 재push → 재검증
 
 ### 병렬 실행 원칙
 - 의존관계 없는 에이전트는 **단일 메시지** 내 동시 spawn (순차 금지)
