@@ -151,6 +151,8 @@ test.describe('📋 AI 언어평가보고서 폼', () => {
   });
 
   test('AI 평가 보고서 생성 버튼 — 존재 확인', async ({ page }) => {
+    // 버튼이 스크롤 필요 영역에 있을 수 있으므로 scrollIntoViewIfNeeded 후 확인
+    await page.locator('#assessReportBtn').scrollIntoViewIfNeeded();
     await expect(page.locator('#assessReportBtn')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#assessReportBtn')).toBeEnabled({ timeout: 5000 });
   });

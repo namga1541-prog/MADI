@@ -114,12 +114,12 @@ test.describe('👶 아동 탭 버튼', () => {
   });
 
   test('아동 목록 렌더링 확인', async ({ page }) => {
-    await page.waitForTimeout(2000); // DB 로드 대기
+    // #childGrid는 빈 상태에서 height:0 (flex 컨테이너) → child-card 렌더 후 visible
     const grid = page.locator('#childGrid');
-    await expect(grid).toBeVisible({ timeout: 10000 });
-    // 아동 카드 또는 빈 상태 메시지
+    // 아동 카드 또는 빈 상태 메시지가 나타날 때까지 대기
+    await expect(grid.locator('.child-card').first().or(page.locator('#childGrid:not(:empty)'))).toBeVisible({ timeout: 15000 });
     const content = await grid.textContent();
-    expect(content).toBeTruthy();
+    expect(content?.trim()).toBeTruthy();
   });
 
   test('일괄 처리 버튼 토글', async ({ page }) => {
@@ -244,13 +244,15 @@ test.describe('📢 게시판 탭 버튼', () => {
     if (!PW) { test.skip(); return; }
     await loginAs(page);
     await page.locator('#sbTab7').click();
-    await page.waitForTimeout(3000);
+    // panelBoard가 active 상태가 될 때까지 대기
+    await expect(page.locator('#panelBoard')).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(500);
   });
 
   test('마디공지 / 센터공지 / 라운지 / 자료실 서브탭 전환', async ({ page }) => {
     for (const id of ['#bdBtn_global', '#bdBtn_center', '#bdBtn_lounge', '#bdBtn_library']) {
       const btn = page.locator(id);
-      await expect(btn).toBeVisible({ timeout: 10000 });
+      await expect(btn).toBeVisible({ timeout: 8000 });
       await btn.scrollIntoViewIfNeeded();
       await btn.click();
       await page.waitForTimeout(500);
@@ -258,11 +260,13 @@ test.describe('📢 게시판 탭 버튼', () => {
   });
 
   test('라운지 탭 — 오류 없이 로드', async ({ page }) => {
+    await expect(page.locator('#bdBtn_lounge')).toBeVisible({ timeout: 8000 });
     await page.locator('#bdBtn_lounge').click();
     await waitNoErrorToast(page, 3000);
   });
 
   test('자료실 탭 — 카테고리 필터 노출', async ({ page }) => {
+    await expect(page.locator('#bdBtn_library')).toBeVisible({ timeout: 8000 });
     await page.locator('#bdBtn_library').click();
     await expect(page.getByText('자료실')).toBeVisible({ timeout: 6000 });
   });
