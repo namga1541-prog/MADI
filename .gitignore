@@ -13,6 +13,7 @@ test-results*.txt
 .claude/sessions-extract-*/
 .claude/worktrees/
 .claude/settings.local.json
+.claude/snapshot-*.md
 
 # Supabase CLI 임시 파일
 supabase/.temp/
