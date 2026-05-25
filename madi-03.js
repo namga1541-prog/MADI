@@ -8,7 +8,7 @@ function loadCenterApiKey(showFeedback) {
         return;
       }
       var key = rows[0].value;
-      document.getElementById('apiKey').value = key;
+      var _akLoadEl = document.getElementById('apiKey'); if (_akLoadEl) _akLoadEl.value = key;
       showMaskedApiKey();
       if (showFeedback) showToast('✅ 센터 AI 키 불러옴');
 
@@ -17,7 +17,7 @@ function loadCenterApiKey(showFeedback) {
       if (adminInput) {
         adminInput.value = key;
         var statusEl = document.getElementById('centerKeyStatus');
-        if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 현재 저장된 키: ' + maskApiKey(key) + '</span>';
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 현재 저장된 키: ' + escHtml(maskApiKey(key)) + '</span>';
       }
     })
     .catch(function(err) {
@@ -38,9 +38,9 @@ function saveCenterApiKey() {
   supaFetch('madi_settings', 'POST', [{ key: 'api_key', value: key }])
     .then(function() {
       // 현재 세션에도 즉시 적용 (DOM만, localStorage 캐싱 안 함)
-      document.getElementById('apiKey').value = key;
+      var _akEl = document.getElementById('apiKey'); if (_akEl) _akEl.value = key;
       showMaskedApiKey();
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 저장 완료: ' + maskApiKey(key) + '</span>';
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 저장 완료: ' + escHtml(maskApiKey(key)) + '</span>';
       showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
     })
     .catch(function(err) {
@@ -177,9 +177,9 @@ function addStaffAccount() {
     }]);
   }).then(function() {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--green);">✅ ' + escHtml(name) + ' 선생님 계정 추가됨</span>';
-    document.getElementById('fixedStaffName').value = '';
-    document.getElementById('newStaffUsername').value = '';
-    document.getElementById('fixedStaffPw').value = '';
+    var _nameEl = document.getElementById('fixedStaffName');   if (_nameEl) _nameEl.value = '';
+    var _unEl   = document.getElementById('newStaffUsername'); if (_unEl)   _unEl.value = '';
+    var _pwEl   = document.getElementById('fixedStaffPw');     if (_pwEl)   _pwEl.value = '';
     loadStaffMgmtList();
   }).catch(function(err) {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
@@ -346,34 +346,38 @@ function renderDashboardLegacy() {
   var _roleLabel = _role === 'superadmin' ? '대장님 👑' : _role === 'admin' ? '원장님 🏥' : '선생님 👩‍⚕️';
   if(wel) wel.textContent=gr+', '+nm+' '+_roleLabel+'! '+em;
   if(dt) dt.textContent=todayStr.replace(/-/g,'.')+'('+wd[today.getDay()]+')';
+  // 안전 가드 — 전역 DB 미초기화 / undefined 케이스 대비
+  var safeScheduleDB = (typeof scheduleDB !== 'undefined' && Array.isArray(scheduleDB)) ? scheduleDB : [];
+  var safeSessionDB  = (typeof sessionDB  !== 'undefined' && Array.isArray(sessionDB))  ? sessionDB  : [];
+  var safeChildDB    = (typeof childDB    !== 'undefined' && Array.isArray(childDB))    ? childDB    : [];
   // 오늘의 일정
-  var ts=scheduleDB.filter(function(s){return s.date===todayStr;});
+  var ts=safeScheduleDB.filter(function(s){return s.date===todayStr;});
   if(currentUser&&currentUser.role!=='admin') ts=ts.filter(function(s){return s.teacher===currentUser.name;});
   ts.sort(function(a,b){return (a.startTime||'')<(b.startTime||'')?-1:1;});
   var se=document.getElementById('dashTodaySched');
   var ms=document.getElementById('dashMiniStat'); if(ms) ms.textContent='오늘 일정 '+ts.length+'건';
   if(se){ if(!ts.length){se.innerHTML='<div class="dash-empty">오늘 등록된 일정이 없습니다</div>';}
   else{ se.innerHTML=ts.slice(0,5).map(function(s){
-    var c=childDB.find(function(c){return c.id===s.childId;}); var cn=c?c.name:'?';
-    var done=sessionDB.some(function(ss){return ss.childId===s.childId&&ss.date===s.date;});
+    var c=safeChildDB.find(function(c){return c.id===s.childId;}); var cn=c?c.name:'?';
+    var done=safeSessionDB.some(function(ss){return ss.childId===s.childId&&ss.date===s.date;});
     return '<div class="dash-sched-item'+(done?' done':'')+'"><span class="dash-sched-time">'+(s.startTime||'--:--')+'</span><span class="dash-sched-name">'+escHtml(cn)+'</span><span class="dash-badge '+(done?'done':'todo')+'">'+(done?'완료':'예정')+'</span></div>';
   }).join('')+(ts.length>5?'<div class="dash-more">+'+(ts.length-5)+'개 더</div>':'');}}
   // 아동 현황
   var st={'등록':0,'대기':0,'종결':0};
-  childDB.forEach(function(c){if(st[c.status]!==undefined)st[c.status]++;});
+  safeChildDB.forEach(function(c){if(st[c.status]!==undefined)st[c.status]++;});
   var stEl=document.getElementById('dashChildStat');
   if(stEl) stEl.innerHTML='<div class="dash-stat-row">'
     +'<div class="dash-stat-item"><div class="dash-stat-num mint">'+st['등록']+'</div><div class="dash-stat-lbl">등록</div></div>'
     +'<div class="dash-stat-item"><div class="dash-stat-num amber">'+st['대기']+'</div><div class="dash-stat-lbl">대기</div></div>'
     +'<div class="dash-stat-item"><div class="dash-stat-num gray">'+(st['종결']||0)+'</div><div class="dash-stat-lbl">종결</div></div>'
-    +'<div class="dash-stat-item"><div class="dash-stat-num navy">'+childDB.length+'</div><div class="dash-stat-lbl">전체</div></div></div>';
+    +'<div class="dash-stat-item"><div class="dash-stat-num navy">'+safeChildDB.length+'</div><div class="dash-stat-lbl">전체</div></div></div>';
   // 미작성 세션
   var uw=typeof getUnwrittenSessions==='function'?getUnwrittenSessions():[];
   if(currentUser&&currentUser.role!=='admin') uw=uw.filter(function(u){return u.teacher===currentUser.name;});
   var uwEl=document.getElementById('dashUnwritten');
   if(uwEl){ if(!uw.length){uwEl.innerHTML='<div class="dash-empty">✅ 미작성 세션 없음</div>';}
   else{ uwEl.innerHTML='<div class="dash-unwr-count">'+uw.length+'개 미작성</div>'
-    +uw.slice(0,4).map(function(u){return '<div class="dash-unwr-item"><span>'+u.date+'</span><span>'+escHtml(u.childName)+'</span></div>';}).join('')
+    +uw.slice(0,4).map(function(u){return '<div class="dash-unwr-item"><span>'+escHtml((u.date||''))+'</span><span>'+escHtml(u.childName)+'</span></div>';}).join('')
     +(uw.length>4?'<div class="dash-more">+'+(uw.length-4)+'개 더</div>':'');}}
   // 공지
   var nc=document.getElementById('dashNotices');
@@ -727,8 +731,8 @@ function saveNotice() {
     author_id: currentUser.id,
     author_name: currentUser.name
   }]).then(function(saved) {
-    document.getElementById('noticeTitle').value = '';
-    document.getElementById('noticeContent').value = '';
+    var _ntEl = document.getElementById('noticeTitle');   if (_ntEl) _ntEl.value = '';
+    var _ncEl = document.getElementById('noticeContent'); if (_ncEl) _ncEl.value = '';
     showToast('✅ 공지가 등록됐습니다');
     loadNotices();
     fanoutNoticeNotifications(saved, title, ntype);
@@ -963,9 +967,9 @@ function changeMyPassword() {
     })
     .then(function() {
       setResult('<span style="color:var(--green);">✅ 비밀번호가 변경됐어요!</span>');
-      document.getElementById('oldPassword').value  = '';
-      document.getElementById('newPassword').value  = '';
-      document.getElementById('newPassword2').value = '';
+      var _opEl  = document.getElementById('oldPassword');  if (_opEl)  _opEl.value  = '';
+      var _npEl  = document.getElementById('newPassword');  if (_npEl)  _npEl.value  = '';
+      var _np2El = document.getElementById('newPassword2'); if (_np2El) _np2El.value = '';
     })
     .catch(function(err) {
       setResult('<span style="color:var(--red);">❌ ' + escHtml(err.message || '변경 실패') + '</span>');

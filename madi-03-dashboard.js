@@ -186,7 +186,7 @@ function renderDashboardTeacher() {
 
   // 시급 배너 (미작성 있을 때만)
   if (unwritten.length > 0) {
-    var sample = unwritten.slice(0,3).map(function(u){ return u.date.slice(5).replace('-','/') + ' (' + escHtml(u.childName) + ')'; }).join(', ');
+    var sample = unwritten.slice(0,3).map(function(u){ return escHtml((u.date||'').slice(5).replace('-','/')) + ' (' + escHtml(u.childName) + ')'; }).join(', ');
     html += ''
       + '<div class="dp-urgent">'
       +   '<div class="dp-urgent-ic">⚠️</div>'
@@ -561,8 +561,8 @@ function renderDashboardAdmin() {
   var daysInMonth = monthEnd.getDate();
   var planByDay = [], realByDay = [];
   for (var _i = 0; _i <= daysInMonth; _i++) { planByDay.push(0); realByDay.push(0); }
-  thisMonthSched.forEach(function(s){ var d = parseInt(s.date.slice(8,10), 10); if (d >= 1 && d <= daysInMonth) planByDay[d]++; });
-  thisMonthSessions.forEach(function(s){ var d = parseInt(s.date.slice(8,10), 10); if (d >= 1 && d <= daysInMonth) realByDay[d]++; });
+  thisMonthSched.forEach(function(s){ if (!s.date) return; var d = parseInt(s.date.slice(8,10), 10); if (d >= 1 && d <= daysInMonth) planByDay[d]++; });
+  thisMonthSessions.forEach(function(s){ if (!s.date) return; var d = parseInt(s.date.slice(8,10), 10); if (d >= 1 && d <= daysInMonth) realByDay[d]++; });
 
   // ── HTML ──
   var titleText = _dpGreetingFor(myName, role);
