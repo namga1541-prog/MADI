@@ -132,6 +132,21 @@ node tests/smoke.js   # 유틸 함수 유닛 테스트
 ```
 pre-commit 훅에서 자동 실행됨.
 
+## ESLint (XSS 자동 차단)
+
+pre-commit 훅이 스테이징된 `madi-*.js`에 대해 자동 실행됨.
+
+```bash
+npm run lint          # 전체 검사
+npm run lint:fix      # 자동 수정 가능한 것만 수정
+npx eslint madi-08.js # 특정 파일만
+```
+
+**핵심 규칙**: `no-unsanitized/property`, `no-unsanitized/method`
+- `el.innerHTML = userValue` → 커밋 차단
+- `el.innerHTML = escHtml(userValue)` → 통과
+- `el.innerHTML = '<div>' + escHtml(name) + '</div>'` → 통과
+
 ## 자주 쓰는 패턴
 
 ### supaFetch 사용
