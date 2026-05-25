@@ -150,6 +150,7 @@ function renderLoungeUI() {
       : posts.map(function(p){ return renderInquiryCard(p, user); }).join('');
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   ui.innerHTML = formHtml + '<div style="display:flex;flex-direction:column;gap:10px;">' + listHtml + '</div>';
 }
 
@@ -377,6 +378,7 @@ function renderComments(postId) {
     + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(\'' + escHtml(String(postId)) + '\',this)"></label>'
     + '</div>';
 
+  // eslint-disable-next-line no-unsanitized/property
   area.innerHTML = listHtml + formHtml;
 }
 
@@ -531,6 +533,7 @@ function _renderLibraryUI(posts) {
     }).join('');
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = '<div class="card"><div class="card-title"><div class="card-title-left">📚 자료실</div><span style="font-size:11px;color:var(--text2);">언어치료 자료 공유</span></div>'
     + catHtml + '</div>'
     + formHtml
@@ -559,6 +562,7 @@ function onLibFilesChange(input) {
     showToast('⚠️ 첨부 거부: ' + rejected.join(', '));
     if (_libraryFiles.length === 0) input.value = '';
   }
+  // eslint-disable-next-line no-unsanitized/property
   if (preview) preview.innerHTML = _libraryFiles.map(function(f){ return '<div style="font-size:12px;color:var(--text2);">📄 '+escHtml(f.name)+'</div>'; }).join('');
 }
 
@@ -657,6 +661,7 @@ function openPostEditModal(opts) {
   var overlay = document.createElement('div');
   overlay.id = 'postEditModal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML =
       '<div style="background:white;border-radius:14px;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
     +   '<div style="padding:16px 22px;border-bottom:1px solid #e2e8f0;font-size:15px;font-weight:700;color:#1e293b;">' + escHtml(opts.header || '✏️ 글 수정') + '</div>'

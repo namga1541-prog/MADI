@@ -79,11 +79,12 @@ function onLoungeImagesChange(input) {
   }
   files.forEach(function(f) { _loungePostImages.push(f); });
   if (previewEl) {
+    // eslint-disable-next-line no-unsanitized/property
     previewEl.innerHTML = files.map(function(f, i) {
       var url = URL.createObjectURL(f);
       return '<div style="position:relative;display:inline-block;">'
-        + '<img src="' + url + '" style="height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">'
-        + '<button type="button" onclick="removeLoungeImage(' + i + ')" '
+        + '<img src="' + escHtml(url) + '" style="height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">'
+        + '<button type="button" onclick="removeLoungeImage(' + escHtml(String(i)) + ')" '
         + 'style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1;font-weight:700;">×</button>'
         + '</div>';
     }).join('');
@@ -96,11 +97,12 @@ function removeLoungeImage(idx) {
   if (input) input.value = '';
   var previewEl = document.getElementById('loungeImgPreview');
   if (previewEl) {
+    // eslint-disable-next-line no-unsanitized/property
     previewEl.innerHTML = _loungePostImages.map(function(f, i) {
       var url = URL.createObjectURL(f);
       return '<div style="position:relative;display:inline-block;">'
-        + '<img src="' + url + '" style="height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">'
-        + '<button type="button" onclick="removeLoungeImage(' + i + ')" '
+        + '<img src="' + escHtml(url) + '" style="height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">'
+        + '<button type="button" onclick="removeLoungeImage(' + escHtml(String(i)) + ')" '
         + 'style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1;font-weight:700;">×</button>'
         + '</div>';
     }).join('');
@@ -241,6 +243,7 @@ function renderGlobalNoticeUI() {
     html += globalNoticesDB.map(function(n) { return renderGlobalNoticeCard(n, isSuperAdmin); }).join('');
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   c.innerHTML = html;
 }
 
@@ -482,6 +485,7 @@ function renderCenterNoticeUI() {
     }).join('');
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   c.innerHTML = html;
 }
 

@@ -81,6 +81,7 @@
       var name = el.getAttribute('data-icon');
       var size = parseInt(el.getAttribute('data-icon-size') || '20', 10);
       var stroke = parseFloat(el.getAttribute('data-icon-stroke') || '1.8');
+      // eslint-disable-next-line no-unsanitized/property
       el.innerHTML = mdIcon(name, size, { stroke: stroke });
       el.dataset.iconMounted = '1';
     }

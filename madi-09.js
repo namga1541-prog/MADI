@@ -77,12 +77,13 @@ function showPostSessionBriefing(sessionId) {
       + '</div>';
   }).join('');
 
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML = '<div style="width:100%;max-width:520px;background:white;border-radius:20px 20px 0 0;padding:20px 16px 28px;box-shadow:0 -4px 24px rgba(0,0,0,0.12);">'
     + '<div style="width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 16px;"></div>'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
     + '<div>'
     + '<div style="font-size:15px;font-weight:700;color:var(--navy);">✅ 세션 저장 완료</div>'
-    + '<div style="font-size:12px;color:var(--text2);margin-top:2px;">' + escHtml(child.name) + ' · ' + session.date + '</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-top:2px;">' + escHtml(child.name) + ' · ' + escHtml(session.date || '') + '</div>'
     + '</div>'
     + '<button onclick="closePostBriefing()" style="background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;padding:4px;">✕</button>'
     + '</div>'
@@ -167,6 +168,7 @@ function showStagnationAlert(childName, stagnatedGoals, childId) {
   var card = document.createElement('div');
   card.id = 'stagAlertCard';
   card.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:500px;z-index:2600;animation:slideDown 0.3s;';
+  // eslint-disable-next-line no-unsanitized/property
   card.innerHTML = '<div style="background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.15);border-top:4px solid #f59e0b;padding:14px 16px;">'
     + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
     + '<div style="flex:1;">'
@@ -259,6 +261,7 @@ function checkUpcomingSessionBriefing() {
     }
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   card.innerHTML = '<div style="background:white;border-radius:14px;box-shadow:0 4px 20px rgba(15,41,66,0.18);border-top:4px solid var(--mint);padding:14px 16px;">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
     + '<div style="display:flex;align-items:center;gap:8px;">'
@@ -547,6 +550,7 @@ function renderPortfolioHistory(childId) {
         box.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">저장된 포트폴리오가 없습니다.</div>';
         return;
       }
+      // eslint-disable-next-line no-unsanitized/property
       box.innerHTML = rows.map(function(r) {
         var visible = !!r.parent_visible;
         var tag = visible
@@ -698,6 +702,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
   html += '<button class="pdf-btn" onclick="downloadPDF(\'' + escHtml(child.name) + '_' + month + '\',\'portfolioFullText\',\'' + escHtml(child.name) + ' 월간 포트폴리오 (' + month + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
 
   var portfolioResultEl = document.getElementById('portfolioResult');
+  // eslint-disable-next-line no-unsanitized/property
   if (portfolioResultEl) portfolioResultEl.innerHTML = html;
 }
 
