@@ -99,14 +99,17 @@ function renderStaffCard() {
         var safeId = escHtml(String(u.id));
         var safeName = escHtml(u.name || '');
         var safeRole = escHtml(u.role || '');
+        // onclick 속성 내 작은따옴표 이스케이프 (작은따옴표가 JS 문자열을 깨는 것 방지)
+        var onclickName = safeName.replace(/'/g, '&#39;');
+        var onclickRole = safeRole.replace(/'/g, '&#39;');
         html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;">'
           + '<div style="width:34px;height:34px;border-radius:50%;background:' + safeColor + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">' + (u.name || '?').slice(0,1) + '</div>'
           + '<div style="flex:1;"><div style="font-size:14px;font-weight:700;">' + safeName + '</div>'
           + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(u.username || '') + ' · ' + (u.role==='admin'?'👑 관리자':'👩‍⚕️ 선생님') + '</div></div>'
           + (u.id !== currentUser.id
             ? '<div style="display:flex;gap:6px;">'
-              + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + safeId + '\',\'' + safeName + '\',\'' + safeRole + '\')">\uad8c\ud55c</button>'
-              + '<button class="btn-del" onclick="deleteStaff(\'' + safeId + '\',\'' + safeName + '\')">' + '\uc0ad\uc81c</button>'
+              + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + safeId + '\',\'' + onclickName + '\',\'' + onclickRole + '\')">\uad8c\ud55c</button>'
+              + '<button class="btn-del" onclick="deleteStaff(\'' + safeId + '\',\'' + onclickName + '\')">' + '\uc0ad\uc81c</button>'
               + '</div>'
             : '<span style="font-size:11px;color:var(--mint);">나</span>')
           + '</div>';
@@ -502,43 +505,48 @@ function deployToGitHub() {
             : '마지막 배포: 기록 없음 (첫 배포)';
 
           // 업로드 대상 결정: 첫 배포 또는 변경 0건이면 전체, 아니면 변경분만
-          var willUpload;
+          var willUpload = [];
+          var confirmPromise;
           if (firstDeploy) {
             willUpload = valid;
+            confirmPromise = Promise.resolve();
           } else if (changed.length === 0) {
             var msg = lastText + NL + NL
                     + '⏸️ 마지막 배포 이후 내용이 변경된 파일이 없습니다.' + NL
                     + '(SHA-1 해시 비교 — 저장만 했고 내용 동일한 파일은 자동 제외됨)' + NL + NL
                     + '그래도 ' + valid.length + '개 파일을 모두 배포하시겠습니까?';
-            return new Promise(function(res, rej) {
+            confirmPromise = new Promise(function(res, rej) {
               showConfirm(msg, res, { danger: false, okLabel: '배포', onCancel: function() { rej(new Error('USER_CANCEL')); } });
             }).then(function() { willUpload = valid; });
           } else {
             willUpload = changed;
+            confirmPromise = Promise.resolve();
           }
 
-          // 미리보기 다이얼로그
-          var lines = [lastText, ''];
-          lines.push('✏️ 배포 대상 ' + willUpload.length + '개:');
-          willUpload.forEach(function(f, i) { lines.push('  ' + (i + 1) + '. ' + f.name); });
-          var skipped = valid.length - willUpload.length;
-          if (skipped > 0) {
-            lines.push('');
-            lines.push('⏸️ 미변경 ' + skipped + '개 (SHA 동일, 건너뜀):');
-            unchanged.forEach(function(f) { lines.push('  · ' + f.name); });
-          }
-          lines.push('', '+ sw.js (자동 캐시 갱신)', '', '진행하시겠습니까?');
-          var _finalMsg = lines.join(NL);
-          var _finalUpload = willUpload;
-          return new Promise(function(res, rej) {
-            showConfirm(_finalMsg, res, { danger: false, okLabel: '배포', onCancel: function() { rej(new Error('USER_CANCEL')); } });
-          }).then(function() {
-            FILES_TO_UPLOAD = _finalUpload;
-            TOTAL_FILES     = _finalUpload.length + 1;
-            var allShas = {};
-            valid.forEach(function(f){ allShas[f.name] = f.sha; });
-            FILES_TO_UPLOAD.allShas = allShas;
-            return _finalUpload;
+          // 미리보기 다이얼로그 — confirmPromise 해소 후 willUpload 사용 보장
+          return confirmPromise.then(function() {
+            var lines = [lastText, ''];
+            lines.push('✏️ 배포 대상 ' + willUpload.length + '개:');
+            willUpload.forEach(function(f, i) { lines.push('  ' + (i + 1) + '. ' + f.name); });
+            var skipped = valid.length - willUpload.length;
+            if (skipped > 0) {
+              lines.push('');
+              lines.push('⏸️ 미변경 ' + skipped + '개 (SHA 동일, 건너뜀):');
+              unchanged.forEach(function(f) { lines.push('  · ' + f.name); });
+            }
+            lines.push('', '+ sw.js (자동 캐시 갱신)', '', '진행하시겠습니까?');
+            var _finalMsg = lines.join(NL);
+            var _finalUpload = willUpload;
+            return new Promise(function(res, rej) {
+              showConfirm(_finalMsg, res, { danger: false, okLabel: '배포', onCancel: function() { rej(new Error('USER_CANCEL')); } });
+            }).then(function() {
+              FILES_TO_UPLOAD = _finalUpload;
+              TOTAL_FILES     = _finalUpload.length + 1;
+              var allShas = {};
+              valid.forEach(function(f){ allShas[f.name] = f.sha; });
+              FILES_TO_UPLOAD.allShas = allShas;
+              return _finalUpload;
+            });
           });
         });
       });
@@ -907,8 +915,10 @@ function confirmImport() {
 
 function cancelImport() {
   window._importPreview = null;
-  document.getElementById('importResult').innerHTML = '';
-  document.getElementById('importFileInput').value  = '';
+  var importResultEl = document.getElementById('importResult');
+  if (importResultEl) importResultEl.innerHTML = '';
+  var importFileInputEl = document.getElementById('importFileInput');
+  if (importFileInputEl) importFileInputEl.value = '';
 }
 
 // ─────── 초기화 ───────
@@ -939,7 +949,8 @@ function init() {
   // httpOnly 쿠키 보안 마이그레이션: localStorage 잔재 토큰 정리
   try { localStorage.removeItem('madi_token'); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 
-  var savedUser = localStorage.getItem('madi_user');
+  var savedUser;
+  try { savedUser = localStorage.getItem('madi_user'); } catch(_e) { savedUser = null; }
   // 토큰은 httpOnly 쿠키에만 존재 — savedUser만 있으면 세션 복원
   // (쿠키가 만료됐다면 첫 API 호출 시 401 → 자동 로그인 화면 전환)
   if (savedUser) {

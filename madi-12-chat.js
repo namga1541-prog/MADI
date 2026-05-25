@@ -253,7 +253,9 @@ function autoResizeChat(el) {
 }
 
 function sendQuick(text) {
-  document.getElementById('chatInput').value = text;
+  var inp = document.getElementById('chatInput');
+  if (!inp) return;
+  inp.value = text;
   sendChat();
 }
 
@@ -515,7 +517,6 @@ var chatRecognition = null;
 var isChatRecording = false;
 
 function toggleChatVoiceInput() {
-  var btn = document.getElementById('chatMicBtn');
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
     showToast('이 브라우저는 음성 인식을 지원하지 않습니다 (Chrome 권장)');
@@ -533,12 +534,15 @@ function toggleChatVoiceInput() {
 
   chatRecognition.onstart = function() {
     isChatRecording = true;
+    var btn = document.getElementById('chatMicBtn');
+    if (!btn) return;
     btn.classList.add('recording');
     btn.textContent = '🔴';
     btn.title = '녹음 중... (탭하면 종료)';
   };
   chatRecognition.onresult = function(ev) {
     var input = document.getElementById('chatInput');
+    if (!input) return;
     var newText = '';
     for (var i = ev.resultIndex; i < ev.results.length; i++) {
       newText += ev.results[i][0].transcript + ' ';
