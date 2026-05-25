@@ -35,9 +35,11 @@ test.describe('네비게이션', () => {
     await expect(page.locator('#panelBoard')).toBeVisible({ timeout: 8000 });
     await page.waitForTimeout(500);
     await page.locator('#bdBtn_lounge').click();
-    // 수신자 선택 셀렉트 또는 안내 문구 존재 확인
+    // renderLounge()는 Supabase 요청 완료 후 렌더 → 로딩 스피너가 사라질 때까지 대기
+    await expect(page.locator('#bdPanel_lounge .loading')).toBeHidden({ timeout: 12000 });
+    // 수신자 선택 셀렉트(teacher/admin) 또는 슈퍼관리자 안내 문구 확인
     const hasForm   = await page.locator('#loungeVisibility').isVisible().catch(() => false);
-    const hasNotice = await page.getByText('모든 센터의 건의·문의를 수신합니다').isVisible().catch(() => false);
+    const hasNotice = await page.locator('#bdPanel_lounge').getByText('댓글로 답변해주세요').isVisible().catch(() => false);
     expect(hasForm || hasNotice).toBeTruthy();
   });
 
