@@ -13,7 +13,7 @@ async function goToLogin(page) {
   await clearSession(page);
   await page.goto('/MADI/');
   await expect(page.locator('#landingScreen')).toBeVisible({ timeout: 10000 });
-  await page.locator('.lp-btn-login').click();
+  await page.getByRole('button', { name: '로그인' }).first().click();
   await expect(page.locator('#loginScreen')).toBeVisible({ timeout: 5000 });
 }
 
