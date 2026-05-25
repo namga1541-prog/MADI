@@ -90,6 +90,7 @@ function downloadPDF(name, sourceId, title) {
   var content = el.textContent || el.innerText || '';
   var today = new Date().toLocaleDateString('ko-KR');
   var win = window.open('', '_blank');
+  if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>body{font-family:"Noto Sans KR",sans-serif;padding:40px;color:#1e293b;line-height:1.8;}'
     + 'h2{color:#0f2942;margin-bottom:8px;}p{white-space:pre-wrap;font-size:14px;}'
@@ -173,6 +174,7 @@ function downloadAssessPDF(name) {
   var evaluator    = ((document.getElementById('reportEvaluator')   || {}).value || '').trim();
 
   var win = window.open('', '_blank');
+  if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">'
     + '<style>'
@@ -581,6 +583,7 @@ function downloadIEPPDF(childName) {
   }
 
   var win = window.open('', '_blank');
+  if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">'
     + '<style>'

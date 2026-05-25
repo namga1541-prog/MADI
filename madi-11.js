@@ -202,6 +202,7 @@ function interpolatePct(table, rawScore, colIdx) {
     var lo = table[i], hi = table[i+1];
     var loScore = lo[colIdx], hiScore = hi[colIdx];
     if (rawScore >= loScore && rawScore <= hiScore) {
+      if (hiScore === loScore) return lo[0];
       var ratio = (rawScore - loScore) / (hiScore - loScore);
       return Math.round(lo[0] + ratio * (hi[0] - lo[0]));
     }

@@ -55,7 +55,7 @@ function staleWhileRevalidate(req) {
         caches.open(CACHE_NAME).then(function(c) { c.put(req, clone); });
       }
       return res;
-    }).catch(function() { return cached; });
+    }).catch(function() { return cached || Response.error(); });
     return cached || networkPromise;
   });
 }
