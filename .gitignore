@@ -2,6 +2,7 @@ node_modules/
 .env
 playwright-report/
 test-results/
+test-results*.txt
 
 # 현업 치료사 실제 보고서 원본 — 개인정보 포함, 로컬 보관만 (GitHub 푸시 금지)
 .local-reports/

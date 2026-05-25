@@ -49,6 +49,17 @@
 - 반드시 supaFetch() 경유 (직접 fetch + anon key 금지)
 - 패턴: supaFetch('table?col=eq.val', 'GET').then(function(rows){...}).catch(function(e){ showToast('⚠️ '+e.message); })
 
+[DB 스키마 핵심 — 존재하지 않는 컬럼 select 시 PostgREST 400 반환]
+- madi_users       : id, username, name, password, role, center_id, color, permissions,
+                     status, prog_types(JSONB), totp_secret, totp_enabled, locked_until
+- madi_centers     : id  (center_id로 사용)
+- madi_settings    : key, value  ⚠️ center_id 컬럼 없음 — 전역 테이블
+- madi_portfolios  : id, child_id, center_id, parent_visible, month, content, data, created_at
+- madi_notifications: id, user_id, center_id, type, title, body, link, read_at, created_at
+- madi_audit_log   : id, actor_id, actor_name, action, table_name, record_id, child_id, occurred_at
+- madi_push_settings: center_id, enabled, push_time, message_title, message_body, last_sent_date
+- madi_rate_limits : key(PK), count, window_start, hour_count, hour_start, updated_at
+
 [UI 패턴]
 - 성공: showToast('✅ 저장됨')   오류: showToast('⚠️ 메시지')
 - 역할 분기: if(currentUser.role==='superadmin'){} else if(currentUser.role==='admin'){} else {} // teacher
@@ -313,7 +324,9 @@
 
 수행할 것:
 1. `git diff HEAD~1 --name-only` 또는 관련 키워드로 최근 변경 파일 확인
-2. 변경 파일을 아래 파티션 테이블에 매핑:
+2. ⚠️ core 파일(madi-01.js, madi-01-auth.js, madi-01-app.js, madi-vocab.js) 변경 여부 먼저 확인:
+   → core 변경 감지 시: 전역 스코프로 모든 도메인이 의존하므로 **전체 12개 도메인 모두 실행 필요**로 즉시 결론 내고 3번 스킵
+3. 변경 파일을 아래 파티션 테이블에 매핑 (core 변경 없을 때만):
    core: madi-01.js, madi-01-auth.js, madi-01-app.js, madi-vocab.js
    session: madi-02.js, madi-07.js
    home: madi-03.js, madi-03-dashboard.js
@@ -326,12 +339,16 @@
    parent: madi-09.js, madi-15.js, madi-15-pages.js
    edge: supabase/functions/**
    static: sw.js, index.html, admin.html, madi.css
-3. 영향 도메인 목록과 이유를 한 줄씩 출력
-4. "실행 불필요" 도메인은 명시적으로 제외 이유 작성
+4. 영향 도메인 목록과 이유를 한 줄씩 출력
+5. "실행 불필요" 도메인은 명시적으로 제외 이유 작성
 
 출력 형식:
 ✅ 실행 필요: board (madi-14.js 변경), ai (madi-08.js 변경)
 ⏭️ 스킵: core, session, home, child-mgmt, calendar, system, report, parent, edge, static — 변경 없음
+
+core 변경 시 출력 형식:
+⚠️ core 변경 감지 (madi-01.js) → 전체 12개 도메인 실행 필요
+✅ 실행 필요: core, session, home, child-mgmt, ai, calendar, system, report, board, parent, edge, static
 ```
 
 **Pre-Scout 결과 활용**:
@@ -403,10 +420,32 @@ npx playwright test --project=sentinel
 3. 로그인 폼 렌더링 (`#loginScreen`, 필드 3개)
 4. 로그인 성공 후 메인 앱 진입 (TEST_PASSWORD 있을 때)
 
-**실패 시 처리**:
+**실패 시 처리 — 핫픽스 우선, 롤백은 최후 수단**:
+
 ```
-라이브 에러 메시지 + 스크린샷 → 해당 도메인 에이전트에 전달 → 재수정 → 재push
-최대 1회 재시도. 2회 실패 시 대장님께 즉시 보고.
+Step A — 원인 파악
+  스크린샷·에러 메시지로 실패 테스트와 관련 도메인 식별
+
+Step B — 핫픽스 시도 (권장)
+  해당 도메인 에이전트 재spawn → 수정 커밋 push → 재Sentinel
+  (GitHub Pages 배포 1~2분 대기 후 재실행)
+
+Step C — 롤백 (핫픽스 실패 시)
+  ✅ 사용: git revert [커밋해시]  → 새 커밋으로 되돌림 (히스토리 보존)
+  ❌ 금지: git reset --hard       → push된 커밋에 사용 금지
+  ❌ 금지: git push --force       → 협업 환경에서 히스토리 파괴
+
+  revert 대상 확인:
+    git log --oneline -5          → 최근 커밋 해시 확인
+    git revert [해시] --no-edit   → 자동 revert 커밋 생성
+    git push origin main
+
+Step D — 보고
+  핫픽스·롤백 모두 2회 실패 시:
+  대장님께 아래 정보와 함께 즉시 보고:
+  - 실패 테스트명 + 스크린샷
+  - 관련 커밋 해시 목록
+  - 시도한 수정 내용 요약
 ```
 
 **playwright.config.js sentinel 프로젝트**:
