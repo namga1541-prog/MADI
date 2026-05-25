@@ -73,10 +73,11 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 레이트 리밋: IP+username 키, 분당 10회/시간당 50회 ──
-  // x-forwarded-for 의 가장 오른쪽 IP (proxy chain 상 신뢰 가능한 client IP)
+  // x-forwarded-for는 스푸핑 가능 — 참고용으로만 사용 (단독 보안 결정 금지)
+  // cf-connecting-ip (Cloudflare) 가 있으면 우선 사용, 없으면 xff 첫 번째 IP 사용
   const xff   = req.headers.get('x-forwarded-for') ?? ''
-  const xffIp = xff ? xff.split(',').pop()!.trim() : ''
-  const ip    = xffIp || req.headers.get('cf-connecting-ip') || 'unknown'
+  const xffIp = xff ? xff.split(',')[0].trim() : ''
+  const ip    = req.headers.get('cf-connecting-ip') || xffIp || 'unknown'
   const rlKey = `login:${ip}:${username.toLowerCase()}`
   const rl    = await checkRateLimit(rlKey, SUPA_URL, SUPA_KEY, 10, 50)
   if (!rl.allowed) {
@@ -108,7 +109,10 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: '서버 오류가 발생했습니다.' }), { status: 500, headers: CORS })
     }
   }
-  const users = await userRes.json()
+  let users: unknown
+  try { users = await userRes.json() } catch {
+    return new Response(JSON.stringify({ error: '사용자 데이터 파싱 오류' }), { status: 500, headers: CORS })
+  }
   const user  = Array.isArray(users) ? users[0] : null
 
   if (!user) {
@@ -148,11 +152,13 @@ Deno.serve(async (req: Request) => {
       last_failed_at:     new Date(now).toISOString(),
     }
     if (willLock) update.locked_until = new Date(now + LOCK_DURATION_MS).toISOString()
-    fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
-      body:    JSON.stringify(update),
-    }).catch(() => { /* fire-and-forget */ })
+    try {
+      await fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+        body:    JSON.stringify(update),
+      })
+    } catch(_) {}
 
     const msg = willLock
       ? `로그인 5회 실패 — 계정이 30분간 잠금되었습니다.`
@@ -185,11 +191,13 @@ Deno.serve(async (req: Request) => {
         last_failed_at:     new Date(now).toISOString(),
       }
       if (willLock) update.locked_until = new Date(now + LOCK_DURATION_MS).toISOString()
-      fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
-        method:  'PATCH',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
-        body:    JSON.stringify(update),
-      }).catch(() => {})
+      try {
+        await fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+          body:    JSON.stringify(update),
+        })
+      } catch(_) {}
       return new Response(
         JSON.stringify({ require_totp: true, error: '인증 코드가 올바르지 않습니다' }),
         { status: 401, headers: CORS }
@@ -199,11 +207,13 @@ Deno.serve(async (req: Request) => {
 
   // ── SEC4: 성공 시 카운터·잠금 리셋 ──
   if (user.failed_login_count || user.locked_until) {
-    fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
-      body:    JSON.stringify({ failed_login_count: 0, locked_until: null, last_failed_at: null }),
-    }).catch(() => { /* fire-and-forget */ })
+    try {
+      await fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+        body:    JSON.stringify({ failed_login_count: 0, locked_until: null, last_failed_at: null }),
+      })
+    } catch(_) {}
   }
 
   // Lazy bcrypt 마이그레이션: SHA-256 해시 → bcrypt 로 재해싱
@@ -231,11 +241,14 @@ Deno.serve(async (req: Request) => {
 
   // 학부모 역할: 연결된 child_id 주입
   if (user.role === 'parent') {
-    const pcRes = await fetch(
-      SUPA_URL + '/rest/v1/madi_parent_children?parent_user_id=eq.' + user.id + '&select=child_id&limit=1',
-      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
-    )
-    const pc = await pcRes.json()
+    let pc: unknown = []
+    try {
+      const pcRes = await fetch(
+        SUPA_URL + '/rest/v1/madi_parent_children?parent_user_id=eq.' + user.id + '&select=child_id&limit=1',
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+      )
+      pc = await pcRes.json()
+    } catch(_) { pc = [] }
     if (Array.isArray(pc) && pc[0]) payload.parent_child_id = pc[0].child_id
   }
 

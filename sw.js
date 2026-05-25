@@ -39,7 +39,14 @@ function networkFirst(req, isHTML) {
   }).catch(function() {
     return caches.match(req).then(function(cached) {
       if (cached) return cached;
-      if (isHTML) return caches.match(OFFLINE_URL);
+      if (isHTML) {
+        return caches.match(OFFLINE_URL).then(function(offlinePage) {
+          return offlinePage || new Response('오프라인 상태입니다.', {
+            status: 503,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' }
+          });
+        });
+      }
       return Response.error();
     });
   });
@@ -102,11 +109,20 @@ self.addEventListener("push", function(e) {
   var data = {};
   try { if (e.data) data = e.data.json(); } catch(_) {}
   var title = data.title || '마디';
+  var targetUrl = data.url || self.registration.scope;
+  // 같은 origin인지 검증 — 외부 URL로 리다이렉트 방지
+  try {
+    var parsed = new URL(targetUrl);
+    var scopeParsed = new URL(self.registration.scope);
+    if (parsed.origin !== scopeParsed.origin) targetUrl = self.registration.scope;
+  } catch(e) {
+    targetUrl = self.registration.scope;
+  }
   var opts = {
     body: data.body || '',
     icon:  _scopeUrl('icon-192.png'),
     badge: _scopeUrl('icon-192.png'),
-    data:  { url: data.url || self.registration.scope },
+    data:  { url: targetUrl },
     requireInteraction: false
   };
   e.waitUntil(self.registration.showNotification(title, opts));

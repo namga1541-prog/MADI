@@ -23,7 +23,9 @@ async function sq<T>(path: string): Promise<T[]> {
     headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
   });
   if (!res.ok) throw new Error(`sq ${path} → ${res.status}: ${await res.text()}`);
-  return res.json() as Promise<T[]>;
+  let data: unknown;
+  try { data = await res.json() } catch { data = [] }
+  return data as T[];
 }
 async function sp(table: string, filter: string, data: Record<string, unknown>) {
   const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${filter}`, {
@@ -161,10 +163,12 @@ Deno.serve(async () => {
             const msg    = e instanceof Error ? e.message : String(e);
             if (status === 410 || status === 404) {
               // 만료된 구독 삭제 — 정상 정리 흐름이라 실패로 카운트하지 않음
-              await fetch(`${SUPA_URL}/rest/v1/madi_push_subscriptions?endpoint=eq.${enc(sub.endpoint)}`, {
-                method: 'DELETE',
-                headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
-              });
+              try {
+                await fetch(`${SUPA_URL}/rest/v1/madi_push_subscriptions?endpoint=eq.${enc(sub.endpoint)}`, {
+                  method: 'DELETE',
+                  headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+                });
+              } catch(_) {}
             } else {
               // 네트워크 / 인증 / 기타 — 진짜 실패. 추적 후 임계치 초과 시 재시도용으로 last_sent_date 미갱신.
               centerFatalFail++;
