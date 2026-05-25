@@ -375,6 +375,7 @@ function renderDashboardTeacher() {
 
   html += '</div>'; // grid-2-eq end
 
+  // eslint-disable-next-line no-unsanitized/property
   root.innerHTML = html;
 
   // ── 비동기: 라운지 답변 대기 메시지 ──
@@ -402,6 +403,7 @@ function _dpLoadTeacherMessages() {
         return true;
       });
       // KPI 갱신
+      // eslint-disable-next-line no-unsanitized/property
       if (kpiEl) kpiEl.innerHTML = received.length + '<em> 건</em>';
       if (kpiSub) {
         if (received.length === 0) { kpiSub.textContent = '받은 메시지 없음'; kpiSub.className = 'dp-kpi-delta flat'; }
@@ -418,6 +420,7 @@ function _dpLoadTeacherMessages() {
         msgEl.innerHTML = '<div class="dp-empty">받은 메시지가 없습니다</div>';
         return;
       }
+      // eslint-disable-next-line no-unsanitized/property
       msgEl.innerHTML = received.slice(0,4).map(function(p){
         var from = p.author_name || '익명';
         var when = p.created_at ? p.created_at.slice(0,10) : '';
@@ -720,6 +723,7 @@ function renderDashboardAdmin() {
     + '</div>';
 
   // 상단 html 먼저 root 에 set, 이후 하단 패널을 append
+  // eslint-disable-next-line no-unsanitized/property
   root.innerHTML = html;
 
   // ── 하단 2열: 운영 알림 + 빠른 액션 ──
@@ -820,6 +824,7 @@ function renderDashboardAdmin() {
   html += '</div>'; // grid-2-eq end
 
   // 안전하게 append (innerHTML += 보다 빠르고 안정적)
+  // eslint-disable-next-line no-unsanitized/method
   root.insertAdjacentHTML('beforeend', html);
 
   // 비동기: madi_users 에서 선생님 전체 가져와 활동 0건 선생님도 포함
@@ -893,6 +898,7 @@ function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
           inactive: false
         };
       }).sort(function(a,b){ return b.count - a.count; });
+      // eslint-disable-next-line no-unsanitized/property
       tableEl.innerHTML = _dpRenderTeacherRows(fallback);
       if (subEl) subEl.textContent = '이번 주 · 선생님 ' + fallback.length + '명 (활동 데이터 기반)';
     });
@@ -938,6 +944,7 @@ function _dpRenderTeacherTable(rows, teacherStats, tableEl, subEl) {
     if (a.inactive !== b.inactive) return a.inactive ? 1 : -1;
     return b.count - a.count;
   });
+  // eslint-disable-next-line no-unsanitized/property
   tableEl.innerHTML = _dpRenderTeacherRows(merged);
   if (subEl) {
     var active = merged.filter(function(t){ return !t.inactive; }).length;

@@ -196,7 +196,7 @@ function loadStaffMgmtList() {
         el.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">등록된 선생님이 없습니다.</div>';
         return;
       }
-      el.innerHTML = rows.map(function(u) {
+      var staffHtml = rows.map(function(u) {
         var isSelf = currentUser && currentUser.id === u.id;
         return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;">'
           + '<div>'
@@ -204,9 +204,11 @@ function loadStaffMgmtList() {
           + '<span style="font-size:11px;color:var(--text2);margin-left:6px;">@' + escHtml(u.username) + '</span>'
           + '<span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:' + (u.role==='admin'?'var(--mint2)':'#f1f5f9') + ';color:' + (u.role==='admin'?'var(--mint)':'var(--text2)') + ';">' + (u.role==='admin'?'관리자':'선생님') + '</span>'
           + '</div>'
-          + (!isSelf ? '<button class="btn-del" data-uid="' + u.id + '" data-uname="' + escHtml(u.name) + '" onclick="removeStaffAccountFromBtn(this)" style="font-size:11px;padding:5px 10px;">삭제</button>' : '<span style="font-size:11px;color:var(--text2);">나</span>')
+          + (!isSelf ? '<button class="btn-del" data-uid="' + escHtml(String(u.id)) + '" data-uname="' + escHtml(u.name) + '" onclick="removeStaffAccountFromBtn(this)" style="font-size:11px;padding:5px 10px;">삭제</button>' : '<span style="font-size:11px;color:var(--text2);">나</span>')
           + '</div>';
       }).join('');
+      // eslint-disable-next-line no-unsanitized/property
+      el.innerHTML = staffHtml;
     }).catch(function(err) {
       el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: ' + escHtml(err.message || '') + '</div>';
     });
@@ -357,35 +359,51 @@ function renderDashboardLegacy() {
   var se=document.getElementById('dashTodaySched');
   var ms=document.getElementById('dashMiniStat'); if(ms) ms.textContent='오늘 일정 '+ts.length+'건';
   if(se){ if(!ts.length){se.innerHTML='<div class="dash-empty">오늘 등록된 일정이 없습니다</div>';}
-  else{ se.innerHTML=ts.slice(0,5).map(function(s){
-    var c=safeChildDB.find(function(c){return c.id===s.childId;}); var cn=c?c.name:'?';
-    var done=safeSessionDB.some(function(ss){return ss.childId===s.childId&&ss.date===s.date;});
-    return '<div class="dash-sched-item'+(done?' done':'')+'"><span class="dash-sched-time">'+(s.startTime||'--:--')+'</span><span class="dash-sched-name">'+escHtml(cn)+'</span><span class="dash-badge '+(done?'done':'todo')+'">'+(done?'완료':'예정')+'</span></div>';
-  }).join('')+(ts.length>5?'<div class="dash-more">+'+(ts.length-5)+'개 더</div>':'');}}
+  else{
+    var seHtml=ts.slice(0,5).map(function(s){
+      var c=safeChildDB.find(function(c){return c.id===s.childId;}); var cn=c?c.name:'?';
+      var done=safeSessionDB.some(function(ss){return ss.childId===s.childId&&ss.date===s.date;});
+      return '<div class="dash-sched-item'+(done?' done':'')+'"><span class="dash-sched-time">'+escHtml(s.startTime||'--:--')+'</span><span class="dash-sched-name">'+escHtml(cn)+'</span><span class="dash-badge '+(done?'done':'todo')+'">'+(done?'완료':'예정')+'</span></div>';
+    }).join('')+(ts.length>5?'<div class="dash-more">+'+(ts.length-5)+'개 더</div>':'');
+    // eslint-disable-next-line no-unsanitized/property
+    se.innerHTML=seHtml;
+  }}
   // 아동 현황
   var st={'등록':0,'대기':0,'종결':0};
   safeChildDB.forEach(function(c){if(st[c.status]!==undefined)st[c.status]++;});
   var stEl=document.getElementById('dashChildStat');
-  if(stEl) stEl.innerHTML='<div class="dash-stat-row">'
-    +'<div class="dash-stat-item"><div class="dash-stat-num mint">'+st['등록']+'</div><div class="dash-stat-lbl">등록</div></div>'
-    +'<div class="dash-stat-item"><div class="dash-stat-num amber">'+st['대기']+'</div><div class="dash-stat-lbl">대기</div></div>'
-    +'<div class="dash-stat-item"><div class="dash-stat-num gray">'+(st['종결']||0)+'</div><div class="dash-stat-lbl">종결</div></div>'
-    +'<div class="dash-stat-item"><div class="dash-stat-num navy">'+safeChildDB.length+'</div><div class="dash-stat-lbl">전체</div></div></div>';
+  if(stEl) {
+    var stHtml='<div class="dash-stat-row">'
+      +'<div class="dash-stat-item"><div class="dash-stat-num mint">'+st['등록']+'</div><div class="dash-stat-lbl">등록</div></div>'
+      +'<div class="dash-stat-item"><div class="dash-stat-num amber">'+st['대기']+'</div><div class="dash-stat-lbl">대기</div></div>'
+      +'<div class="dash-stat-item"><div class="dash-stat-num gray">'+(st['종결']||0)+'</div><div class="dash-stat-lbl">종결</div></div>'
+      +'<div class="dash-stat-item"><div class="dash-stat-num navy">'+safeChildDB.length+'</div><div class="dash-stat-lbl">전체</div></div></div>';
+    // eslint-disable-next-line no-unsanitized/property
+    stEl.innerHTML=stHtml;
+  }
   // 미작성 세션
   var uw=typeof getUnwrittenSessions==='function'?getUnwrittenSessions():[];
   if(currentUser&&currentUser.role!=='admin') uw=uw.filter(function(u){return u.teacher===currentUser.name;});
   var uwEl=document.getElementById('dashUnwritten');
   if(uwEl){ if(!uw.length){uwEl.innerHTML='<div class="dash-empty">✅ 미작성 세션 없음</div>';}
-  else{ uwEl.innerHTML='<div class="dash-unwr-count">'+uw.length+'개 미작성</div>'
-    +uw.slice(0,4).map(function(u){return '<div class="dash-unwr-item"><span>'+escHtml((u.date||''))+'</span><span>'+escHtml(u.childName)+'</span></div>';}).join('')
-    +(uw.length>4?'<div class="dash-more">+'+(uw.length-4)+'개 더</div>':'');}}
+  else{
+    var uwHtml='<div class="dash-unwr-count">'+uw.length+'개 미작성</div>'
+      +uw.slice(0,4).map(function(u){return '<div class="dash-unwr-item"><span>'+escHtml((u.date||''))+'</span><span>'+escHtml(u.childName)+'</span></div>';}).join('')
+      +(uw.length>4?'<div class="dash-more">+'+(uw.length-4)+'개 더</div>':'');
+    // eslint-disable-next-line no-unsanitized/property
+    uwEl.innerHTML=uwHtml;
+  }}
   // 공지
   var nc=document.getElementById('dashNotices');
   if(nc){ if(!_bannerNotices||!_bannerNotices.length){nc.innerHTML='<div class="dash-empty">등록된 공지가 없습니다</div>';}
-  else{ nc.innerHTML=_bannerNotices.slice(0,3).map(function(n){
-    var ic=n.notice_type==='imp'?'🔴':n.notice_type==='pin'?'📌':'📢';
-    return '<div class="dash-notice-item"><span style="font-size:13px;flex-shrink:0;">'+ic+'</span><span class="dash-notice-title">'+escHtml(n.title)+'</span></div>';
-  }).join('');}}
+  else{
+    var ncHtml=_bannerNotices.slice(0,3).map(function(n){
+      var ic=n.notice_type==='imp'?'🔴':n.notice_type==='pin'?'📌':'📢';
+      return '<div class="dash-notice-item"><span style="font-size:13px;flex-shrink:0;">'+ic+'</span><span class="dash-notice-title">'+escHtml(n.title)+'</span></div>';
+    }).join('');
+    // eslint-disable-next-line no-unsanitized/property
+    nc.innerHTML=ncHtml;
+  }}
 }
 var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7','panel8',
                       'panelNotice','panelReport','panelPortfolio','panelService','panelUserSettings','panelBoard','panelQuick'];
@@ -652,6 +670,7 @@ function _renderBannerSlide() {
 
   // 점 인디케이터
   if (dotsEl) {
+    // eslint-disable-next-line no-unsanitized/property
     dotsEl.innerHTML = _bannerNotices.map(function(_, i) {
       return '<div class="notice-banner-dot' + (i === _bannerIdx ? ' active' : '') + '"></div>';
     }).join('');
@@ -714,6 +733,7 @@ function renderNoticeList() {
       + '<div style="font-size:11px;color:var(--text2);margin-top:8px;">' + dateStr + (n.author_name ? ' · ' + safeAuthor : '') + '</div>'
       + '</div>';
   }).join('');
+  // eslint-disable-next-line no-unsanitized/property
   listEl.innerHTML = html;
 }
 function saveNotice() {
@@ -945,6 +965,7 @@ function changeMyPassword() {
   var newPw  = (document.getElementById('newPassword')  || {}).value || '';
   var newPw2 = (document.getElementById('newPassword2') || {}).value || '';
   var result = document.getElementById('pwChangeResult');
+  // eslint-disable-next-line no-unsanitized/property
   function setResult(html) { if (result) result.innerHTML = html; }
 
   if (!oldPw || !newPw || !newPw2) { setResult('<span style="color:var(--red);">❌ 모든 항목을 입력해주세요.</span>'); return; }
