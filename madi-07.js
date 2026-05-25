@@ -273,10 +273,11 @@ function renderSessionList() {
       }
     }
 
-    html += '<div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:4px solid ' + cColor + ';">'
+    var safeCColor = escHtml(cColor || '#ccc');
+    html += '<div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:4px solid ' + safeCColor + ';">'
       // 헤더: 아동명 + 날짜 + 버튼
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
-      + '<span style="font-size:15px;font-weight:700;color:' + cColor + ';">' + escHtml(cName) + '</span>'
+      + '<span style="font-size:15px;font-weight:700;color:' + safeCColor + ';">' + escHtml(cName) + '</span>'
       + '<div style="display:flex;align-items:center;gap:6px;">'
       + '<span style="font-size:12px;color:#64748b;">📅 ' + s.date + '</span>'
       + '<button class="btn-ghost" style="padding:7px 10px;font-size:11px;" onclick="editSessionDate(\'' + s.id + '\')">✏️</button>'
@@ -353,12 +354,21 @@ var _dcmEscHandler = null;
 function showDeleteConfirm(title, subtitle, keyword, onConfirm) {
   var dcm = document.getElementById('deleteConfirmModal');
   if (!dcm) return;
-  _dcmCallback = onConfirm;
-  document.getElementById('dcmTitle').textContent = title;
-  document.getElementById('dcmSubtitle').textContent = subtitle;
-  document.getElementById('dcmKeyword').textContent = keyword;
-  document.getElementById('dcmInput').value = '';
+  var dcmTitle = document.getElementById('dcmTitle');
+  if (!dcmTitle) return;
+  var dcmSubtitle = document.getElementById('dcmSubtitle');
+  if (!dcmSubtitle) return;
+  var dcmKeyword = document.getElementById('dcmKeyword');
+  if (!dcmKeyword) return;
+  var dcmInput = document.getElementById('dcmInput');
+  if (!dcmInput) return;
   var btn = document.getElementById('dcmConfirmBtn');
+  if (!btn) return;
+  _dcmCallback = onConfirm;
+  dcmTitle.textContent = title;
+  dcmSubtitle.textContent = subtitle;
+  dcmKeyword.textContent = keyword;
+  dcmInput.value = '';
   btn.disabled = true;
   btn.style.opacity = '0.4';
   var modal = dcm;
@@ -366,7 +376,7 @@ function showDeleteConfirm(title, subtitle, keyword, onConfirm) {
   if (_dcmEscHandler) document.removeEventListener('keydown', _dcmEscHandler);
   _dcmEscHandler = function(e) { if (e.key === 'Escape') closeDcmModal(); };
   document.addEventListener('keydown', _dcmEscHandler);
-  setTimeout(function(){ document.getElementById('dcmInput').focus(); }, 200);
+  setTimeout(function(){ dcmInput.focus(); }, 200);
 }
 function checkDcmInput() {
   var val = document.getElementById('dcmInput').value;
@@ -461,7 +471,9 @@ function renderChart() {
     }
   }
 
-  document.getElementById('chartTitle').textContent = (child ? child.name : '') + ' 발달 추이'
+  var chartTitle = document.getElementById('chartTitle');
+  if (!chartTitle) return;
+  chartTitle.textContent = (child ? child.name : '') + ' 발달 추이'
     + (isDownsampled ? ' (' + allSessions.length + '회 → ' + sessions.length + '구간 평균)' : '');
 
   var goalMap = {};
@@ -493,6 +505,7 @@ function renderChart() {
   var chartCard = document.getElementById('chartCard');
   if (!chartCard) return;
   var wrap = chartCard.querySelector('.chart-wrap');
+  if (!wrap) return;
   if (datasets.length === 0 || labels.length < 2) {
     wrap.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>세션 데이터가 2회 이상 있어야 차트가 표시됩니다.</p></div>';
   } else {
