@@ -196,11 +196,11 @@ export async function checkRateLimit(
     })
     if (!r.ok) return { allowed: true }
     const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
-    if (d.count > perMin) {
+    if (d.count >= perMin) {
       const wait = Math.max(1, Math.ceil((new Date(d.window_start).getTime() + 60_000 - Date.now()) / 1000))
       return { allowed: false, retryAfter: wait }
     }
-    if (d.hour_count > perHour) {
+    if (d.hour_count >= perHour) {
       const wait = Math.max(1, Math.ceil((new Date(d.hour_start).getTime() + 3_600_000 - Date.now()) / 1000))
       return { allowed: false, retryAfter: wait }
     }

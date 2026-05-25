@@ -1,4 +1,4 @@
-var CACHE_NAME = "madi-v5-20260525-1748";
+var CACHE_NAME = "madi-v5-20260525-1752";
 // 외부 API · 인증 응답은 캐시하지 않는다 (민감 응답 보호)
 var SKIP_HOSTS = ["api.anthropic.com","googleapis.com"];
 // 경로 기반 차단 — Supabase Edge Function 및 REST/Storage/Auth 응답
@@ -29,11 +29,13 @@ self.addEventListener("activate", function(e) {
 
 // network-first: 매번 네트워크 시도 → 성공 시 캐시 갱신, 실패 시 캐시 폴백
 // HTML 문서는 캐시도 없으면 오프라인 페이지로 폴백
-function networkFirst(req, isHTML) {
+// e: FetchEvent — cache.put 을 e.waitUntil() 에 연결해 SW 종료 전 완료 보장
+function networkFirst(req, isHTML, e) {
   return fetch(req).then(function(res) {
     if (res && res.status === 200 && res.type !== "opaque") {
       var clone = res.clone();
-      caches.open(CACHE_NAME).then(function(c) { c.put(req, clone); });
+      var cacheWrite = caches.open(CACHE_NAME).then(function(c) { return c.put(req, clone); });
+      if (e) e.waitUntil(cacheWrite);
     }
     return res;
   }).catch(function() {
@@ -54,12 +56,14 @@ function networkFirst(req, isHTML) {
 
 // stale-while-revalidate: 캐시 즉시 응답 + 백그라운드 갱신
 // 두 번째 방문부터 즉시 표시 (네트워크 대기 없음)
-function staleWhileRevalidate(req) {
+// e: FetchEvent — 백그라운드 cache.put 을 e.waitUntil() 에 연결해 SW 종료 전 완료 보장
+function staleWhileRevalidate(req, e) {
   return caches.match(req).then(function(cached) {
     var networkPromise = fetch(req).then(function(res) {
       if (res && res.status === 200 && res.type !== "opaque") {
         var clone = res.clone();
-        caches.open(CACHE_NAME).then(function(c) { c.put(req, clone); });
+        var cacheWrite = caches.open(CACHE_NAME).then(function(c) { return c.put(req, clone); });
+        if (e) e.waitUntil(cacheWrite);
       }
       return res;
     }).catch(function() { return cached || Response.error(); });
@@ -82,19 +86,19 @@ self.addEventListener("fetch", function(e) {
             || url.pathname.endsWith('.html')
             || url.pathname === '/' || url.pathname.endsWith('/');
   if (isHTML) {
-    e.respondWith(networkFirst(e.request, true));
+    e.respondWith(networkFirst(e.request, true, e));
     return;
   }
 
   // 정적 CDN 자산 (Chart.js, xlsx, supabase-js, fonts): SWR
   if (SWR_HOSTS.indexOf(url.hostname) !== -1) {
-    e.respondWith(staleWhileRevalidate(e.request));
+    e.respondWith(staleWhileRevalidate(e.request, e));
     return;
   }
 
   // 동일 출처 정적 자산 (JS, CSS, 이미지, 폰트, 매니페스트): SWR
   // → 재방문 시 즉시 표시, 백그라운드에서 새 버전 받음
-  e.respondWith(staleWhileRevalidate(e.request));
+  e.respondWith(staleWhileRevalidate(e.request, e));
 });
 
 // ─── Web Push 핸들러 ───────────────────────────────────────────────
@@ -135,8 +139,8 @@ self.addEventListener("notificationclick", function(e) {
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
       for (var i = 0; i < list.length; i++) {
-        // 같은 origin·scope 의 창이 이미 있으면 그리로 포커스
-        if ('focus' in list[i]) return list[i].focus();
+        // target URL 과 일치하는 창이 이미 있으면 포커스 (URL 불일치 창은 건너뜀)
+        if (list[i].url === target && 'focus' in list[i]) return list[i].focus();
       }
       if (clients.openWindow) return clients.openWindow(target);
     })
