@@ -967,6 +967,7 @@ function printParentEdu(childName) {
   if (!el) return;
   var today = new Date().toLocaleDateString('ko-KR');
   var win = window.open('', '_blank');
+  if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>'
     + '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");'
