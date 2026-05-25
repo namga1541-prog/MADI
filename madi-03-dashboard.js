@@ -312,7 +312,7 @@ function renderDashboardTeacher() {
         : '<b>일정 미등록</b>';
       var meta = [c.type, age ? age + '세' : ''].filter(Boolean).join(' · ');
       return ''
-        + '<div class="dp-child" onclick="openChildDetail(' + c.id + ')">'
+        + '<div class="dp-child" onclick="openChildDetail(\'' + escHtml(String(c.id)) + '\')">'
         +   '<div class="dp-child-head">'
         +     '<div class="dp-child-av ' + _dpAvatarClass(nm) + '">' + escHtml(_dpInitial(nm)) + '</div>'
         +     '<div style="flex:1;min-width:0;">'
@@ -661,7 +661,7 @@ function renderDashboardAdmin() {
       var tagLabel = c.status === '종결' ? '종결' : c.status === '대기' ? '대기' : '신규';
       var detail = (c.type || '미지정') + (age ? ' · ' + age + '세' : '');
       html += ''
-        + '<div class="dp-change-row" onclick="openChildDetail(' + c.id + ')" style="cursor:pointer;">'
+        + '<div class="dp-change-row" onclick="openChildDetail(\'' + escHtml(String(c.id)) + '\')" style="cursor:pointer;">'
         +   '<div class="dp-tav ' + _dpAvatarClass(nm) + '">' + escHtml(_dpInitial(nm)) + '</div>'
         +   '<div class="dp-change-content">'
         +     '<div class="dp-change-title">' + escHtml(nm) + (age ? ' (' + age + '세)' : '') + '</div>'

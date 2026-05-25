@@ -438,7 +438,9 @@ function renderIEP(p, childName) {
   window._iepChildName = childName;
 
   // 장단기계획(IEP) 자동 저장
-  var childId = parseInt(document.getElementById('iepChild').value) || 0;
+  var _iepChildEl = document.getElementById('iepChild');
+  if (!_iepChildEl) return;
+  var childId = parseInt(_iepChildEl.value) || 0;
   var todayStr = getTodayKST();
   var record = {
     id: generateClientId(),

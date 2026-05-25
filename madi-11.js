@@ -484,7 +484,8 @@ function autoCalcAssessScores() {
       var b = document.getElementById('autoCalcBtn');
       if (b) { b.dataset.busy = ''; b.disabled = false; b.textContent = '🤖 원점수 → 등가연령·백분위 자동 계산'; }
     };
-    var testName = typeVal === 'OTHER' ? (document.getElementById('assessCustomNameInput').value||'직접입력') : typeVal;
+    var customInp = document.getElementById('assessCustomNameInput');
+    var testName = typeVal === 'OTHER' ? (customInp ? customInp.value : '')||'직접입력' : typeVal;
     var rawInputs = rawKeys.map(function(f) { var el=document.getElementById('af_'+f.key); return f.label+': '+(el&&el.value?el.value:'미입력'); }).join(', ');
     var SYSTEM = '당신은 한국 표준화 언어검사 전문가입니다. 공식 규준집을 기반으로 누락된 등가연령/백분위를 계산하세요.\n'
       + 'JSON만 응답: {"results":[{"key":"필드키","val":"값"}]}';
@@ -603,6 +604,7 @@ function renderAssessFields() {
   var el = document.getElementById('assessFields');
   var cw = document.getElementById('assessCustomNameWrap');
   if (!el) return;
+  if (!cw) return;
   cw.style.display = t === 'OTHER' ? 'block' : 'none';
   var schema = ASSESS_SCHEMA[t] || ASSESS_SCHEMA['OTHER'];
   // 2열 그리드로 렌더링 (type:'textarea'인 항목은 전체 너비로 단독 렌더링)

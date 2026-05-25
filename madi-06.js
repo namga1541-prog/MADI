@@ -23,7 +23,9 @@ function openBulkClosedDateModal(ids) {
   }
 
   // 날짜 초기화
-  document.getElementById('bcdDateInput').value = today;
+  var bcdInp = document.getElementById('bcdDateInput');
+  if (!bcdInp) return;
+  bcdInp.value = today;
 
   // 종결 사유 초기화
   var sel = document.getElementById('bcdReasonSelect');
@@ -760,7 +762,9 @@ function populateChildSelects() {
   if (at && !at._bound) {
     at._bound = true;
     at.addEventListener('change', function() {
-      document.getElementById('assessCustomNameWrap').style.display = this.value === '직접입력' ? 'block' : 'none';
+      var cw = document.getElementById('assessCustomNameWrap');
+      if (!cw) return;
+      cw.style.display = this.value === '직접입력' ? 'block' : 'none';
     });
   }
   // iepChild 변경 시 히스토리 갱신

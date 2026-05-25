@@ -35,6 +35,7 @@ function toggleVoiceInput() {
   };
   recognition.onresult = function(ev) {
     var area = document.getElementById('aiInput');
+    if (!area) return;
     var newText = '';
     for (var i = ev.resultIndex; i < ev.results.length; i++) {
       newText += ev.results[i][0].transcript + ' ';
