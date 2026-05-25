@@ -352,8 +352,11 @@ function downloadWordDoc(name) {
 // ─────── 기능 5: 월간 포트폴리오 ───────
 function generatePortfolio() {
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('portfolioChild').value);
-  var month = document.getElementById('portfolioMonth').value;
+  var portfolioChildEl = document.getElementById('portfolioChild');
+  var portfolioMonthEl = document.getElementById('portfolioMonth');
+  if (!portfolioChildEl || !portfolioMonthEl) return;
+  var childId = parseInt(portfolioChildEl.value);
+  var month = portfolioMonthEl.value;
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   if (!month) { showToast('대상 월을 선택해주세요.'); return; }
 
@@ -367,12 +370,14 @@ function generatePortfolio() {
   if (sessions.length === 0) { showToast('해당 월에 기록된 세션이 없습니다.'); return; }
 
   var btn = document.getElementById('portfolioBtn');
+  if (!btn) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 포트폴리오 생성 중...';
 
   var resultEl = document.getElementById('portfolioResult');
+  if (!resultEl) { btn.dataset.busy = ''; btn.disabled = false; return; }
   resultEl.innerHTML = '<div class="loading"><div class="spinner"></div>'
     + '<p>한 달간의 모든 세션을 AI가 분석하여<br>포트폴리오를 생성 중입니다 (20-30초)</p></div>';
 
@@ -407,7 +412,7 @@ function generatePortfolio() {
     + '"professionalNote":"치료사 본인을 위한 전문 메모 (다음 달 슈퍼비전·임상 노트용)"}';
 
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n'
-    + '치료 목표: ' + (child.goals.join(', ') || '없음') + '\n'
+    + '치료 목표: ' + ((child.goals || []).join(', ') || '없음') + '\n'
     + '대상 월: ' + month + '\n'
     + '세션 수: ' + sessions.length + '회\n\n'
     + '세션 상세 기록:\n' + sessionLog;
@@ -456,7 +461,7 @@ function _savePortfolioToDB(child, month, content, sessions, goalProgress) {
 
   // 기존 row 확인 → 있으면 PATCH, 없으면 POST (parent_visible 보존을 위해)
   var pathQuery = 'madi_portfolios?center_id=eq.' + encodeURIComponent(centerId)
-    + '&child_id=eq.' + child.id + '&month=eq.' + encodeURIComponent(month)
+    + '&child_id=eq.' + encodeURIComponent(child.id) + '&month=eq.' + encodeURIComponent(month)
     + '&select=id,parent_visible';
 
   return supaFetch(pathQuery, 'GET').then(function(rows) {
@@ -534,7 +539,7 @@ function renderPortfolioHistory(childId) {
 
   box.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">불러오는 중...</div>';
   supaFetch('madi_portfolios?center_id=eq.' + encodeURIComponent(centerId)
-    + '&child_id=eq.' + childId
+    + '&child_id=eq.' + encodeURIComponent(childId)
     + '&select=id,month,parent_visible,opened_at,created_at,created_by_name'
     + '&order=month.desc&limit=24', 'GET')
     .then(function(rows) {
@@ -692,23 +697,28 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
   html += '<div style="display:none;" id="portfolioFullText">' + escHtml(fullText) + '</div>';
   html += '<button class="pdf-btn" onclick="downloadPDF(\'' + escHtml(child.name) + '_' + month + '\',\'portfolioFullText\',\'' + escHtml(child.name) + ' 월간 포트폴리오 (' + month + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
 
-  document.getElementById('portfolioResult').innerHTML = html;
+  var portfolioResultEl = document.getElementById('portfolioResult');
+  if (portfolioResultEl) portfolioResultEl.innerHTML = html;
 }
 
 // ─────── 기능 6: 자연어 검색 ───────
 function naturalSearch() {
   if (!getApiKeyOrAlert()) return;
-  var query = document.getElementById('searchQuery').value.trim();
+  var searchQueryEl = document.getElementById('searchQuery');
+  if (!searchQueryEl) return;
+  var query = searchQueryEl.value.trim();
   if (!query) { showToast('질문을 입력해주세요.'); return; }
   if (sessionDB.length === 0) { showToast('세션 기록이 없습니다.'); return; }
 
   var btn = document.getElementById('searchBtn');
+  if (!btn) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 검색 중...';
 
   var resultEl = document.getElementById('searchResult');
+  if (!resultEl) { btn.dataset.busy = ''; btn.disabled = false; return; }
   resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⏳ AI가 데이터를 분석 중...</div></div>';
 
   var allData = childDB.map(function(c) {
@@ -747,23 +757,28 @@ function naturalSearch() {
 // ─────── 기능 7: 부모 FAQ 답변 ───────
 function generateFAQ() {
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('faqChild').value);
-  var question = document.getElementById('faqQuestion').value.trim();
+  var faqChildEl = document.getElementById('faqChild');
+  var faqQuestionEl = document.getElementById('faqQuestion');
+  if (!faqChildEl || !faqQuestionEl) return;
+  var childId = parseInt(faqChildEl.value);
+  var question = faqQuestionEl.value.trim();
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   if (!question) { showToast('부모 질문을 입력해주세요.'); return; }
 
   var child = childDB.find(function(c) { return c.id === childId; });
-  if (!child) return;
+  if (!child) { showToast('⚠️ 아동 정보를 찾을 수 없습니다.'); return; }
   var sessions = sessionDB.filter(function(s) { return s.childId === childId; })
     .sort(function(a, b) { return a.date < b.date ? -1 : 1; }).slice(-8);
 
   var btn = document.getElementById('faqBtn');
+  if (!btn) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
   btn.textContent = '⏳ 생성 중...';
 
   var resultEl = document.getElementById('faqResult');
+  if (!resultEl) { btn.dataset.busy = ''; btn.disabled = false; return; }
   resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⏳ 답변 예시 작성 중...</div></div>';
 
   var summary = sessions.map(function(s) {

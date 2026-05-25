@@ -20,7 +20,7 @@ function loadParentSched() {
     if (nameEl && window._parentChildName) nameEl.textContent = window._parentChildName + ' 아동';
     var today = getTodayKST();
 
-    supaFetch('madi_schedules?center_id=eq.' + centerId + '&data->>childId=eq.' + childId + '&order=id.asc&limit=50', 'GET')
+    supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId) + '&data->>childId=eq.' + encodeURIComponent(childId) + '&order=id.asc&limit=50', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) { el.innerHTML = '<div class="empty"><p>일정 없음</p></div>'; return; }
         var mine = rows.filter(function(s) {
@@ -150,7 +150,7 @@ function loadParentNotice() {
   el.innerHTML = '<div class="loading"><div class="spinner"></div><p>불러오는 중...</p></div>';
 
   getMyChildInfo(function(childId, centerId) {
-    supaFetch('madi_notices?center_id=eq.' + centerId + '&order=created_at.desc&limit=20', 'GET')
+    supaFetch('madi_notices?center_id=eq.' + encodeURIComponent(centerId) + '&order=created_at.desc&limit=20', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows) || rows.length === 0) {
           el.innerHTML = '<div class="empty"><div class="empty-icon">📢</div><p>등록된 공지사항이 없습니다</p></div>';
@@ -175,7 +175,7 @@ function loadParentNotice() {
 
 function loadParentNotifications() {
   if (!currentUser || currentUser.role !== 'parent') return;
-  supaFetch('madi_notifications?user_id=eq.' + currentUser.id
+  supaFetch('madi_notifications?user_id=eq.' + encodeURIComponent(currentUser.id)
     + '&order=created_at.desc&limit=10', 'GET')
     .then(function(rows) {
       var list = Array.isArray(rows) ? rows : [];
@@ -232,7 +232,7 @@ function renderParentNotifList(rows) {
 }
 
 function openParentNotif(notifId) {
-  supaFetch('madi_notifications?id=eq.' + notifId,
+  supaFetch('madi_notifications?id=eq.' + encodeURIComponent(notifId),
     'PATCH', { read_at: new Date().toISOString() })
     .then(function(){
       loadParentNotifications();
@@ -249,7 +249,7 @@ function openParentNotif(notifId) {
 
 function markAllNotifRead() {
   if (!currentUser || currentUser.role !== 'parent') return;
-  supaFetch('madi_notifications?user_id=eq.' + currentUser.id + '&read_at=is.null',
+  supaFetch('madi_notifications?user_id=eq.' + encodeURIComponent(currentUser.id) + '&read_at=is.null',
     'PATCH', { read_at: new Date().toISOString() })
     .then(function(){
       loadParentNotifications();
@@ -380,8 +380,10 @@ function parentLookup() {
           return '<div>👶 ' + escHtml(c.name) + '</div>';
         }).join('');
       }
-      document.getElementById('parentSignupStep1').style.display = 'none';
-      document.getElementById('parentSignupStep2').style.display = '';
+      var _step1 = document.getElementById('parentSignupStep1');
+      var _step2 = document.getElementById('parentSignupStep2');
+      if (_step1) _step1.style.display = 'none';
+      if (_step2) _step2.style.display = '';
       // 비밀번호 입력란에 포커스
       setTimeout(function() {
         var pwEl = document.getElementById('parentSignupPassword');
