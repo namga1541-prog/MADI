@@ -736,6 +736,7 @@ function _redrawParentVoucherPanel() {
   // (정확도는 약간 떨어지지만 학부모가 보는 바우처 잔여 추정으로 충분)
   if (vLimit > 0 && window._parentVoucherUsed == null && window._parentChildId) {
     var centerId = window._parentCenterId;
+    if (!centerId) return;
     var todayStr = getTodayKST();
     supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId)
       + '&data->>childId=eq.' + encodeURIComponent(window._parentChildId)
@@ -786,7 +787,7 @@ function _renderParentHomeActivities() {
       +     '<span>' + escHtml(a.desc) + '</span>'
       +   '</div>'
       +   '<div class="dp-p-act-check ' + (isDone ? 'done' : '') + '" data-act-idx="' + i + '" '
-      +     'onclick="_toggleParentActivity(this, \'' + storeKey + '\', ' + i + ')">' + (isDone ? '✓' : '') + '</div>'
+      +     'onclick="_toggleParentActivity(this, \'' + escHtml(storeKey) + '\', ' + i + ')">' + (isDone ? '✓' : '') + '</div>'
       + '</div>';
   }).join('')
   + '<div style="margin-top:12px;font-size:11px;color:#94a3b8;text-align:center;">담당 선생님이 곧 맞춤 활동을 제안해 드릴 예정이에요 🌱</div>';

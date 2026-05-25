@@ -709,9 +709,9 @@ function openPostEditModal(opts) {
     var content  = (contentEl.value || '').trim();
     var selEl    = document.getElementById('peSelect');
     var selValue = selEl ? selEl.value : null;
-    if (!title)                  { errEl.textContent = '제목을 입력해 주세요.'; return; }
-    if (!content)                { errEl.textContent = '본문을 입력해 주세요.'; return; }
-    if (title.length > maxTitle) { errEl.textContent = '제목은 ' + maxTitle + '자 이하로 작성해 주세요.'; return; }
+    if (!title)                  { if (errEl) errEl.textContent = '제목을 입력해 주세요.'; return; }
+    if (!content)                { if (errEl) errEl.textContent = '본문을 입력해 주세요.'; return; }
+    if (title.length > maxTitle) { if (errEl) errEl.textContent = '제목은 ' + maxTitle + '자 이내입니다.'; return; }
     if (typeof opts.onSave === 'function') {
       opts.onSave({ title: title, content: content, selectValue: selValue }, _close);
     }

@@ -78,6 +78,7 @@ function loadParentPortfolio() {
     // child_id 필터 필수 — 없으면 센터 내 모든 공개 포트폴리오가 내려와 타 아동 열람 가능 (PIPA 위반)
     supaFetch('madi_portfolios?select=id,month,content,opened_at,created_at,created_by_name'
       + '&child_id=eq.' + encodeURIComponent(childId)
+      + '&parent_visible=eq.true'
       + '&order=month.desc&limit=24', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows) || rows.length === 0) {

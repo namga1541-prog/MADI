@@ -2,8 +2,8 @@
 // Cron: */10 * * * *  (Supabase Dashboard > Edge Functions > Schedule)
 import webpush from "npm:web-push@3.6.7";
 
-const SUPA_URL   = Deno.env.get('SUPABASE_URL')!;
-const SUPA_KEY   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SUPA_URL   = Deno.env.get('SUPABASE_URL');
+const SUPA_KEY   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const VAPID_PUB  = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
 const VAPID_PRIV = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
 const VAPID_SUB  = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:namga1541@gmail.com';
@@ -18,20 +18,20 @@ function kstHHMM(): string {
 }
 
 // ── Supabase REST 헬퍼 ────────────────────────────────────────────────
-async function sq<T>(path: string): Promise<T[]> {
-  const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
-    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+async function sq<T>(url: string, key: string, path: string): Promise<T[]> {
+  const res = await fetch(`${url}/rest/v1/${path}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
   });
   if (!res.ok) throw new Error(`sq ${path} → ${res.status}: ${await res.text()}`);
   let data: unknown;
   try { data = await res.json() } catch { data = [] }
   return data as T[];
 }
-async function sp(table: string, filter: string, data: Record<string, unknown>) {
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${filter}`, {
+async function sp(url: string, key: string, table: string, filter: string, data: Record<string, unknown>) {
+  const res = await fetch(`${url}/rest/v1/${table}?${filter}`, {
     method: 'PATCH',
     headers: {
-      apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
+      apikey: key, Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json', Prefer: 'return=minimal',
     },
     body: JSON.stringify(data),
@@ -41,6 +41,13 @@ async function sp(table: string, filter: string, data: Record<string, unknown>) 
 
 // ── 메인 ─────────────────────────────────────────────────────────────
 Deno.serve(async () => {
+  if (!SUPA_URL || !SUPA_KEY) {
+    console.error('Missing required env vars: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    return new Response(JSON.stringify({ ok: false, reason: '서버 설정 오류 (env 미설정)' }), { status: 500 });
+  }
+  const _url = SUPA_URL as string;
+  const _key = SUPA_KEY as string;
+
   const VAPID_BAD = !VAPID_PUB || !VAPID_PRIV
     || VAPID_PUB === 'REPLACE_ME' || VAPID_PRIV === 'REPLACE_ME'
     || VAPID_PUB.length < 43 || VAPID_PRIV.length < 43;
@@ -68,7 +75,7 @@ Deno.serve(async () => {
     message_title: string; message_body: string;
     last_sent_date: string | null;
   }
-  const allCfg = await sq<PushCfg>(
+  const allCfg = await sq<PushCfg>(_url, _key,
     'madi_push_settings?enabled=eq.true&select=center_id,push_time,message_title,message_body,last_sent_date'
   );
   const targets = allCfg.filter(s => {
@@ -90,11 +97,11 @@ Deno.serve(async () => {
 
       // ② 내일 스케줄 (data->>'date' = tomorrow)
       interface Sched { id: number; child_id: number; data: Record<string, string> }
-      const scheds = await sq<Sched>(
+      const scheds = await sq<Sched>(_url, _key,
         `madi_schedules?center_id=eq.${enc(cfg.center_id)}&data->>date=eq.${tomorrowKST}&select=id,child_id,data`
       );
       if (!scheds.length) {
-        await sp('madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+        await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
         continue;
       }
 
@@ -102,28 +109,28 @@ Deno.serve(async () => {
 
       // ③ 학부모-자녀 연결
       interface Link { parent_user_id: string; child_id: string }
-      const links = await sq<Link>(
+      const links = await sq<Link>(_url, _key,
         `madi_parent_children?child_id=in.(${childIds.join(',')})&select=parent_user_id,child_id`
       );
       if (!links.length) {
-        await sp('madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+        await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
         continue;
       }
 
       // ④ 아동 이름
       interface Child { id: number; data: { name?: string } }
-      const children = await sq<Child>(`madi_children?id=in.(${childIds.join(',')})&select=id,data`);
+      const children = await sq<Child>(_url, _key, `madi_children?id=in.(${childIds.join(',')})&select=id,data`);
       const nameMap: Record<number, string> = {};
       children.forEach(c => { nameMap[c.id] = c.data?.name ?? ''; });
 
       // ⑤ Push 구독 조회
       interface PushSub { user_id: string; endpoint: string; p256dh: string; auth: string }
       const parentIds = [...new Set(links.map(l => l.parent_user_id))];
-      const subs = await sq<PushSub>(
+      const subs = await sq<PushSub>(_url, _key,
         `madi_push_subscriptions?user_id=in.(${parentIds.map(encodeURIComponent).join(',')})&select=user_id,endpoint,p256dh,auth`
       );
       if (!subs.length) {
-        await sp('madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+        await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
         continue;
       }
 
@@ -164,9 +171,9 @@ Deno.serve(async () => {
             if (status === 410 || status === 404) {
               // 만료된 구독 삭제 — 정상 정리 흐름이라 실패로 카운트하지 않음
               try {
-                await fetch(`${SUPA_URL}/rest/v1/madi_push_subscriptions?endpoint=eq.${enc(sub.endpoint)}`, {
+                await fetch(`${_url}/rest/v1/madi_push_subscriptions?endpoint=eq.${enc(sub.endpoint)}`, {
                   method: 'DELETE',
-                  headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+                  headers: { apikey: _key, Authorization: `Bearer ${_key}` },
                 });
               } catch(_) {}
             } else {
@@ -183,7 +190,7 @@ Deno.serve(async () => {
       //    - 한 명이라도 성공했으면 오늘 분 완료로 마킹 (중복 발송 방지)
       //    - 모두 fatal 실패면 미마킹 → 다음 10분 cron 에서 재시도
       if (centerSent > 0 || centerFatalFail === 0) {
-        await sp('madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+        await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
       } else {
         console.warn(`[push] center ${cfg.center_id}: 전송 ${centerSent}/${centerFatalFail} — last_sent_date 미갱신 (다음 cron 재시도)`);
       }

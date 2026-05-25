@@ -64,6 +64,7 @@ var SP2_LEVELS = ['또래보다 매우 적음', '또래보다 적음', '또래�
 function renderSIReport() {
   var el = document.getElementById('siReportPanel');
   if (!el) return;
+  if (!childDB || !childDB.length) return;
 
   var childId = parseInt(document.getElementById('siChild') && document.getElementById('siChild').value) || 0;
   var child   = childId ? childDB.find(function(c){ return c.id === childId; }) : null;
@@ -275,6 +276,7 @@ function renderSIReport() {
 function onSIChildChange() {}
 
 function collectSIData() {
+  if (!childDB) return null;
   var childId = parseInt(document.getElementById('siChild') && document.getElementById('siChild').value) || 0;
   var child   = childId ? childDB.find(function(c){ return c.id === childId; }) : null;
 
@@ -410,6 +412,7 @@ function generateSIReport() {
       // 임상 보고서 — 비표준 용어만 통일
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');
       var text = raw.trim();
+      /* eslint-disable-next-line no-unsanitized/property */
       result.innerHTML = '<div style="border:1.5px solid var(--mint,#0ea5a0);border-radius:12px;padding:16px;margin-top:4px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
         + '<span style="font-weight:700;font-size:14px;color:var(--mint,#0ea5a0);">🤖 AI 생성 보고서</span>'
@@ -422,6 +425,7 @@ function generateSIReport() {
       btn.textContent = '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)';
     })
     .catch(function(e) {
+      /* eslint-disable-next-line no-unsanitized/property */
       result.innerHTML = '<div style="color:#ef4444;padding:12px;border:1px solid #fca5a5;border-radius:10px;">'
         + '<div style="font-weight:700;margin-bottom:8px;">❌ 보고서 생성 실패</div>'
         + '<div style="font-size:12px;margin-bottom:10px;">' + escHtml(e.message||'알 수 없는 오류') + '</div>'
