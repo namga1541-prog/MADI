@@ -9,6 +9,7 @@ var PERM_LIST = [
 ];
 
 function openPermModal(userId, userName, role) {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
   _permUserId = userId;
   supaFetch('madi_users?id=eq.' + userId + '&select=permissions').then(function(rows) {
     _permData = {};
@@ -113,6 +114,7 @@ function renderStaffCard() {
 }
 
 function saveNewStaff(btn) {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
   var modal    = btn.closest('.sched-modal-overlay');
   var name     = modal.querySelector('#newStaffName').value.trim();
   var username = modal.querySelector('#newStaffId').value.trim();
@@ -141,6 +143,7 @@ function saveNewStaff(btn) {
 }
 
 function deleteStaff(id, name) {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
   showDeleteConfirm(
     '이용자를 삭제하시겠습니까?',
     '데이터가 완전히 삭제되고 복구할 수 없음을 확인하였습니다.',
@@ -313,6 +316,10 @@ function _cleanupLegacyGithubToken() {
 }
 
 function deployFileViaProxy(filename, textContent, commitMsg) {
+  if (!currentUser || currentUser.role !== 'superadmin') {
+    showToast('⚠️ 슈퍼관리자만 배포할 수 있습니다.');
+    return Promise.reject(new Error('권한 없음'));
+  }
   return fetch(EDGE_URL + '/github-deploy', {
     method:      'POST',
     credentials: 'include',
@@ -417,6 +424,10 @@ function pollGithubPagesBuild(deployStartTs) {
 }
 
 function deployToGitHub() {
+  if (!currentUser || currentUser.role !== 'superadmin') {
+    showToast('⚠️ 슈퍼관리자만 배포할 수 있습니다.');
+    return;
+  }
   // GitHub PAT 는 서버(Edge Function)에서 관리 — 클라이언트 불필요
   // 구버전 IndexedDB 토큰 잔재 정리
   _cleanupLegacyGithubToken();

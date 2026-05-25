@@ -225,7 +225,8 @@ function renderMonthGrid() {
   var year  = schedCurrentDate.getFullYear();
   var month = schedCurrentDate.getMonth();
   var today = getTodayKST();
-  document.getElementById('schedNavLabel').textContent = year + '년 ' + (month + 1) + '월';
+  var lbl = document.getElementById('schedNavLabel');
+  if (lbl) lbl.textContent = year + '년 ' + (month + 1) + '월';
   var firstDay = new Date(year, month, 1).getDay();
   var lastDate = new Date(year, month + 1, 0).getDate();
   var cells = [];
@@ -266,7 +267,9 @@ function renderMonthGrid() {
     if (hiddenByFilter > 0) html += '<span class="sched-more" style="color:#94a3b8;">외 ' + hiddenByFilter + '건 숨김</span>';
     html += '</div>';
   });
-  document.getElementById('monthGrid').innerHTML = html;
+  var grid = document.getElementById('monthGrid');
+  if (!grid) return;
+  grid.innerHTML = html;
   renderSessionListForPeriod();
 }
 
@@ -292,7 +295,8 @@ function renderWeekGrid() {
   }
   weekDates.forEach(function(w){ w.isToday = (w.str === todayStr); });
   var endDate = weekDates[6];
-  document.getElementById('schedNavLabel').textContent =
+  var lbl = document.getElementById('schedNavLabel');
+  if (lbl) lbl.textContent =
     (weekStart.getMonth()+1) + '월 ' + weekStart.getDate() + '일 ~ ' +
     (endDate.str.slice(5,7).replace(/^0/,'')) + '월 ' + endDate.day + '일';
   renderTeacherFilter();
@@ -344,7 +348,7 @@ function renderWeekGrid() {
           var items = cells.map(function(s) {
             var child = childDB.find(function(c){ return c.id === s.childId; });
             var time  = (s.startTime||s.time||'').slice(0,5);
-            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">'
+            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
               + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span></div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
@@ -356,7 +360,9 @@ function renderWeekGrid() {
     html += '</tbody></table>';
   }
   html += '</div>';
-  document.getElementById('weekGrid').innerHTML = html;
+  var wgGrid = document.getElementById('weekGrid');
+  if (!wgGrid) return;
+  wgGrid.innerHTML = html;
   renderSessionListForPeriod(weekDates.map(function(w){ return w.str; }));
 }
 
@@ -365,8 +371,8 @@ function renderDayGrid() {
   var d = schedCurrentDate;
   var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   var dayNames = ['일','월','화','수','목','금','토'];
-  document.getElementById('schedNavLabel').textContent =
-    (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dayNames[d.getDay()] + ')';
+  var lbl = document.getElementById('schedNavLabel');
+  if (lbl) lbl.textContent = (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dayNames[d.getDay()] + ')';
   renderTeacherFilter();
 
   var allScheds = scheduleDB.filter(function(s) { return s.date === dateStr; })
@@ -377,7 +383,8 @@ function renderDayGrid() {
     : allScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
 
   var wgEl = document.getElementById('dayGrid');
-  if (wgEl) { wgEl.style.display = 'block'; wgEl.style.width = '100%'; wgEl.style.minWidth = '0'; }
+  if (!wgEl) return;
+  wgEl.style.display = 'block'; wgEl.style.width = '100%'; wgEl.style.minWidth = '0';
 
   var isMobile = window.innerWidth < 768;
   var html = '<div style="width:100%;">';
@@ -409,7 +416,7 @@ function renderDayGrid() {
         var time = (s.startTime || s.time || '').slice(0, 5);
         var type = escHtml(s.type || '언어재활');
         var border = idx < scheds.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
-        html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;' + border + 'background:white;" onclick="openEditSchedModal(\'' + s.id + '\')">'
+        html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;' + border + 'background:white;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">'
           + '<div style="font-size:12px;color:var(--text2);min-width:40px;font-weight:600;font-variant-numeric:tabular-nums;">' + time + '</div>'
           + '<div style="width:3px;height:36px;border-radius:2px;background:' + color + ';flex-shrink:0;"></div>'
           + '<div style="flex:1;min-width:0;">'
@@ -434,6 +441,7 @@ function renderDayGrid() {
     for (var mm = 9*60; mm <= 18*60+40; mm += interval) {
       stdTimes.push(String(Math.floor(mm/60)).padStart(2,'0') + ':' + String(mm%60).padStart(2,'0'));
     }
+    if (stdTimes.length === 0) return;
     var groups = {};
     var groupOrder = stdTimes.slice();
     groupOrder.forEach(function(t){ groups[t] = []; });
@@ -471,7 +479,7 @@ function renderDayGrid() {
           var items = cell.map(function(s) {
             var child = childDB.find(function(c){ return c.id === s.childId; });
             var type = escHtml(s.type || '');
-            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">' + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
+            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">' + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:5px 8px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
         }
@@ -482,7 +490,7 @@ function renderDayGrid() {
   }
 
   html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)" style="margin-top:10px;">+</button></div>';
-  document.getElementById('dayGrid').innerHTML = html;
+  wgEl.innerHTML = html;
   renderSessionListForPeriod([dateStr]);
 }
 
@@ -583,6 +591,7 @@ function openSchedModal(date, schedId) {
 }
 
 function autoCalcEndTime() {
+  if (!document.getElementById('schedStartTime')) return;
   var st = document.getElementById('schedStartTime').value;
   var dur = parseInt(document.getElementById('schedDuration').value, 10);
   var endEl = document.getElementById('schedEndTime');
@@ -596,9 +605,11 @@ function autoCalcEndTime() {
 }
 
 function toggleRepeatOpt() {
-  var v = document.getElementById('schedRepeat').value;
-  var opt = document.getElementById('schedRepeatOpt');
-  opt.style.display = v === 'none' ? 'none' : 'block';
+  var repEl = document.getElementById('schedRepeat');
+  var optEl = document.getElementById('schedRepeatOpt');
+  if (!repEl || !optEl) return;
+  var v = repEl.value;
+  optEl.style.display = v === 'none' ? 'none' : 'block';
   if (v !== 'none') {
     var dateVal = document.getElementById('schedDateInput').value;
     if (dateVal) {
@@ -712,7 +723,8 @@ function goToSessionFromSched(schedId) {
       }
       loadGoalRows(s.childId);
     }
-    if (s.date) document.getElementById('sessionDate').value = s.date;
+    var dateEl = document.getElementById('sessionDate');
+    if (s.date && dateEl) dateEl.value = s.date;
   }, 200);
 }
 
@@ -763,7 +775,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
           var t = s.therapist || s.teacher || '';
           var tcolor = getTeacherColor(t);
           var time = (s.startTime||s.time||'').slice(0,5);
-          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(\'' + s.id + '\')">' + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '') + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">' + escHtml(t) + '</span></div>';
+          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">' + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '') + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">' + escHtml(t) + '</span></div>';
         }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
         var bgStyle = daySched.length >= 2 ? 'background:#fff7ed;border:1px solid #fed7aa;' : 'border:1px solid #e2e8f0;';
         html += '<td style="padding:4px 5px;' + bgStyle + 'vertical-align:top;">' + items + '</td>';

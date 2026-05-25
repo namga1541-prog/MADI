@@ -79,7 +79,6 @@ function loadLoungePosts() {
       }
     })
     .catch(function(err) {
-      console.error('[loadLoungePosts]', err);
       ui.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
     });
 }
@@ -282,6 +281,7 @@ function saveLoungePost() {
 }
 
 function deleteLoungePost(id) {
+  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
   showConfirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.', function() {
     supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
       .then(function() {
@@ -322,7 +322,6 @@ function loadComments(postId) {
       renderComments(postId);
     })
     .catch(function(err) {
-      console.error('[loadComments]', err);
       area.innerHTML = '<div style="font-size:11px;color:#ef4444;padding:6px;">⚠️ 댓글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>';
     });
 }
@@ -420,6 +419,7 @@ function saveComment(postId) {
 }
 
 function deleteComment(postId, commentId) {
+  if (!currentUser) return;
   showConfirm('이 댓글을 삭제하시겠습니까?', function() {
     supaFetch('madi_lounge_comments?id=eq.' + encodeURIComponent(commentId), 'DELETE')
       .then(function() {
@@ -465,7 +465,7 @@ function _renderLibraryUI(posts) {
   var catHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">'
     + '<button onclick="setLibCat(\'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===''?'var(--mint)':'var(--border)')+';background:'+(activeCat===''?'var(--mint)':'var(--card)')+';color:'+(activeCat===''?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">전체</button>'
     + LIBRARY_CATEGORIES.map(function(c) {
-        return '<button onclick="setLibCat(\''+c+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+c+'</button>';
+        return '<button onclick="setLibCat(\''+escHtml(c)+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+escHtml(c)+'</button>';
       }).join('')
     + '</div>';
 
@@ -601,6 +601,7 @@ function saveLibraryPost() {
 }
 
 function deleteLibraryPost(id) {
+  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
   showConfirm('이 자료를 삭제할까요?', function() {
     supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
       .then(function() { showToast('🗑️ 자료 삭제됨'); renderLibrary(); })
@@ -678,6 +679,10 @@ function openPostEditModal(opts) {
   // 값 채우기는 createElement 후에 .value 로 — escHtml 한 문자열을 value 에 직접 넣지 않기 위함
   var titleEl   = document.getElementById('peTitle');
   var contentEl = document.getElementById('peContent');
+  var peCancel  = document.getElementById('peCancel');
+  var peSave    = document.getElementById('peSave');
+  var peError   = document.getElementById('peError');
+  if (!peCancel || !peSave) { overlay.remove(); return; }
   if (titleEl)   titleEl.value   = opts.currentTitle   || '';
   if (contentEl) contentEl.value = opts.currentContent || '';
   setTimeout(function(){ if (titleEl) titleEl.focus(); }, 50);
@@ -688,13 +693,13 @@ function openPostEditModal(opts) {
   }
   function _onKey(e) { if (e.key === 'Escape') _close(); }
 
-  document.getElementById('peCancel').addEventListener('click', _close);
+  peCancel.addEventListener('click', _close);
   overlay.addEventListener('click', function(e) { if (e.target === overlay) _close(); });
   document.addEventListener('keydown', _onKey);
 
-  document.getElementById('peSave').addEventListener('click', function() {
-    var errEl  = document.getElementById('peError');
-    errEl.textContent = '';
+  peSave.addEventListener('click', function() {
+    var errEl  = peError || document.getElementById('peError');
+    if (errEl) errEl.textContent = '';
     var title    = (titleEl.value || '').trim();
     var content  = (contentEl.value || '').trim();
     var selEl    = document.getElementById('peSelect');

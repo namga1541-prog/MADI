@@ -265,8 +265,9 @@ function renderGlobalNoticeCard(n, isSuperAdmin) {
 
   // 슈퍼어드민: 팝업 토글 + 삭제 버튼  /  본인 글: 수정 버튼
   var adminBtns = '';
+  var _safeGNId = escHtml(String(n.id));
   var editBtn = _isMyPost(n)
-    ? '<button onclick="editGlobalNotice(\'' + n.id + '\')" style="padding:5px 10px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0c4a6e;border:1px solid #38bdf8;border-radius:6px;cursor:pointer;">✏️ 수정</button>'
+    ? '<button onclick="editGlobalNotice(\'' + _safeGNId + '\')" style="padding:5px 10px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0c4a6e;border:1px solid #38bdf8;border-radius:6px;cursor:pointer;">✏️ 수정</button>'
     : '';
   if (isSuperAdmin) {
     var togglLabel = n.show_as_login_popup ? '🔕 팝업 해제' : '🔔 팝업으로 표시';
@@ -274,11 +275,11 @@ function renderGlobalNoticeCard(n, isSuperAdmin) {
     var togglCol   = n.show_as_login_popup ? '#854d0e' : '#475569';
     adminBtns =
         editBtn
-      + '<button onclick="togglePopupNotice(\'' + n.id + '\',' + (n.show_as_login_popup ? 'true' : 'false') + ')" '
+      + '<button onclick="togglePopupNotice(\'' + _safeGNId + '\',' + (n.show_as_login_popup ? 'true' : 'false') + ')" '
       +   'style="padding:5px 10px;font-size:11px;font-weight:700;background:' + togglBg + ';color:' + togglCol + ';border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;">'
       +   togglLabel
       + '</button>'
-      + '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(\'' + n.id + '\')">삭제</button>';
+      + '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteGlobalNotice(\'' + _safeGNId + '\')">삭제</button>';
   } else {
     adminBtns = editBtn;
   }
@@ -506,11 +507,12 @@ function renderCenterNoticeCard(n, isAdminOrSuper, isSuperAdmin) {
   }
 
   var when = n.created_at ? new Date(n.created_at).toLocaleString('ko-KR') : '';
+  var _safeCNId = escHtml(String(n.id));
   var editBtn = _isMyPost(n)
-    ? '<button onclick="editCenterNotice(\'' + n.id + '\')" style="padding:5px 10px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0c4a6e;border:1px solid #38bdf8;border-radius:6px;cursor:pointer;">✏️ 수정</button>'
+    ? '<button onclick="editCenterNotice(\'' + _safeCNId + '\')" style="padding:5px 10px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0c4a6e;border:1px solid #38bdf8;border-radius:6px;cursor:pointer;">✏️ 수정</button>'
     : '';
   var deleteBtn = isAdminOrSuper
-    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteCenterNotice(\'' + n.id + '\')">삭제</button>'
+    ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteCenterNotice(\'' + _safeCNId + '\')">삭제</button>'
     : '';
 
   return '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'

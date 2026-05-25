@@ -45,7 +45,9 @@ function saveSessionAI() {
   if (!aiText) { showToast('세션 내용을 입력해주세요.'); return; }
 
   var child = childDB.find(function(c) { return c.id === childId; });
+  if (!child) { showToast('⚠️ 아동 정보를 찾을 수 없습니다.'); return; }
   var btn = document.getElementById('aiSaveBtn');
+  if (!btn) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
@@ -72,7 +74,7 @@ function saveSessionAI() {
     + '\n' + _clinicalGuide
     + (_diagGuide ? '\n' + _diagGuide : '')
     + (_phonoGuide ? '\n' + _phonoGuide : '');
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + (child.goals.join(', ') || '없음') + '\n\n치료사 입력:\n' + aiText;
+  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + ((child.goals || []).join(', ') || '없음') + '\n\n치료사 입력:\n' + aiText;
 
   // ES5 호환: .finally() 미지원 환경 대응 — 양 분기에서 동일 cleanup
   function _resetAISaveBtn() {
@@ -121,6 +123,7 @@ function suggestHomeActivities(sessionId) {
   if (!child) return;
 
   var resultEl = document.getElementById('lastSessionRec');
+  if (!resultEl) return;
   resultEl.innerHTML = '<div class="ai-response-box">'
     + '<div class="ai-response-label">⏳ AI가 가정 활동을 추천 중...</div>'
     + '</div>';
@@ -211,6 +214,7 @@ function toggleSessionListExpand() {
 
 function renderSessionList() {
   var c = document.getElementById('sessionList');
+  if (!c) return;
   // 권한별 필터: admin은 전체, 그 외는 본인 세션만 (teacher 필드 없으면 admin만 노출)
   var visible = sessionDB.slice().reverse();
   if (currentUser && currentUser.role !== 'admin') {
@@ -345,6 +349,8 @@ function editSessionDate(id) {
 var _dcmCallback = null;
 var _dcmEscHandler = null;
 function showDeleteConfirm(title, subtitle, keyword, onConfirm) {
+  var dcm = document.getElementById('deleteConfirmModal');
+  if (!dcm) return;
   _dcmCallback = onConfirm;
   document.getElementById('dcmTitle').textContent = title;
   document.getElementById('dcmSubtitle').textContent = subtitle;
@@ -353,7 +359,7 @@ function showDeleteConfirm(title, subtitle, keyword, onConfirm) {
   var btn = document.getElementById('dcmConfirmBtn');
   btn.disabled = true;
   btn.style.opacity = '0.4';
-  var modal = document.getElementById('deleteConfirmModal');
+  var modal = dcm;
   modal.style.display = 'flex';
   if (_dcmEscHandler) document.removeEventListener('keydown', _dcmEscHandler);
   _dcmEscHandler = function(e) { if (e.key === 'Escape') closeDcmModal(); };
@@ -465,7 +471,7 @@ function renderChart() {
     });
   });
 
-  var labels = sessions.map(function(s) { return s.date.slice(5); });
+  var labels = sessions.map(function(s) { return s.date ? s.date.slice(5) : ''; });
   var palette = ['#0ea5a0', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981'];
   var datasets = [], gi = 0;
   for (var name in goalMap) {
@@ -482,7 +488,9 @@ function renderChart() {
   }
 
   if (devChartObj) { devChartObj.destroy(); devChartObj = null; }
-  var wrap = document.getElementById('chartCard').querySelector('.chart-wrap');
+  var chartCard = document.getElementById('chartCard');
+  if (!chartCard) return;
+  var wrap = chartCard.querySelector('.chart-wrap');
   if (datasets.length === 0 || labels.length < 2) {
     wrap.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>세션 데이터가 2회 이상 있어야 차트가 표시됩니다.</p></div>';
   } else {
@@ -515,7 +523,8 @@ function renderChart() {
       + '<div class="score-bar"><div class="score-fill" style="width:' + last + '%;background:' + color + '"></div></div>'
       + '<div class="score-val" style="color:' + color + '">' + last + '%</div></div>';
   }
-  document.getElementById('scoreBars').innerHTML = bars || '<div class="empty"><p>달성도 데이터가 없습니다.</p></div>';
+  var sb = document.getElementById('scoreBars');
+  if (sb) sb.innerHTML = bars || '<div class="empty"><p>달성도 데이터가 없습니다.</p></div>';
 
   // 음소 추이 차트 연동
   _selectedPhonemes = null; // 아동 바뀌면 선택 초기화
@@ -556,11 +565,11 @@ function renderPhonemeChart(childId) {
   if (filterEl) {
     filterEl.innerHTML = allPhonemes.map(function(p) {
       var active = _selectedPhonemes.indexOf(p) > -1;
-      return '<span onclick="togglePhonemeFilter(\'' + p + '\')" '
+      return '<span onclick="togglePhonemeFilter(\'' + escHtml(p) + '\')" '
         + 'style="font-size:12px;padding:4px 10px;border-radius:20px;cursor:pointer;font-weight:700;'
         + 'background:' + (active ? '#db2777' : '#f1f5f9') + ';'
         + 'color:' + (active ? 'white' : '#94a3b8') + ';'
-        + 'border:1.5px solid ' + (active ? '#db2777' : '#e2e8f0') + ';">' + p + '</span>';
+        + 'border:1.5px solid ' + (active ? '#db2777' : '#e2e8f0') + ';">' + escHtml(p) + '</span>';
     }).join('');
   }
 
@@ -578,7 +587,7 @@ function renderPhonemeChart(childId) {
   });
 
   // 데이터셋 구성
-  var labels = sessions.map(function(s) { return s.date.slice(5); });
+  var labels = sessions.map(function(s) { return s.date ? s.date.slice(5) : ''; });
   var palette = ['#db2777','#0ea5a0','#8b5cf6','#f59e0b','#3b82f6','#10b981','#ef4444'];
   var posKeys = _phonemePos === 'all'
     ? ['initial','medial','final']
@@ -715,6 +724,7 @@ function detectStagnation() {
   if (sessions.length < 3) { showToast('최소 3회 세션이 필요합니다.'); return; }
 
   var resultEl = document.getElementById('stagnationResult');
+  if (!resultEl) return;
   resultEl.innerHTML = '<div class="stagnation-card"><div class="stagnation-title">⏳ AI 분석 중...</div></div>';
 
   var sessionLog = sessions.map(function(s) {
@@ -804,9 +814,10 @@ function renderStagnationResult(p, childName, childId) {
 }
 
 function stagnationActionMeta(type, childId) {
+  var safeId = escHtml(String(childId));
   var map = {
-    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("iepChild");if(el){el.value=' + childId + ';renderIEPHistory(' + childId + ');}},300);' },
-    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("reportChild");if(el)el.value=' + childId + ';},300);' },
+    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("iepChild");if(el){el.value=' + safeId + ';renderIEPHistory(' + safeId + ');}},300);' },
+    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("reportChild");if(el)el.value=' + safeId + ';},300);' },
     activity: { icon: '🎮', color: '#10b981', btnLabel: '활동 카탈로그', onclick: 'switchTab(3);setTimeout(function(){switchPortfolioTab("ai");},200);' },
     schedule: { icon: '📅', color: '#f59e0b', btnLabel: '일정 확인', onclick: 'switchTab(0);' }
   };

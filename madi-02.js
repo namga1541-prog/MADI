@@ -501,10 +501,10 @@ function renderBackupList() {
         + '세션 ' + (b.counts ? b.counts.sessions : '?') + ' · '
         + sizeKB + 'KB</div>'
         + '</div>'
-        + '<button class="btn-del" onclick="deleteBackupConfirm(\'' + b.id + '\')">삭제</button>'
+        + '<button class="btn-del" onclick="deleteBackupConfirm(\'' + escHtml(String(b.id)) + '\')">삭제</button>'
         + '</div>'
         + '<button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" '
-        + 'onclick="restoreFromBackup(\'' + b.id + '\')">↻ 이 백업으로 복원</button>'
+        + 'onclick="restoreFromBackup(\'' + escHtml(String(b.id)) + '\')">↻ 이 백업으로 복원</button>'
         + '</div>';
     }).join('');
     el.innerHTML = html;
@@ -557,6 +557,7 @@ function callClaude(system, user, maxTokens, model) {
 }
 
 function parseJSON(raw) {
+  if (!raw || typeof raw !== 'string') return {};
   var cleaned = raw.replace(/```json|```/g, '').trim();
 
   // 정상 파싱 시도
