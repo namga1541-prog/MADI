@@ -187,10 +187,11 @@ test.describe('📝 세션 기록 버튼', () => {
 
   test('조음 데이터 입력 버튼 토글', async ({ page }) => {
     const phonemeBtn = page.locator('#phonemeToggleBtn');
-    if (await phonemeBtn.isVisible()) {
+    if (await phonemeBtn.isVisible({ timeout: 3000 })) {
       await phonemeBtn.click();
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(600);
       await phonemeBtn.click();
+      await page.waitForTimeout(400);
     }
   });
 
