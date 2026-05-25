@@ -343,29 +343,36 @@ function deleteChild(id) {
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) return;
   showConfirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?', function() {
-  // Supabase 삭제
-  supaFetch('madi_children?id=eq.' + id, 'DELETE').catch(function(e) {
-    if(window.console&&console.warn)console.warn('[madi-05 deleteChild]',e&&e.message);
-    showToast('❌ 아동 삭제 실패 — 네트워크를 확인해주세요');
-  });
-  var sessIds = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
-  if (sessIds.length > 0) supaFetch('madi_sessions?id=in.(' + sessIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
+  // 연결 데이터 ID 수집
+  var sessIds  = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
   var schedIds = scheduleDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
-  if (schedIds.length > 0) supaFetch('madi_schedules?id=in.(' + schedIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
-  var iepIds = (typeof iepDB !== 'undefined' ? iepDB : []).filter(function(r){ return r.childId === id; }).map(function(r){ return r.id; });
-  if (iepIds.length > 0) supaFetch('madi_iep_history?id=in.(' + iepIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
-  var assIds = assessmentDB.filter(function(a){ return a.childId === id; }).map(function(a){ return a.id; });
-  if (assIds.length > 0) supaFetch('madi_assessments?id=in.(' + assIds.join(',') + ')', 'DELETE').catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-05]',e&&e.message);});
-  // 로컬 삭제
-  childDB      = childDB.filter(function(c) { return c.id !== id; });
-  sessionDB    = sessionDB.filter(function(s) { return s.childId !== id; });
-  scheduleDB   = scheduleDB.filter(function(s) { return s.childId !== id; });
-  assessmentDB = assessmentDB.filter(function(a) { return a.childId !== id; });
-  if (typeof iepDB !== 'undefined') iepDB = iepDB.filter(function(r){ return r.childId !== id; });
-  saveChildren(); saveSessions(); saveSchedule(); saveAssess();
-  if (typeof saveIEP === 'function') saveIEP();
-  renderChildGrid();
-  showToast('🗑️ 삭제 완료 (세션·일정 포함)');
+  var iepIds   = (typeof iepDB !== 'undefined' ? iepDB : []).filter(function(r){ return r.childId === id; }).map(function(r){ return r.id; });
+  var assIds   = assessmentDB.filter(function(a){ return a.childId === id; }).map(function(a){ return a.id; });
+  // 연결 데이터 먼저 삭제 → 아동 레코드 마지막 삭제 (고아 레코드 방지)
+  var p1 = sessIds.length  > 0 ? supaFetch('madi_sessions?id=in.('    + sessIds.join(',')  + ')', 'DELETE') : Promise.resolve();
+  var p2 = schedIds.length > 0 ? supaFetch('madi_schedules?id=in.('   + schedIds.join(',') + ')', 'DELETE') : Promise.resolve();
+  var p3 = iepIds.length   > 0 ? supaFetch('madi_iep_history?id=in.(' + iepIds.join(',')   + ')', 'DELETE') : Promise.resolve();
+  var p4 = assIds.length   > 0 ? supaFetch('madi_assessments?id=in.(' + assIds.join(',')   + ')', 'DELETE') : Promise.resolve();
+  Promise.all([p1, p2, p3, p4])
+    .then(function() {
+      return supaFetch('madi_children?id=eq.' + id, 'DELETE');
+    })
+    .then(function() {
+      // 로컬 삭제
+      childDB      = childDB.filter(function(c) { return c.id !== id; });
+      sessionDB    = sessionDB.filter(function(s) { return s.childId !== id; });
+      scheduleDB   = scheduleDB.filter(function(s) { return s.childId !== id; });
+      assessmentDB = assessmentDB.filter(function(a) { return a.childId !== id; });
+      if (typeof iepDB !== 'undefined') iepDB = iepDB.filter(function(r){ return r.childId !== id; });
+      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
+      if (typeof saveIEP === 'function') saveIEP();
+      renderChildGrid();
+      showToast('🗑️ 삭제 완료 (세션·일정 포함)');
+    })
+    .catch(function(e) {
+      if(window.console&&console.warn)console.warn('[madi-05 deleteChild]',e&&e.message);
+      showToast('❌ 아동 삭제 실패 — 네트워크를 확인해주세요');
+    });
   }); // showConfirm
 }
 

@@ -135,10 +135,14 @@ function refreshChildAges() {
   });
 }
 function saveIEP() {
+  if (!currentUser || currentUser.role === 'parent') return;
   safeSetItem('cn3_iep', JSON.stringify(iepDB));
   var cid = getCenterId(), rows = iepDB.map(function(r){ return { id: r.id, center_id: cid, data: r }; });
   if (rows.length === 0) return;
-  supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
+  supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).catch(function(e){
+    if(window.console&&console.warn)console.warn('[madi-01 saveIEP]',e&&e.message);
+    showToast('⚠️ IEP 저장 중 오류가 발생했습니다');
+  });
 }
 function loadIEPFromSupa() {
   supaFetch('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc', 'GET')

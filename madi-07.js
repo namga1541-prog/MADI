@@ -1,5 +1,6 @@
 // ─────── 세션 저장 ───────
 function saveSession(aiNote) {
+  if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 세션 기록 권한이 없습니다'); return; }
   var childId = String(document.getElementById('sessionChild').value);
   var date = document.getElementById('sessionDate').value;
   var memo = document.getElementById('sessionMemo').value.trim();

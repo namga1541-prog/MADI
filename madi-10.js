@@ -1,3 +1,6 @@
+// 일정 모달 A11y release 핸들러
+var _schedModalRelease = null;
+
 // ─────── 생년월일 숫자 입력 처리 ───────
 function formatBirthInput(el) {
   el.value = el.value.replace(/[^0-9]/g, '').slice(0, 8);
@@ -536,6 +539,7 @@ function openSchedModalForChild(childId) {
 }
 
 function openSchedModal(date, schedId) {
+  if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 일정 추가 권한이 없습니다'); return; }
   _schedModalDate = date;
   var opts = childDB.length === 0 ? '<option value="">아동 없음</option>'
     : childDB.map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + '</option>'; }).join('');
@@ -568,6 +572,9 @@ function openSchedModal(date, schedId) {
     + '<div class="form-group"><label class="form-label">메모</label><input class="form-input" type="text" id="schedNote" placeholder="특이사항"></div>'
     + '<button class="btn btn-primary" style="margin-top:4px;" onclick="saveSchedFromModal()">✅ 저장</button></div>';
   document.body.appendChild(overlay);
+  if (typeof attachModalA11y === 'function') {
+    _schedModalRelease = attachModalA11y(overlay, closeSchedModal);
+  }
   loadTeacherList(function() {
     var sel = document.getElementById('schedTeacher');
     if (sel) sel.innerHTML = buildTeacherOptions('');
@@ -608,7 +615,10 @@ function toggleRepeatOpt() {
 }
 
 function toggleDayChip(btn) { btn.classList.toggle('sel'); }
-function closeSchedModal() { var m = document.getElementById('schedModal'); if (m) m.remove(); }
+function closeSchedModal() {
+  if (_schedModalRelease) { _schedModalRelease(); _schedModalRelease = null; }
+  var m = document.getElementById('schedModal'); if (m) m.remove();
+}
 
 function saveSchedFromModal() {
   var childId   = String(document.getElementById('schedChildSel').value);
@@ -677,12 +687,9 @@ function openEditSchedModal(id) {
       + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + id + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
     + '</div></div>';
   document.body.appendChild(overlay);
-  var _editEsc = function(e) {
-    var ol = document.getElementById('editSchedOverlay');
-    if (!ol) { document.removeEventListener('keydown', _editEsc); return; }
-    if (e.key === 'Escape') { ol.remove(); document.removeEventListener('keydown', _editEsc); }
-  };
-  document.addEventListener('keydown', _editEsc);
+  if (typeof attachModalA11y === 'function') {
+    attachModalA11y(overlay, function() { overlay.remove(); });
+  }
   loadTeacherList(function() {
     var sel = document.getElementById('editSchedTeacher');
     if (sel) sel.innerHTML = buildTeacherOptions(s.teacher||'');
