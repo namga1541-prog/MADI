@@ -1,4 +1,13 @@
 <html lang="ko"><head>
+  <script>
+  (function(){
+    try {
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.documentElement.classList.add('dark-mode');
+      }
+    } catch(e) {}
+  })();
+  </script>
   <!-- ✅ 캐시 방지: 배포 후 항상 최신 버전을 불러오도록 강제 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">

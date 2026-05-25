@@ -133,6 +133,9 @@
       #headerDeployBtn, .lp-features, .lp-cta,
       .dash-quick, .child-status-tabs, .admin-tab-btn,
       nav, footer, [onclick] { display: none !important; }
+      /* 데이터 카드, 기록 내용은 onclick 여부와 관계없이 표시 유지 */
+      .data-card, .session-card, .report-content,
+      .child-card, .card { display: block !important; }
       /* 카드는 보더만 간소화 */
       .card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; margin-bottom: 12px; }
       /* 폰트/색상 절약 (잉크 절약) */
@@ -552,7 +555,7 @@
     .loading p { font-size:14px; color:var(--text2); line-height:1.7; }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes slideDown { from { opacity:0; transform:translateX(-50%) translateY(-16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
-    .toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(80px); background:#1e293b; color:white; padding:12px 22px; border-radius:24px; font-size:13px; font-weight:600; transition:transform 0.3s ease, opacity 0.3s ease, visibility 0.3s; z-index:1000; white-space:nowrap; pointer-events:none; max-width:90%; text-align:center; opacity:0; visibility:hidden; }
+    .toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(80px); background:#1e293b; color:white; padding:12px 22px; border-radius:24px; font-size:13px; font-weight:600; transition:transform 0.3s ease, opacity 0.3s ease, visibility 0.3s; z-index:10001; white-space:nowrap; pointer-events:none; max-width:90%; text-align:center; opacity:0; visibility:hidden; }
     .toast.show { transform:translateX(-50%) translateY(0); opacity:1; visibility:visible; }
 
     .input-mode-toggle { display:flex; gap:0; margin-bottom:12px; border-radius:10px; overflow:hidden; border:1.5px solid var(--border); }
