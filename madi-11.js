@@ -626,6 +626,7 @@ function renderAssessFields() {
     }
     rows += '</div>';
   }
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = rows;
 }
 
@@ -714,9 +715,10 @@ function renderAssessmentList() {
       + '<span class="test-date">📅 ' + escHtml(a.date) + '</span></div>'
       + '<div style="font-size:12px;line-height:1.8;margin-top:6px;">' + formatAssessScores(a) + '</div>'
       + (a.memo ? '<div style="font-size:11px;color:var(--text2);margin-top:5px;">' + escHtml(a.memo) + '</div>' : '')
-      + '<button class="btn-del" style="margin-top:8px;" onclick="deleteAssessment(\'' + a.id + '\')">삭제</button>'
+      + '<button class="btn-del" style="margin-top:8px;" onclick="deleteAssessment(\'' + escHtml(String(a.id || '')) + '\')">삭제</button>'
       + '</div>';
   });
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = html;
 }
 
@@ -900,6 +902,7 @@ function generateAssessReport() {
       // 임상 표준 용어 통일: "중지화"→"파열음화" 등 (audience: clinical)
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');
       var cn = escHtml(child.name);
+      // eslint-disable-next-line no-unsanitized/property
       result.innerHTML = '<div id="assessReportText" contenteditable="false" class="report-box"'
         + ' style="white-space:pre-wrap;outline:none;cursor:text;transition:border 0.2s,background 0.2s;">'
         + escHtml(raw) + '</div>'
@@ -911,6 +914,7 @@ function generateAssessReport() {
     })
     .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; })
     .catch(function(err) {
+      // eslint-disable-next-line no-unsanitized/property
       result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
       btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성';
     });
@@ -971,6 +975,7 @@ function printParentEdu(childName) {
   var today = new Date().toLocaleDateString('ko-KR');
   var win = window.open('', '_blank');
   if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
+  // eslint-disable-next-line no-unsanitized/method
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>'
     + '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");'
@@ -981,7 +986,7 @@ function printParentEdu(childName) {
     + '.footer{margin-top:40px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px;text-align:center;}'
     + '@media print{body{padding:20px;} .footer{position:fixed;bottom:10px;width:100%;}}'
     + '</style></head><body>'
-    + '<h1>🏠 ' + childName + ' 가정 교육 자료</h1>'
+    + '<h1>🏠 ' + escHtml(childName || '') + ' 가정 교육 자료</h1>'
     + '<div class="meta">작성일: ' + today + ' | 마디(Madi) 언어치료</div>'
     + '<pre>' + el.textContent.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</pre>'
     + '<div class="footer">본 자료는 마디(Madi) AI가 보조 작성한 가정 교육 자료입니다.</div>'

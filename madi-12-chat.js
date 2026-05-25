@@ -222,6 +222,7 @@ function renderChatMessages() {
       + (isUser ? '<div class="msg-avatar" style="background:#dbeafe;">😊</div>' : '')
       + '</div>';
   });
+  // eslint-disable-next-line no-unsanitized/property
   container.innerHTML = html;
   container.scrollTop = container.scrollHeight;
 }

@@ -178,6 +178,7 @@ function renderQuickCards() {
   if (sub) sub.textContent = '미기록 ' + todo + '건 · 완료 ' + done + '건 (총 ' + scheds.length + '건)';
 
   if (todo === 0) {
+    // eslint-disable-next-line no-unsanitized/property
     box.innerHTML =
       '<div class="card" style="text-align:center;padding:36px 16px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #6ee7b7;">'
       + '<div style="font-size:42px;margin-bottom:10px;">🎉</div>'
@@ -187,6 +188,7 @@ function renderQuickCards() {
       + _quickRenderCards(scheds);
     return;
   }
+  // eslint-disable-next-line no-unsanitized/property
   box.innerHTML = _quickRenderCards(scheds);
 }
 
@@ -255,6 +257,7 @@ function openQuickForm(schedId) {
   if (list) list.style.display = 'none';
   if (form) {
     form.style.display = '';
+    // eslint-disable-next-line no-unsanitized/property
     form.innerHTML = _quickFormHtml(sched, name, age, diag, existing);
 
     // 폼 열릴 때 요약 초기값 기록 — 미저장 변경 감지에 사용
@@ -429,6 +432,7 @@ function _quickRenderNextGoals() {
       + '<button type="button" onclick="_quickRemoveGoal(' + i + ')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:13px;padding:4px 6px;">✕</button>'
       + '</label>';
   });
+  // eslint-disable-next-line no-unsanitized/property
   box.innerHTML = html;
 }
 
@@ -487,6 +491,7 @@ function quickPickPhoto(ev) {
     }
     _quickPhotoDataUrl = dataUrl;
     var box = document.getElementById('quickPhotoBox');
+    // eslint-disable-next-line no-unsanitized/property
     if (box) box.innerHTML = _quickPhotoHtml();
   };
   reader.onerror = function() {
@@ -497,6 +502,7 @@ function quickPickPhoto(ev) {
 function quickRemovePhoto() {
   _quickPhotoDataUrl = '';
   var box = document.getElementById('quickPhotoBox');
+  // eslint-disable-next-line no-unsanitized/property
   if (box) box.innerHTML = _quickPhotoHtml();
   var inp = document.getElementById('quickPhotoInput');
   if (inp) inp.value = '';

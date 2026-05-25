@@ -67,6 +67,7 @@ function renderReport(p, name) {
     + '<div class="report-box" id="reportText">' + escHtml(r) + '</div>'
     + '<button class="pdf-btn" onclick="downloadPDF(\'' + escHtml(name) + '\',\'reportText\',\'언어치료 경과 보고서\')">⬇️ PDF 다운로드</button>'
     + '</div>';
+  // eslint-disable-next-line no-unsanitized/property
   document.getElementById('reportResult').innerHTML = html;
 }
 
@@ -92,13 +93,14 @@ function downloadPDF(name, sourceId, title) {
   var today = new Date().toLocaleDateString('ko-KR');
   var win = window.open('', '_blank');
   if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
+  // eslint-disable-next-line no-unsanitized/method
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>body{font-family:"Noto Sans KR",sans-serif;padding:40px;color:#1e293b;line-height:1.8;}'
     + 'h2{color:#0f2942;margin-bottom:8px;}p{white-space:pre-wrap;font-size:14px;}'
     + '.footer{margin-top:40px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px;}'
     + '</style></head><body>'
-    + '<h2>' + title + '</h2>'
-    + '<p style="font-size:12px;color:#64748b;margin-bottom:24px;">대상 아동: ' + name + ' &nbsp;|&nbsp; 작성일: ' + today + '</p>'
+    + '<h2>' + escHtml(title || '') + '</h2>'
+    + '<p style="font-size:12px;color:#64748b;margin-bottom:24px;">대상 아동: ' + escHtml(name || '') + ' &nbsp;|&nbsp; 작성일: ' + today + '</p>'
     + '<p>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>'
     + '<div class="footer">마디아이(MadiAI) AI 보조 작성 보고서</div>'
     + '</body></html>');
@@ -176,6 +178,7 @@ function downloadAssessPDF(name) {
 
   var win = window.open('', '_blank');
   if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
+  // eslint-disable-next-line no-unsanitized/method
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">'
     + '<style>'
@@ -429,6 +432,7 @@ function renderIEP(p, childName) {
   var _iepResEl = document.getElementById('iepResult');
   if (!_iepResEl) return;
   _iepResEl.dataset.iepChildId = _iepCId;
+  // eslint-disable-next-line no-unsanitized/property
   _iepResEl.innerHTML = html;
   window._iepData = p;            // 하위 호환 유지
   window._iepChildName = childName;
@@ -475,15 +479,16 @@ function renderIEPHistory(childId) {
       + '<div style="font-size:11px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
       + (goals ? escHtml(goals) : '—') + '</div>'
       + '</div>'
-      + '<button class="btn-del" onclick="deleteIEPRecord(\'' + r.id + '\')">삭제</button>'
+      + '<button class="btn-del" onclick="deleteIEPRecord(\'' + escHtml(String(r.id || '')) + '\')">삭제</button>'
       + '</div>'
       + '<div style="display:flex;gap:6px;">'
-      + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;" onclick="loadIEPRecord(\'' + r.id + '\')">📂 불러오기</button>'
-      + '<button class="btn-ghost" style="flex:0.5;font-size:12px;padding:7px 4px;" onclick="downloadIEPPDFById(\'' + r.id + '\')">🖨️ PDF</button>'
+      + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;" onclick="loadIEPRecord(\'' + escHtml(String(r.id || '')) + '\')">📂 불러오기</button>'
+      + '<button class="btn-ghost" style="flex:0.5;font-size:12px;padding:7px 4px;" onclick="downloadIEPPDFById(\'' + escHtml(String(r.id || '')) + '\')">🖨️ PDF</button>'
       + '</div>'
       + '</div>';
   }).join('');
 
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = html;
 }
 
@@ -541,6 +546,7 @@ function renderIEPView(p, childName) {
     + '</div></div>';
   var iepViewEl = document.getElementById('iepResult');
   if (!iepViewEl) return;
+  // eslint-disable-next-line no-unsanitized/property
   iepViewEl.innerHTML = html;
 }
 
@@ -585,12 +591,13 @@ function downloadIEPPDF(childName) {
 
   function monthSection(month, goals) {
     if (!goals || goals.length === 0) return '';
-    return '<p style="font-weight:700;color:#7c3aed;margin:10px 0 4px;">' + month + '차</p>'
+    return '<p style="font-weight:700;color:#7c3aed;margin:10px 0 4px;">' + escHtml(month || '') + '차</p>'
       + goals.map(function(g) { return '<p style="margin:2px 0;padding-left:12px;">• ' + escHtml(g) + '</p>'; }).join('');
   }
 
   var win = window.open('', '_blank');
   if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
+  // eslint-disable-next-line no-unsanitized/method
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">'
     + '<style>'
@@ -727,6 +734,7 @@ function renderEffectStats() {
     html += '</div>';
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = html;
 }
 

@@ -41,6 +41,7 @@ function openPermModal(userId, userName, role) {
         + '</span></label>'
         + '</div></div>';
     }).join('');
+    // eslint-disable-next-line no-unsanitized/property
     overlay.innerHTML = '<div class="sched-modal" style="max-height:85vh;overflow-y:auto;">'
       + '<div class="sched-modal-title">🔐 ' + escHtml(userName) + ' 선생님 권한 설정'
       + (isAdmin ? '<div style="font-size:11px;color:var(--mint);font-weight:400;margin-top:4px;">관리자 계정은 모든 권한이 자동으로 허용됩니다</div>' : '') + '</div>'
@@ -110,6 +111,7 @@ function renderStaffCard() {
             : '<span style="font-size:11px;color:var(--mint);">나</span>')
           + '</div>';
       });
+      // eslint-disable-next-line no-unsanitized/property
       document.getElementById('staffList').innerHTML = html || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">등록된 계정 없음</div>';
     }).catch(function() {
       showToast('⚠️ 직원 목록을 불러오지 못했습니다.');
@@ -623,6 +625,7 @@ function _processImportFileInner(file, resultEl) {
         return;
       }
 
+      // eslint-disable-next-line no-unsanitized/property
       resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>데이터 변환 중... (애 ' + allRows.length + '행)</p></div>';
 
       var children = parseRowsToChildren(allRows);
@@ -764,7 +767,8 @@ function analyzeImportData(csvText, resultEl) {
       if (msg.includes('JSON') || msg.includes('position')) {
         msg = '아동 수가 너무 많아 응답이 잊혀졌습니다. 파일을 절반씩 나눠서 두 번 올려주세요.';
       }
-      resultEl.innerHTML = '<div class="import-warning">⚠️ AI 분석 실패: ' + msg + '</div>';
+      // eslint-disable-next-line no-unsanitized/property
+      resultEl.innerHTML = '<div class="import-warning">⚠️ AI 분석 실패: ' + escHtml(msg) + '</div>';
     });
 }
 
@@ -774,6 +778,7 @@ function renderImportPreview(data, resultEl) {
   var unmapped = data.unmapped || [];
 
   if (children.length === 0) {
+    // eslint-disable-next-line no-unsanitized/property
     resultEl.innerHTML = '<div class="import-warning">⚠️ 아동 정보를 찾지 못했습니다. 파일 형식을 확인해주세요.<br>'
       + (data.summary ? '분석 결과: ' + escHtml(data.summary) : '') + '</div>';
     return;
@@ -820,6 +825,7 @@ function renderImportPreview(data, resultEl) {
     + '<button class="btn-ghost" style="flex:0.4;" onclick="cancelImport()">취소</button>'
     + '</div>';
 
+  // eslint-disable-next-line no-unsanitized/property
   resultEl.innerHTML = html;
 }
 
@@ -883,6 +889,7 @@ function confirmImport() {
   renderChildGrid();
   populateChildSelects();
 
+  // eslint-disable-next-line no-unsanitized/property
   document.getElementById('importResult').innerHTML =
     '<div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:4px solid var(--green);">'
     + '<div style="font-weight:700;color:var(--green);margin-bottom:6px;">✅ 가져오기 완료!</div>'

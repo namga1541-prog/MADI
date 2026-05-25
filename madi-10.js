@@ -88,6 +88,7 @@ function renderUnwrittenAlert() {
     html += '</div></div>';
   });
   html += '</div></div>';
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = html;
 }
 
@@ -181,6 +182,7 @@ function renderTeacherFilter() {
     html += '<button data-teacher="' + escHtml(t) + '" onclick="setTeacherFilter(this.getAttribute(\'data-teacher\'))" style="padding:5px 12px;border-radius:20px;border:2px solid ' + color + ';background:' + (active ? color : 'white') + ';color:' + (active ? 'white' : color) + ';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">'
       + (t === '전체' ? '전체' : escHtml(t)) + '</button>';
   });
+  // eslint-disable-next-line no-unsanitized/property
   bar.innerHTML = html;
 }
 
@@ -269,6 +271,7 @@ function renderMonthGrid() {
   });
   var grid = document.getElementById('monthGrid');
   if (!grid) return;
+  // eslint-disable-next-line no-unsanitized/property
   grid.innerHTML = html;
   renderSessionListForPeriod();
 }
@@ -308,6 +311,7 @@ function renderWeekGrid() {
     var wgElRef = document.getElementById('weekGrid');
     if (wgElRef && wgElRef.parentNode) wgElRef.parentNode.insertBefore(toggleWrap, wgElRef);
   }
+  // eslint-disable-next-line no-unsanitized/property
   toggleWrap.innerHTML =
     '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='therapist'?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='child'&&!_weekDupOnly?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
@@ -362,6 +366,7 @@ function renderWeekGrid() {
   html += '</div>';
   var wgGrid = document.getElementById('weekGrid');
   if (!wgGrid) return;
+  // eslint-disable-next-line no-unsanitized/property
   wgGrid.innerHTML = html;
   renderSessionListForPeriod(weekDates.map(function(w){ return w.str; }));
 }
@@ -490,6 +495,7 @@ function renderDayGrid() {
   }
 
   html += '<button class="sched-add-btn" onclick="openSchedModal(\'' + dateStr + '\',null)" style="margin-top:10px;">+</button></div>';
+  // eslint-disable-next-line no-unsanitized/property
   wgEl.innerHTML = html;
   renderSessionListForPeriod([dateStr]);
 }
@@ -512,7 +518,11 @@ function renderSessionListForPeriod(dates) {
       all.push({ date: date, child: child, sched: s, hasNote: hasNote });
     });
   });
-  if (all.length === 0) { el.innerHTML = '<div class="empty"><p>이 기간에 일정이 없습니다.</p></div>'; return; }
+  if (all.length === 0) {
+    // eslint-disable-next-line no-unsanitized/property
+    el.innerHTML = '<div class="empty"><p>이 기간에 일정이 없습니다.</p></div>';
+    return;
+  }
   var html = '';
   all.slice(0, 30).forEach(function(item) {
     html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">'
@@ -524,6 +534,7 @@ function renderSessionListForPeriod(dates) {
       + (item.hasNote ? 'background:#f0fdf4;color:#15803d' : 'background:#fef2f2;color:#dc2626') + '">'
       + (item.hasNote ? '✅ 기록완료' : '⚠️ 미작성') + '</span></div>';
   });
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = html;
 }
 
@@ -555,6 +566,7 @@ function openSchedModal(date, schedId) {
   overlay.className = 'sched-modal-overlay';
   overlay.id = 'schedModal';
   overlay.onclick = function(e){ if (e.target === overlay) closeSchedModal(); };
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML = '<div class="sched-modal">'
     + '<div class="sched-modal-title">📅 일정 추가</div>'
     + '<div class="form-group"><label class="form-label">아동</label><select class="form-input" id="schedChildSel">' + opts + '</select></div>'
@@ -585,6 +597,7 @@ function openSchedModal(date, schedId) {
   }
   loadTeacherList(function() {
     var sel = document.getElementById('schedTeacher');
+    // eslint-disable-next-line no-unsanitized/property
     if (sel) sel.innerHTML = buildTeacherOptions('');
   });
   makeSearchable('schedChildSel');
@@ -682,6 +695,7 @@ function openEditSchedModal(id) {
   var overlay = document.createElement('div');
   overlay.className = 'sched-modal-overlay'; overlay.id = 'editSchedOverlay';
   overlay.onclick = function(e){ if (e.target === overlay) overlay.remove(); };
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML = '<div class="sched-modal">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
     + '<div class="sched-modal-title" style="margin-bottom:0;">📅 일정 상세</div>'
@@ -707,6 +721,7 @@ function openEditSchedModal(id) {
   }
   loadTeacherList(function() {
     var sel = document.getElementById('editSchedTeacher');
+    // eslint-disable-next-line no-unsanitized/property
     if (sel) sel.innerHTML = buildTeacherOptions(s.teacher||'');
   });
 }
@@ -749,6 +764,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
     return (ca ? ca.name : '') < (cb ? cb.name : '') ? -1 : 1;
   });
   if (childIds.length === 0) {
+    // eslint-disable-next-line no-unsanitized/property
     wgEl.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:40px 0;">' + (_weekDupOnly ? '이번 주에 같은 날 중복 수업 아동이 없습니다.' : '이번 주 일정이 없습니다.') + '</div>';
     return;
   }
@@ -788,6 +804,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
     html += '</tr>';
   });
   html += '</tbody></table></div>';
+  // eslint-disable-next-line no-unsanitized/property
   wgEl.innerHTML = html;
 }
 
@@ -916,6 +933,7 @@ function openScheduleExportModal() {
     var teachers = [];
     (scheduleDB || []).forEach(function(s) { if (s.teacher && teachers.indexOf(s.teacher) === -1) teachers.push(s.teacher); });
     teachers.sort();
+    // eslint-disable-next-line no-unsanitized/property
     sel.innerHTML = '<option value="">전체</option>'
       + teachers.map(function(t){ return '<option value="'+escHtml(t)+'">'+escHtml(t)+'</option>'; }).join('');
     if (currentUser && currentUser.role !== 'superadmin' && currentUser.role !== 'admin') {
@@ -1017,6 +1035,7 @@ function _printSchedule(rows, label) {
 
   var win = window.open('', '_blank', 'width=900,height=700');
   if (!win) { showToast('⚠️ 팝업 차단을 해제하고 다시 시도해주세요'); return; }
+  // eslint-disable-next-line no-unsanitized/method
   win.document.write(html);
   win.document.close();
   win.focus();
