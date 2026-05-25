@@ -212,7 +212,7 @@ function loadTeacherList(callback) {
     .then(function(users) {
       if (Array.isArray(users)) _teacherList = users.filter(function(u){ return u.name; });
       if (callback) callback();
-    }).catch(function() { if (callback) callback(); });
+    }).catch(function() { if (callback) callback(); showToast('⚠️ 선생님 목록 불러오기 실패'); });
 }
 
 function renderSchedView() {
@@ -632,6 +632,9 @@ function closeSchedModal() {
 }
 
 function saveSchedFromModal() {
+  var _saveBtn = document.querySelector('#schedModal .btn-primary');
+  if (_saveBtn && _saveBtn.dataset.busy) return;
+  if (_saveBtn) _saveBtn.dataset.busy = '1';
   var childId   = String(document.getElementById('schedChildSel').value);
   var date      = document.getElementById('schedDateInput').value;
   var startTime = document.getElementById('schedStartTime').value;
@@ -641,8 +644,8 @@ function saveSchedFromModal() {
   var until     = repeat !== 'none' ? document.getElementById('schedRepeatUntil').value : '';
   var note      = document.getElementById('schedNote').value.trim();
   var teacher   = (document.getElementById('schedTeacher') || {}).value || '';
-  if (!childId) { showToast('아동을 선택해주세요.'); return; }
-  if (!date)    { showToast('날짜를 선택해주세요.'); return; }
+  if (!childId) { if (_saveBtn) delete _saveBtn.dataset.busy; showToast('아동을 선택해주세요.'); return; }
+  if (!date)    { if (_saveBtn) delete _saveBtn.dataset.busy; showToast('날짜를 선택해주세요.'); return; }
   var entries = [];
   var groupId = Date.now();
   if (repeat === 'weekly' && until && until >= date) {
@@ -666,6 +669,7 @@ function saveSchedFromModal() {
       startTime: startTime, duration: duration, endTime: endTime, note: note, teacher: teacher.trim() });
   }
   entries.forEach(function(e){ scheduleDB.push(e); });
+  if (_saveBtn) delete _saveBtn.dataset.busy;
   saveSchedule(); closeSchedModal(); renderSchedView(); renderUnwrittenAlert();
   showToast('✅ ' + entries.length + '개 일정 추가!');
 }
@@ -692,10 +696,10 @@ function openEditSchedModal(id) {
     + '<div class="form-group"><label class="form-label">담당 선생님</label><select class="form-input" id="editSchedTeacher">' + buildTeacherOptions(s.teacher||'') + '</select></div>'
     + '<div class="form-group"><label class="form-label">메모</label><textarea class="form-input" id="editSchedNote" style="min-height:60px;">' + escHtml(s.note||'') + '</textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:8px;">'
-    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + id + '\')">📝 회기기록</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + escHtml(String(id)) + '\')">📝 회기기록</button>'
     + (currentUser && currentUser.role === 'admin'
-      ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(\'' + id + '\')">💾 수정</button>'
-      + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + id + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
+      ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(\'' + escHtml(String(id)) + '\')">💾 수정</button>'
+      + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + escHtml(String(id)) + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
     + '</div></div>';
   document.body.appendChild(overlay);
   if (typeof attachModalA11y === 'function') {
@@ -808,8 +812,8 @@ function confirmSchedDelete(id, hasGroup) {
     + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--mint);border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="one" checked style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이번일정만</div></div></label>'
     + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="future" style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이후 반복일정포함</div></div></label>'
     + '</div><div style="display:flex;gap:8px;">'
-    + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove()">아니요</button>'
-    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + id + '\')">네, 삭제하겠습니다</button>'
+    + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove();document.removeEventListener(\'keydown\',_delEsc)">아니요</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + escHtml(String(id)) + '\')">네, 삭제하겠습니다</button>'
     + '</div></div>';
   document.body.appendChild(delOv);
   var _delEsc = function(e) {
