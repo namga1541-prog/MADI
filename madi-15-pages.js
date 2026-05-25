@@ -549,6 +549,10 @@ function _subscribePush(reg) {
       applicationServerKey: _b64UrlToUint8(MADI_VAPID_PUBLIC_KEY)
     }).then(function(sub) {
       var j = sub.toJSON();
+      if (!j || !j.keys || !j.keys.p256dh || !j.keys.auth) {
+        showToast('⚠️ 구독 정보를 읽을 수 없습니다. 브라우저를 업데이트해주세요.');
+        return;
+      }
       supaFetch('madi_push_subscriptions', 'POST', {
         user_id:   currentUser.id,
         center_id: currentUser.center_id || window._parentCenterId || '',

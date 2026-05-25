@@ -489,7 +489,7 @@ function saveEditModal(id) {
   var type  = document.getElementById('editType').value;
   var phone = document.getElementById('editPhone').value.trim();
   var status = (document.getElementById('editStatus') || {}).value || '등록';
-  var goals = document.getElementById('editGoals').value.split(',').map(function(g) { return g.trim(); }).filter(Boolean);
+  var goals = ((document.getElementById('editGoals') || {}).value || '').split(',').map(function(g) { return g.trim(); }).filter(Boolean);
   var startDate    = document.getElementById('editStartDate').value;
   var closedAt     = (document.getElementById('editClosedAt') || {}).value || '';
   var closedReason = (document.getElementById('editClosedReason') || {}).value || '';

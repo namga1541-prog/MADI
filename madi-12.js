@@ -72,7 +72,8 @@ function savePermissions() {
   supaFetch('madi_users?id=eq.' + _permUserId, 'PATCH', { permissions: _permData })
     .then(function() {
       showToast('✅ 권한 저장 완료');
-      document.querySelector('.sched-modal-overlay').remove();
+      var _permOverlay = document.querySelector('.sched-modal-overlay');
+      if (_permOverlay) _permOverlay.remove();
     }).catch(function() { showToast('❌ 저장 실패'); });
 }
 
@@ -349,8 +350,8 @@ function scanMadiFiles(folderHandle) {
   return next().then(function() {
     // 자연 정렬: madi-01 < madi-02 < ... < madi-13
     jsFiles.sort(function(a, b) {
-      var na = parseInt(a.match(/\d+/)[0], 10);
-      var nb = parseInt(b.match(/\d+/)[0], 10);
+      var na = a.match(/\d+/) ? parseInt(a.match(/\d+/)[0], 10) : 0;
+      var nb = b.match(/\d+/) ? parseInt(b.match(/\d+/)[0], 10) : 0;
       return na - nb;
     });
     if (hasCss) jsFiles.push('madi.css');
