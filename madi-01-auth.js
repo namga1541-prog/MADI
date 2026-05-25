@@ -25,19 +25,21 @@ function loadUserList() {
 var _inviteCheckTimer = null;
 function onInviteCodeInput() {
   if (_inviteCheckTimer) clearTimeout(_inviteCheckTimer);
+  var inp = document.getElementById('signupInviteCode'); if (!inp) return;
   var label = document.getElementById('signupCenterName');
-  var code = (document.getElementById('signupInviteCode').value || '').trim().toUpperCase();
-  if (!code || code.length < 5) { label.textContent = ''; return; }
-  label.style.color = 'var(--text2)'; label.textContent = '확인 중...';
+  var code = (inp.value || '').trim().toUpperCase();
+  if (!code || code.length < 5) { if (label) label.textContent = ''; return; }
+  if (label) { label.style.color = 'var(--text2)'; label.textContent = '확인 중...'; }
   _inviteCheckTimer = setTimeout(function() {
     supaFetch('madi_centers?invite_code=eq.' + encodeURIComponent(code) + '&select=name,invite_expires_at', 'GET')
       .then(function(centers) {
+        if (!label) return;
         if (Array.isArray(centers) && centers.length > 0) {
           var c = centers[0];
           if (c.invite_expires_at) { var exp = new Date(c.invite_expires_at); if (!isNaN(exp.getTime()) && exp - new Date() < 0) { label.style.color = '#ef4444'; label.textContent = '⛔ 만료된 초대 코드입니다'; return; } }
           label.style.color = 'var(--mint)'; label.textContent = '✅ ' + c.name;
         } else { label.style.color = '#ef4444'; label.textContent = '⚠️ 유효하지 않은 코드입니다'; }
-      }).catch(function() { label.textContent = ''; });
+      }).catch(function() { if (label) label.textContent = ''; });
   }, 500);
 }
 
@@ -54,11 +56,17 @@ function doSignup() {
   var errEl = document.getElementById('signupError'), btn = document.getElementById('signupSubmitBtn');
   if (!errEl || !btn) return;
   errEl.textContent = '';
-  var inviteCode = (document.getElementById('signupInviteCode').value || '').trim().toUpperCase();
-  var name = (document.getElementById('signupName').value || '').trim();
-  var username = (document.getElementById('signupUsername').value || '').trim();
-  var pw = document.getElementById('signupPassword').value || '';
-  var pwConfirm = document.getElementById('signupPasswordConfirm').value || '';
+  var codeEl = document.getElementById('signupInviteCode');
+  var nameEl = document.getElementById('signupName');
+  var usernameEl = document.getElementById('signupUsername');
+  var pwEl = document.getElementById('signupPassword');
+  var pwCfEl = document.getElementById('signupPasswordConfirm');
+  if (!codeEl || !nameEl || !usernameEl || !pwEl || !pwCfEl) return;
+  var inviteCode = (codeEl.value || '').trim().toUpperCase();
+  var name = (nameEl.value || '').trim();
+  var username = (usernameEl.value || '').trim();
+  var pw = pwEl.value || '';
+  var pwConfirm = pwCfEl.value || '';
   if (!inviteCode) { errEl.textContent = '초대 코드를 입력해주세요.'; return; }
   if (!name)       { errEl.textContent = '이름을 입력해주세요.'; return; }
   if (!username)   { errEl.textContent = '아이디를 입력해주세요.'; return; }

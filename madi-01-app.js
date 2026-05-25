@@ -292,7 +292,7 @@ var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optio
 
 function showToast(msg, opts) {
   opts = opts || {}; if (toastLocked && !opts.force) return;
-  var el = document.getElementById('toast');
+  var el = document.getElementById('toast'); if (!el) return;
   if (opts.undo && typeof opts.undo === 'function') {
     el.innerHTML = '<span>' + escHtml(msg) + '</span> <span style="display:inline-block;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.18);border-radius:14px;color:#5eead4;font-size:12px;cursor:pointer;pointer-events:auto;" id="toastUndoBtn">↩️ 실행취소</span>';
     el.style.pointerEvents = 'auto';
@@ -319,12 +319,13 @@ document.addEventListener('visibilitychange', function() {
 
 function vibrate(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern || 30); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ } }
 function toggleDarkMode() {
-  var isDark = document.body.classList.toggle('dark-mode'); localStorage.setItem('madi_dark', isDark ? '1' : '0');
+  var isDark = document.body.classList.toggle('dark-mode');
+  try { localStorage.setItem('madi_dark', isDark ? '1' : '0'); } catch (_e) {}
   var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', isDark ? '#020617' : '#0ea5a0');
   showToast(isDark ? '🌙 다크 모드' : '☀️ 라이트 모드');
 }
 function loadDarkMode() {
-  var saved = localStorage.getItem('madi_dark');
+  var saved; try { saved = localStorage.getItem('madi_dark'); } catch (_e) { saved = null; }
   if (saved === '1') { document.body.classList.add('dark-mode'); var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', '#020617'); }
 }
 function updateHeaderClock() {
