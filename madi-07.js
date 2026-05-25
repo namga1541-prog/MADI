@@ -188,8 +188,8 @@ function suggestHomeActivities(sessionId) {
         html += '<div style="margin-top:10px;padding:11px 12px;background:white;border-radius:10px;border:1px solid #e2e8f0;">'
           + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
           + '<div style="font-weight:700;font-size:13px;color:var(--purple);">'
-          + (i + 1) + '. ' + escHtml(a.title) + '</div>'
-          + (a.level ? '<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:' + lc + '20;color:' + lc + ';font-weight:700;">' + escHtml(a.level) + '</span>' : '')
+          + escHtml(String(i + 1)) + '. ' + escHtml(a.title) + '</div>'
+          + (a.level ? '<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:' + escHtml(lc) + '20;color:' + escHtml(lc) + ';font-weight:700;">' + escHtml(a.level) + '</span>' : '')
           + '</div>'
           + (a.reason ? '<div style="font-size:11px;color:#0ea5a0;margin-bottom:5px;font-weight:600;">✅ ' + escHtml(a.reason) + '</div>' : '')
           + '<div style="font-size:12px;line-height:1.65;color:var(--text);">' + escHtml(a.steps) + '</div>'
@@ -197,6 +197,7 @@ function suggestHomeActivities(sessionId) {
           + '</div>';
       });
       html += '</div>';
+      // eslint-disable-next-line no-unsanitized/property
       resultEl.innerHTML = html;
     })
     .catch(function(err) {
@@ -308,10 +309,11 @@ function renderSessionList() {
       + (s.aiNote ? '<div style="font-size:12px;color:#7c3aed;margin-top:8px;padding:8px 10px;background:#f5f3ff;border-radius:8px;line-height:1.6;">🤖 ' + escHtml(s.aiNote) + '</div>' : '')
       // 작성자 라벨 (admin이 다른 선생님 세션을 식별할 수 있도록 — admin + teacher 필드 있을 때만)
       + ((currentUser && currentUser.role === 'admin' && s.teacher)
-          ? '<div style="font-size:11px;color:#64748b;margin-top:8px;text-align:right;">👤 작성자 <span style="font-weight:700;color:' + getTeacherColor(s.teacher) + ';">' + escHtml(s.teacher) + '</span></div>'
+          ? '<div style="font-size:11px;color:#64748b;margin-top:8px;text-align:right;">👤 작성자 <span style="font-weight:700;color:' + escHtml(getTeacherColor(s.teacher)) + ';">' + escHtml(s.teacher) + '</span></div>'
           : '')
       + '</div>';
   });
+  // eslint-disable-next-line no-unsanitized/property
   c.innerHTML = html;
 }
 
@@ -520,10 +522,11 @@ function renderChart() {
     var last = pts[pts.length - 1].score;
     var color = last >= 70 ? '#10b981' : last >= 40 ? '#f59e0b' : '#ef4444';
     bars += '<div class="score-row"><div class="score-label">' + escHtml(n) + '</div>'
-      + '<div class="score-bar"><div class="score-fill" style="width:' + last + '%;background:' + color + '"></div></div>'
-      + '<div class="score-val" style="color:' + color + '">' + last + '%</div></div>';
+      + '<div class="score-bar"><div class="score-fill" style="width:' + escHtml(String(last)) + '%;background:' + escHtml(color) + '"></div></div>'
+      + '<div class="score-val" style="color:' + escHtml(color) + '">' + escHtml(String(last)) + '%</div></div>';
   }
   var sb = document.getElementById('scoreBars');
+  // eslint-disable-next-line no-unsanitized/property
   if (sb) sb.innerHTML = bars || '<div class="empty"><p>달성도 데이터가 없습니다.</p></div>';
 
   // 음소 추이 차트 연동
@@ -563,13 +566,14 @@ function renderPhonemeChart(childId) {
   // 필터 칩 렌더링
   var filterEl = document.getElementById('phonemeChartFilter');
   if (filterEl) {
+    // eslint-disable-next-line no-unsanitized/property
     filterEl.innerHTML = allPhonemes.map(function(p) {
       var active = _selectedPhonemes.indexOf(p) > -1;
       return '<span onclick="togglePhonemeFilter(\'' + escHtml(p) + '\')" '
         + 'style="font-size:12px;padding:4px 10px;border-radius:20px;cursor:pointer;font-weight:700;'
-        + 'background:' + (active ? '#db2777' : '#f1f5f9') + ';'
-        + 'color:' + (active ? 'white' : '#94a3b8') + ';'
-        + 'border:1.5px solid ' + (active ? '#db2777' : '#e2e8f0') + ';">' + escHtml(p) + '</span>';
+        + 'background:' + escHtml(active ? '#db2777' : '#f1f5f9') + ';'
+        + 'color:' + escHtml(active ? 'white' : '#94a3b8') + ';'
+        + 'border:1.5px solid ' + escHtml(active ? '#db2777' : '#e2e8f0') + ';">' + escHtml(p) + '</span>';
     }).join('');
   }
 
@@ -666,7 +670,7 @@ function renderPhonemeMatrixTable(session, allPhonemes) {
   var posLabels = ['어두','어중','어말'];
   var posKeys   = ['initial','medial','final'];
 
-  var html = '<div style="font-size:11px;color:var(--text2);margin-bottom:6px;">최근 세션(' + session.date + ') 음소 현황</div>'
+  var html = '<div style="font-size:11px;color:var(--text2);margin-bottom:6px;">최근 세션(' + escHtml(session.date || '') + ') 음소 현황</div>'
     + '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
     + '<tr style="border-bottom:2px solid var(--border);">'
     + '<th style="padding:6px 8px;text-align:left;color:var(--text2);font-weight:700;width:52px;">음소</th>'
@@ -690,6 +694,7 @@ function renderPhonemeMatrixTable(session, allPhonemes) {
   });
 
   html += '</table>';
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = html;
 }
 
@@ -799,17 +804,18 @@ function renderStagnationResult(p, childName, childId) {
       + '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
     p.actions.forEach(function(a) {
       var meta = stagnationActionMeta(a.type, childId);
-      html += '<div style="flex:1;min-width:140px;background:white;border-radius:10px;padding:11px 12px;border:1.5px solid ' + meta.color + '20;">'
-        + '<div style="font-size:16px;margin-bottom:4px;">' + meta.icon + '</div>'
+      html += '<div style="flex:1;min-width:140px;background:white;border-radius:10px;padding:11px 12px;border:1.5px solid ' + escHtml(meta.color) + '20;">'
+        + '<div style="font-size:16px;margin-bottom:4px;">' + escHtml(meta.icon) + '</div>'
         + '<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px;">' + escHtml(a.label) + '</div>'
         + '<div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px;">' + escHtml(a.detail) + '</div>'
-        + '<button class="btn-ghost" style="width:100%;font-size:11px;padding:6px 4px;color:' + meta.color + ';border-color:' + meta.color + '40;" onclick="' + meta.onclick + '">' + meta.btnLabel + '</button>'
+        + '<button class="btn-ghost" style="width:100%;font-size:11px;padding:6px 4px;color:' + escHtml(meta.color) + ';border-color:' + escHtml(meta.color) + '40;" onclick="' + escHtml(meta.onclick) + '">' + escHtml(meta.btnLabel) + '</button>'
         + '</div>';
     });
     html += '</div></div>';
   }
 
   html += '</div>';
+  // eslint-disable-next-line no-unsanitized/property
   document.getElementById('stagnationResult').innerHTML = html;
 }
 

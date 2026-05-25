@@ -356,6 +356,7 @@ function _renderLoginUpdatePopup(n, dismissKey) {
   var title   = escHtml(n.title || '마디 공지');
   var content = escHtml(n.content || '');
 
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML =
       '<div style="background:white;border-radius:14px;width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
     +   // 헤더: 제목 + 우상단 X

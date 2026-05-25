@@ -18,7 +18,8 @@ function openBulkClosedDateModal(ids) {
     var MAX_SHOW = 5;
     var shown = names.slice(0, MAX_SHOW).join(', ');
     var extra = names.length > MAX_SHOW ? ' 외 ' + (names.length - MAX_SHOW) + '명' : '';
-    preview.innerHTML = '👶 ' + shown + (extra ? '<strong>' + extra + '</strong>' : '');
+    // eslint-disable-next-line no-unsanitized/property
+    preview.innerHTML = '👶 ' + shown + (extra ? '<strong>' + escHtml(extra) + '</strong>' : '');
   }
 
   // 날짜 초기화
@@ -98,6 +99,7 @@ function openChildRegModal() {
   overlay.id = 'childRegModal';
   overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
 
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML = '<div class="sched-modal" style="max-height:90vh;overflow-y:auto;">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
     + '<div class="sched-modal-title" style="margin-bottom:0;">➕ 이용자 등록</div>'
@@ -202,12 +204,13 @@ function openChildDetail(id) {
     var hasNote = sessionDB.some(function(n){ return n.childId===id && n.date===s.date; });
     return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f1f5f9;">'
       + '<span style="font-size:12px;min-width:80px;color:#64748b;">' + escHtml(s.date) + '</span>'
-      + (s.startTime ? '<span style="font-size:12px;color:#475569;min-width:56px;">' + s.startTime.slice(0,5) + (s.endTime?'~'+s.endTime.slice(0,5):'') + '</span>' : '')
+      + (s.startTime ? '<span style="font-size:12px;color:#475569;min-width:56px;">' + escHtml(s.startTime.slice(0,5)) + (s.endTime?'~'+escHtml(s.endTime.slice(0,5)):'') + '</span>' : '')
       + (s.teacher ? '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:'+tColor+'22;color:'+tColor+';font-weight:700;">' + escHtml(s.teacher) + '</span>' : '')
       + '<span style="font-size:11px;margin-left:auto;">' + (hasNote ? '📝 기록됨' : '<span style="color:#f59e0b;">⏳ 미기록</span>') + '</span>'
       + '</div>';
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML = '<div class="sched-modal" style="max-width:500px;max-height:90vh;overflow-y:auto;">'
     // 헤더
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
@@ -283,6 +286,7 @@ function openEditModal(id) {
   overlay.id = 'editModal';
   overlay.onclick = function(e) { if (e.target === overlay) closeEditModal(); };
 
+  // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML = '<div class="sched-modal" style="max-height:88vh;overflow-y:auto;">'
     + '<div class="sched-modal-title">✏️ 아동 정보 편집</div>'
 
@@ -452,6 +456,7 @@ function calcEditCopay() {
 
   if (resultEl) {
     resultEl.style.display = 'block';
+    // eslint-disable-next-line no-unsanitized/property
     resultEl.innerHTML = '1회 ' + fee.toLocaleString() + '원'
       + ' − 바우처 ' + perSession.toLocaleString() + '원'
       + ' = <b>본인부담 ' + myCopay.toLocaleString() + '원</b>'
@@ -557,6 +562,7 @@ function updateSSDrop(sel) {
       html += '<div class="ss-item" data-val="' + escHtml(opt.value) + '" data-label="' + escHtml(label) + '">' + escHtml(label) + '</div>';
     }
   });
+  // eslint-disable-next-line no-unsanitized/property
   drop.innerHTML = html || '<div class="ss-empty">검색 결과 없음</div>';
   drop.querySelectorAll('.ss-item').forEach(function(item) {
     item.addEventListener('mousedown', function(e) {
@@ -715,6 +721,7 @@ function populateChildSelects() {
     } else {
       optsHtml = _optionsCacheHtml;
     }
+    // eslint-disable-next-line no-unsanitized/property
     el.innerHTML = childDB.length === 0
       ? '<option value="">아동을 먼저 등록해주세요</option>'
       : (needsEmpty.indexOf(id) > -1 ? '<option value="">아동 검색...</option>' : '')

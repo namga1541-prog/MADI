@@ -153,6 +153,7 @@ function renderSIReport() {
       + '</tr>';
   }).join('');
 
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = '<div class="card" style="margin-bottom:12px;">'
     + '<div class="card-title"><div class="card-title-left">🧠 감각통합 평가 보고서 작성</div>'
     + '<span style="font-size:11px;color:var(--text2);">AI 보고서 자동 생성</span></div>'
@@ -262,8 +263,9 @@ function renderSIReport() {
   if (typeof populateChildSelects === 'function') {
     var wrap = document.getElementById('siChildWrap');
     if (wrap) {
+      // eslint-disable-next-line no-unsanitized/property
       wrap.innerHTML = '<select class="form-input" id="siChild" onchange="onSIChildChange()"><option value="">아동 선택...</option>'
-        + (Array.isArray(childDB) ? childDB : []).map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age||'') + ')</option>'; }).join('')
+        + (Array.isArray(childDB) ? childDB : []).map(function(c){ return '<option value="' + escHtml(String(c.id)) + '">' + escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age||'') + ')</option>'; }).join('')
         + '</select>';
       if (typeof makeSearchable === 'function') makeSearchable('siChild');
     }

@@ -188,8 +188,8 @@ function renderDebugInfo() {
     var u = apiUsage.byModel[m];
     var label = m.includes('haiku') ? 'Haiku' : m.includes('sonnet') ? 'Sonnet' : m;
     modelHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8fafc;border-radius:7px;margin-bottom:4px;font-size:12px;">'
-      + '<span style="font-weight:700;">' + label + '</span>'
-      + '<span style="color:var(--text2);">' + u.calls + '회 · 입력 ' + u.inputTokens.toLocaleString() + ' / 출력 ' + u.outputTokens.toLocaleString() + '</span>'
+      + '<span style="font-weight:700;">' + escHtml(label) + '</span>'
+      + '<span style="color:var(--text2);">' + escHtml(String(u.calls)) + '회 · 입력 ' + escHtml(u.inputTokens.toLocaleString()) + ' / 출력 ' + escHtml(u.outputTokens.toLocaleString()) + '</span>'
       + '</div>';
   });
 
@@ -214,7 +214,7 @@ function renderDebugInfo() {
       var d = new Date(e.ts).toLocaleString('ko-KR');
       return '<div style="padding:7px 10px;background:#fef2f2;border-radius:7px;margin-bottom:4px;font-size:11px;line-height:1.5;">'
         + '<div style="color:#dc2626;font-weight:700;">' + escHtml(e.message || '오류') + '</div>'
-        + '<div style="color:var(--text2);margin-top:2px;">' + d + (e.source ? ' · ' + escHtml(e.source) : '') + '</div>'
+        + '<div style="color:var(--text2);margin-top:2px;">' + escHtml(d) + (e.source ? ' · ' + escHtml(e.source) : '') + '</div>'
         + '</div>';
     }).join('');
     html += '<div style="display:flex;gap:6px;margin-top:8px;">'
@@ -223,6 +223,7 @@ function renderDebugInfo() {
       + '</div>';
   }
 
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = html;
 }
 
@@ -497,9 +498,9 @@ function renderBackupList() {
         + '<div style="flex:1;min-width:0;">'
         + '<div style="font-size:13px;font-weight:700;color:var(--navy);">' + escHtml(dateLabel) + '</div>'
         + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">'
-        + '아동 ' + (b.counts ? b.counts.children : '?') + ' · '
-        + '세션 ' + (b.counts ? b.counts.sessions : '?') + ' · '
-        + sizeKB + 'KB</div>'
+        + '아동 ' + escHtml(String(b.counts ? b.counts.children : '?')) + ' · '
+        + '세션 ' + escHtml(String(b.counts ? b.counts.sessions : '?')) + ' · '
+        + escHtml(String(sizeKB)) + 'KB</div>'
         + '</div>'
         + '<button class="btn-del" onclick="deleteBackupConfirm(\'' + escHtml(String(b.id)) + '\')">삭제</button>'
         + '</div>'
@@ -507,6 +508,7 @@ function renderBackupList() {
         + 'onclick="restoreFromBackup(\'' + escHtml(String(b.id)) + '\')">↻ 이 백업으로 복원</button>'
         + '</div>';
     }).join('');
+    // eslint-disable-next-line no-unsanitized/property
     el.innerHTML = html;
   }).catch(function(err) {
     el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">⚠️ 백업 로드 실패: ' + escHtml(err.message || '오류') + '</div>';

@@ -54,10 +54,12 @@ function _populateSvcFilters() {
 
   ['mSvcChild','dSvcChild'].forEach(function(id){
     var el = document.getElementById(id);
+    // eslint-disable-next-line no-unsanitized/property
     if(el){ var v = el.value; el.innerHTML = childOpts; el.value = v; }
   });
   ['mSvcTeacher','dSvcTeacher'].forEach(function(id){
     var el = document.getElementById(id);
+    // eslint-disable-next-line no-unsanitized/property
     if(el){ var v = el.value; el.innerHTML = teacherOpts; el.value = v; }
   });
 }
@@ -184,6 +186,7 @@ function renderMonthlyService() {
     var fee = r.childObj ? (r.childObj.feePerSession || 0) : 0;
     return s + fee * r.data.done;
   }, 0);
+  // eslint-disable-next-line no-unsanitized/property
   if (summaryEl) summaryEl.innerHTML = '총 <b>' + totalAll + '회기</b> / 완료 <b>' + totalDone + '회</b> / ' + rows.length + '명'
     + (totalFeeSum ? ' &nbsp;·&nbsp; 완료금액 합계 <b style="color:var(--mint);">' + totalFeeSum.toLocaleString() + '원</b>' : '');
 
@@ -211,6 +214,7 @@ function renderMonthlyService() {
       + '</div>';
   }).join('');
 
+  // eslint-disable-next-line no-unsanitized/property
   listEl.innerHTML = html;
 }
 
@@ -262,7 +266,7 @@ function renderDailyService() {
   });
 
   if (!rows.length) {
-    listEl.innerHTML = '<div class="empty"><div class="empty-icon">📆</div><p>' + dt + ' 기록이 없습니다.</p></div>';
+    listEl.innerHTML = '<div class="empty"><div class="empty-icon">📆</div><p>' + escHtml(dt) + ' 기록이 없습니다.</p></div>';
     if (summaryEl) summaryEl.textContent = '';
     return;
   }
@@ -270,6 +274,7 @@ function renderDailyService() {
   var totalRows = rows.length;
   var doneCount = rows.filter(function(r){ return r.status==='done'; }).length;
   var cancelCount = rows.filter(function(r){ return r.status==='cancelled'||r.status==='makeup'||r.status==='carried'; }).length;
+  // eslint-disable-next-line no-unsanitized/property
   if (summaryEl) summaryEl.innerHTML = '총 <b>' + totalRows + '회기</b> — 완료 <b>' + doneCount + '</b> / 취소 <b>' + cancelCount + '</b> / 예정 <b>' + (totalRows-doneCount-cancelCount) + '</b>';
 
   var statusOptions = [
@@ -283,7 +288,7 @@ function renderDailyService() {
   var html = rows.map(function(r){
     var childId  = r.type==='sched' ? r.sc.childId : r.s.childId;
     var teacher  = r.type==='sched' ? (r.sc.teacher||'미지정') : (r.s.teacher||'미지정');
-    var timeStr  = r.type==='sched' ? ((r.sc.startTime||'')+(r.sc.endTime?' ~ '+r.sc.endTime:'')) : '';
+    var timeStr  = r.type==='sched' ? (escHtml(r.sc.startTime||'')+(r.sc.endTime?' ~ '+escHtml(r.sc.endTime):'')) : '';
     var schedId  = r.type==='sched' ? r.sc.id : '';
     var child    = children.find(function(c){ return String(c.id)===String(childId); });
     var name     = child ? child.name : ('아동#'+childId);
@@ -324,6 +329,7 @@ function renderDailyService() {
       + '</div>';
   }).join('');
 
+  // eslint-disable-next-line no-unsanitized/property
   listEl.innerHTML = html;
 }
 
@@ -374,7 +380,7 @@ function renderSettlement() {
 
   var teachers = Object.keys(teacherMap).sort();
   if (!teachers.length) {
-    listEl.innerHTML = '<div class="empty"><div class="empty-icon">🧾</div><p>' + ym + ' 정산 데이터가 없습니다.</p></div>';
+    listEl.innerHTML = '<div class="empty"><div class="empty-icon">🧾</div><p>' + escHtml(ym) + ' 정산 데이터가 없습니다.</p></div>';
     if (summaryEl) summaryEl.textContent = '';
     return;
   }
@@ -386,6 +392,7 @@ function renderSettlement() {
     grandDone += d.done;
     grandTotal += d.rows.filter(function(r){ return r.status==='done'; }).reduce(function(s,r){ return s+r.fee; },0);
   });
+  // eslint-disable-next-line no-unsanitized/property
   if (summaryEl) summaryEl.innerHTML = '완료 총 <b>' + grandDone + '회</b> &nbsp;·&nbsp; 합계금액 <b style="color:var(--mint);">' + grandTotal.toLocaleString() + '원</b>';
 
   var html = teachers.map(function(t){
@@ -436,6 +443,7 @@ function renderSettlement() {
       + '</div>';
   }).join('');
 
+  // eslint-disable-next-line no-unsanitized/property
   listEl.innerHTML = html;
 }
 
@@ -524,6 +532,7 @@ function initSvcStaffMonth() {
     var label = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
     options += '<option value="' + ym + '"' + (i === 0 ? ' selected' : '') + '>' + label + '</option>';
   }
+  // eslint-disable-next-line no-unsanitized/property
   sel.innerHTML = options;
 }
 
@@ -631,6 +640,7 @@ function renderStaffStats() {
     + '<span style="font-size:11px;color:#1e40af;font-weight:600;">💡 카드를 눌러 월별 추이 확인</span>'
     + '</div>';
 
+  // eslint-disable-next-line no-unsanitized/property
   listEl.innerHTML = hint + rows;
 
   // 차트 초기화

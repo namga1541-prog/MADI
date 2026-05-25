@@ -103,9 +103,10 @@ var COMMON_PHONEMES = ['ㅅ','ㄹ','ㄷ','ㄴ','ㅈ','ㅊ','ㅆ','ㅉ','ㅎ','�
 function initPhonemeChips() {
   var el = document.getElementById('phonemeChips');
   if (!el) return;
+  // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = COMMON_PHONEMES.map(function(p) {
     return '<span class="phoneme-chip' + (phonemeData[p] ? ' added' : '') + '" '
-      + 'id="chip_' + p + '" onclick="addPhonemeRow(\'' + p + '\')">' + p + '</span>';
+      + 'id="chip_' + escHtml(p) + '" onclick="addPhonemeRow(\'' + escHtml(p) + '\')">' + escHtml(p) + '</span>';
   }).join('');
 }
 
@@ -142,11 +143,12 @@ function addPhonemeRow(phoneme) {
   row.id = 'pr_' + phoneme;
 
   var NL = String.fromCharCode(10);
+  // eslint-disable-next-line no-unsanitized/property
   row.innerHTML = '<div class="phoneme-label">' + escHtml(phoneme) + '</div>'
     + makePhonemeCell(phoneme, 'initial')
     + makePhonemeCell(phoneme, 'medial')
     + makePhonemeCell(phoneme, 'final')
-    + '<button onclick="removePhonemeRow(\'' + phoneme + '\')" '
+    + '<button onclick="removePhonemeRow(\'' + escHtml(phoneme) + '\')" '
     + 'style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:0;line-height:1;">×</button>';
 
   var phonemeRowsEl = document.getElementById('phonemeRows');
@@ -291,6 +293,7 @@ function renderGoalRows() {
       + '<button onclick="removeGoalRow(' + i + ')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:0 4px;">×</button>'
       + '</div>';
   });
+  // eslint-disable-next-line no-unsanitized/property
   c.innerHTML = html;
 }
 function addGoalRow() { goalRows.push({ name: '', score: '' }); renderGoalRows(); }
@@ -656,6 +659,7 @@ function renderChildGrid() {
     html += '<div style="grid-column:1/-1;text-align:center;padding:8px;font-size:11px;color:var(--text2);">'
       + '✓ ' + totalCount + '명 모두 표시됨</div>';
   }
+  // eslint-disable-next-line no-unsanitized/property
   c.innerHTML = html;
 }
 

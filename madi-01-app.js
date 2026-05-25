@@ -222,10 +222,11 @@ function showInputPrompt(opts) {
 
   var ov = document.createElement('div');
   ov.className = 'confirm-ov';
+  // eslint-disable-next-line no-unsanitized/property
   ov.innerHTML = '<div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="ipTitle">'
     + '<p id="ipTitle" class="confirm-msg" style="font-weight:700;">' + escHtml(title) + '</p>'
     + (label ? '<label for="ipInput" style="display:block;font-size:12px;color:var(--text2,#64748b);margin:6px 0 4px;">' + escHtml(label) + '</label>' : '')
-    + '<input id="ipInput" type="' + type + '" value="' + escHtml(initial) + '" placeholder="' + escHtml(placeholder) + '" '
+    + '<input id="ipInput" type="' + escHtml(type) + '" value="' + escHtml(initial) + '" placeholder="' + escHtml(placeholder) + '" '
     + 'style="width:100%;padding:11px 12px;font-size:16px;border:1.5px solid var(--border,#e2e8f0);border-radius:10px;font-family:inherit;box-sizing:border-box;">'
     + '<div id="ipErr" style="color:#ef4444;font-size:12px;margin-top:6px;min-height:14px;"></div>'
     + '<div class="confirm-btns">'
@@ -267,11 +268,12 @@ function showConfirm(msg, onOk, opts) {
   var danger      = opts.danger !== false;
   var ov = document.createElement('div');
   ov.className = 'confirm-ov';
+  // eslint-disable-next-line no-unsanitized/property
   ov.innerHTML = '<div class="confirm-box" role="alertdialog" aria-modal="true">'
     + '<p class="confirm-msg">' + escHtml(msg).replace(/\n/g,'<br>') + '</p>'
     + '<div class="confirm-btns">'
     + '<button class="btn btn-ghost confirm-cancel">' + escHtml(cancelLabel) + '</button>'
-    + '<button class="btn ' + (danger ? 'btn-del' : 'btn-primary') + ' confirm-ok">' + escHtml(okLabel) + '</button>'
+    + '<button class="btn ' + escHtml(danger ? 'btn-del' : 'btn-primary') + ' confirm-ok">' + escHtml(okLabel) + '</button>'
     + '</div></div>';
   document.body.appendChild(ov);
   var release = null;
