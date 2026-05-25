@@ -14,7 +14,7 @@ function showLanding()    { var el = document.getElementById('landingScreen'); i
 function hideLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'none'; }
 function backToLanding()  { var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'none'; var ss = document.getElementById('signupScreen'); if (ss) ss.style.display = 'none'; showLanding(); }
 function showLoginScreen(){ var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'flex'; loadUserList(); }
-function hideLoginScreen(){ document.getElementById('loginScreen').style.display = 'none'; showDashboard(); }
+function hideLoginScreen(){ var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'none'; showDashboard(); }
 function loadUserList() {
   var un = document.getElementById('loginUsernameInput'), pw = document.getElementById('loginPwInput'), err = document.getElementById('loginError');
   var lastId = localStorage.getItem('madi_last_id') || '';
@@ -42,13 +42,13 @@ function onInviteCodeInput() {
 }
 
 function showSignupScreen() {
-  hideLanding(); document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signupScreen').style.display = 'flex';
+  hideLanding(); var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'none'; var _ss2 = document.getElementById('signupScreen'); if (_ss2) _ss2.style.display = 'flex';
   ['signupInviteCode','signupName','signupUsername','signupPassword','signupPasswordConfirm'].forEach(function(id){ var el = document.getElementById(id); if (el) el.value = ''; });
   var _se = document.getElementById('signupError'); if (_se) _se.textContent = '';
   var _sc = document.getElementById('signupCenterName'); if (_sc) _sc.textContent = '';
   setTimeout(function(){ var inv = document.getElementById('signupInviteCode'); if (inv) inv.focus(); }, 200);
 }
-function backToLoginFromSignup() { document.getElementById('signupScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
+function backToLoginFromSignup() { var _ss = document.getElementById('signupScreen'); if (_ss) _ss.style.display = 'none'; var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'flex'; }
 
 function doSignup() {
   var errEl = document.getElementById('signupError'), btn = document.getElementById('signupSubmitBtn');
@@ -98,7 +98,7 @@ function doSignup() {
         currentUser = (loginData && loginData.user) ? loginData.user
           : { id: result.user.id, username: result.user.username, name: result.user.name, role: result.user.role, color: result.user.color, center_id: result.user.center_id, permissions: result.user.permissions };
         try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', result.user.username); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
-        document.getElementById('signupScreen').style.display = 'none'; hideLoginScreen();
+        var _scr = document.getElementById('signupScreen'); if (_scr) _scr.style.display = 'none'; hideLoginScreen();
         if (typeof applyUserUI === 'function') applyUserUI();
         if (typeof applyRoleUI === 'function') applyRoleUI();
         if (typeof loadCenterApiKey === 'function') loadCenterApiKey();
@@ -109,8 +109,8 @@ function doSignup() {
       })
       .catch(function() {
         // /login 실패해도 가입 자체는 완료 — 로그인 화면에서 수동 로그인 유도
-        document.getElementById('signupScreen').style.display = 'none';
-        document.getElementById('loginScreen').style.display = 'flex';
+        var _ssc = document.getElementById('signupScreen'); if (_ssc) _ssc.style.display = 'none';
+        var _lsc = document.getElementById('loginScreen'); if (_lsc) _lsc.style.display = 'flex';
         var unEl = document.getElementById('loginUsernameInput');
         if (unEl) unEl.value = result.user.username;
         showToast('✅ 가입 완료! 비밀번호를 입력해 로그인해주세요');
@@ -141,9 +141,9 @@ function doLogin(_totpCode) {
     if (data.error) { if (errEl) errEl.textContent = data.error; return; }
     // 토큰은 서버가 httpOnly 쿠키로 발급 — 클라이언트는 user 정보만 저장
     currentUser = data.user;
-    localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', un);
+    try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', un); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     _purgeLegacyCnCache(); // 이전 사용자의 cn3_* PII 잔존 데이터 일소
-    hideLoginScreen(); applyUserUI(); applyRoleUI(); loadCenterApiKey(); loadDBFromSupabase(); initRealtime(); loadCenterSessionInterval();
+    hideLoginScreen(); if (typeof applyUserUI === 'function') applyUserUI(); if (typeof applyRoleUI === 'function') applyRoleUI(); if (typeof loadCenterApiKey === 'function') loadCenterApiKey(); if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(); if (typeof initRealtime === 'function') initRealtime(); if (typeof loadCenterSessionInterval === 'function') loadCenterSessionInterval();
     // 로그인 직후 마디 업데이트 팝업 표시 (대시보드 렌더 후 약간의 딜레이)
     setTimeout(function(){ if (typeof showLoginUpdatePopup === 'function') showLoginUpdatePopup(); }, 500);
   }).catch(function() {
@@ -290,7 +290,7 @@ function doLogout() {
   showConfirm(currentUser.name + '님, 로그아웃 하시겠습니까?', function() {
     // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
     fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
-    stopRealtime(); currentUser = null; clearToken();
+    if (typeof stopRealtime === 'function') stopRealtime(); currentUser = null; clearToken();
     // 보안: supaFetch 메모리 캐시 전체 클리어 — 다른 사용자에게 잔여 PII 노출 방지
     if (typeof supaCacheClearAll === 'function') supaCacheClearAll();
     // 공유 기기 보호: 다음 사용자가 이전 사용자의 PII 를 보지 못하도록 모든 캐시 제거
@@ -320,7 +320,7 @@ function doLogout() {
       window._parentCacheUserId = null;
       window._parentActiveIdx = 0;
     }
-    renderChildGrid(); document.getElementById('headerUser').style.display = 'none'; showLoginScreen();
+    if (typeof renderChildGrid === 'function') renderChildGrid(); var _hu = document.getElementById('headerUser'); if (_hu) _hu.style.display = 'none'; showLoginScreen();
   }, { danger: false, okLabel: '로그아웃' });
 }
 

@@ -40,7 +40,7 @@ function loadDBFromSupabase(silent) {
     refreshChildAges();   // 등록 시점 age → 오늘 기준으로 인메모리 갱신
     window._dataLoadedAt = Date.now();
     if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
-    renderChildGrid(); populateChildSelects(); renderGoalRows(); renderSessionList(); renderUnwrittenAlert(); renderStaffCard();
+    if (typeof renderChildGrid === 'function') renderChildGrid(); if (typeof populateChildSelects === 'function') populateChildSelects(); if (typeof renderGoalRows === 'function') renderGoalRows(); if (typeof renderSessionList === 'function') renderSessionList(); if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert(); if (typeof renderStaffCard === 'function') renderStaffCard();
     if (typeof renderSchedView === 'function') renderSchedView();
     if (typeof renderDashboard === 'function') renderDashboard();
     loadActivitiesFromSupa(); loadIEPFromSupa();
@@ -48,8 +48,8 @@ function loadDBFromSupabase(silent) {
     // 백그라운드: 과거 데이터 추가 로드 후 머지 (사용자 인지 없이)
     setTimeout(function() { _loadOlderHistory(d90, d30); }, 1500);
   }).catch(function(e) {
-    console.error('loadDB 실패:', e); showToast('❌ 데이터 로드 실패 — 로컬 데이터로 표시합니다');
-    loadDB(); renderChildGrid(); populateChildSelects();
+    if (window.console && console.error) console.error('loadDB 실패:', e); showToast('❌ 데이터 로드 실패 — 로컬 데이터로 표시합니다');
+    loadDB(); if (typeof renderChildGrid === 'function') renderChildGrid(); if (typeof populateChildSelects === 'function') populateChildSelects();
   });
 }
 
@@ -149,7 +149,7 @@ function loadIEPFromSupa() {
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
       var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; });
-      if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); var _iepEl = document.getElementById('iepChild'); if (_iepEl) renderIEPHistory(parseInt(_iepEl.value) || 0); }
+      if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); var _iepEl = document.getElementById('iepChild'); if (_iepEl && typeof renderIEPHistory === 'function') renderIEPHistory(parseInt(_iepEl.value) || 0); }
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 function saveActivities() {
@@ -159,7 +159,7 @@ function saveActivities() {
 }
 function loadActivitiesFromSupa() {
   supaFetch('madi_activities?' + centerFilter() + '&order=id.asc', 'GET')
-    .then(function(rows) { if (Array.isArray(rows) && rows.length > 0) { activityDB = rows; safeSetItem('cn3_activities', JSON.stringify(activityDB)); renderActivityCatalog(); } })
+    .then(function(rows) { if (Array.isArray(rows) && rows.length > 0) { activityDB = rows; safeSetItem('cn3_activities', JSON.stringify(activityDB)); if (typeof renderActivityCatalog === 'function') renderActivityCatalog(); } })
     .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
@@ -331,11 +331,12 @@ function updateHeaderClock() {
   var now = nowKST(); timeEl.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   var today = ymd(now), nowMin = now.getHours()*60+now.getMinutes();
   var upcoming = (typeof scheduleDB !== 'undefined' ? scheduleDB : [])
-    .filter(function(s){ if (s.date !== today || !s.startTime) return false; var p = s.startTime.split(':'); return parseInt(p[0])*60+parseInt(p[1]) >= nowMin; })
+    .filter(function(s){ if (s.date !== today || !s.startTime) return false; var p = s.startTime.split(':'); if (!p || p.length < 2) return false; return parseInt(p[0])*60+parseInt(p[1]) >= nowMin; })
     .sort(function(a,b){ return a.startTime.localeCompare(b.startTime); });
   if (upcoming.length > 0) {
     var next = upcoming[0], child = (typeof childDB !== 'undefined' ? childDB : []).find(function(c){ return c.id === next.childId; });
-    var name = child ? child.name : '?', p = next.startTime.split(':'), diff = (parseInt(p[0])*60+parseInt(p[1]))-nowMin;
+    var p = next.startTime.split(':'); if (!p || p.length < 2) { nextEl.textContent = ''; return; }
+    var name = child ? child.name : '?', diff = (parseInt(p[0])*60+parseInt(p[1]))-nowMin;
     nextEl.textContent = diff === 0 ? '🔔 '+name+' 지금' : diff < 60 ? '⏱️ '+name+' '+diff+'분 후' : '📅 '+name+' '+next.startTime;
   } else { var count = (typeof childDB !== 'undefined' ? childDB.length : 0); nextEl.textContent = count > 0 ? '아동 '+count+'명' : '오늘 일정 없음'; }
 }
