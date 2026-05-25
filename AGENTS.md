@@ -76,7 +76,7 @@
 - madi_settings    : key, value  ⚠️ center_id 컬럼 없음 — 전역 테이블
 - madi_portfolios  : id, child_id, center_id, parent_visible, month, content, data, created_at
 - madi_notifications: id, user_id, center_id, type, title, body, link, read_at, created_at
-- madi_audit_log   : id, actor_id, actor_name, action, table_name, record_id, child_id, occurred_at
+- madi_audit_log   : id, actor_id, actor_name, action, table_name, record_id, child_id, changed_cols, occurred_at
 - madi_push_settings: center_id, enabled, push_time, message_title, message_body, last_sent_date
 - madi_rate_limits : key(PK), count, window_start, hour_count, hour_start, updated_at
 
@@ -109,7 +109,7 @@
 | **report** | `madi-13.js` | 리포트·장단기계획 |
 | **board** | `madi-14.js` `madi-14-board.js` | 공지·라운지·자료실 |
 | **parent** | `madi-09.js` `madi-15.js` `madi-15-pages.js` | 학부모 포털 전체 |
-| **edge** | `supabase/functions/ai-proxy/index.ts` `supabase/functions/login/index.ts` `supabase/functions/notify-tomorrow/index.ts` | Edge Functions (클라이언트와 완전 격리) |
+| **edge** | `supabase/functions/ai-proxy/index.ts` `supabase/functions/api/index.ts` `supabase/functions/change-password/index.ts` `supabase/functions/login/index.ts` `supabase/functions/notify-test/index.ts` `supabase/functions/notify-tomorrow/index.ts` `supabase/functions/parent-auth/index.ts` `supabase/functions/totp/index.ts` `supabase/functions/upload-image/index.ts` `supabase/functions/_shared/auth.ts` | Edge Functions (클라이언트와 완전 격리) |
 | **static** | `sw.js` `index.html` `admin.html` `madi.css` | 정적 자산·PWA·공통 HTML |
 
 ---
@@ -176,7 +176,7 @@ Architect (opus) 완료
 
 | 수정 도메인 | 실행 테스트 | 명령 |
 |------------|-----------|------|
-| core, auth | auth.spec.js 전체 | `npx playwright test auth` |
+| core | auth.spec.js 전체 | `npx playwright test auth` |
 | session | forms.spec.js > 세션 기록 폼 | `npx playwright test forms` |
 | calendar | buttons.spec.js > 캘린더 탭, navigation.spec.js > 내보내기 | `npx playwright test buttons navigation` |
 | child-mgmt | buttons.spec.js > 아동 탭, forms.spec.js > 아동 추가 | `npx playwright test buttons forms` |
@@ -185,7 +185,7 @@ Architect (opus) 완료
 | system, home | buttons.spec.js > 헤더·보고서 탭 | `npx playwright test buttons` |
 | **2개 이상 도메인** | **전체 44개** | `npx playwright test` |
 
-> **환경 변수 필수**: `$env:TEST_USERNAME="dinosau"; $env:TEST_PASSWORD="ska930!@34"`
+> **환경 변수 필수**: `$env:TEST_USERNAME` · `$env:TEST_PASSWORD` — 실제 값은 로컬에서 직접 설정 (이 파일에 기록 금지 — 공개 repo 노출 위험)
 
 ---
 
@@ -300,7 +300,7 @@ Architect (opus) 완료
 - [파일명] 줄 ~: [...]
 
 코딩 규칙 (반드시 준수):
-- var / function / .then() 패턴 엄수 — let / const / 화살표함수 / class 금지
+- var / function / .then() 스타일 유지 — let / const / 화살표함수 / class 미사용
 - template literal(백틱) 사용 가능
 - console.log 추가 금지
 - escHtml() 없이 innerHTML에 사용자 데이터 삽입 금지
@@ -344,8 +344,14 @@ Architect (opus) 완료
 - [변경 항목 1]
 - [변경 항목 2]
 
-코딩 규칙: var / function / .then() — let/const/화살표함수 금지
+코딩 규칙: var / function / .then() 스타일 유지 — let/const/화살표함수 미사용
 완료 후 commit 하지 말 것 (통합 단계에서 일괄 처리).
+
+완료 보고 형식 (Reviewer가 취합할 수 있도록 반드시 이 형식으로 출력):
+✅ [도메인명] 구현 완료
+- [파일명]: [추가/수정한 함수명] — [한 줄 설명]
+- [파일명]: [추가/수정한 함수명] — [한 줄 설명]
+⚠️ 미구현 항목 (있는 경우): [항목명] — [이유]
 ```
 
 **기능 하네스 역할 분리 예시**:
@@ -413,7 +419,7 @@ Architect (opus) 완료
    report: madi-13.js
    board: madi-14.js, madi-14-board.js
    parent: madi-09.js, madi-15.js, madi-15-pages.js
-   edge: supabase/functions/**
+   edge: supabase/functions/ai-proxy, api, change-password, login, notify-test, notify-tomorrow, parent-auth, totp, upload-image, _shared/auth.ts
    static: sw.js, index.html, admin.html, madi.css
 4. 영향 도메인 목록과 이유를 한 줄씩 출력
 5. "실행 불필요" 도메인은 명시적으로 제외 이유 작성
@@ -455,7 +461,7 @@ Step 2 — 유닛 테스트
   성공 시: Step 3 진행
 
 Step 3 — E2E 테스트 (도메인 매핑 테이블 기준)
-  명령: $env:TEST_USERNAME="dinosau"; $env:TEST_PASSWORD="ska930!@34"; npx playwright test [관련 spec]
+  명령: $env:TEST_USERNAME=[계정]; $env:TEST_PASSWORD=[비밀번호]; npx playwright test [관련 spec]
   실패 시: 실패 테스트 오류 메시지 + 스크린샷을 해당 도메인 에이전트에 전달 → 재수정
   성공 시: ✅ 검증 완료 → git push
 
@@ -554,7 +560,9 @@ git worktree add .claude/worktrees/agent-[도메인] -b wt/[도메인]
 # 2. 에이전트 브리핑에 worktree 경로 명시
 #    프로젝트 경로: (현재 작업 디렉토리)/.claude/worktrees/agent-[도메인]
 
-# 3. 모든 에이전트 완료 후 main에 순차 병합
+# 3. 모든 에이전트 완료 후 main에 순차 병합 (순서 중요)
+#    core 변경 포함 시: core → static → 나머지 도메인 순서로 병합
+#    core 미포함 시: 완료된 순서대로 병합 가능
 git merge wt/[도메인] --no-ff -m "merge: [도메인] 에이전트 결과"
 
 # 4. worktree 정리
@@ -706,7 +714,14 @@ report     : madi-13.js
 board      : madi-14.js, madi-14-board.js
 parent     : madi-09.js, madi-15.js, madi-15-pages.js
 edge       : supabase/functions/ai-proxy/index.ts
+             supabase/functions/api/index.ts
+             supabase/functions/change-password/index.ts
              supabase/functions/login/index.ts
+             supabase/functions/notify-test/index.ts
              supabase/functions/notify-tomorrow/index.ts
+             supabase/functions/parent-auth/index.ts
+             supabase/functions/totp/index.ts
+             supabase/functions/upload-image/index.ts
+             supabase/functions/_shared/auth.ts
 static     : sw.js, index.html, admin.html, madi.css
 ```
