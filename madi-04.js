@@ -681,7 +681,11 @@ function showStaffTrend(teacher) {
       empty.innerHTML = '<div style="font-size:28px;margin-bottom:8px;">📊</div>'
         + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">아직 세션 기록이 없어요</div>'
         + '<div style="font-size:11px;color:var(--text2);">세션을 등록하면 6개월 추이가 표시됩니다</div>';
-      ctx.parentNode.appendChild(empty);
+      if (ctx && ctx.parentNode) {
+        ctx.parentNode.appendChild(empty);
+      } else if (wrap) {
+        wrap.appendChild(empty);
+      }
     }
     empty.style.display = 'block';
     wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

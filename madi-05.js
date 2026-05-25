@@ -11,6 +11,7 @@ function setInputMode(m) {
 var recognition = null, isRecording = false;
 function toggleVoiceInput() {
   var btn = document.getElementById('voiceBtn');
+  if (!btn) return;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
     showToast('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 권장)');
@@ -114,9 +115,11 @@ function togglePhonemeMatrix() {
   if (!matrix) return;
   var isOpen = matrix.style.display !== 'none';
   matrix.style.display = isOpen ? 'none' : 'block';
-  btn.textContent = isOpen ? '🎯 조음 데이터 입력' : '🎯 조음 데이터 닫기';
-  btn.style.background = isOpen ? '#fff0f6' : '#db2777';
-  btn.style.color      = isOpen ? '#db2777' : 'white';
+  if (btn) {
+    btn.textContent = isOpen ? '🎯 조음 데이터 입력' : '🎯 조음 데이터 닫기';
+    btn.style.background = isOpen ? '#fff0f6' : '#db2777';
+    btn.style.color      = isOpen ? '#db2777' : 'white';
+  }
   if (!isOpen) initPhonemeChips();
   updatePhonemeCount();
 }
@@ -146,7 +149,9 @@ function addPhonemeRow(phoneme) {
     + '<button onclick="removePhonemeRow(\'' + phoneme + '\')" '
     + 'style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:0;line-height:1;">×</button>';
 
-  document.getElementById('phonemeRows').appendChild(row);
+  var phonemeRowsEl = document.getElementById('phonemeRows');
+  if (!phonemeRowsEl) return;
+  phonemeRowsEl.appendChild(row);
 
   // 칩 비활성화
   var chip = document.getElementById('chip_' + phoneme);
@@ -276,6 +281,7 @@ function cloneLastSession() {
 }
 function renderGoalRows() {
   var c = document.getElementById('goalInputList');
+  if (!c) return;
   var html = '';
   goalRows.forEach(function(row, i) {
     html += '<div class="goal-input-row">'
@@ -404,6 +410,7 @@ function reopenChild(id) {
 
 function renderChildGrid() {
   var c = document.getElementById('childGrid');
+  if (!c) return;
   updateHeaderClock(); // 헤더 시계+다음 세션 동시 갱신
 
   // 상태별 뱃지 카운트 업데이트 (권한에 따라 본인 아동만)
@@ -512,7 +519,7 @@ function renderChildGrid() {
     if (_childStatusFilter === '종결') {
       var closedDur = getClosedDuration(child.startDate, child.closedAt);
       closedInfoHtml = '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">'
-        + (child.closedAt ? '<span style="font-size:11px;background:#fef2f2;color:#dc2626;padding:3px 8px;border-radius:8px;font-weight:600;">🔒 종결일 ' + child.closedAt + '</span>' : '')
+        + (child.closedAt ? '<span style="font-size:11px;background:#fef2f2;color:#dc2626;padding:3px 8px;border-radius:8px;font-weight:600;">🔒 종결일 ' + escHtml(child.closedAt) + '</span>' : '')
         + (closedDur     ? '<span style="font-size:11px;background:#f0fdf4;color:#16a34a;padding:3px 8px;border-radius:8px;font-weight:600;">📅 ' + closedDur + '</span>' : '')
         + '<span style="font-size:11px;background:#eff6ff;color:#2563eb;padding:3px 8px;border-radius:8px;font-weight:600;">📝 총 ' + ss.length + '회 세션</span>'
         + (child.closedReason ? '<span style="font-size:11px;background:#fdf4ff;color:#7c3aed;padding:3px 8px;border-radius:8px;font-weight:600;">💬 ' + escHtml(child.closedReason) + '</span>' : '')
@@ -566,7 +573,7 @@ function renderChildGrid() {
       + '<div style="font-size:12px;color:var(--mint);font-weight:700;">' + escHtml(child.age) + '</div>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;">'
-      + (child.birth ? '<span style="font-size:11px;color:var(--text2);">🎂 ' + child.birth + '</span>' : '')
+      + (child.birth ? '<span style="font-size:11px;color:var(--text2);">🎂 ' + escHtml(child.birth) + '</span>' : '')
       + (child.phone ? '<span style="font-size:11px;color:var(--text2);">📞 ' + escHtml(child.phone) + '</span>' : '')
       + '</div>'
       + '</div>'
@@ -575,7 +582,7 @@ function renderChildGrid() {
       // 펼쳐지는 상세 영역
       + '<div class="child-detail">'
       + '<div class="child-meta" style="margin-top:6px;">' + escHtml(child.type) + '</div>'
-      + '<div class="child-session-count">세션 ' + ss.length + '회 | 최근: ' + lastDate + '</div>'
+      + '<div class="child-session-count">세션 ' + ss.length + '회 | 최근: ' + escHtml(lastDate) + '</div>'
       + (_childStatusFilter !== '종결' && duration ? '<div class="treat-duration">📅 ' + duration + '</div>' : '')
       + closedInfoHtml
       + voucherHtml

@@ -217,7 +217,7 @@ function openChildDetail(id) {
 
     // 기본 정보
     + '<div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;line-height:2;">'
-    + (child.birth ? '🎂 <b>생년월일</b> ' + child.birth + '<br>' : '')
+    + (child.birth ? '🎂 <b>생년월일</b> ' + escHtml(child.birth) + '<br>' : '')
     + (child.phone ? '📞 <b>연락처</b> ' + escHtml(child.phone) + '<br>' : '')
     + (child.memo  ? '📋 <b>메모</b> ' + escHtml(child.memo) + '<br>' : '')
     + '📊 <b>세션</b> 총 ' + ss.length + '회'
@@ -482,23 +482,36 @@ function saveEditModal(id) {
   var idx = childDB.findIndex(function(c) { return c.id === id; });
   if (idx < 0) return;
 
-  var name  = document.getElementById('editName').value.trim();
-  var birthRaw = document.getElementById('editBirth').value.replace(/[^0-9]/g,'');
-  var birth = birthRaw.length===8 ? birthRaw.slice(0,4)+'-'+birthRaw.slice(4,6)+'-'+birthRaw.slice(6,8) : document.getElementById('editBirth').value;
+  var nameEl = document.getElementById('editName');
+  var birthEl = document.getElementById('editBirth');
+  var typeEl2 = document.getElementById('editType');
+  var phoneEl = document.getElementById('editPhone');
+  var startDateEl = document.getElementById('editStartDate');
+  var voucherLimitEl = document.getElementById('editVoucherLimit');
+  var feePerSessionEl = document.getElementById('editFeePerSession');
+  var copayEl2 = document.getElementById('editCopay');
+  var memoEl = document.getElementById('editMemo');
+  if (!nameEl || !birthEl || !typeEl2 || !phoneEl || !startDateEl || !voucherLimitEl || !feePerSessionEl || !copayEl2 || !memoEl) {
+    showToast('⚠️ 필드를 찾을 수 없습니다.');
+    return;
+  }
+  var name  = nameEl.value.trim();
+  var birthRaw = birthEl.value.replace(/[^0-9]/g,'');
+  var birth = birthRaw.length===8 ? birthRaw.slice(0,4)+'-'+birthRaw.slice(4,6)+'-'+birthRaw.slice(6,8) : birthEl.value;
   var age   = calcAgeFromBirth(birth) || childDB[idx].age;
-  var type  = document.getElementById('editType').value;
-  var phone = document.getElementById('editPhone').value.trim();
+  var type  = typeEl2.value;
+  var phone = phoneEl.value.trim();
   var status = (document.getElementById('editStatus') || {}).value || '등록';
   var goals = ((document.getElementById('editGoals') || {}).value || '').split(',').map(function(g) { return g.trim(); }).filter(Boolean);
-  var startDate    = document.getElementById('editStartDate').value;
+  var startDate    = startDateEl.value;
   var closedAt     = (document.getElementById('editClosedAt') || {}).value || '';
   var closedReason = (document.getElementById('editClosedReason') || {}).value || '';
-  var voucherLimit      = parseInt(document.getElementById('editVoucherLimit').value) || 0;
+  var voucherLimit      = parseInt(voucherLimitEl.value) || 0;
   var voucherType       = (document.getElementById('editVoucherType') || {}).value || '일반';
-  var feePerSession     = parseInt(document.getElementById('editFeePerSession').value) || 0;
+  var feePerSession     = parseInt(feePerSessionEl.value) || 0;
   var voucherMonthlyAmt = parseInt((document.getElementById('editVoucherMonthlyAmt')||{value:'0'}).value) || 0;
-  var copay             = parseInt(document.getElementById('editCopay').value) || 0;
-  var memo  = document.getElementById('editMemo').value.trim();
+  var copay             = parseInt(copayEl2.value) || 0;
+  var memo  = memoEl.value.trim();
 
   if (!name) { showToast('이름을 입력해주세요.'); return; }
 
