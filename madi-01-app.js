@@ -148,7 +148,7 @@ function loadIEPFromSupa() {
   supaFetch('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
-      var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=r.id; return d; });
+      var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); return d; });
       if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); var _iepEl = document.getElementById('iepChild'); if (_iepEl && typeof renderIEPHistory === 'function') renderIEPHistory(parseInt(_iepEl.value) || 0); }
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }

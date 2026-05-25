@@ -168,7 +168,7 @@ function renderSIReport() {
     + '<div id="siChildWrap" style="flex:1;"></div></div>'
     + '<div class="form-group" style="flex:0 0 130px;">'
     + '<label class="form-label">평가일</label>'
-    + '<input type="date" class="form-input" id="siDate" value="' + new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\. /g,'-').replace('.','') + '">'
+    + '<input type="date" class="form-input" id="siDate" value="' + new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\. /g,'-').replace(/\./g,'') + '">'
     + '</div>'
     + '<div class="form-group" style="flex:0 0 120px;">'
     + '<label class="form-label">정보제공자</label>'
@@ -407,7 +407,8 @@ function generateSIReport() {
     + 'V. 종합 소견: 주요 발달 특성, 감각 처리 패턴, 기능적 영향을 3~5문단으로 서술' + NL
     + 'VI. 치료 권고사항: 감각통합치료 목표, 접근법, 가정 연계 지도 등을 구체적으로 서술';
 
-  callClaude(SYSTEM, USER, 2000, getAIModel())
+  var aiModel = (typeof getAIModel === 'function') ? getAIModel() : 'claude-3-5-sonnet-20241022';
+  callClaude(SYSTEM, USER, 2000, aiModel)
     .then(function(raw) {
       // 임상 보고서 — 비표준 용어만 통일
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');

@@ -400,8 +400,10 @@ function _renderLoginUpdatePopup(n, dismissKey) {
   }
   function _onKey(e) { if (e.key === 'Escape') _dismiss(); }
 
-  document.getElementById('lupClose1').addEventListener('click', _dismiss);
-  document.getElementById('lupClose2').addEventListener('click', _dismiss);
+  var c1 = document.getElementById('lupClose1');
+  var c2 = document.getElementById('lupClose2');
+  if (c1) c1.addEventListener('click', _dismiss);
+  if (c2) c2.addEventListener('click', _dismiss);
   // 바깥 클릭 시 닫힘 (체크박스 상태 반영)
   overlay.addEventListener('click', function(e) { if (e.target === overlay) _dismiss(); });
   document.addEventListener('keydown', _onKey);

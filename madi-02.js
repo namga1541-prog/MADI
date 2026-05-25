@@ -419,7 +419,8 @@ function pruneOldBackups() {
 }
 
 function maybeAutoBackup() {
-  var last = localStorage.getItem('madi_last_backup');
+  var last;
+  try { last = localStorage.getItem('madi_last_backup'); } catch (_e) { last = null; }
   var todayKey = getTodayKST();
   if (last === todayKey) return; // 오늘 이미 백업
   // 약간 늦게 실행 (앱 로드 방해 안 하기)

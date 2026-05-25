@@ -442,6 +442,7 @@ function renderDayGrid() {
       if (t && therapists.indexOf(t) < 0) therapists.push(t);
     });
     var interval = (typeof CENTER_SESSION_INTERVAL !== 'undefined') ? CENTER_SESSION_INTERVAL : 40;
+    interval = interval > 0 ? interval : 30; // 0이면 기본값 30분 (무한루프 방지)
     var stdTimes = [];
     for (var mm = 9*60; mm <= 18*60+40; mm += interval) {
       stdTimes.push(String(Math.floor(mm/60)).padStart(2,'0') + ':' + String(mm%60).padStart(2,'0'));

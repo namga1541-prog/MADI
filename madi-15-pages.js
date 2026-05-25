@@ -266,7 +266,11 @@ function markAllNotifRead() {
 
 function formatTimeAgo(isoTs) {
   if (!isoTs) return '';
-  var ms = Date.now() - new Date(isoTs).getTime();
+  var ts = new Date(isoTs).getTime();
+  var days = isNaN(ts) ? 0 : Math.floor((Date.now() - ts) / 86400000);
+  var timeText = isNaN(ts) ? '날짜 미상' : (days === 0 ? '오늘' : days + '일 전');
+  if (isNaN(ts)) return timeText;
+  var ms = Date.now() - ts;
   if (ms < 0) ms = 0;
   var min  = Math.floor(ms / 60000);
   if (min < 1)  return '방금 전';

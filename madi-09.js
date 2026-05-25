@@ -115,7 +115,9 @@ function checkAutoStagnation(childId) {
   if (!child) return;
 
   // 설정값 읽기 (기본: 3회 연속, 40% 미만)
-  var stagCount = parseInt(localStorage.getItem('madi_stag_count') || '3');
+  var _sc; try { _sc = localStorage.getItem('madi_stag_count'); } catch(_e) { _sc = null; }
+  var stagCount = parseInt(_sc || '3', 10);
+  if (isNaN(stagCount) || stagCount < 1) stagCount = 3;
   var stagScore = parseInt(localStorage.getItem('madi_stag_score') || '40');
 
   var sessions = sessionDB

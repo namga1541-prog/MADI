@@ -405,21 +405,21 @@ function autoCalcAssessScores() {
     var rRecRaw = document.getElementById('af_receptiveRaw');
     var rExpRaw = document.getElementById('af_expressiveRaw');
     if (rRecRaw && rRecRaw.value) {
-      var rv = parseInt(rRecRaw.value);
-      var eq = REVT_EQ_R[rv]; if (eq) { setField('receptiveEq', eq); usedNorm = true; }
+      var rvRevt = parseInt(rRecRaw.value);
+      var eq = REVT_EQ_R[rvRevt]; if (eq) { setField('receptiveEq', eq); usedNorm = true; }
       if (ageMonths) {
         var key = getREVTAgeKey(ageMonths);
         var tbl = key ? REVT_PCT_TABLE[key] : null;
-        if (tbl) { var pct = interpolatePct(tbl, rv, 1); if (pct !== null && pct !== undefined) { setField('receptivePct', pct); usedNorm = true; } }
+        if (tbl) { var pct = interpolatePct(tbl, rvRevt, 1); if (pct !== null && pct !== undefined) { setField('receptivePct', pct); usedNorm = true; } }
       }
     }
     if (rExpRaw && rExpRaw.value) {
-      var ev = parseInt(rExpRaw.value);
-      var eeq = REVT_EQ_E[ev]; if (eeq) { setField('expressiveEq', eeq); usedNorm = true; }
+      var evRevt = parseInt(rExpRaw.value);
+      var eeq = REVT_EQ_E[evRevt]; if (eeq) { setField('expressiveEq', eeq); usedNorm = true; }
       if (ageMonths) {
         var ekey = getREVTAgeKey(ageMonths);
         var etbl = ekey ? REVT_PCT_TABLE[ekey] : null;
-        if (etbl) { var epct = interpolatePct(etbl, ev, 2); if (epct !== null && epct !== undefined) { setField('expressivePct', epct); usedNorm = true; } }
+        if (etbl) { var epct = interpolatePct(etbl, evRevt, 2); if (epct !== null && epct !== undefined) { setField('expressivePct', epct); usedNorm = true; } }
       }
     }
   }

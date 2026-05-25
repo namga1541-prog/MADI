@@ -577,7 +577,7 @@ function deployToGitHub() {
       btn.disabled    = false;
       btn.textContent = '🚀 배포';
       showToast('🚀 배포 완료! ' + (FILES_TO_UPLOAD.length + 1) + '개 파일 1~2분 후 반영됩니다.', { duration: 5000 });
-      localStorage.setItem('madi_last_deploy', new Date().toISOString());
+      try { localStorage.setItem('madi_last_deploy', new Date().toISOString()); } catch(_e) {}
       // 다음 배포 시 SHA 비교를 위해 모든 파일의 SHA 저장 (변경되지 않은 파일도 포함)
       try {
         if (FILES_TO_UPLOAD.allShas) {

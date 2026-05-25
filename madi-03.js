@@ -663,6 +663,7 @@ function _renderBannerSlide() {
   textEl.classList.add('fade');
   setTimeout(function() {
     var n = _bannerNotices[_bannerIdx];
+    if (!n) return;  // 배열 교체 경쟁조건 방어
     var badge = n.notice_type === 'imp' ? '[긴급] ' : (n.notice_type === 'pin' ? '[중요] ' : '');
     textEl.textContent = badge + n.title;
     textEl.classList.remove('fade');

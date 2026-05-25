@@ -216,7 +216,7 @@ function renderChatMessages() {
     html += '<div class="msg-row ' + (isUser ? 'user' : 'ai') + '">'
       + (isUser ? '' : '<div class="msg-avatar">🤖</div>')
       + '<div>'
-      + '<div class="msg-bubble">' + escHtml(msg.content).replace(/\n/g, '<br>') + '</div>'
+      + '<div class="msg-bubble">' + escHtml(msg.content || '').replace(/\n/g, '<br>') + '</div>'
       + '<div class="msg-time">' + now + '</div>'
       + '</div>'
       + (isUser ? '<div class="msg-avatar" style="background:#dbeafe;">😊</div>' : '')
@@ -309,7 +309,10 @@ function actAddSchedule(a) {
   var endTime = '';
   try {
     var parts = a.startTime.split(':');
-    var totalMin = parseInt(parts[0]) * 60 + parseInt(parts[1]) + dur;
+    var h = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    if (isNaN(h) || isNaN(m)) return;
+    var totalMin = h * 60 + m + dur;
     endTime = String(Math.floor(totalMin / 60)).padStart(2, '0') + ':' + String(totalMin % 60).padStart(2, '0');
   } catch(e) { endTime = a.startTime; }
   var teacherName = '';
