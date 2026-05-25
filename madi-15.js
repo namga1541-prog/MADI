@@ -674,7 +674,7 @@ function _redrawParentVoucherPanel() {
   var vLimit = parseInt(d.voucherLimit || 0, 10);
   if (vLimit > 0) {
     var vUsed = window._parentVoucherUsed != null ? window._parentVoucherUsed : 0;
-    var pct = Math.min(100, Math.round(vUsed / vLimit * 100));
+    var pct = vLimit > 0 ? Math.min(100, Math.round(vUsed / vLimit * 100)) : 0;
     var vType = d.voucherType || '바우처';
     html += ''
       + '<div class="dp-p-voucher">'

@@ -12,8 +12,8 @@
 
 function showLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'flex'; }
 function hideLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'none'; }
-function backToLanding()  { document.getElementById('loginScreen').style.display = 'none'; var ss = document.getElementById('signupScreen'); if (ss) ss.style.display = 'none'; showLanding(); }
-function showLoginScreen(){ document.getElementById('loginScreen').style.display = 'flex'; loadUserList(); }
+function backToLanding()  { var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'none'; var ss = document.getElementById('signupScreen'); if (ss) ss.style.display = 'none'; showLanding(); }
+function showLoginScreen(){ var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'flex'; loadUserList(); }
 function hideLoginScreen(){ document.getElementById('loginScreen').style.display = 'none'; showDashboard(); }
 function loadUserList() {
   var un = document.getElementById('loginUsernameInput'), pw = document.getElementById('loginPwInput'), err = document.getElementById('loginError');
@@ -44,13 +44,15 @@ function onInviteCodeInput() {
 function showSignupScreen() {
   hideLanding(); document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signupScreen').style.display = 'flex';
   ['signupInviteCode','signupName','signupUsername','signupPassword','signupPasswordConfirm'].forEach(function(id){ var el = document.getElementById(id); if (el) el.value = ''; });
-  document.getElementById('signupError').textContent = ''; document.getElementById('signupCenterName').textContent = '';
+  var _se = document.getElementById('signupError'); if (_se) _se.textContent = '';
+  var _sc = document.getElementById('signupCenterName'); if (_sc) _sc.textContent = '';
   setTimeout(function(){ var inv = document.getElementById('signupInviteCode'); if (inv) inv.focus(); }, 200);
 }
 function backToLoginFromSignup() { document.getElementById('signupScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
 
 function doSignup() {
   var errEl = document.getElementById('signupError'), btn = document.getElementById('signupSubmitBtn');
+  if (!errEl || !btn) return;
   errEl.textContent = '';
   var inviteCode = (document.getElementById('signupInviteCode').value || '').trim().toUpperCase();
   var name = (document.getElementById('signupName').value || '').trim();
