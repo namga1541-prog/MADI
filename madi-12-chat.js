@@ -292,6 +292,13 @@ function actAddSchedule(a) {
   }
   var child = childDB.find(function(c) { return c.id === a.childId; });
   if (!child) { showToast('❌ 아동을 찾을 수 없습니다'); return; }
+  // 날짜·시간 형식 검증 (AI 오출력 방지)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date)) {
+    showToast('❌ 일정 날짜 형식 오류 — AI가 YYYY-MM-DD 형식을 반환하지 않았습니다'); return;
+  }
+  if (!/^\d{2}:\d{2}$/.test(a.startTime)) {
+    showToast('❌ 시작 시간 형식 오류 — AI가 HH:MM 형식을 반환하지 않았습니다'); return;
+  }
   var dur = a.duration || 40;
   var endTime = '';
   try {
@@ -302,7 +309,17 @@ function actAddSchedule(a) {
   var teacherName = '';
   var teacherColor = '';
   if (a.teacher && typeof a.teacher === 'string' && a.teacher.trim()) {
-    teacherName = a.teacher.trim();
+    // 교사 이름 검증 — 알려진 교사가 아니면 현재 사용자로 대체
+    var _reqName = a.teacher.trim();
+    var _knownNames = {};
+    scheduleDB.forEach(function(s) { if (s.teacher) _knownNames[s.teacher] = true; });
+    if (currentUser) _knownNames[currentUser.name] = true;
+    if (!_knownNames[_reqName]) {
+      showToast('⚠️ AI가 생성한 교사 이름("' + _reqName + '")을 확인할 수 없어 현재 사용자로 대체합니다');
+      teacherName = currentUser ? currentUser.name : '';
+    } else {
+      teacherName = _reqName;
+    }
     var existing = scheduleDB.find(function(s) { return s.teacher === teacherName && s.teacherColor; });
     teacherColor = existing ? existing.teacherColor : (typeof getTeacherColor === 'function' ? getTeacherColor(teacherName) : '');
   } else if (currentUser) {
@@ -659,7 +676,18 @@ function buildChatContext() {
     var roleTxt = getRoleFlags().isAdminOrSuper ? '관리자' : '선생님';
     lines.push('🔑 현재 로그인: ' + currentUser.name + ' (' + roleTxt + ')');
   }
-  lines.push('👶 등록 아동: ' + childDB.length + '명');
+  // 선생님 역할: 담당 아동만 컨텍스트에 포함 (타 아동 데이터 노출 방지)
+  var _isAdminCtx = (typeof getRoleFlags === 'function') ? getRoleFlags().isAdminOrSuper
+    : (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin'));
+  var _myName = currentUser ? currentUser.name : '';
+  var visibleChildren = _isAdminCtx ? childDB : childDB.filter(function(c) {
+    return scheduleDB.some(function(s) { return s.childId === c.id && s.teacher === _myName; })
+      || sessionDB.some(function(s) { return s.childId === c.id && s.teacher === _myName; });
+  });
+  // 담당 아동이 없으면 (신규 선생님 등) 전체 표시
+  if (!_isAdminCtx && visibleChildren.length === 0) visibleChildren = childDB;
+
+  lines.push('👶 등록 아동: ' + visibleChildren.length + '명' + (!_isAdminCtx ? ' (담당)' : ''));
 
   var weekStart = nowKST();
   var dayOfWeek = weekStart.getDay();
@@ -683,7 +711,7 @@ function buildChatContext() {
     });
   }
 
-  childDB.forEach(function(c) {
+  visibleChildren.forEach(function(c) {
     var ss    = sessionDB.filter(function(s) { return s.childId === c.id; });
     var last  = ss.length > 0 ? ss[ss.length - 1] : null;
     var vUsed = getVoucherUsed(c.id);
@@ -699,6 +727,8 @@ function buildChatContext() {
   });
 
   var uw = getUnwrittenSessions();
+  // 선생님: 본인 담당 미작성만 표시
+  if (!_isAdminCtx) uw = uw.filter(function(u) { return u.teacher === _myName; });
   if (uw.length > 0) {
     lines.push('\n⚠️ 미작성 세션 ' + uw.length + '건:');
     uw.forEach(function(u) {
@@ -707,8 +737,10 @@ function buildChatContext() {
     });
   }
 
-  var todaySched = scheduleDB.filter(function(s) { return s.date === today; })
-    .sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
+  // 선생님: 본인 담당 일정만 표시
+  var todaySched = scheduleDB.filter(function(s) {
+    return s.date === today && (_isAdminCtx || s.teacher === _myName);
+  }).sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
   if (todaySched.length > 0) {
     lines.push('\n📅 오늘 스케줄:');
     todaySched.forEach(function(s) {

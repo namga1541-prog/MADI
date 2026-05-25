@@ -176,6 +176,9 @@ Deno.serve(async (req: Request) => {
     { user_id: String(user.sub) }
   )
 
+  // 스트리밍 비활성화 — SSE 핸들러 미구현으로 stream:true 시 파싱 오류 발생
+  delete (reqBody as Record<string, unknown>).stream
+
   // Anthropic API 호출 (서버사이드)
   const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
     method:  'POST',

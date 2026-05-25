@@ -591,7 +591,15 @@ function parseJSON(raw) {
       var checkDepth = 0;
       for (var k = 0; k < partial.length; k++) {
         var c = partial[k];
-        if (c === '"') { var q = partial.indexOf('"', k+1); if (q > k) k = q; continue; }
+        if (c === '"') {
+          // 이스케이프 따옴표(\") 를 건너뛰며 문자열 끝 탐색
+          var q = k + 1;
+          while (q < partial.length) {
+            if (partial[q] === '"' && partial[q - 1] !== '\\') break;
+            q++;
+          }
+          k = q; continue;
+        }
         if (c === '{' || c === '[') checkDepth++;
         else if (c === '}' || c === ']') checkDepth--;
       }

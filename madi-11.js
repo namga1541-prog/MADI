@@ -460,6 +460,12 @@ function autoCalcAssessScores() {
     usedNorm = true;
   }
 
+  // 원점수가 있지만 규준 테이블이 채워지지 않은 경우 → 연령 범위 초과 안내
+  if (!usedNorm && hasRaw && ageMonths && typeVal !== 'OTHER') {
+    var _ageYStr = Math.floor(ageMonths / 12) + '세 ' + (ageMonths % 12) + '개월';
+    showToast('⚠️ ' + typeVal + ' 규준 연령 범위를 벗어납니다 (아동: ' + _ageYStr + ') — AI 보완으로 진행합니다');
+  }
+
   // 규준 데이터가 없는 항목은 AI로 보완
   var missingFields = schema.filter(function(f) {
     if (f.key.toLowerCase().includes('raw') || f.key.includes('frequency') || f.key === 'duration') return false;

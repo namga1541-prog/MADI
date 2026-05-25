@@ -368,14 +368,38 @@ var SLP_PROMPT_PHONO_GUIDE = ''
 
 function sanitizeSLPOutput(text, audience) {
   if (typeof text !== 'string' || !text) return text;
+  // audience 파라미터 정규화 (오타 방어: 'parents' → 'parent' 등)
+  audience = (typeof audience === 'string') ? audience.toLowerCase().trim() : '';
+
+  // 한국어 문자 범위: 가-힣, 자모(ㄱ-ㅎ, ㅏ-ㅣ)
+  var KO_CHAR = '[가-힣ㄱ-ㅎㅏ-ㅣ]';
+
+  // 단어 경계 치환 — 한국어 형태소 연속 내부 치환 방지
+  // 예: "음운" → "소리" 는 "음운론"에서 치환 안 됨 (후속 한국어 문자 있음)
+  function boundedReplace(str, bad, good) {
+    try {
+      var escaped = bad.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // 긴 구문(공백 포함)은 경계 없이 치환 (의미 단위 자체가 고정 표현)
+      if (/\s/.test(bad)) {
+        return str.split(bad).join(good);
+      }
+      // 짧은 단어: 후속 한국어 문자가 없을 때만 치환 (음운론, 조음학 등 복합어 보호)
+      var re = new RegExp(escaped + '(?!' + KO_CHAR + ')', 'g');
+      return str.replace(re, good);
+    } catch (e) {
+      // 정규식 실패 시 단순 치환 폴백
+      return str.split(bad).join(good);
+    }
+  }
+
   // 1) 모든 문서에서 비표준 용어는 표준으로 통일
   Object.keys(SLP_VOCAB_BLOCKED_ALL).forEach(function(bad){
-    text = text.split(bad).join(SLP_VOCAB_BLOCKED_ALL[bad]);
+    text = boundedReplace(text, bad, SLP_VOCAB_BLOCKED_ALL[bad]);
   });
   // 2) 학부모 대상이면 한자어·전문 용어를 일상어로
   if (audience === 'parent') {
     Object.keys(SLP_VOCAB_BLOCKED_PARENT).forEach(function(bad){
-      text = text.split(bad).join(SLP_VOCAB_BLOCKED_PARENT[bad]);
+      text = boundedReplace(text, bad, SLP_VOCAB_BLOCKED_PARENT[bad]);
     });
   }
   return text;

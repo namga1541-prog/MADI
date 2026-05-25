@@ -317,6 +317,19 @@ function generateIEP() {
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       var p = parseJSON(raw);
       if (!p || !p.longTermGoals) throw new Error('IEP 파싱 실패');
+      // 구조 보정 — AI가 일부 필드 누락 시 renderIEP crash 방지
+      if (!Array.isArray(p.priorityGoals))     p.priorityGoals     = [];
+      if (!Array.isArray(p.longTermGoals))     p.longTermGoals     = [];
+      if (!p.shortTermGoals || typeof p.shortTermGoals !== 'object') {
+        p.shortTermGoals = { '1개월': [], '2개월': [], '3개월': [] };
+      } else {
+        ['1개월', '2개월', '3개월'].forEach(function(m) {
+          if (!Array.isArray(p.shortTermGoals[m])) p.shortTermGoals[m] = [];
+        });
+      }
+      if (!Array.isArray(p.parentCooperation)) p.parentCooperation = [];
+      if (!Array.isArray(p.activities))        p.activities        = [];
+      if (typeof p.therapistNote !== 'string') p.therapistNote     = p.notes || '';
       renderIEP(p, child.name);
       resetIEPBtn();
     })
@@ -403,8 +416,14 @@ function renderIEP(p, childName) {
     + '</div>'
     + '</div>';
 
-  document.getElementById('iepResult').innerHTML = html;
-  window._iepData = p;
+  // 경쟁 조건 방지: childId 별 독립 저장 (연속 생성 시 PDF 오출력 방지)
+  if (!window._iepDataMap) window._iepDataMap = {};
+  var _iepCId = String(parseInt((document.getElementById('iepChild') || {}).value) || 0);
+  window._iepDataMap[_iepCId] = p;
+  var _iepResEl = document.getElementById('iepResult');
+  if (_iepResEl) _iepResEl.dataset.iepChildId = _iepCId;
+  _iepResEl.innerHTML = html;
+  window._iepData = p;            // 하위 호환 유지
   window._iepChildName = childName;
 
   // 장단기계획(IEP) 자동 저장
@@ -508,7 +527,7 @@ function renderIEPView(p, childName) {
         return '<span style="font-size:12px;padding:4px 10px;background:var(--mint2);color:var(--mint);border-radius:20px;font-weight:600;">' + escHtml(a) + '</span>';
       }).join('')
     + '</div></div>'
-    + (p.notes ? '<div style="background:#fffbeb;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.7;">📝 <strong>치료사 참고:</strong> ' + escHtml(p.notes) + '</div>' : '')
+    + ((p.therapistNote || p.notes) ? '<div style="background:#fffbeb;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.7;">📝 <strong>치료사 참고:</strong> ' + escHtml(p.therapistNote || p.notes) + '</div>' : '')
     + '<div style="display:flex;gap:8px;margin-top:14px;">'
     + '<button class="btn btn-purple" style="flex:1;" onclick="downloadIEPPDF(\'' + escHtml(childName) + '\')">🖨️ PDF 출력</button>'
     + '<button class="btn-ghost" style="flex:0.5;" onclick="document.getElementById(\'iepResult\').innerHTML=\'\'">닫기</button>'
@@ -548,7 +567,10 @@ function deleteIEPRecord(id) {
 }
 
 function downloadIEPPDF(childName) {
-  var p = window._iepData;
+  // childId 기반 keyed 조회 (연속 생성 시 PDF 오출력 방지)
+  var resultEl = document.getElementById('iepResult');
+  var cid = resultEl ? (resultEl.dataset.iepChildId || '') : '';
+  var p = (cid && window._iepDataMap && window._iepDataMap[cid]) ? window._iepDataMap[cid] : window._iepData;
   if (!p) { showToast('장단기계획(IEP) 데이터가 없습니다. 다시 생성해주세요.'); return; }
   var today = new Date().toLocaleDateString('ko-KR');
 
