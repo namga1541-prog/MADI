@@ -171,9 +171,13 @@ function loadParentHome() {
     var hero = document.getElementById('parentChildHero');
     if (hero) hero.style.display = '';
 
+    // 응답이 돌아올 때 자녀 전환으로 인한 stale 응답을 무시하기 위해 ID 캡처
+    var _capturedChildId = window._parentChildId;
+
     // 1) 자녀 정보 → 히어로 카드
     supaFetch('madi_children?id=eq.' + encodeURIComponent(childId) + '&select=data', 'GET')
       .then(function(rows) {
+        if (window._parentChildId !== _capturedChildId) return;
         if (!rows || !rows[0]) return;
         var d = rows[0].data || {};
         window._parentChildName = d.name || '';
@@ -189,6 +193,7 @@ function loadParentHome() {
     supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId)
       + '&data->>childId=eq.' + encodeURIComponent(childId) + '&order=id.asc&limit=50', 'GET')
       .then(function(rows) {
+        if (window._parentChildId !== _capturedChildId) return;
         if (!Array.isArray(rows)) rows = [];
         var upcoming = rows.map(function(s){ return s.data || s; })
           .filter(function(s){ return (s.date || '') >= today; })
@@ -287,6 +292,7 @@ function _renderParentRecentPortfolios(childId) {
 
   supaFetch('madi_portfolios?select=id,month,content,opened_at,created_by_name'
     + '&child_id=eq.' + encodeURIComponent(childId)
+    + '&parent_visible=eq.true'
     + '&order=month.desc&limit=4', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) rows = [];

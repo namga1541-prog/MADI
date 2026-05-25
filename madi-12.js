@@ -94,15 +94,18 @@ function renderStaffCard() {
       if (!Array.isArray(users)) return;
       var html = '';
       users.forEach(function(u) {
-        var color = u.color || '#0ea5a0';
+        var safeColor = escHtml(u.color || '#0ea5a0');
+        var safeId = escHtml(String(u.id));
+        var safeName = escHtml(u.name || '');
+        var safeRole = escHtml(u.role || '');
         html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;">'
-          + '<div style="width:34px;height:34px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">' + u.name.slice(0,1) + '</div>'
-          + '<div style="flex:1;"><div style="font-size:14px;font-weight:700;">' + escHtml(u.name) + '</div>'
-          + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(u.username) + ' · ' + (u.role==='admin'?'👑 관리자':'👩‍⚕️ 선생님') + '</div></div>'
+          + '<div style="width:34px;height:34px;border-radius:50%;background:' + safeColor + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">' + (u.name || '?').slice(0,1) + '</div>'
+          + '<div style="flex:1;"><div style="font-size:14px;font-weight:700;">' + safeName + '</div>'
+          + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(u.username || '') + ' · ' + (u.role==='admin'?'👑 관리자':'👩‍⚕️ 선생님') + '</div></div>'
           + (u.id !== currentUser.id
             ? '<div style="display:flex;gap:6px;">'
-              + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + u.id + '\',\'' + escHtml(u.name) + '\',\'' + u.role + '\')">\uad8c\ud55c</button>'
-              + '<button class="btn-del" onclick="deleteStaff(\'' + u.id + '\',\'' + escHtml(u.name) + '\')">\uc0ad\uc81c</button>'
+              + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + safeId + '\',\'' + safeName + '\',\'' + safeRole + '\')">\uad8c\ud55c</button>'
+              + '<button class="btn-del" onclick="deleteStaff(\'' + safeId + '\',\'' + safeName + '\')">' + '\uc0ad\uc81c</button>'
               + '</div>'
             : '<span style="font-size:11px;color:var(--mint);">나</span>')
           + '</div>';
@@ -590,6 +593,7 @@ function processImportFile(file) {
   if (!getApiKeyOrAlert()) return;
 
   var resultEl = document.getElementById('importResult');
+  if (!resultEl) return;
   resultEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>엑셀 모듈 준비 중...</p></div>';
 
   // XLSX lazy 로드 (~900KB) — 평가지 import 진입 시점에만
@@ -915,9 +919,9 @@ function init() {
   maybeAutoBackup();
   loadApiUsage();
   var today = getTodayKST();
-  document.getElementById('sessionDate').value     = today;
-  document.getElementById('portfolioMonth').value  = today.slice(0, 7);
-  document.getElementById('assessDate').value      = today;
+  var sessDateEl = document.getElementById('sessionDate'); if (sessDateEl) sessDateEl.value = today;
+  var portMonEl = document.getElementById('portfolioMonth'); if (portMonEl) portMonEl.value = today.slice(0, 7);
+  var assessDateEl = document.getElementById('assessDate'); if (assessDateEl) assessDateEl.value = today;
   schedCurrentDate = new Date();
 
   // cowork High #4: localStorage cn3_apikey 캐싱 제거 — API 키는 loadCenterApiKey()가 Supabase에서만 로드
