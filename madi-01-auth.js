@@ -88,6 +88,7 @@ function doSignup() {
     })
     .then(function(center) {
       return hashPassword(pw).then(function(hashed) {
+        // role/permissions 는 서버(api/index.ts)에서 teacher·기본값으로 강제됨 — 클라이언트 값 무시됨
         var newUser = { id: generateClientId(), username: username, name: name, password: hashed, role: 'teacher', center_id: center.id, color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), permissions: { viewOtherChildren:true, deleteSession:true, useAI:true } };
         return supaFetch('madi_users', 'POST', [newUser]).then(function(){ return { center: center, user: newUser }; });
       });

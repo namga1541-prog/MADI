@@ -268,6 +268,24 @@ Deno.serve(async (req: Request) => {
           }
         }
       }
+
+      // ── POST(회원가입) 시 role/permissions/status 서버 강제 ──
+      // 클라이언트가 보낸 role/permissions 값을 무시하고 서버에서 안전값으로 덮어씀.
+      // 계정은 항상 teacher 로 시작 — admin/superadmin 승격은 별도 관리자 액션으로만 가능.
+      if (method === 'POST') {
+        const DEFAULT_PERMISSIONS = { viewOtherChildren: true, deleteSession: true, useAI: true }
+        const rows = Array.isArray(body) ? body : (body ? [body] : [])
+        for (const row of rows) {
+          if (!row || typeof row !== 'object') continue
+          const obj = row as Record<string, unknown>
+          // role: 요청자 권한 무관하게 항상 teacher 로 강제
+          obj.role = 'teacher'
+          // permissions: 허용된 기본값으로 강제 (클라이언트 확장 시도 차단)
+          obj.permissions = DEFAULT_PERMISSIONS
+          // status: 없으면 active 기본값
+          if (!obj.status) obj.status = 'active'
+        }
+      }
     }
 
     let finalPath = path
