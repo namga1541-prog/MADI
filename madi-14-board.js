@@ -216,8 +216,8 @@ function renderInquiryCard(post, user) {
     + (post.image_urls && post.image_urls.length ? renderImageThumbs(post.image_urls) : '')
     // 댓글 (답변)
     + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:4px;">'
-    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + toColor + ';border-color:' + toColor + ';" onclick="toggleComments(\'' + escHtml(String(post.id)) + '\')">💬 답변 <span id="commentCount_' + post.id + '"></span></button>'
-    +   '<div id="commentArea_' + post.id + '" style="display:none;margin-top:10px;"></div>'
+    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + toColor + ';border-color:' + toColor + ';" onclick="toggleComments(\'' + escHtml(String(post.id)) + '\')">💬 답변 <span id="commentCount_' + escHtml(String(post.id)) + '"></span></button>'
+    +   '<div id="commentArea_' + escHtml(String(post.id)) + '" style="display:none;margin-top:10px;"></div>'
     + '</div>'
     + '</div>';
 }
@@ -317,7 +317,7 @@ function loadComments(postId) {
   if (!area) return;
   area.innerHTML = '<div style="font-size:11px;color:var(--text2);text-align:center;padding:8px;">댓글 불러오는 중...</div>';
 
-  supaFetch('madi_lounge_comments?post_id=eq.' + postId + '&select=*&order=created_at.asc', 'GET')
+  supaFetch('madi_lounge_comments?post_id=eq.' + encodeURIComponent(postId) + '&select=*&order=created_at.asc', 'GET')
     .then(function(data) {
       loungeCommentsCache[postId] = data || [];
       renderComments(postId);

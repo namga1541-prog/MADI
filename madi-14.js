@@ -33,11 +33,19 @@ function uploadBoardImage(file, folder) {
   });
 }
 
+// URL 프로토콜 화이트리스트 검증 (javascript: 등 위험 프로토콜 차단)
+function isSafeUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  var lower = url.trim().toLowerCase();
+  return lower.indexOf('https://') === 0 || lower.indexOf('http://') === 0 || lower.indexOf('/') === 0;
+}
+
 // 이미지 URL 배열을 가로 스크롤 썸네일로 렌더
 function renderImageThumbs(urls) {
   if (!urls || urls.length === 0) return '';
   return '<div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0;margin-top:6px;-webkit-overflow-scrolling:touch;">'
     + urls.map(function(url) {
+        if (!isSafeUrl(url)) return '';
         var safeUrl = escHtml(url);
         return '<a href="' + safeUrl + '" target="_blank" rel="noopener" style="flex-shrink:0;">'
           + '<img src="' + safeUrl + '" alt="첨부 이미지" loading="lazy" '
