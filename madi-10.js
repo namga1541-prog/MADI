@@ -134,14 +134,13 @@ var schedCurrentDate = new Date();
 
 function setSchedView(v) {
   schedView = v;
-  ['month','week','day'].forEach(function(tab) {
-    var btn = document.getElementById('viewBtn_' + tab);
-    if (btn) btn.classList[v === tab ? 'add' : 'remove']('active');
-  });
+  // HTML ID: viewBtnMonth(카멜), viewBtnWeek(카멜), viewBtn_day(스네이크)
   var mBtn = document.getElementById('viewBtnMonth');
   if (mBtn) mBtn.classList[v==='month'?'add':'remove']('active');
   var wBtn = document.getElementById('viewBtnWeek');
   if (wBtn) { wBtn.classList[v==='week'?'add':'remove']('active'); wBtn.textContent = '주간'; }
+  var dBtn = document.getElementById('viewBtn_day');
+  if (dBtn) dBtn.classList[v==='day'?'add':'remove']('active');
   var monthWrap = document.getElementById('monthViewWrap');
   var weekWrap  = document.getElementById('weekViewWrap');
   var dayWrap   = document.getElementById('dayViewWrap');
@@ -701,7 +700,7 @@ function saveSchedFromModal() {
 
 function openEditSchedModal(id) {
   var s = scheduleDB.find(function(x){ return x.id === id; });
-  if (!s) return;
+  if (!s) { showToast('⚠️ 일정 정보를 찾을 수 없습니다'); return; }
   var child = childDB.find(function(c){ return c.id === s.childId; });
   var hasGroup = s.groupId && scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; }).length > 1;
   var overlay = document.createElement('div');
@@ -740,7 +739,7 @@ function openEditSchedModal(id) {
 
 function goToSessionFromSched(schedId) {
   var s = scheduleDB.find(function(x){ return x.id === schedId; });
-  if (!s) return;
+  if (!s) { showToast('⚠️ 일정 정보를 찾을 수 없습니다'); return; }
   var ol = document.getElementById('editSchedOverlay');
   if (ol) ol.remove();
   switchTab(2);
@@ -899,7 +898,7 @@ function execSchedDelete(id, future) {
         }
       });
     }
-  });
+  }).catch(function(e){ showToast('⚠️ 일정 삭제 중 오류: ' + e.message); });
 }
 
 function saveEditSched(id) {
