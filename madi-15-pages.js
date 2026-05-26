@@ -527,7 +527,7 @@ function loadParentPushToggle() {
 }
 
 function onPushToggleTap() {
-  if (!navigator.serviceWorker) return;
+  if (!navigator.serviceWorker) { showToast('⚠️ 이 브라우저는 푸시 알림을 지원하지 않습니다'); return; }
   navigator.serviceWorker.ready.then(function(reg) {
     reg.pushManager.getSubscription().then(function(sub) {
       if (sub) { _unsubscribePush(sub); }
@@ -599,5 +599,5 @@ function _unsubscribePush(sub) {
     }).catch(function() {
       showToast('⚠️ 알림 해제 중 오류가 발생했습니다');
     });
-  });
+  }).catch(function(e){ showToast('⚠️ 알림 해제 실패: ' + e.message); });
 }

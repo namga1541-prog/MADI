@@ -87,13 +87,14 @@ function getMyChildInfo(callback, onNoChild) {
         });
     }).catch(function(e){
       if(window.console&&console.warn)console.warn('[silent madi-15]',e&&e.message);
+      showToast('⚠️ 자녀 정보 로드 실패');
       if (typeof onNoChild === 'function') onNoChild();
     });
 }
 
 // 활성 자녀 변경 — 셀렉터 UI 에서 호출
 function setActiveParentChild(idx) {
-  if (!window._parentChildren) return;
+  if (!window._parentChildren) { showToast('⚠️ 잠시 후 다시 시도해주세요'); return; }
   idx = parseInt(idx, 10);
   if (isNaN(idx) || idx < 0 || idx >= window._parentChildren.length) return;
   if (idx === window._parentActiveIdx) return;
