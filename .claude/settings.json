@@ -1,4 +1,12 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(node tests/smoke.js)",
+      "Bash(npx playwright test --project=sentinel)",
+      "mcp__ccd_session__mark_chapter"
+    ]
+  },
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -27,6 +35,10 @@
           {
             "type": "command",
             "command": "bash -c 'echo \"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"; echo \"📋 변경된 파일\"; git -C \"$(git rev-parse --show-toplevel 2>/dev/null)\" diff --name-only HEAD 2>/dev/null | head -20; echo \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"'"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null); if [ -z \"$TOPLEVEL\" ]; then exit 0; fi; CHANGED=$(git -C \"$TOPLEVEL\" diff --name-only HEAD 2>/dev/null | grep -E \"madi.*\\.js$\" | wc -l | tr -d \" \"); if [ \"$CHANGED\" -gt 0 ]; then echo \"\n🔍 자동 점검 (변경 JS: ${CHANGED}개)\"; cd \"$TOPLEVEL\"; echo \"--- ESLint ---\"; npm run lint 2>&1 | grep -E \"error|warning|problem|✓|passed|0 errors\" | head -5 || true; echo \"--- Smoke ---\"; node tests/smoke.js 2>&1 | tail -3; echo \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"; fi'"
           },
           {
             "type": "command",

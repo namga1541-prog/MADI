@@ -156,6 +156,13 @@ npx playwright test --project=sentinel
 - 약 20초 소요, 라이브 URL 대상 스모크 4개 테스트
 - 실패 시 해당 도메인 에이전트 재수정 → 재push → 재검증
 
+### Post-Work Auto-Verify (작업 완료 후 자동)
+- **Layer 1 (자동)**: Stop 훅이 madi-*.js 변경 감지 시 ESLint + Smoke 자동 실행 — 별도 지시 불필요
+- **Layer 3 (수동 트리거)**: JS 파일 **5개 이상** 변경된 대형 작업 완료 후 `spawn_task`로 Post-Verify Agent 자동 호출
+  - Post-Verify Agent: `npm run lint` → `node tests/smoke.js` → `npx playwright test --project=sentinel` 순서로 전체 검증
+  - 성공 시 "✅ 전체 검증 통과" 보고, 실패 시 파일명:라인 보고 후 재수정
+- 검증 실패 시 커밋·푸시 전 재수정 필수 (Fix-Verify Loop와 동일 원칙)
+
 ### 병렬 실행 원칙
 - 의존관계 없는 에이전트는 **단일 메시지** 내 동시 spawn (순차 금지)
 - 각 에이전트에는 **담당 파일만** 배정 (파일 중복 배정 = 충돌)

@@ -189,7 +189,7 @@ Architect (opus) 완료
 
 ---
 
-## 하네스 패턴 9종
+## 하네스 패턴 10종
 
 ---
 
@@ -624,6 +624,68 @@ ai, parent 에이전트 spawn 예정
 - **재개 방법**: 대화 재시작 시 스냅샷 Read → 미완료 항목부터 재실행
 - **정리**: 전체 작업 완료 + 커밋 후 스냅샷 파일 삭제 (git 커밋에 포함 금지)
 - `.gitignore`에 `.claude/snapshot-*.md` 추가 권장
+
+---
+
+### 10. Post-Work Auto-Verify 패턴
+
+**트리거**: JS 파일 변경이 포함된 **모든 코드 수정 작업 완료 후 자동**
+
+**목적**: 수정 직후 회귀(regression)를 즉시 탐지. 대장님이 앱을 직접 열어 확인하지 않아도 됨.
+
+**구현 레이어 (3단계)**:
+
+```
+Layer 1 — Stop 훅 (자동, 즉시)
+  Claude 응답 완료 시 madi-*.js 변경 감지 → ESLint + Smoke 자동 실행 (~5초)
+
+Layer 2 — PostToolUse 훅 (자동, 파일 저장마다)
+  Edit/Write 실행 직후 → node --check (문법) → 현재 활성
+
+Layer 3 — Post-Verify Agent (작업 완료 선언 시, 수동 트리거)
+  대형 작업(파일 5개+) 완료 시 spawn → sentinel 포함 전체 검증
+```
+
+**Layer 1 동작 흐름**:
+
+```
+Claude Stop
+  └─ git diff --name-only HEAD | grep madi-*.js
+       ├─ 변경 없음 → 점검 생략
+       └─ 변경 있음 → ESLint → Smoke → 결과 출력
+                          │           │
+                        오류 발견   실패 발견
+                          └─────┬────┘
+                          Claude 재수정 → 재커밋
+```
+
+**Layer 3 — Post-Verify Agent 브리핑 템플릿**:
+
+```
+역할: Post-Verify Agent (검증 전담)
+작업: 방금 완료된 코드 수정에 대한 전체 검증
+
+수행 순서:
+1. npm run lint                          → ESLint 오류 0개 확인
+2. node tests/smoke.js                   → 23/23 통과 확인
+3. npx playwright test --project=sentinel → 라이브 3개 통과 확인
+
+실패 시: 실패 항목과 파일명:라인번호를 보고. 직접 수정하지 말고 보고만 할 것.
+성공 시: "✅ 전체 검증 통과 — 배포 안전" 한 줄만 출력.
+```
+
+**자동 트리거 조건**:
+
+| 조건 | 동작 |
+|------|------|
+| JS 파일 1~4개 변경 | Layer 1만 (Stop 훅 자동) |
+| JS 파일 5개 이상 변경 | Layer 1 + Layer 3 (Post-Verify Agent spawn) |
+| Edge Function 변경 | Layer 1 + 배포 후 sentinel 재실행 |
+
+**CLAUDE.md 연동 규칙**:
+- Layer 1은 훅으로 자동 실행 — 별도 지시 불필요
+- Layer 3은 대형 작업(5파일+) 완료 후 Claude가 자동으로 spawn_task 호출
+- 검증 실패 시 커밋·푸시 전 재수정 (Fix-Verify Loop와 동일 원칙)
 
 ---
 
