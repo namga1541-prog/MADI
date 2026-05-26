@@ -295,9 +295,11 @@ function _renderParentRecentPortfolios(childId) {
     return;
   }
 
+  var _portfolioCenterId = window._parentCenterId || (currentUser && currentUser.center_id) || '';
   supaFetch('madi_portfolios?select=id,month,content,opened_at,created_by_name'
     + '&child_id=eq.' + encodeURIComponent(childId)
     + '&parent_visible=eq.true'
+    + '&center_id=eq.' + encodeURIComponent(_portfolioCenterId)
     + '&order=month.desc&limit=4', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) rows = [];
@@ -412,53 +414,14 @@ function _renderParentWeekSessions(sessions) {
   }).join('');
 }
 
-// 선생님 메시지 (라운지) — 학부모는 private_admin 글 중 받은 것
+// TODO: madi_lounge_posts에 수신자 컬럼 추가 후 재활성화 필요 — 현재 보안상 비활성
+// (수신자 컬럼 없이 center_id 전체 조회 시 다른 학부모에게 보낸 private_admin 글까지 노출됨)
 function _loadParentTeacherMessages() {
   var el = document.getElementById('parentTeacherMsgs');
   var subEl = document.getElementById('parentTeacherMsgSub');
-  if (!el) return;
-  var _centerId = window._parentCenterId || (currentUser && currentUser.center_id) || '';
-  supaFetch('madi_lounge_posts?visibility=eq.private_admin&center_id=eq.' + encodeURIComponent(_centerId) + '&order=created_at.desc&limit=10', 'GET')
-    .then(function(rows) {
-      if (!Array.isArray(rows)) rows = [];
-      var received = rows.filter(function(p){
-        if (!p) return false;
-        if (p.author_id && String(p.author_id) === String(currentUser.id)) return false;
-        if (!p.author_id && p.author_name && p.author_name === currentUser.name) return false;
-        return true;
-      });
-      if (subEl) subEl.textContent = received.length ? '받은 메시지 ' + received.length + '개' : '받은 메시지 없음';
-      if (received.length === 0) {
-        el.innerHTML = '<div class="dp-empty">받은 메시지가 없습니다.<br>선생님께 게시판에서 문의해 보세요.</div>';
-        return;
-      }
-      // eslint-disable-next-line no-unsanitized/property
-      el.innerHTML = received.slice(0, 3).map(function(p){
-        var from = p.author_name || '선생님';
-        var when = p.created_at ? p.created_at.slice(0,10) : '';
-        var days = when ? Math.floor((new Date() - new Date(when)) / 86400000) : 0;
-        var timeText = days === 0 ? '오늘' : days + '일 전';
-        var title = (p.title || '').toString();
-        var body = (p.content || '').toString().slice(0, 120);
-        return ''
-          + '<div class="dp-p-msg" onclick="switchParentTab(\'notice\')">'
-          +   '<div class="dp-p-msg-head">'
-          +     '<div class="dp-p-msg-av dp-av-1">' + escHtml(from.charAt(0)) + '</div>'
-          +     '<div class="dp-p-msg-from">' + escHtml(from) + '</div>'
-          +     '<div class="dp-p-msg-time">' + timeText + '</div>'
-          +   '</div>'
-          +   '<div class="dp-p-msg-body">'
-          +     (title ? '<b>' + escHtml(title) + '</b><br>' : '')
-          +     escHtml(body) + (body.length >= 120 ? '...' : '')
-          +   '</div>'
-          + '</div>';
-      }).join('');
-    })
-    .catch(function(e){
-      if (window.console && console.warn) console.warn('[silent madi-15 msg]', e && e.message);
-      if (subEl) subEl.textContent = '불러오기 실패';
-      el.innerHTML = '<div class="dp-empty">메시지를 불러오지 못했습니다</div>';
-    });
+  if (subEl) subEl.textContent = '받은 메시지 없음';
+  if (el) el.innerHTML = '<div class="dp-empty">받은 메시지가 없습니다.<br>선생님께 게시판에서 문의해 보세요.</div>';
+  return [];
 }
 
 // 평가 점수 조회 → 점수 기반 그래프, 실패/빈 경우 세션 기반 fallback
