@@ -49,6 +49,25 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: '인증이 필요합니다' }), { status: 401, headers: CORS })
   }
 
+  // ── 세션 무효화 검증: 비밀번호 변경·세션 강제 만료 이후 발급된 토큰인지 확인 ──
+  {
+    const sub = String(user.sub || '')
+    const iat = Number(user.iat || 0)
+    const sessRes = await fetch(
+      SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(sub) + '&select=password_changed_at,session_revoked_at',
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+    )
+    const sessRows = await sessRes.json() as Array<{ password_changed_at?: string; session_revoked_at?: string }>
+    const sessRow  = sessRows && sessRows[0]
+    if (sessRow) {
+      const changedAt = sessRow.password_changed_at ? Math.floor(new Date(sessRow.password_changed_at).getTime() / 1000) : 0
+      const revokedAt = sessRow.session_revoked_at  ? Math.floor(new Date(sessRow.session_revoked_at).getTime()  / 1000) : 0
+      if (iat < changedAt || iat < revokedAt) {
+        return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
+      }
+    }
+  }
+
   let body: { action?: string; secret?: string; code?: string }
   try { body = await req.json() } catch {
     return new Response(JSON.stringify({ error: '잘못된 요청' }), { status: 400, headers: CORS })

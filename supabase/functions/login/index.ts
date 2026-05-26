@@ -254,16 +254,17 @@ Deno.serve(async (req: Request) => {
 
   const token = await signJwt(payload, JWT_SECRET)
 
-  // 응답에는 password 필드 제외
-  const { password: _pw, ...safeUser } = user
+  // 응답에는 password·보안 내부 필드 제외 (totp_secret 등 민감 정보 노출 차단)
+  const { password: _pw, totp_secret: _ts, totp_enrolled_at: _ta,
+          failed_login_count: _fc, last_failed_at: _lfa, locked_until: _lu,
+          ...safeUser } = user
 
   // httpOnly 쿠키로 JWT 발급 — JS에서 접근 불가 (XSS 탈취 차단)
   // SameSite=None;Secure: 크로스 오리진(GitHub Pages → Supabase) 쿠키 전송 허용
   const cookieHeader = `madi_session=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=86400`
 
-  // token 필드: 구 클라이언트 하위 호환 유지 (신 클라이언트 배포 후 제거 예정)
   return new Response(
-    JSON.stringify({ token, user: safeUser }),
+    JSON.stringify({ user: safeUser }),
     { status: 200, headers: { ...CORS, 'Content-Type': 'application/json', 'Set-Cookie': cookieHeader } }
   )
 })
