@@ -76,7 +76,7 @@ function copyKakao() {
   if (!el) return;
   var text = el.textContent;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function() { showToast('📋 복사됨!'); });
+    navigator.clipboard.writeText(text).then(function() { showToast('📋 복사됨!'); }).catch(function() { showToast('⚠️ 클립보드 복사 실패. 직접 선택 후 복사해주세요'); });
   } else {
     var ta = document.createElement('textarea');
     ta.value = text;
