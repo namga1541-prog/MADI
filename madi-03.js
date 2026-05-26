@@ -163,6 +163,9 @@ function addStaffAccount() {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>';
     return;
   }
+  if (name.length > 20) { showToast('⚠️ 이름은 20자 이내로 입력해 주세요.'); return; }
+  if (username.length < 2 || username.length > 20) { showToast('⚠️ 아이디는 2~20자로 입력해 주세요.'); return; }
+  if (pw.length < 4 || pw.length > 50) { showToast('⚠️ 비밀번호는 4~50자로 입력해 주세요.'); return; }
   if (resultEl) resultEl.innerHTML = '<span style="color:var(--text2);">추가 중...</span>';
 
   hashPassword(pw).then(function(hashed) {
@@ -743,6 +746,8 @@ function saveNotice() {
   var content = (document.getElementById('noticeContent') || {value:''}).value.trim();
   var ntype   = (document.getElementById('noticeType')    || {value:'info'}).value;
   if (!title || !content) { showToast('⚠️ 제목과 내용을 모두 입력해 주세요'); return; }
+  if (title.length > 100) { showToast('⚠️ 제목은 100자 이내로 입력해 주세요.'); return; }
+  if (content.length > 5000) { showToast('⚠️ 내용은 5000자 이내로 입력해 주세요.'); return; }
   return supaFetch('madi_notices', 'POST', [{
     center_id: currentUser.center_id,
     notice_type: ntype,

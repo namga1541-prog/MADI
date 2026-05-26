@@ -70,6 +70,7 @@ function confirmBulkClosedDate() {
   var reason = sel ? sel.value : '';
   if (reason === '기타') {
     var etcVal = etc ? etc.value.trim() : '';
+    if (etcVal.length > 200) { showToast('⚠️ 종결 사유는 200자 이내로 입력해 주세요.'); return; }
     reason = etcVal || '기타';
   }
 
@@ -162,6 +163,7 @@ function addChildFromModal() {
   var memo   = (document.getElementById('m_childMemo')||{}).value.trim();
 
   if (!name)  { showToast('이름을 입력해주세요.'); return; }
+  if (name.length > 20) { showToast('⚠️ 이름은 20자 이내로 입력해 주세요.'); return; }
   if (!birth) { showToast('생년월일을 입력해주세요.'); return; }
 
   if (_addChildLock) return;

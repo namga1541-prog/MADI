@@ -358,6 +358,12 @@ function generateSIReport() {
   if (!d.attitude)  { showToast('검사 태도를 입력해주세요.'); return; }
   if (d.tests.length === 0) { showToast('실시한 검사를 1개 이상 선택해주세요.'); return; }
 
+  var MAX_FIELD = 1000;
+  if ((d.bg||'').length > MAX_FIELD || (d.attitude||'').length > MAX_FIELD || (d.extra||'').length > MAX_FIELD) {
+    showToast('⚠️ 각 입력 항목은 1000자 이내로 작성해 주세요.');
+    return;
+  }
+
   var btn    = document.getElementById('siReportBtn');
   var result = document.getElementById('siReportResult');
   if (!btn || !result) return;

@@ -388,6 +388,9 @@ function deleteChild(id) {
 
 // 아동 종결 처리
 function closeChild(id) {
+  if (typeof canDo !== 'function' || !canDo('editChild')) {
+    showToast('⚠️ 권한이 없습니다.'); return;
+  }
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
   showConfirm(c.name + ' 아동을 종결 처리할까요?\n종결 탭에서 다시 확인할 수 있어요.', function() {
@@ -401,6 +404,9 @@ function closeChild(id) {
 
 // 아동 재등록 (종결 → 등록)
 function reopenChild(id) {
+  if (typeof canDo !== 'function' || !canDo('editChild')) {
+    showToast('⚠️ 권한이 없습니다.'); return;
+  }
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
   showConfirm(c.name + ' 아동을 다시 등록 상태로 변경할까요?', function() {

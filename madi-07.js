@@ -111,7 +111,7 @@ function saveSessionAI() {
       setTimeout(function() { checkAutoStagnation(childId); }, 1200);
       _resetAISaveBtn();
     })
-    .catch(function(err) { showToast('❌ ' + err.message); _resetAISaveBtn(); });
+    .catch(function(err) { if(window.console&&console.warn)console.warn('[madi-07 callClaude]',err&&err.message); showToast('❌ AI 처리 중 오류가 발생했습니다.'); _resetAISaveBtn(); });
 }
 
 // ─────── 기능 2: 가정 활동 추천 AI ───────
@@ -201,7 +201,8 @@ function suggestHomeActivities(sessionId) {
       resultEl.innerHTML = html;
     })
     .catch(function(err) {
-      resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ 추천 생성 실패: ' + escHtml(err.message || '오류') + '</div></div>';
+      if(window.console&&console.warn)console.warn('[madi-07 suggestHomeActivities]',err&&err.message);
+      resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ AI 추천 생성 중 오류가 발생했습니다.</div></div>';
     });
 }
 
@@ -411,7 +412,7 @@ function deleteSession(id) {
     '삭제된 세션은 복구할 수 없습니다.\n' + (backup.date || '') + ' 세션 기록이 삭제됩니다.',
     '세션삭제확인',
     function() {
-      supaFetch('madi_sessions?id=eq.' + id, 'DELETE').catch(function(e) {
+      supaFetch('madi_sessions?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE').catch(function(e) {
         if(window.console&&console.warn)console.warn('[madi-07 deleteSession]',e&&e.message);
         showToast('❌ 세션 삭제 실패 — 다시 시도해주세요');
       });
@@ -777,7 +778,8 @@ function detectStagnation() {
       _resetStagnBtn();
     })
     .catch(function(err) {
-      resultEl.innerHTML = '<div class="stagnation-card"><div class="stagnation-text">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
+      if(window.console&&console.warn)console.warn('[madi-07 checkAutoStagnation]',err&&err.message);
+      resultEl.innerHTML = '<div class="stagnation-card"><div class="stagnation-text">⚠️ AI 분석 중 오류가 발생했습니다.</div></div>';
       _resetStagnBtn();
     });
 }
@@ -824,6 +826,7 @@ function renderStagnationResult(p, childName, childId) {
         + '<div style="font-size:16px;margin-bottom:4px;">' + escHtml(meta.icon) + '</div>'
         + '<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px;">' + escHtml(a.label) + '</div>'
         + '<div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px;">' + escHtml(a.detail) + '</div>'
+        /* safe: meta.onclick is hardcoded JS in stagnationActionMeta(), not user input; childId is escHtml-sanitized as safeId */
         + '<button class="btn-ghost" style="width:100%;font-size:11px;padding:6px 4px;color:' + escHtml(meta.color) + ';border-color:' + escHtml(meta.color) + '40;" onclick="' + escHtml(meta.onclick) + '">' + escHtml(meta.btnLabel) + '</button>'
         + '</div>';
     });

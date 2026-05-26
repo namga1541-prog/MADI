@@ -666,6 +666,16 @@ function saveSchedFromModal() {
   var endTime   = endTimeEl.value;
   var repeat    = repeatEl.value;
   var until     = repeat !== 'none' ? document.getElementById('schedRepeatUntil').value : '';
+  if (until) {
+    var untilDate = new Date(until);
+    var maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 2);
+    if (untilDate > maxDate) {
+      showToast('⚠️ 반복 종료일은 2년 이내로 설정해 주세요.');
+      if (_saveBtn) delete _saveBtn.dataset.busy;
+      return;
+    }
+  }
   var note      = noteEl.value.trim();
   var teacher   = (document.getElementById('schedTeacher') || {}).value || '';
   if (!childId) { if (_saveBtn) delete _saveBtn.dataset.busy; showToast('아동을 선택해주세요.'); return; }
@@ -902,7 +912,7 @@ function execSchedDelete(id, future) {
         }
       });
     }
-  }).catch(function(e){ showToast('⚠️ 일정 삭제 중 오류: ' + e.message); });
+  }).catch(function(e){ showToast('⚠️ 일정 삭제 중 오류가 발생했습니다.'); });
 }
 
 function saveEditSched(id) {
@@ -1021,7 +1031,7 @@ function exportSchedule(format) {
       XLSX.writeFile(wb, '아이마디아이_일정_' + label + '.xlsx');
       showToast('✅ 엑셀 파일이 저장됐습니다');
       closeScheduleExportModal();
-    }).catch(function(e) { showToast('⚠️ ' + (e && e.message ? e.message : e)); });
+    }).catch(function(e) { showToast('⚠️ 엑셀 라이브러리 로드에 실패했습니다.'); });
 
   } else if (format === 'pdf') {
     _printSchedule(rows, label);

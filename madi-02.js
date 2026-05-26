@@ -271,7 +271,7 @@ function setupGlobalErrorHandler() {
       window._lastErrorToast = Date.now();
       try {
         var shortMsg = (e.message || '').slice(0, 70);
-        showToast('⚠️ 오류: ' + shortMsg + ' @ ' + src, { duration: 7000 });
+        showToast('⚠️ 오류: ' + shortMsg, { duration: 7000 });
       } catch (e2) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     }
   });
