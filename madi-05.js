@@ -346,7 +346,7 @@ function getVoucherUsed(childId) {
 }
 
 function deleteChild(id) {
-  if (typeof canDo === 'function' && !canDo('deleteChild')) {
+  if (typeof canDo !== 'function' || !canDo('deleteChild')) {
     showToast('⚠️ 아동 삭제 권한이 없습니다');
     return;
   }
@@ -365,7 +365,7 @@ function deleteChild(id) {
   var p4 = assIds.length   > 0 ? supaFetch('madi_assessments?id=in.(' + assIds.join(',')   + ')', 'DELETE') : Promise.resolve();
   Promise.all([p1, p2, p3, p4])
     .then(function() {
-      return supaFetch('madi_children?id=eq.' + id, 'DELETE');
+      return supaFetch('madi_children?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE');
     })
     .then(function() {
       // 로컬 삭제
@@ -771,6 +771,10 @@ function bulkChangeStatus(newStatus) {
 
 // 실제 일괄 상태 적용 (ids 배열, 새 상태, 종결일 또는 null, 종결 사유)
 function applyBulkStatus(ids, newStatus, closedAt, reason) {
+  if (typeof canDo !== 'function' || !canDo('editChild')) {
+    showToast('⚠️ 권한이 없습니다.');
+    return;
+  }
   var changed = 0;
   ids.forEach(function(id) {
     var c = childDB.find(function(c){ return c.id === id; });

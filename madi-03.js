@@ -221,7 +221,7 @@ function removeStaffAccountFromBtn(btn) {
 
 function removeStaffAccount(id, name) {
   showConfirm(name + ' 선생님 계정을 삭제할까요?', function() {
-    supaFetch('madi_users?id=eq.' + id, 'DELETE')
+    supaFetch('madi_users?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE')
       .then(function() {
         showToast('🗑️ ' + name + ' 계정 삭제됨');
         loadStaffMgmtList();
@@ -758,7 +758,7 @@ function saveNotice() {
     loadNotices();
     fanoutNoticeNotifications(saved, title, ntype);
   }).catch(function(e) {
-    showToast('❌ 저장 실패: ' + (e.message||''));
+    showToast('❌ 저장에 실패했습니다.');
   });
 }
 
@@ -835,7 +835,7 @@ function deleteNotice(id) {
         showToast('🗑️ 공지가 삭제됐습니다');
         loadNotices();
       }).catch(function(e) {
-        showToast('❌ 삭제 실패: ' + (e.message||''));
+        showToast('❌ 삭제에 실패했습니다.');
       });
   });
 }

@@ -862,6 +862,10 @@ function execSchedDeleteChoice(id) {
 }
 
 function execSchedDelete(id, future) {
+  if (!currentUser || currentUser.role !== 'admin') {
+    showToast('⚠️ 관리자만 일정을 삭제할 수 있습니다.');
+    return;
+  }
   var s = scheduleDB.find(function(x){ return x.id === id; });
   if (!s) return;
   var toDeleteItems = future && s.groupId
@@ -872,7 +876,7 @@ function execSchedDelete(id, future) {
   var failedIds = [];
   // 서버 DELETE 모두 시도 후 실패한 id는 로컬에서도 복원 (서버/로컬 불일치 방지)
   Promise.all(toDeleteIds.map(function(did){
-    return supaFetch('madi_schedules?id=eq.' + did, 'DELETE')
+    return supaFetch('madi_schedules?id=eq.' + did + '&center_id=eq.' + currentUser.center_id, 'DELETE')
       .catch(function(e){ console.warn('일정 삭제 실패 id=' + did, e); failedIds.push(did); });
   })).then(function(){
     scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1 || failedIds.indexOf(x.id) !== -1; });
@@ -902,6 +906,10 @@ function execSchedDelete(id, future) {
 }
 
 function saveEditSched(id) {
+  if (!currentUser || currentUser.role !== 'admin') {
+    showToast('⚠️ 관리자만 일정을 수정할 수 있습니다.');
+    return;
+  }
   var idx = scheduleDB.findIndex(function(x){ return x.id === id; });
   if (idx < 0) return;
   var date    = (document.getElementById('editSchedDate')||{}).value || '';

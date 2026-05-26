@@ -785,6 +785,7 @@ function renderDashboardAdmin() {
         +   '<div class="dp-alert-ic">' + a.ic + '</div>'
         +   '<div class="dp-alert-body">'
         +     '<div class="dp-alert-title">' + escHtml(a.title) + '</div>'
+        // eslint-disable-next-line no-unsanitized/property -- a.text는 생성 시점에 escHtml 처리된 값(하드코딩 문자열 or escHtml() 래핑)으로만 구성됨
         +     '<div class="dp-alert-text">' + a.text + '</div>'
         +     (a.time ? '<div class="dp-alert-time">' + escHtml(a.time) + '</div>' : '')
         +   '</div>'
