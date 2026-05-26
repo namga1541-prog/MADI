@@ -47,7 +47,7 @@ function saveSessionAI() {
   var child = childDB.find(function(c) { return c.id === childId; });
   if (!child) { showToast('⚠️ 아동 정보를 찾을 수 없습니다.'); return; }
   var btn = document.getElementById('aiSaveBtn');
-  if (!btn) return;
+  if (!btn) { showToast('⚠️ 페이지를 새로고침 후 다시 시도해주세요'); return; }
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
   btn.disabled = true;
@@ -379,12 +379,15 @@ function showDeleteConfirm(title, subtitle, keyword, onConfirm) {
   setTimeout(function(){ dcmInput.focus(); }, 200);
 }
 function checkDcmInput() {
-  var val = document.getElementById('dcmInput').value;
-  var kw  = document.getElementById('dcmKeyword').textContent;
-  var btn = document.getElementById('dcmConfirmBtn');
+  var dcmInput = document.getElementById('dcmInput');
+  var dcmKeyword = document.getElementById('dcmKeyword');
+  var dcmConfirmBtn = document.getElementById('dcmConfirmBtn');
+  if (!dcmInput || !dcmKeyword || !dcmConfirmBtn) return;
+  var val = dcmInput.value;
+  var kw  = dcmKeyword.textContent;
   var match = (val === kw);
-  btn.disabled = !match;
-  btn.style.opacity = match ? '1' : '0.4';
+  dcmConfirmBtn.disabled = !match;
+  dcmConfirmBtn.style.opacity = match ? '1' : '0.4';
 }
 function closeDcmModal() {
   document.getElementById('deleteConfirmModal').style.display = 'none';

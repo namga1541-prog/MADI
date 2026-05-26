@@ -246,6 +246,8 @@ function copyErrorLog() {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(function() {
       showToast('📋 디버그 정보 복사됨 — 붙여넣기로 전달하세요');
+    }).catch(function() {
+      showToast('⚠️ 클립보드 복사 실패');
     });
   } else {
     showToast('클립보드 미지원 — 설정 > 디버그 화면을 캡처해 전달해주세요');
@@ -521,6 +523,8 @@ function deleteBackupConfirm(id) {
     deleteBackup(id).then(function() {
       showToast('🗑️ 백업 삭제됨');
       renderBackupList();
+    }).catch(function(e) {
+      showToast('⚠️ 백업 삭제 실패: ' + e.message);
     });
   });
 }
