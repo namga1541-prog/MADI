@@ -238,7 +238,9 @@ function renderParentNotifList(rows) {
 }
 
 function openParentNotif(notifId) {
-  supaFetch('madi_notifications?id=eq.' + encodeURIComponent(notifId),
+  if (!currentUser || currentUser.role !== 'parent') return;
+  supaFetch('madi_notifications?id=eq.' + encodeURIComponent(notifId)
+    + '&user_id=eq.' + encodeURIComponent(currentUser.id),
     'PATCH', { read_at: new Date().toISOString() })
     .then(function(){
       loadParentNotifications();

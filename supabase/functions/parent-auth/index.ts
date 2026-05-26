@@ -322,7 +322,7 @@ Deno.serve(async (req: Request) => {
           status: 409, headers: { ...cors, 'Content-Type': 'application/json' }
         })
       }
-      return new Response(JSON.stringify({ error: '계정 생성 실패: ' + err }), {
+      return new Response(JSON.stringify({ error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' }), {
         status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
