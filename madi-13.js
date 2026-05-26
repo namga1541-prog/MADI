@@ -352,6 +352,7 @@ function generateSIReport() {
   if (!apiKey) return;
 
   var d = collectSIData();
+  if (!d) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
   if (!d.child)     { showToast('아동을 선택해주세요.'); return; }
   if (!d.bg)        { showToast('배경 정보를 입력해주세요.'); return; }
   if (!d.attitude)  { showToast('검사 태도를 입력해주세요.'); return; }
