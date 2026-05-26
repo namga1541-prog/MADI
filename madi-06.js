@@ -58,7 +58,7 @@ function confirmBulkClosedDate() {
   var modal = document.getElementById('bulkClosedDateModal');
   if (!modal) return;
   var ids = [];
-  try { ids = JSON.parse(modal.dataset.ids || '[]'); } catch (e) { if (window.console && console.warn) console.warn('[bulkClose ids parse]', e && e.message); }
+  try { ids = JSON.parse(modal.dataset.ids || '[]'); } catch (e) { if (window.console && console.warn) console.warn('[bulkClose ids parse]', e && e.message); showToast('⚠️ 처리 중 오류가 발생했습니다'); }
   if (!ids.length) { closeBulkClosedDateModal(); return; }
 
   var date = (document.getElementById('bcdDateInput') || {}).value || '';
@@ -137,7 +137,7 @@ function openChildRegModal() {
     + '</div>';
 
   document.body.appendChild(overlay);
-  setTimeout(function(){ document.getElementById('m_childName').focus(); }, 200);
+  setTimeout(function(){ var nameEl = document.getElementById('m_childName'); if (nameEl) nameEl.focus(); }, 200);
 }
 
 function m_updateAge() {
@@ -187,7 +187,7 @@ function toggleChildCard(id) {
 
 function openChildDetail(id) {
   var child = childDB.find(function(c) { return c.id === id; });
-  if (!child) return;
+  if (!child) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
   var today = getTodayKST();
   var ss = sessionDB.filter(function(s) { return s.childId === id; })
     .sort(function(a,b){ return a.date<b.date?1:-1; });
@@ -281,7 +281,7 @@ function goToSession(id) {
 // ─────── 아동 편집 모달 ───────
 function openEditModal(id) {
   var child = childDB.find(function(c) { return c.id === id; });
-  if (!child) return;
+  if (!child) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
 
   var overlay = document.createElement('div');
   overlay.className = 'sched-modal-overlay';
@@ -487,7 +487,7 @@ function updateEditAge() {
 
 function saveEditModal(id) {
   var idx = childDB.findIndex(function(c) { return c.id === id; });
-  if (idx < 0) return;
+  if (idx < 0) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
 
   var nameEl = document.getElementById('editName');
   var birthEl = document.getElementById('editBirth');

@@ -351,7 +351,7 @@ function deleteChild(id) {
     return;
   }
   var c = childDB.find(function(c) { return c.id === id; });
-  if (!c) return;
+  if (!c) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
   showConfirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?', function() {
   // 연결 데이터 ID 수집
   var sessIds  = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
@@ -389,7 +389,7 @@ function deleteChild(id) {
 // 아동 종결 처리
 function closeChild(id) {
   var c = childDB.find(function(c) { return c.id === id; });
-  if (!c) return;
+  if (!c) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
   showConfirm(c.name + ' 아동을 종결 처리할까요?\n종결 탭에서 다시 확인할 수 있어요.', function() {
     c.status = '종결';
     c.closedAt = getTodayKST();
@@ -402,7 +402,7 @@ function closeChild(id) {
 // 아동 재등록 (종결 → 등록)
 function reopenChild(id) {
   var c = childDB.find(function(c) { return c.id === id; });
-  if (!c) return;
+  if (!c) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
   showConfirm(c.name + ' 아동을 다시 등록 상태로 변경할까요?', function() {
     c.status = '등록';
     delete c.closedAt;

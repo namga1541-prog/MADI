@@ -226,7 +226,7 @@ function saveLoungePost() {
   var visEl     = document.getElementById('loungeVisibility');
   var titleEl   = document.getElementById('loungeTitle');
   var contentEl = document.getElementById('loungeContent');
-  if (!visEl || !titleEl || !contentEl) return;
+  if (!visEl || !titleEl || !contentEl) { showToast('⚠️ 페이지를 새로고침 후 다시 시도해주세요'); return; }
 
   var visibility = visEl.value;
   var title      = (titleEl.value || '').trim();
@@ -421,7 +421,7 @@ function saveComment(postId) {
 }
 
 function deleteComment(postId, commentId) {
-  if (!currentUser) return;
+  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다'); return; }
   showConfirm('이 댓글을 삭제하시겠습니까?', function() {
     supaFetch('madi_lounge_comments?id=eq.' + encodeURIComponent(commentId), 'DELETE')
       .then(function() {
@@ -838,7 +838,7 @@ function editLibraryPost(id) {
 function openVocabFeedback(prefillWrong) {
   if (!currentUser) { showToast('⚠️ 로그인이 필요합니다'); return; }
   var modal = document.getElementById('vocabFeedbackModal');
-  if (!modal) return;
+  if (!modal) { showToast('⚠️ 페이지를 새로고침 후 다시 시도해주세요'); return; }
 
   // 폼 초기화
   var typeEl    = document.getElementById('vfType');
