@@ -9,7 +9,8 @@ function generateReport() {
   if (!child) return;
   var sessions = sessionDB.filter(function(s) { return s.childId === childId; })
     .sort(function(a, b) { return a.date < b.date ? -1 : 1; });
-  var target = period === 'all' ? sessions : sessions.slice(-parseInt(period));
+  var periodNum = parseInt(period);
+  var target = period === 'all' ? sessions : sessions.slice(-(isNaN(periodNum) || periodNum < 1 ? 10 : periodNum));
   if (target.length === 0) { showToast('세션 기록이 없습니다.'); return; }
 
   var btn = document.getElementById('reportBtn');
@@ -565,7 +566,7 @@ function deleteIEPRecord(id) {
     var childId = r ? r.childId : 0;
     iepDB = iepDB.filter(function(x){ return x.id !== id; });
     saveIEP();
-    supaFetch('madi_iep_history?id=eq.' + id, 'DELETE').catch(function(e) {
+    supaFetch('madi_iep_history?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE').catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-08 deleteIEP]',e&&e.message);
       showToast('❌ 장단기계획 삭제 실패 — 다시 시도해주세요');
     });
@@ -575,6 +576,7 @@ function deleteIEPRecord(id) {
         if (!r) return;
         var payload = Object.assign({}, r);
         delete payload.id;
+        payload.center_id = currentUser.center_id;
         supaFetch('madi_iep_history', 'POST', [payload])
           .then(function() { if (typeof loadIEP === 'function') loadIEP(); renderIEPHistory(childId); showToast('↩️ 복원됨'); })
           .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });

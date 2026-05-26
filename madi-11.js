@@ -725,13 +725,15 @@ function renderAssessmentList() {
 }
 
 function deleteAssessment(id) {
-  if (typeof canDo === 'function' && !canDo('deleteAssessment')) {
+  if (typeof canDo !== 'function' || !canDo('deleteAssessment')) {
     showToast('⚠️ 검사 삭제 권한이 없습니다');
     return;
   }
   showConfirm('이 검사 결과를 삭제할까요?', function() {
     var backup = assessmentDB.find(function(a) { return a.id === id; });
-    supaFetch('madi_assessments?id=eq.' + id, 'DELETE').catch(function(e) {
+    var deleteUrl = 'madi_assessments?id=eq.' + id
+      + (currentUser && currentUser.center_id ? '&center_id=eq.' + currentUser.center_id : '');
+    supaFetch(deleteUrl, 'DELETE').catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-11 deleteAssessment]',e&&e.message);
       showToast('❌ 검사결과 삭제 실패 — 다시 시도해주세요');
     });
@@ -743,6 +745,7 @@ function deleteAssessment(id) {
         if (!backup) return;
         var payload = Object.assign({}, backup);
         delete payload.id;
+        payload.center_id = currentUser && currentUser.center_id ? currentUser.center_id : payload.center_id;
         supaFetch('madi_assessments', 'POST', [payload])
           .then(function() { if (typeof loadAssess === 'function') loadAssess(); renderAssessmentList(); showToast('↩️ 복원됨'); })
           .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });

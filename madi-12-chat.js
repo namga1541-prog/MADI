@@ -287,7 +287,7 @@ function executeAction(action) {
     }
   } catch(e) {
     console.error('[Action] 실행 실패:', e);
-    showToast('❌ 액션 실행 실패: ' + e.message);
+    showToast('❌ 액션 실행에 실패했습니다.');
   }
 }
 
@@ -654,7 +654,7 @@ function sendChat() {
     label: 'AI 비서'
   })
   .then(function(res) {
-    if (!res.ok) return res.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + res.status); });
+    if (!res.ok) return res.json().then(function(e) { throw new Error('서버 오류가 발생했습니다.'); });
     return res.json();
   })
   .then(function(data) {
@@ -679,7 +679,7 @@ function sendChat() {
   })
   .catch(function(err) {
     hideTypingIndicator();
-    addAiMsg('오류가 발생했어요 😅\n' + (err && err.message ? err.message : '알 수 없는 오류가 발생했습니다.'));
+    addAiMsg('오류가 발생했어요 😅 잠시 후 다시 시도해주세요.');
     chatWaiting = false;
     var _sendBtn2 = document.getElementById('chatSendBtn');
     if (_sendBtn2) _sendBtn2.disabled = false;

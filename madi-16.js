@@ -129,7 +129,8 @@ function _quickGetMySchedules() {
   return all.filter(function(s) {
     if (!s || s.date !== today) return false;
     var t = s.therapist || s.teacher || '';
-    return t === myName;
+    return t === myName
+      && (s.center_id || '') === ((currentUser && currentUser.center_id) || '');
   }).sort(function(a, b) {
     return String(a.time || '').localeCompare(String(b.time || ''));
   });
@@ -142,7 +143,8 @@ function _quickFindSession(sched) {
   for (var i = 0; i < arr.length; i++) {
     var se = arr[i];
     if (!se) continue;
-    if (se.childId === sched.childId && se.date === sched.date && (se.teacher || '') === myName) return se;
+    if (se.childId === sched.childId && se.date === sched.date && (se.teacher || '') === myName
+        && (se.center_id || '') === ((currentUser && currentUser.center_id) || '')) return se;
   }
   return null;
 }
@@ -318,7 +320,7 @@ function _quickPrefillGoals(sched) {
     prevWithNext.nextGoals.forEach(function(g) {
       if (!g) return;
       var nm = typeof g === 'string' ? g : (g.name || '');
-      if (!nm) return;
+      if (!nm || nm.length > _QUICK_GOAL_MAX_LEN) return;
       var exists = false;
       for (var j = 0; j < seed.length; j++) if (seed[j].name === nm) { exists = true; break; }
       if (!exists) seed.push({ name: nm, checked: false });
@@ -718,6 +720,10 @@ function _quickUploadPhoto(dataUrl) {
 // 저장 → 다음 미기록 카드로
 // ─────────────────────────────────────────────
 function quickSave() {
+  if (!currentUser || currentUser.role !== 'teacher') {
+    if (typeof showToast === 'function') showToast('⚠️ 권한이 없습니다.');
+    return;
+  }
   if (!_quickCurrentSchedId) return;
   _quickStopDictation();
   var scheds = _quickGetMySchedules();

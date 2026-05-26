@@ -135,9 +135,9 @@ function renderStaffCard() {
             : '<span style="font-size:11px;color:var(--mint);">나</span>')
           + '</div>';
       });
-      // eslint-disable-next-line no-unsanitized/property
       var staffList = document.getElementById('staffList');
       if (!staffList) return;
+      // eslint-disable-next-line no-unsanitized/property
       staffList.innerHTML = html || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">등록된 계정 없음</div>';
     }).catch(function() {
       showToast('⚠️ 직원 목록을 불러오지 못했습니다.');
@@ -920,9 +920,9 @@ function confirmImport() {
   renderChildGrid();
   populateChildSelects();
 
-  // eslint-disable-next-line no-unsanitized/property
   var importResult = document.getElementById('importResult');
   if (!importResult) return;
+  // eslint-disable-next-line no-unsanitized/property
   importResult.innerHTML =
     '<div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:4px solid var(--green);">'
     + '<div style="font-weight:700;color:var(--green);margin-bottom:6px;">✅ 가져오기 완료!</div>'
