@@ -71,9 +71,6 @@ async function logSettingsAccess(
     const m = path.match(/[?&]key=(?:eq|in)\.([^&]+)/)
     if (m) keyName = decodeURIComponent(m[1]).slice(0, 64)
 
-    const ip  = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || ''
-    const ua  = req.headers.get('user-agent') || ''
-
     await fetch(`${supaUrl}/rest/v1/madi_audit_log`, {
       method:  'POST',
       headers: {
@@ -84,13 +81,10 @@ async function logSettingsAccess(
       },
       body: JSON.stringify({
         actor_id:    user.sub      ?? null,
-        actor_role:  user.role     ?? null,
+        actor_name:  user.name     ?? null,
         action:      (!method || method === 'GET') ? 'SELECT' : method,
         table_name:  'madi_settings',
-        row_id:      keyName,
-        center_id:   user.center_id ?? null,
-        client_ip:   ip.slice(0, 64),
-        user_agent:  ua.slice(0, 256),
+        record_id:   keyName,
       }),
     })
   } catch (_) { /* fire-and-forget */ }
@@ -417,6 +411,33 @@ Deno.serve(async (req: Request) => {
     }
 
     // ══════════════════════════════════════════════════════════
+    // ★ GLOBAL_TABLES PATCH/DELETE 소유권 검증 (IDOR 방지)
+    //   center_id 격리 없는 전역 테이블은 본인 row 만 수정·삭제 가능
+    //   superadmin/admin은 예외 (madi_lounge_posts 만 admin 예외)
+    // ══════════════════════════════════════════════════════════
+    const GLOBAL_OWNER_COL: Record<string, string> = {
+      'madi_lounge_comments':   'author_id',
+      'madi_push_subscriptions': 'user_id',
+      'madi_lounge_posts':      'author_id',
+    }
+
+    if (GLOBAL_TABLES.includes(tableName) && (method === 'PATCH' || method === 'DELETE')) {
+      const ownerCol = GLOBAL_OWNER_COL[tableName]
+      if (ownerCol) {
+        const isSuperOrAdmin = user.role === 'superadmin' || user.role === 'admin'
+        // madi_lounge_posts: superadmin/admin 은 삭제·수정 허용 (공지 관리 목적)
+        // madi_lounge_comments, madi_push_subscriptions: superadmin 만 예외
+        const canSkipOwner = tableName === 'madi_lounge_posts'
+          ? isSuperOrAdmin
+          : user.role === 'superadmin'
+        if (!canSkipOwner) {
+          finalPath = finalPath + (finalPath.includes('?') ? '&' : '?')
+            + ownerCol + '=eq.' + encodeURIComponent(String(user.sub))
+        }
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════
     // ★ superadmin POST: center_id 주입
     //   GET은 전체 조회 유지, POST만 자신의 center_id로 귀속
     //   → madi_settings api_key 등 센터 스코프 데이터가 NULL center_id로 저장되는 버그 방지
@@ -466,6 +487,15 @@ Deno.serve(async (req: Request) => {
 
     const ct   = response.headers.get('content-type') || ''
     const data = ct.includes('json') ? await response.json() : await response.text()
+
+    // PostgREST 에러 원문(hint/detail/message 등 내부 구조) 노출 방지
+    // 2xx가 아닌 응답은 generic 메시지로 래핑해서 내려줌
+    if (response.status >= 400) {
+      return new Response(
+        JSON.stringify({ error: '요청을 처리할 수 없습니다', code: response.status }),
+        { status: response.status, headers: { ...CORS, 'Content-Type': 'application/json' } }
+      )
+    }
 
     return new Response(
       JSON.stringify(data),
