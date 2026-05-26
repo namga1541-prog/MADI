@@ -97,7 +97,7 @@ function loadCenterInfo() {
           expEl.style.color = info.color;
         }
       }
-    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-03]',e&&e.message);});
+    }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-03]',e&&e.message);showToast('⚠️ 센터 정보 로드 실패');});
 }
 
 function copyInviteCode() {
@@ -484,7 +484,7 @@ function switchTab(idx) {
   if (hb) hb.classList.remove('active');
   // 대상 패널 표시
   var targetId = TAB_PANEL_MAP[idx];
-  if (!targetId) return;
+  if (!targetId) { showToast('⚠️ 탭을 찾을 수 없습니다'); return; }
   var tp = document.getElementById(targetId);
   if (tp) {
     // 로딩 스피너 표시

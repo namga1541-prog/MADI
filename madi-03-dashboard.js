@@ -890,6 +890,7 @@ function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
     })
     .catch(function(e) {
       if (window.console && console.warn) console.warn('[silent dpAdmin teachers]', e && e.message);
+      showToast('⚠️ 데이터 로드 실패');
       var fallback = Object.keys(teacherStats).map(function(name){
         var s = teacherStats[name];
         return {
