@@ -11,10 +11,14 @@ var PERM_LIST = [
 function openPermModal(userId, userName, role) {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
   _permUserId = userId;
-  supaFetch('madi_users?id=eq.' + userId + '&select=permissions').then(function(rows) {
+  supaFetch('madi_users?id=eq.' + userId + '&select=permissions,role').then(function(rows) {
     _permData = {};
-    if (Array.isArray(rows) && rows[0] && rows[0].permissions) {
-      try { _permData = typeof rows[0].permissions === 'object' ? rows[0].permissions : JSON.parse(rows[0].permissions); } catch (e) { if (window.console && console.warn) console.warn('[permissions parse]', e && e.message); }
+    if (Array.isArray(rows) && rows[0]) {
+      if (rows[0].permissions) {
+        try { _permData = typeof rows[0].permissions === 'object' ? rows[0].permissions : JSON.parse(rows[0].permissions); } catch (e) { if (window.console && console.warn) console.warn('[permissions parse]', e && e.message); }
+      }
+      // 대상 role을 보존해 savePermissions에서 참조
+      _permData._targetRole = rows[0].role || role;
     }
     var isAdmin = role === 'admin';
     var overlay = document.createElement('div');
@@ -71,7 +75,24 @@ function updatePermToggle(el, key) {
 
 function savePermissions() {
   if (!_permUserId) { showToast('⚠️ 권한을 저장할 사용자를 선택해주세요'); return; }
-  supaFetch('madi_users?id=eq.' + _permUserId, 'PATCH', { permissions: _permData })
+  // 역할 재검증: superadmin 또는 admin만 허용
+  if (!currentUser || (currentUser.role !== 'superadmin' && currentUser.role !== 'admin')) {
+    showToast('⚠️ 권한이 없습니다'); return;
+  }
+  // 자기 자신의 권한 변경 방지
+  if (String(_permUserId) === String(currentUser.id)) {
+    showToast('⚠️ 자신의 권한은 변경할 수 없습니다'); return;
+  }
+  // admin이 superadmin 계정의 권한을 변경하려는 경우 차단
+  if (currentUser.role === 'admin' && _permData._targetRole === 'superadmin') {
+    showToast('⚠️ 슈퍼관리자 계정의 권한은 변경할 수 없습니다'); return;
+  }
+  // _targetRole은 메타 정보이므로 실제 저장 payload에서 제외
+  var payload = {};
+  for (var k in _permData) {
+    if (k !== '_targetRole') payload[k] = _permData[k];
+  }
+  supaFetch('madi_users?id=eq.' + _permUserId, 'PATCH', { permissions: payload })
     .then(function() {
       showToast('✅ 권한 저장 완료');
       var _permOverlay = document.querySelector('.sched-modal-overlay');

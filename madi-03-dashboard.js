@@ -392,7 +392,10 @@ function _dpLoadTeacherMessages() {
     msgEl.innerHTML = '<div class="dp-empty">로그인 정보 확인 필요</div>';
     return;
   }
-  supaFetch('madi_lounge_posts?visibility=eq.private_admin&order=created_at.desc&limit=20', 'GET')
+  var loungeUrl = currentUser.role === 'superadmin'
+    ? 'madi_lounge_posts?visibility=eq.private_admin&order=created_at.desc&limit=20'
+    : 'madi_lounge_posts?visibility=eq.private_admin&center_id=eq.' + encodeURIComponent(currentUser.center_id) + '&order=created_at.desc&limit=20';
+  supaFetch(loungeUrl, 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) rows = [];
       var received = rows.filter(function(p){
