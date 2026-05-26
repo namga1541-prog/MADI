@@ -70,7 +70,7 @@ function updatePermToggle(el, key) {
 }
 
 function savePermissions() {
-  if (!_permUserId) return;
+  if (!_permUserId) { showToast('⚠️ 권한을 저장할 사용자를 선택해주세요'); return; }
   supaFetch('madi_users?id=eq.' + _permUserId, 'PATCH', { permissions: _permData })
     .then(function() {
       showToast('✅ 권한 저장 완료');
@@ -115,7 +115,9 @@ function renderStaffCard() {
           + '</div>';
       });
       // eslint-disable-next-line no-unsanitized/property
-      document.getElementById('staffList').innerHTML = html || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">등록된 계정 없음</div>';
+      var staffList = document.getElementById('staffList');
+      if (!staffList) return;
+      staffList.innerHTML = html || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">등록된 계정 없음</div>';
     }).catch(function() {
       showToast('⚠️ 직원 목록을 불러오지 못했습니다.');
     });
@@ -898,7 +900,9 @@ function confirmImport() {
   populateChildSelects();
 
   // eslint-disable-next-line no-unsanitized/property
-  document.getElementById('importResult').innerHTML =
+  var importResult = document.getElementById('importResult');
+  if (!importResult) return;
+  importResult.innerHTML =
     '<div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:4px solid var(--green);">'
     + '<div style="font-weight:700;color:var(--green);margin-bottom:6px;">✅ 가져오기 완료!</div>'
     + '<div style="font-size:13px;line-height:1.8;">'

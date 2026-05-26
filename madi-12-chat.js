@@ -584,6 +584,7 @@ function sendChat() {
   }
 
   var input = document.getElementById('chatInput');
+  if (!input) { showToast('⚠️ 채팅창을 찾을 수 없습니다'); return; }
   var text  = input.value.trim();
   if (!text) return;
 
@@ -601,8 +602,10 @@ function sendChat() {
   addUserMsg(text);
 
   chatWaiting = true;
-  document.getElementById('chatSendBtn').disabled = true;
-  document.getElementById('chatQuickBtns').style.display = 'none';
+  var sendBtn = document.getElementById('chatSendBtn');
+  var quickBtns = document.getElementById('chatQuickBtns');
+  if (sendBtn) sendBtn.disabled = true;
+  if (quickBtns) quickBtns.style.display = 'none';
   showTypingIndicator();
 
   var ctx      = buildChatContext();
