@@ -39,7 +39,7 @@ function onInviteCodeInput() {
           if (c.invite_expires_at) { var exp = new Date(c.invite_expires_at); if (!isNaN(exp.getTime()) && exp - new Date() < 0) { label.style.color = '#ef4444'; label.textContent = '⛔ 만료된 초대 코드입니다'; return; } }
           label.style.color = 'var(--mint)'; label.textContent = '✅ ' + c.name;
         } else { label.style.color = '#ef4444'; label.textContent = '⚠️ 유효하지 않은 코드입니다'; }
-      }).catch(function() { if (label) label.textContent = ''; });
+      }).catch(function(e) { if (label) label.textContent = ''; showToast('⚠️ 초대코드 확인 중 오류가 발생했습니다'); });
   }, 500);
 }
 
@@ -54,14 +54,14 @@ function backToLoginFromSignup() { var _ss = document.getElementById('signupScre
 
 function doSignup() {
   var errEl = document.getElementById('signupError'), btn = document.getElementById('signupSubmitBtn');
-  if (!errEl || !btn) return;
+  if (!errEl || !btn) { showToast('⚠️ 페이지를 새로고침 후 다시 시도해주세요'); return; }
   errEl.textContent = '';
   var codeEl = document.getElementById('signupInviteCode');
   var nameEl = document.getElementById('signupName');
   var usernameEl = document.getElementById('signupUsername');
   var pwEl = document.getElementById('signupPassword');
   var pwCfEl = document.getElementById('signupPasswordConfirm');
-  if (!codeEl || !nameEl || !usernameEl || !pwEl || !pwCfEl) return;
+  if (!codeEl || !nameEl || !usernameEl || !pwEl || !pwCfEl) { showToast('⚠️ 페이지를 새로고침 후 다시 시도해주세요'); return; }
   var inviteCode = (codeEl.value || '').trim().toUpperCase();
   var name = (nameEl.value || '').trim();
   var username = (usernameEl.value || '').trim();
@@ -448,7 +448,7 @@ function submitChangePassword() {
   var conf    = (document.getElementById('cpConfirm') || {}).value || '';
   var errEl   = document.getElementById('cpError');
   var btn     = document.getElementById('cpSubmitBtn');
-  if (!errEl || !btn) return;
+  if (!errEl || !btn) { showToast('⚠️ 페이지를 새로고침 후 다시 시도해주세요'); return; }
   errEl.textContent = '';
   if (!current) { errEl.textContent = '현재 비밀번호를 입력해주세요.'; return; }
   if (!newPw)   { errEl.textContent = '새 비밀번호를 입력해주세요.'; return; }

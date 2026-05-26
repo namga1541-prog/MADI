@@ -155,7 +155,7 @@ function loadIEPFromSupa() {
 function saveActivities() {
   safeSetItem('cn3_activities', JSON.stringify(activityDB));
   var cid = getCenterId(), rows = activityDB.map(function(a){ return Object.assign({}, a, { center_id: cid }); });
-  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
+  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message); showToast('⚠️ 활동 저장 실패: ' + (e&&e.message||'알 수 없는 오류'));});
 }
 function loadActivitiesFromSupa() {
   supaFetch('madi_activities?' + centerFilter() + '&order=id.asc', 'GET')
