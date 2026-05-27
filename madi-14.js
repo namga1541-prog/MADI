@@ -11,10 +11,13 @@ function uploadBoardImage(file, folder) {
     reader.onload = function(e) {
       var base64 = e.target.result.split(',')[1]; // data:mime;base64,<여기>
       var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      var _uploadJwt = (typeof getToken === 'function') ? getToken() : '';
+      var _uploadHeaders = { 'Content-Type': 'application/json' };
+      if (_uploadJwt) _uploadHeaders['Authorization'] = 'Bearer ' + _uploadJwt;
       fetch(EDGE_URL + '/upload-image', {
         method:      'POST',
         credentials: 'include',
-        headers:     { 'Content-Type': 'application/json' },
+        headers:     _uploadHeaders,
         body: JSON.stringify({
           file:     base64,
           mimeType: file.type || 'application/octet-stream',

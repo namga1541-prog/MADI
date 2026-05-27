@@ -79,6 +79,7 @@ function loadLoungePosts() {
       }
     })
     .catch(function(err) {
+      showToast('⚠️ 게시물 로드 실패');
       ui.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
     });
 }
@@ -223,6 +224,7 @@ function renderInquiryCard(post, user) {
 }
 
 function saveLoungePost() {
+  if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 접근 권한이 없습니다.'); return; }
   var visEl     = document.getElementById('loungeVisibility');
   var titleEl   = document.getElementById('loungeTitle');
   var contentEl = document.getElementById('loungeContent');
@@ -323,6 +325,7 @@ function loadComments(postId) {
       renderComments(postId);
     })
     .catch(function(err) {
+      showToast('⚠️ 댓글 로드 실패');
       area.innerHTML = '<div style="font-size:11px;color:#ef4444;padding:6px;">⚠️ 댓글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>';
     });
 }
@@ -383,6 +386,7 @@ function renderComments(postId) {
 }
 
 function saveComment(postId) {
+  if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 접근 권한이 없습니다.'); return; }
   var inputEl = document.getElementById('newComment_' + postId);
   if (!inputEl) return;
   var content = (inputEl.value || '').trim();
