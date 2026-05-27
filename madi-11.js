@@ -459,6 +459,7 @@ function autoCalcAssessScores() {
     if (noteEl) { noteEl.textContent = '✅ 공식 규준집 데이터 적용 완료'; noteEl.style.display = 'block'; noteEl.style.background = '#f0fdf4'; noteEl.style.color = '#15803d'; noteEl.style.borderLeft = '4px solid #15803d'; }
     usedNorm = true;
   }
+  renderSeveritySummary();
 
   // 원점수가 있지만 규준 테이블이 채워지지 않은 경우 → 연령 범위 초과 안내
   if (!usedNorm && hasRaw && ageMonths && typeVal !== 'OTHER') {
@@ -502,6 +503,7 @@ function autoCalcAssessScores() {
           var n=document.getElementById('assessCalcNote');
           if(n){n.style.display='block';n.textContent='⚠️ AI 추정값 포함 — 공식 규준집으로 확인하세요';}
         }
+        renderSeveritySummary();
         _resetAutoCalcBtn();
       })
       .catch(function(e) {
@@ -513,6 +515,98 @@ function autoCalcAssessScores() {
     var b2 = document.getElementById('autoCalcBtn');
     if (b2) { b2.disabled = false; b2.textContent = '🤖 원점수 → 등가연령·백분위 자동 계산'; }
     if (!usedNorm && filled === 0) showToast('⚠️ 이 검사의 규준 데이터가 없습니다. 직접 입력해주세요.');
+  }
+}
+
+// ── 중증도 자동 판정 ──
+var _assessInterpPlain = '';
+
+function getSeverityLabel(pct) {
+  if (pct === null || pct === undefined || isNaN(Number(pct))) return null;
+  var p = Number(pct);
+  if (p >= 25) return { label: '정상 범주', color: '#16a34a', bg: '#f0fdf4' };
+  if (p >= 10) return { label: '약도 지체', color: '#d97706', bg: '#fffbeb' };
+  if (p >=  3) return { label: '중도 지체', color: '#ea580c', bg: '#fff7ed' };
+  return           { label: '심도 지체', color: '#dc2626', bg: '#fef2f2' };
+}
+
+function renderSeveritySummary() {
+  var panel = document.getElementById('assessSeverityPanel');
+  if (!panel) return;
+  var typeVal  = document.getElementById('assessType') ? document.getElementById('assessType').value : '';
+  var schema   = ASSESS_SCHEMA[typeVal] || ASSESS_SCHEMA['OTHER'];
+  var childId  = parseInt((document.getElementById('assessChild') || {}).value || '0');
+  var child    = childId ? childDB.find(function(c) { return c.id === childId; }) : null;
+  var ageStr   = child ? (child._testAge || child.age || '') : '';
+
+  var rows = '';
+  var plainParts = [];
+
+  schema.forEach(function(f) {
+    var el = document.getElementById('af_' + f.key);
+    if (!el || el.value === '') return;
+
+    if (f.label.indexOf('%ile') !== -1) {
+      var pct = parseFloat(el.value);
+      if (isNaN(pct)) return;
+      var sev = getSeverityLabel(pct);
+      var domainName = f.label.replace('%ile', '').trim();
+      var eqKey = f.key.replace('Pct', 'Eq').replace('percentile', 'eqAge');
+      var eqEl  = document.getElementById('af_' + eqKey);
+      var eqVal = (eqEl && eqEl.value) ? eqEl.value : '';
+      var sevHtml = sev
+        ? ' <span style="background:' + sev.bg + ';color:' + sev.color + ';border-radius:4px;padding:1px 8px;font-size:11px;font-weight:700;">' + escHtml(sev.label) + '</span>'
+        : '';
+      var eqHtml = eqVal ? ' <span style="font-size:11px;color:var(--text2);">/ ' + escHtml(eqVal) + '</span>' : '';
+      rows += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">'
+        + '<span style="min-width:90px;font-size:12px;color:var(--text2);">' + escHtml(domainName) + '</span>'
+        + '<strong style="font-size:12px;">' + pct + '%ile</strong>'
+        + eqHtml + sevHtml + '</div>';
+      if (sev) plainParts.push(domainName + ' ' + pct + '%ile(' + sev.label + ')');
+    }
+
+    if (f.key === 'wordJudge' || f.key === 'sentJudge') {
+      var jLabel = f.key === 'wordJudge' ? '낱말수준' : '문장수준';
+      rows += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
+        + '<span style="min-width:90px;font-size:12px;color:var(--text2);">' + escHtml(jLabel) + '</span>'
+        + '<strong style="font-size:12px;">' + escHtml(el.value) + '</strong></div>';
+      plainParts.push(jLabel + ': ' + el.value);
+    }
+  });
+
+  if (rows === '') { panel.style.display = 'none'; return; }
+
+  var testLabel  = (typeVal && typeVal !== 'OTHER') ? typeVal + ' 결과 ' : '';
+  var childName  = child ? child.name : '';
+  _assessInterpPlain = (childName ? childName + '는 만 ' + ageStr + '로, ' : '')
+    + testLabel + plainParts.join(', ') + ' 수준입니다.';
+  var interpHtml = (childName ? escHtml(childName) + '는 만 ' + escHtml(ageStr) + '로, ' : '')
+    + escHtml(testLabel) + escHtml(plainParts.join(', ')) + ' 수준입니다.';
+
+  var html = '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text1);">📊 중증도 자동 판정</div>'
+    + rows
+    + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">'
+    + '<div style="font-size:11px;color:var(--text2);margin-bottom:5px;">📋 해석문 (탭해서 복사)</div>'
+    + '<div id="assessInterpText" onclick="copyAssessInterp()" '
+    + 'style="cursor:pointer;font-size:12px;line-height:1.7;padding:8px 10px;background:var(--bg);'
+    + 'border:1px dashed var(--border);border-radius:8px;">'
+    + interpHtml + '</div></div>';
+
+  // eslint-disable-next-line no-unsanitized/property
+  panel.innerHTML = html;
+  panel.style.display = 'block';
+}
+
+function copyAssessInterp() {
+  if (!_assessInterpPlain) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(_assessInterpPlain).then(function() {
+      showToast('✅ 해석문 복사됨');
+    }).catch(function() {
+      showToast('⚠️ 복사 실패 — 직접 선택해서 복사해주세요');
+    });
+  } else {
+    showToast('⚠️ 이 브라우저는 자동 복사를 지원하지 않습니다');
   }
 }
 
@@ -630,6 +724,9 @@ function renderAssessFields() {
   }
   // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = rows;
+  var _sp = document.getElementById('assessSeverityPanel');
+  if (_sp) _sp.style.display = 'none';
+  _assessInterpPlain = '';
 }
 
 function getAssessFieldValues() {
