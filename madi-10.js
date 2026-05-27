@@ -665,7 +665,8 @@ function saveSchedFromModal() {
   var duration  = parseInt(durationEl.value) || 0;
   var endTime   = endTimeEl.value;
   var repeat    = repeatEl.value;
-  var until     = repeat !== 'none' ? document.getElementById('schedRepeatUntil').value : '';
+  var untilEl   = document.getElementById('schedRepeatUntil');
+  var until     = repeat !== 'none' ? (untilEl ? untilEl.value : '') : '';
   if (until) {
     var untilDate = new Date(until);
     var maxDate = new Date();
@@ -709,7 +710,7 @@ function saveSchedFromModal() {
 }
 
 function openEditSchedModal(id) {
-  var s = scheduleDB.find(function(x){ return x.id === id; });
+  var s = scheduleDB.find(function(x){ return String(x.id) === String(id); });
   if (!s) { showToast('⚠️ 일정 정보를 찾을 수 없습니다'); return; }
   var child = childDB.find(function(c){ return c.id === s.childId; });
   var hasGroup = s.groupId && scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; }).length > 1;
@@ -748,7 +749,7 @@ function openEditSchedModal(id) {
 }
 
 function goToSessionFromSched(schedId) {
-  var s = scheduleDB.find(function(x){ return x.id === schedId; });
+  var s = scheduleDB.find(function(x){ return String(x.id) === String(schedId); });
   if (!s) { showToast('⚠️ 일정 정보를 찾을 수 없습니다'); return; }
   var ol = document.getElementById('editSchedOverlay');
   if (ol) ol.remove();
@@ -829,7 +830,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
 }
 
 function confirmSchedDelete(id, hasGroup) {
-  var s = scheduleDB.find(function(x){ return x.id===id; });
+  var s = scheduleDB.find(function(x){ return String(x.id) === String(id); });
   if (!s) return;
   if (!hasGroup) {
     showConfirm('이 일정을 삭제할까요?', function() {
@@ -875,7 +876,7 @@ function execSchedDelete(id, future) {
     showToast('⚠️ 관리자만 일정을 삭제할 수 있습니다.');
     return;
   }
-  var s = scheduleDB.find(function(x){ return x.id === id; });
+  var s = scheduleDB.find(function(x){ return String(x.id) === String(id); });
   if (!s) return;
   var toDeleteItems = future && s.groupId
     ? scheduleDB.filter(function(x){ return x.groupId === s.groupId && x.date >= s.date; })
@@ -919,7 +920,7 @@ function saveEditSched(id) {
     showToast('⚠️ 관리자만 일정을 수정할 수 있습니다.');
     return;
   }
-  var idx = scheduleDB.findIndex(function(x){ return x.id === id; });
+  var idx = scheduleDB.findIndex(function(x){ return String(x.id) === String(id); });
   if (idx < 0) return;
   var date    = (document.getElementById('editSchedDate')||{}).value || '';
   var start   = (document.getElementById('editSchedStart')||{}).value || '';

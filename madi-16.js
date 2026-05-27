@@ -693,6 +693,7 @@ function _quickBackfillOnePhoto() {
 // 결과 public URL 을 jsonb 에 저장 — jsonb 비대화 방지 (최적화 2026-05-21)
 // ─────────────────────────────────────────────
 function _quickUploadPhoto(dataUrl) {
+  if (typeof EDGE_URL === 'undefined') { if (typeof showToast === 'function') showToast('⚠️ 서버 주소를 불러오는 중입니다.'); return Promise.resolve(''); }
   if (!dataUrl) return Promise.resolve('');
   // 이미 Storage URL 이면 그대로
   if (dataUrl.indexOf('data:') !== 0) return Promise.resolve(dataUrl);
