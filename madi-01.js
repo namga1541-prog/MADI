@@ -132,6 +132,39 @@ function _purgeLegacyCnCache() {
   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }
 
+// ─── 방어 유틸 함수 (Direction A — 반복 크래시 패턴 원천 차단) ───
+// localStorage 안전 읽기 — private mode / 차단 환경에서 SecurityError 방지
+function safeGetItem(key, fallback) {
+  try { return localStorage.getItem(key); }
+  catch (e) { return fallback !== undefined ? fallback : null; }
+}
+// sessionStorage 안전 읽기
+function safeGetSessionItem(key, fallback) {
+  try { return sessionStorage.getItem(key); }
+  catch (e) { return fallback !== undefined ? fallback : null; }
+}
+// sessionStorage 안전 쓰기
+function safeSetSessionItem(key, value) {
+  try { sessionStorage.setItem(key, value); return true; }
+  catch (e) { return false; }
+}
+// JSON 안전 파싱 — try-catch 없이 JSON.parse 직접 사용 금지
+function safeJsonParse(str, fallback) {
+  if (str === null || str === undefined) return fallback !== undefined ? fallback : null;
+  try { return JSON.parse(str); }
+  catch (e) { return fallback !== undefined ? fallback : null; }
+}
+// null/undefined 필드 안전 정렬 비교 — localeCompare TypeError 방지
+// 사용법: arr.sort(function(a,b){ return safeCmp(a.name, b.name); })
+//         arr.sort(function(a,b){ return safeCmp(a.date, b.date, 'desc'); })
+function safeCmp(a, b, dir) {
+  var av = (a === null || a === undefined) ? '' : String(a);
+  var bv = (b === null || b === undefined) ? '' : String(b);
+  var cmp = av.localeCompare(bv, 'ko');
+  return dir === 'desc' ? -cmp : cmp;
+}
+// ─────────────────────────────────────────────────────────────────
+
 // ─── supaFetch GET 캐시 (2026-05-21 최적화) ───
 // 5분 TTL 메모리 캐시 + 쓰기 발생 시 해당 테이블 자동 무효화
 // 효과: 탭 이동·재방문 시 중복 페치 제거 (notices/lounge/portfolio 등)
