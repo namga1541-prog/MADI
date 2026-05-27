@@ -183,7 +183,7 @@ function deleteStaff(id, name) {
       supaFetch('madi_users?id=eq.' + id, 'DELETE').then(function() {
         _teacherList = [];
         renderStaffCard();
-        showToast('🗑️ ' + name + ' 계정 삭제됨');
+        showToast('🗑️ ' + escHtml(name) + ' 계정 삭제됨');
       }).catch(function() {
         showToast('❌ 계정 삭제에 실패했습니다. 다시 시도해주세요.');
       });
@@ -363,6 +363,9 @@ function deployFileViaProxy(filename, textContent, commitMsg) {
     return r.json().then(function(data) {
       if (!r.ok || !data.ok) throw new Error(data.error || filename + ' 업로드 실패');
       return data;
+    }).catch(function(err) {
+      if (err && err.message && err.message.indexOf('업로드 실패') !== -1) throw err;
+      throw new Error('배포 실패: 서버 응답을 처리할 수 없습니다.');
     });
   });
 }
