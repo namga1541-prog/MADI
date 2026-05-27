@@ -424,7 +424,7 @@ function macroTodayBrief() {
   var today = getTodayKST();
   var todayName = new Date().toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'short' });
   var todaySchedules = scheduleDB.filter(function(s) { return s.date === today; })
-    .sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
+    .sort(function(a, b) { return safeCmp(a.startTime, b.startTime); });
   var unwritten = typeof getUnwrittenSessions === 'function' ? getUnwrittenSessions() : [];
 
   var msg = '☀️ ' + todayName + ' 브리핑\n';
@@ -480,7 +480,7 @@ function macroTopProgress() {
   var ranked = [];
   childDB.forEach(function(c) {
     var ss = sessionDB.filter(function(s) { return s.childId === c.id && s.date >= cutoffStr; })
-      .sort(function(a, b) { return a.date.localeCompare(b.date); });
+      .sort(function(a, b) { return safeCmp(a.date, b.date); });
     if (ss.length < 2) return;
     var first = ss[0], last = ss[ss.length - 1];
     var avg = function(sess) {
@@ -763,7 +763,7 @@ function buildChatContext() {
   // 선생님: 본인 담당 일정만 표시
   var todaySched = scheduleDB.filter(function(s) {
     return s.date === today && (_isAdminCtx || s.teacher === _myName);
-  }).sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
+  }).sort(function(a, b) { return safeCmp(a.startTime, b.startTime); });
   if (todaySched.length > 0) {
     lines.push('\n📅 오늘 스케줄:');
     todaySched.forEach(function(s) {

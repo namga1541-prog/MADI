@@ -10,7 +10,7 @@ function showPostSessionBriefing(sessionId) {
   var today = getTodayKST();
   var nextSched = scheduleDB
     .filter(function(s) { return s.childId === child.id && s.date > today; })
-    .sort(function(a, b) { return a.date.localeCompare(b.date); })[0];
+    .sort(function(a, b) { return safeCmp(a.date, b.date); })[0];
 
   // 부모 리포트 미작성 여부 (최근 4회 세션 중)
   var childSessions = sessionDB.filter(function(s) { return s.childId === child.id; });
@@ -124,7 +124,7 @@ function checkAutoStagnation(childId) {
 
   var sessions = sessionDB
     .filter(function(s) { return s.childId === childId; })
-    .sort(function(a, b) { return b.date.localeCompare(a.date); })
+    .sort(function(a, b) { return safeCmp(b.date, a.date); })
     .slice(0, stagCount + 2); // 여유분 포함
 
   if (sessions.length < stagCount) return;
@@ -234,7 +234,7 @@ function checkUpcomingSessionBriefing() {
   // 최근 세션 메모 (최근 1회)
   var recentSessions = sessionDB
     .filter(function(s) { return s.childId === child.id; })
-    .sort(function(a, b) { return b.date.localeCompare(a.date); });
+    .sort(function(a, b) { return safeCmp(b.date, a.date); });
   var lastSession = recentSessions[0];
 
   // 부모 알림 여부 (미작성 리포트)

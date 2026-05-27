@@ -132,7 +132,7 @@ function _quickGetMySchedules() {
     return t === myName
       && (s.center_id || '') === ((currentUser && currentUser.center_id) || '');
   }).sort(function(a, b) {
-    return String(a.time || '').localeCompare(String(b.time || ''));
+    return safeCmp(a.time, b.time);
   });
 }
 

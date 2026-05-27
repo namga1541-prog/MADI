@@ -989,7 +989,7 @@ function _getExportRows() {
   var rows = (scheduleDB || []).filter(function(s) {
     return s.date >= from && s.date <= to && (!teacher || s.teacher === teacher);
   }).sort(function(a, b) {
-    var d = (a.date||'').localeCompare(b.date||'');
+    var d = safeCmp(a.date, b.date);
     return d !== 0 ? d : ((a.startTime||'') < (b.startTime||'') ? -1 : 1);
   });
 

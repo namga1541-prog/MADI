@@ -664,7 +664,7 @@ function renderEffectStats() {
   var childProgress = [];
   childDB.forEach(function(c) {
     var ss = sessionDB.filter(function(s){ return s.childId === c.id; })
-      .sort(function(a,b){ return a.date.localeCompare(b.date); });
+      .sort(function(a,b){ return safeCmp(a.date, b.date); });
     if (ss.length < 2) return;
     var first2 = ss.slice(0, 2), last2 = ss.slice(-2);
     function avgGoalScore(sessions) {
