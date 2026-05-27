@@ -66,9 +66,6 @@ function renderSIReport() {
   if (!el) return;
   if (!childDB || !childDB.length) return;
 
-  var childId = parseInt(document.getElementById('siChild') && document.getElementById('siChild').value) || 0;
-  var child   = childId ? childDB.find(function(c){ return c.id === childId; }) : null;
-
   // 검사 체크박스 HTML
   var testsHtml = SI_TESTS.map(function(t) {
     return '<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:4px 0;">'

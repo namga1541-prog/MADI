@@ -541,7 +541,6 @@ function renderStaffStats() {
   if (!listEl) return;
   var sessions  = typeof sessionDB  !== 'undefined' ? sessionDB  : [];
   var schedules = typeof scheduleDB !== 'undefined' ? scheduleDB : [];
-  var children  = typeof childDB    !== 'undefined' ? childDB    : [];
 
   var sel = document.getElementById('svcStaffMonth');
   var ym  = sel ? sel.value : '';

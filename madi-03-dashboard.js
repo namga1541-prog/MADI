@@ -503,10 +503,6 @@ function renderDashboardAdmin() {
   var monthStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
   var monthEnd   = new Date(todayDate.getFullYear(), todayDate.getMonth()+1, 0);
   var monthStartStr = ymd(monthStart), monthEndStr = ymd(monthEnd);
-  // 지난 달
-  var lastMonthStart = new Date(todayDate.getFullYear(), todayDate.getMonth()-1, 1);
-  var lastMonthEnd   = new Date(todayDate.getFullYear(), todayDate.getMonth(), 0);
-  var lastMonthStartStr = ymd(lastMonthStart), lastMonthEndStr = ymd(lastMonthEnd);
 
   // ── 데이터 계산 ──
   var thisMonthSessions = _sessions.filter(function(s){ return s.date >= monthStartStr && s.date <= monthEndStr; });

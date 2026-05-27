@@ -197,7 +197,6 @@ function getREVTAgeKey(ageMonths) {
 // 점수 → 백분위 보간 (백분위 테이블에서 역방향 계산)
 function interpolatePct(table, rawScore, colIdx) {
   // colIdx: 1=수용, 2=표현
-  var best = null, bestDiff = 999;
   for (var i = 0; i < table.length - 1; i++) {
     var lo = table[i], hi = table[i+1];
     var loScore = lo[colIdx], hiScore = hi[colIdx];

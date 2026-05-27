@@ -196,7 +196,6 @@ function openChildDetail(id) {
   var allScheds = scheduleDB.filter(function(s) { return s.childId === id; })
     .sort(function(a,b){ return a.date<b.date?1:-1; });
   var upcoming = allScheds.filter(function(s){ return s.date >= today; }).reverse().slice(0,10);
-  var past     = allScheds.filter(function(s){ return s.date < today; }).slice(0,10);
 
   var overlay = document.createElement('div');
   overlay.className = 'sched-modal-overlay';

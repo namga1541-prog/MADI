@@ -251,7 +251,7 @@ function renderMonthGrid() {
     var dayScheds = _schedTeacherFilter === '전체' ? allScheds
       : allScheds.filter(function(s){ return s.teacher === _schedTeacherFilter; });
     var isToday = cell.date === today;
-    html += '<div class="month-cell' + (isToday?' today':'') + (cell.other?' other-month':'') + '" onclick="switchToDay(\'' + cell.date + '\')">' + '<span class="month-date-num">' + parseInt(cell.date.slice(8)) + '</span>';
+    html += '<div class="month-cell' + (isToday?' today':'') + (cell.other?' other-month':'') + '" onclick="switchToDay(\'' + cell.date + '\')"><span class="month-date-num">' + parseInt(cell.date.slice(8)) + '</span>';
     var shown = dayScheds.slice(0, 3);
     var extra = dayScheds.length - shown.length;
     var hiddenByFilter = allScheds.length - dayScheds.length;
@@ -484,7 +484,7 @@ function renderDayGrid() {
           var items = cell.map(function(s) {
             var child = childDB.find(function(c){ return c.id === s.childId; });
             var type = escHtml(s.type || '');
-            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">' + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
+            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')"><span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:5px 8px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
         }
@@ -791,7 +791,6 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   }
   var html = '<div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
-  var todayStr = getTodayKST();
   html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;position:sticky;left:0;z-index:3;">아동</th>';
   weekDates.forEach(function(w) {
     var bg  = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
@@ -1077,17 +1076,8 @@ function _printSchedule(rows, label) {
 }
 
 function _exportScheduleRtf(rows, label) {
-  // RTF 형식 — 한글(HWP) 에서 열기 가능
-  var lines = [
-    '{\\rtf1\\ansi\\ansicpg949\\deff0',
-    '{\\fonttbl{\\f0\\fnil\\fcharset129 \\\'b8\\\'cb\\\'c0\\\'ba \\\'b0\\\'ed\\\'b5\\\'f1;}}',
-    '\\f0\\fs22',
-    '\\b \\u51068?\\u35519?\\ud45c (' + label + ')\\b0\\par',
-    '\\par',
-    '{\\trowd'
-  ];
-
   // 단순 탭 구분 텍스트로 생성 (HWP에서 열면 표 복사 가능)
+  // (과거 RTF 헤더 배열을 만들었으나 실제로 사용되지 않아 제거 — 2026-05-27)
   var header = '날짜\t시작시간\t종료시간\t이용자\t선생님\t프로그램유형\t바우처\t메모';
   var body = rows.map(function(r){
     return [r.날짜, r.시작시간, r.종료시간, r.이용자, r.선생님, r.프로그램유형, r.바우처, r.메모].join('\t');

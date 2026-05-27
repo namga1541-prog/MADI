@@ -130,7 +130,7 @@ function renderStaffCard() {
           + (u.id !== currentUser.id
             ? '<div style="display:flex;gap:6px;">'
               + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + safeId + '\',\'' + onclickName + '\',\'' + onclickRole + '\')">\uad8c\ud55c</button>'
-              + '<button class="btn-del" onclick="deleteStaff(\'' + safeId + '\',\'' + onclickName + '\')">' + '\uc0ad\uc81c</button>'
+              + '<button class="btn-del" onclick="deleteStaff(\'' + safeId + '\',\'' + onclickName + '\')">\uc0ad\uc81c</button>'
               + '</div>'
             : '<span style="font-size:11px;color:var(--mint);">나</span>')
           + '</div>';
@@ -1010,8 +1010,6 @@ function init() {
 var _pwaPrompt = null;
 
 function initPWA() {
-  var NL = String.fromCharCode(10);
-
   // 매니페스트와 아이콘은 정적 파일(./manifest.json, ./icon-*.png)에서 직접 로드
   // — index.html / admin.html <head> 의 <link rel="manifest"> 가 처리
 

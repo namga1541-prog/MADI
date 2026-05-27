@@ -143,7 +143,6 @@ function addPhonemeRow(phoneme) {
   row.className = 'phoneme-row';
   row.id = 'pr_' + phoneme;
 
-  var NL = String.fromCharCode(10);
   // eslint-disable-next-line no-unsanitized/property
   row.innerHTML = '<div class="phoneme-label">' + escHtml(phoneme) + '</div>'
     + makePhonemeCell(phoneme, 'initial')

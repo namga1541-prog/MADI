@@ -192,7 +192,6 @@ function addStaffAccount() {
 function loadStaffMgmtList() {
   var el = document.getElementById('staffMgmtList');
   if (!el) return;
-  var cid = getCenterId();
   supaFetch('madi_users?' + centerFilter() + '&select=id,name,username,role&order=name.asc', 'GET')
     .then(function(rows) {
       if (!rows || rows.length === 0) {
