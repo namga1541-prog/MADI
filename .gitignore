@@ -21,6 +21,10 @@ supabase/.temp/
 # 일회성 마이그레이션·리팩토링 스크립트 (실행 후 보관 의미 없음)
 .local-scripts/
 
+# 일회성 데이터 업로드 스크립트 (PII 포함, 콘솔 실행용 IIFE)
+# 이름 규칙: *_upload_script*.js — 루트에 임시로 생기는 변종까지 자동 보호
+*_upload_script*.js
+
 # 사적 메모·인계 문서 (로컬 보관)
 마디_인계문서_*.md
 
