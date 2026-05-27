@@ -335,7 +335,7 @@ function updateHeaderClock() {
   var today = ymd(now), nowMin = now.getHours()*60+now.getMinutes();
   var upcoming = (typeof scheduleDB !== 'undefined' ? scheduleDB : [])
     .filter(function(s){ if (s.date !== today || !s.startTime) return false; var p = s.startTime.split(':'); if (!p || p.length < 2) return false; return parseInt(p[0])*60+parseInt(p[1]) >= nowMin; })
-    .sort(function(a,b){ return a.startTime.localeCompare(b.startTime); });
+    .sort(function(a,b){ return safeCmp(a.startTime, b.startTime); });
   if (upcoming.length > 0) {
     var next = upcoming[0], child = (typeof childDB !== 'undefined' ? childDB : []).find(function(c){ return c.id === next.childId; });
     var p = next.startTime.split(':'); if (!p || p.length < 2) { nextEl.textContent = ''; return; }

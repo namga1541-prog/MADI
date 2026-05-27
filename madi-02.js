@@ -328,7 +328,7 @@ function listBackups() {
       req.onsuccess = function() {
         var arr = req.result || [];
         // 날짜 내림차순
-        arr.sort(function(a, b) { return b.id.localeCompare(a.id); });
+        arr.sort(function(a, b) { return safeCmp(b.id, a.id); });
         resolve(arr);
       };
       req.onerror = function(e) { reject(e.target.error); };
