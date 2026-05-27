@@ -42,7 +42,7 @@ function _populateSvcFilters() {
   // 이용자 목록
   var childOpts = '<option value="">이용자 전체</option>'
     + children.filter(function(c){ return c.status === '등록'; })
-      .sort(function(a,b){ return a.name.localeCompare(b.name); })
+      .sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); })
       .map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + '</option>'; }).join('');
 
   // 선생님 목록
@@ -178,7 +178,7 @@ function renderMonthlyService() {
     return;
   }
 
-  rows.sort(function(a,b){ return a.name.localeCompare(b.name); });
+  rows.sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
 
   var totalDone = rows.reduce(function(s,r){ return s+r.data.done; }, 0);
   var totalAll  = rows.reduce(function(s,r){ return s+r.data.total; }, 0);

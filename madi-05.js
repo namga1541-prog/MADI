@@ -90,7 +90,7 @@ function getLastSessionForChild(childId) {
   if (ss.length === 0) return null;
   // 날짜 내림차순 → 같은 날이면 id 큰 순
   ss.sort(function(a, b) {
-    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    if (a.date !== b.date) return (b.date||'').localeCompare(a.date||'');
     return (b.id || 0) - (a.id || 0);
   });
   return ss[0];

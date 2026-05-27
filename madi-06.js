@@ -695,7 +695,7 @@ function populateChildSelects() {
 
   // 가나다 정렬 + 옵션 HTML — 캐시 활용
   if (cacheKey !== _optionsCacheKey) {
-    var sorted = childDB.slice().sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); });
+    var sorted = childDB.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','ko'); });
     _optionsCacheHtml = sorted.map(function(c) {
       var label = escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age) + ')';
       return '<option value="' + c.id + '">' + label + '</option>';
@@ -715,7 +715,7 @@ function populateChildSelects() {
     if (id === 'sessionChild') {
       var activeChildren = childDB
         .filter(function(c){ return _showDischargedInSession ? true : c.status !== '종결'; })
-        .sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); });
+        .sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','ko'); });
       optsHtml = activeChildren.map(function(c) {
         var isDischarged = (c.status === '종결');
         var label = (isDischarged ? '[종결] ' : '') + escHtml(c.name) + ' (' + escHtml(c.birth||'') + ' / ' + escHtml(c.age) + ')';
