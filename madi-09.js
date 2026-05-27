@@ -118,7 +118,9 @@ function checkAutoStagnation(childId) {
   var _sc; try { _sc = localStorage.getItem('madi_stag_count'); } catch(_e) { _sc = null; }
   var stagCount = parseInt(_sc || '3', 10);
   if (isNaN(stagCount) || stagCount < 1) stagCount = 3;
-  var stagScore = parseInt(localStorage.getItem('madi_stag_score') || '40');
+  var _ss; try { _ss = localStorage.getItem('madi_stag_score'); } catch(_e) { _ss = null; }
+  var stagScore = parseInt(_ss || '40', 10);
+  if (isNaN(stagScore)) stagScore = 40;
 
   var sessions = sessionDB
     .filter(function(s) { return s.childId === childId; })
@@ -152,8 +154,9 @@ function checkAutoStagnation(childId) {
 
   // 이미 같은 알림을 표시했으면 스킵 (세션당 1회)
   var alertKey = 'stag_' + childId + '_' + getTodayKST();
-  if (sessionStorage.getItem(alertKey)) return;
-  sessionStorage.setItem(alertKey, '1');
+  var alerted; try { alerted = sessionStorage.getItem(alertKey); } catch(_e) { alerted = null; }
+  if (alerted) return;
+  try { sessionStorage.setItem(alertKey, '1'); } catch(_e) { /* private mode — ignore */ }
 
   showStagnationAlert(child.name, stagnatedGoals, childId);
 }
@@ -701,7 +704,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
   if (p.professionalNote) fullText += '【전문 메모】\n' + p.professionalNote;
 
   html += '<div style="display:none;" id="portfolioFullText">' + escHtml(fullText) + '</div>';
-  html += '<button class="pdf-btn" onclick="downloadPDF(\'' + escHtml(child.name) + '_' + month + '\',\'portfolioFullText\',\'' + escHtml(child.name) + ' 월간 포트폴리오 (' + month + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
+  html += '<button class="pdf-btn" onclick="downloadPDF(\'' + escHtml(child.name) + '_' + escHtml(String(month)) + '\',\'portfolioFullText\',\'' + escHtml(child.name) + ' 월간 포트폴리오 (' + escHtml(String(month)) + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
 
   var portfolioResultEl = document.getElementById('portfolioResult');
   // eslint-disable-next-line no-unsanitized/property

@@ -601,5 +601,5 @@ function _unsubscribePush(sub) {
     }).catch(function() {
       showToast('⚠️ 알림 해제 중 오류가 발생했습니다');
     });
-  }).catch(function(e){ showToast('⚠️ 알림 해제 실패: ' + e.message); });
+  }).catch(function(e){ showToast('⚠️ 알림 해제 실패: ' + (e.message || '오류가 발생했습니다')); });
 }

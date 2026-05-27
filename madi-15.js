@@ -511,13 +511,16 @@ function _renderParentChartByScore(assessments) {
   months.forEach(function(m){ if (m.avg != null && m.avg > maxScore) maxScore = m.avg; });
   var maxY = maxScore;
   var W = 600, H = 160;
-  var step = W / (months.length - 1 || 1);
+  var step = W / (months.length > 1 ? months.length - 1 : 1);
+  var xOffset = months.length === 1 ? W / 2 : 0;
   var pts = months.map(function(m, i){
-    var x = i * step;
+    var x = xOffset + i * step;
     var y = H - (m.avg / maxY) * H;
     return x.toFixed(1) + ',' + y.toFixed(1);
   });
-  var areaPts = ['0,' + H].concat(pts).concat([W + ',' + H]);
+  var areaX0 = months.length === 1 ? xOffset : 0;
+  var areaXN = months.length === 1 ? xOffset : W;
+  var areaPts = [areaX0.toFixed(1) + ',' + H].concat(pts).concat([areaXN.toFixed(1) + ',' + H]);
 
   if (subEl) subEl.textContent = '최근 5개월 평가 점수 평균 (100점 만점)';
 
@@ -529,7 +532,7 @@ function _renderParentChartByScore(assessments) {
     +     '<polygon points="' + areaPts.join(' ') + '" fill="url(#dpPGradScore)"/>'
     +     '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
     + months.map(function(m, i){
-        var x = i * step;
+        var x = xOffset + i * step;
         var y = H - (m.avg / maxY) * H;
         var isLast = i === months.length - 1;
         return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (isLast ? 6 : 5) + '" fill="' + (isLast ? '#ec4899' : 'white') + '" stroke="' + (isLast ? 'white' : '#ec4899') + '" stroke-width="2.5"/>';
