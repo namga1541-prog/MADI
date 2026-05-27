@@ -361,7 +361,7 @@ function renderComments(postId) {
           + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(\'' + escHtml(String(postId)) + '\',\'' + escHtml(String(c.id)) + '\')">🗑️</button>' : '')
           + '</div>'
           + '<div style="font-size:13px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + escHtml(c.content) + '</div>'
-        + (c.image_url ? '<a href="' + escHtml(c.image_url) + '" target="_blank" rel="noopener">'
+        + (c.image_url && /^https?:\/\//.test(c.image_url) ? '<a href="' + escHtml(c.image_url) + '" target="_blank" rel="noopener">'
           + '<img src="' + escHtml(c.image_url) + '" loading="lazy" '
           + 'style="margin-top:6px;max-height:120px;max-width:100%;border-radius:8px;" '
           + 'onerror="this.remove()"></a>' : '')
@@ -438,6 +438,7 @@ function deleteComment(postId, commentId) {
 // 📚 자료실
 // ═══════════════════════════════════════════════════════════
 var _libraryFiles = []; // 자료 첨부 File 객체 배열 (최대 5개)
+var libraryPostsDB = []; // 자료실 데이터 캐시 (editLibraryPost에서 참조)
 
 var LIBRARY_CATEGORIES = ['조음·음운', '언어발달', '유창성', '인지·학습', '부모교육', '평가도구', '기타'];
 
@@ -448,7 +449,8 @@ function renderLibrary() {
 
   supaFetch('madi_lounge_posts?visibility=eq.resource&order=created_at.desc&limit=200', 'GET')
     .then(function(data) {
-      _renderLibraryUI(data || []);
+      libraryPostsDB = data || [];
+      _renderLibraryUI(libraryPostsDB);
     })
     .catch(function(err) {
       el.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
@@ -467,7 +469,7 @@ function _renderLibraryUI(posts) {
   var catHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">'
     + '<button onclick="setLibCat(\'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===''?'var(--mint)':'var(--border)')+';background:'+(activeCat===''?'var(--mint)':'var(--card)')+';color:'+(activeCat===''?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">전체</button>'
     + LIBRARY_CATEGORIES.map(function(c) {
-        return '<button onclick="setLibCat(\''+escHtml(c)+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+escHtml(c)+'</button>';
+        return '<button onclick="setLibCat(\''+escHtml(c).replace(/'/g, '&#39;')+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+escHtml(c)+'</button>';
       }).join('')
     + '</div>';
 
@@ -584,7 +586,6 @@ function saveLibraryPost() {
   showToast('⏳ 자료 등록 중...');
   uploadAll.then(function(urls) {
     var post = {
-      id:          Date.now() + Math.floor(Math.random()*1000),
       center_id:   user.center_id || null,
       visibility:  'resource',
       title:       title,
@@ -801,7 +802,7 @@ function editLoungePost(id) {
 
 // ── 자료실 수정 — note (카테고리) 도 함께 수정 ──
 function editLibraryPost(id) {
-  var p = (loungePostsDB || []).find(function(x){ return String(x.id) === String(id); });
+  var p = (libraryPostsDB || []).find(function(x){ return String(x.id) === String(id); });
   if (!p) { showToast('⚠️ 글을 찾을 수 없습니다'); return; }
   if (!_isMyPost(p)) { showToast('❌ 본인이 작성한 글만 수정할 수 있습니다'); return; }
   var hasFiles = !!(p.images && (typeof p.images === 'string' ? p.images.length > 2 : p.images.length));
