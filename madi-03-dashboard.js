@@ -308,7 +308,7 @@ function renderDashboardTeacher() {
       var nm = c.name || '?';
       var last = lastMet[c.id];
       var lastText = last
-        ? (last === todayStr ? '<b>오늘</b> 만남' : '<b>' + last.slice(5).replace('-','/') + '</b> 마지막 만남')
+        ? (last === todayStr ? '<b>오늘</b> 만남' : '<b>' + escHtml(last.slice(5).replace('-','/')) + '</b> 마지막 만남')
         : '<b>일정 미등록</b>';
       var meta = [c.type, age ? age + '세' : ''].filter(Boolean).join(' · ');
       return ''
@@ -549,7 +549,9 @@ function renderDashboardAdmin() {
     teacherStats[s.teacher].children[s.childId] = true;
     if (s.date >= monStr && s.date <= sunStr) teacherStats[s.teacher].weekSession++;
   });
-  (typeof getUnwrittenSessions === 'function' ? getUnwrittenSessions() : []).forEach(function(u){
+  var _uwForAdmin = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
+  if (!Array.isArray(_uwForAdmin)) _uwForAdmin = [];
+  _uwForAdmin.forEach(function(u){
     if (!u.teacher) return;
     if (!teacherStats[u.teacher]) teacherStats[u.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
     teacherStats[u.teacher].unwritten++;
@@ -737,6 +739,7 @@ function renderDashboardAdmin() {
     });
   }
   var totalUnwritten = (typeof getUnwrittenSessions === 'function' ? getUnwrittenSessions() : []);
+  if (!Array.isArray(totalUnwritten)) totalUnwritten = [];
   if (totalUnwritten.length > 0) {
     // 선생님별 카운트 집계
     var byTeacher = {};
@@ -777,7 +780,7 @@ function renderDashboardAdmin() {
   } else {
     html += '<div style="display:flex;flex-direction:column;gap:8px;">' + alerts.slice(0,4).map(function(a){
       return ''
-        + '<div class="dp-alert-big dp-alert-' + a.cls + '">'
+        + '<div class="dp-alert-big dp-alert-' + escHtml(a.cls) + '">'
         +   '<div class="dp-alert-ic">' + a.ic + '</div>'
         +   '<div class="dp-alert-body">'
         +     '<div class="dp-alert-title">' + escHtml(a.title) + '</div>'

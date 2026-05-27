@@ -385,6 +385,7 @@ function renderDashboardLegacy() {
   }
   // 미작성 세션
   var uw=typeof getUnwrittenSessions==='function'?getUnwrittenSessions():[];
+  if(!Array.isArray(uw)) uw=[];
   if(currentUser&&currentUser.role!=='admin') uw=uw.filter(function(u){return u.teacher===currentUser.name;});
   var uwEl=document.getElementById('dashUnwritten');
   if(uwEl){ if(!uw.length){uwEl.innerHTML='<div class="dash-empty">✅ 미작성 세션 없음</div>';}
