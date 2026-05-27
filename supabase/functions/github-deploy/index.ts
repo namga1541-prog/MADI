@@ -94,6 +94,37 @@ async function deployFile(
   }
 }
 
+// ── 배포 경로 화이트리스트 ─────────────────────────────────────────────────
+const EXACT_ALLOWED = new Set([
+  'sw.js', 'manifest.json', 'admin.html', 'index.html', 'madi.css',
+  'package.json', 'package-lock.json', 'eslint.config.js', '.eslintrc.json',
+  'CLAUDE.md', 'AGENTS.md',
+])
+
+const ALLOWED_EXTENSIONS = new Set([
+  '.js', '.ts', '.html', '.css', '.json', '.md', '.sql',
+  '.svg', '.png', '.ico', '.webmanifest',
+])
+
+function isAllowedDeployPath(name: string): boolean {
+  // 정확 매칭
+  if (EXACT_ALLOWED.has(name)) return true
+
+  // 확장자 선행 검사
+  const ext = name.includes('.') ? name.slice(name.lastIndexOf('.')) : ''
+  if (!ALLOWED_EXTENSIONS.has(ext)) return false
+
+  // 패턴 매칭
+  if (/^madi-[^/\\]+\.js$/.test(name))              return true  // madi-*.js
+  if (/^madi-vocab\.js$/.test(name))                 return true  // madi-vocab.js (exact이지만 패턴도 커버)
+  if (/^docs\/[^.]+.*\.md$/.test(name))              return true  // docs/**/*.md
+  if (/^tests\/[^.]+.*\.js$/.test(name))             return true  // tests/**/*.js
+  if (/^supabase\/functions\/.+\.ts$/.test(name))    return true  // supabase/functions/**/*.ts
+  if (/^supabase\/sql\/.+\.sql$/.test(name))         return true  // supabase/sql/**/*.sql
+
+  return false
+}
+
 // ── 메인 핸들러 ───────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   const CORS = makeCORS(req.headers.get('origin'))
@@ -120,9 +151,9 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: '인증이 필요합니다' }), { status: 401, headers: CORS })
   }
 
-  // admin / superadmin 만 배포 가능
-  if (user.role !== 'admin' && user.role !== 'superadmin') {
-    return new Response(JSON.stringify({ error: '관리자 권한이 필요합니다' }), { status: 403, headers: CORS })
+  // superadmin 만 배포 가능 (admin·teacher·parent 모두 차단)
+  if (user.role !== 'superadmin') {
+    return new Response(JSON.stringify({ error: 'superadmin 권한이 필요합니다' }), { status: 403, headers: CORS })
   }
 
   let body: Record<string, unknown>
@@ -162,10 +193,22 @@ Deno.serve(async (req: Request) => {
     const results: Array<{ name: string; ok: boolean; error?: string }> = []
 
     for (const f of files) {
-      // 경로 순회(../) 및 절대 경로 공격 차단
-      if (f.name.includes('..') || f.name.startsWith('/')) {
+      // 경로 순회 및 절대 경로 공격 차단
+      if (
+        f.name.includes('..') ||
+        f.name.includes('..\\') ||
+        f.name.startsWith('/') ||
+        f.name.startsWith('\\')
+      ) {
         return new Response(
           JSON.stringify({ error: '허용되지 않는 경로: ' + f.name }),
+          { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } }
+        )
+      }
+      // 화이트리스트 검증 (F78)
+      if (!isAllowedDeployPath(f.name)) {
+        return new Response(
+          JSON.stringify({ error: '허용되지 않은 파일 경로: ' + f.name }),
           { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } }
         )
       }
