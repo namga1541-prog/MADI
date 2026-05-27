@@ -455,13 +455,31 @@ function renderChildGrid() {
       || (child.phone || '').replace(/-/g,'').indexOf(q.replace(/-/g,'')) > -1;
   });
 
+  // O(n) 룩업 테이블: childId → 세션 목록 (sort + 통계 + 카드 렌더에 공통 사용)
+  var cgSessByChild = {};
+  sessionDB.forEach(function(s){
+    var cid = s.childId;
+    if (!cgSessByChild[cid]) cgSessByChild[cid] = [];
+    cgSessByChild[cid].push(s);
+  });
+  // O(n) 룩업 테이블: childId → 미래 스케줄 목록 (카드 렌더 upcoming용)
+  var today = getTodayKST();
+  var cgUpcomingByChild = {};
+  scheduleDB.forEach(function(s){
+    if (s.date >= today) {
+      var cid = s.childId;
+      if (!cgUpcomingByChild[cid]) cgUpcomingByChild[cid] = [];
+      cgUpcomingByChild[cid].push(s);
+    }
+  });
+
   // 정렬
   if (sortBy === 'name') {
     list.sort(function(a, b) { return a.name.localeCompare(b.name, 'ko'); });
   } else if (sortBy === 'recent') {
     list.sort(function(a, b) {
-      var sa = sessionDB.filter(function(s){return s.childId===a.id;});
-      var sb = sessionDB.filter(function(s){return s.childId===b.id;});
+      var sa = cgSessByChild[a.id] || [];
+      var sb = cgSessByChild[b.id] || [];
       var da = sa.length ? sa[sa.length-1].date : '0000-00-00';
       var db2 = sb.length ? sb[sb.length-1].date : '0000-00-00';
       return da < db2 ? 1 : -1;
@@ -469,7 +487,6 @@ function renderChildGrid() {
   }
   // 등록순은 기본 순서 유지
 
-  var today = getTodayKST();
   var totalCount = list.length;
   var totalPages = Math.max(1, Math.ceil(totalCount / CHILD_PAGE_SIZE));
   if (_childCurrentPage > totalPages) _childCurrentPage = totalPages;
@@ -487,7 +504,7 @@ function renderChildGrid() {
     var totalDays = 0;
     var countWithDuration = 0;
     list.forEach(function(c) {
-      var sessCount = sessionDB.filter(function(s){ return s.childId === c.id; }).length;
+      var sessCount = (cgSessByChild[c.id] || []).length;
       totalSess += sessCount;
       if (c.startDate && c.closedAt) {
         var d = Math.floor((new Date(c.closedAt) - new Date(c.startDate)) / (1000*60*60*24));
@@ -519,7 +536,7 @@ function renderChildGrid() {
   }
 
   visibleList.forEach(function(child) {
-    var ss       = sessionDB.filter(function(s) { return s.childId === child.id; });
+    var ss       = cgSessByChild[child.id] || [];
     var lastDate = ss.length > 0 ? ss[ss.length - 1].date : '세션 없음';
     var duration = getTreatDuration(child.startDate);
 
@@ -547,7 +564,7 @@ function renderChildGrid() {
     }
 
     // 현재 진행 중인 스케줄 (오늘 포함 이후 최근 3개)
-    var upcoming = scheduleDB.filter(function(s) { return s.childId === child.id && s.date >= today; })
+    var upcoming = (cgUpcomingByChild[child.id] || [])
       .sort(function(a,b){ return a.date<b.date?-1:1; }).slice(0, 2);
     var schedHtml = '';
     if (upcoming.length > 0) {

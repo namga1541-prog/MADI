@@ -125,12 +125,28 @@ function renderMonthlyService() {
   var monthScheds = schedules.filter(function(sc){ return (sc.date||'').startsWith(ym); });
   var monthSess   = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
 
+  // O(n) 룩업 테이블: 날짜별 세션 목록
+  var mseSessByDate = {};
+  monthSess.forEach(function(s){
+    var d = s.date || '';
+    if (!mseSessByDate[d]) mseSessByDate[d] = [];
+    mseSessByDate[d].push(s);
+  });
+  // O(n) 룩업 테이블: "childId_date" 복합키로 스케줄 존재 여부
+  var mseSchedKeySet = {};
+  monthScheds.forEach(function(sc){
+    mseSchedKeySet[String(sc.childId) + '_' + sc.date] = true;
+  });
+  // O(n) 룩업 테이블: childId → child 객체
+  var mseChildById = {};
+  children.forEach(function(c){ mseChildById[String(c.id)] = c; });
+
   // 이용자별 집계 (스케줄 + 세션 통합)
   var childMap = {};
   monthScheds.forEach(function(sc){
     var cid = String(sc.childId);
     if (!childMap[cid]) childMap[cid] = { total:0, done:0, cancelled:0, makeup:0, carried:0, teachers:{} };
-    var status = _schedStatus(sc, monthSess.filter(function(s){ return (s.date||'')===sc.date; }));
+    var status = _schedStatus(sc, mseSessByDate[sc.date] || []);
     childMap[cid].total++;
     if (status==='done')      childMap[cid].done++;
     else if (status==='cancelled') childMap[cid].cancelled++;
@@ -141,7 +157,7 @@ function renderMonthlyService() {
   // sessionDB에 있지만 scheduleDB에 없는 세션도 포함
   monthSess.forEach(function(s){
     var cid = String(s.childId);
-    var hasSched = monthScheds.find(function(sc){ return String(sc.childId)===cid && sc.date===s.date; });
+    var hasSched = mseSchedKeySet[cid + '_' + s.date];
     if (!hasSched) {
       if (!childMap[cid]) childMap[cid] = { total:0, done:0, cancelled:0, makeup:0, carried:0, teachers:{} };
       childMap[cid].total++;
@@ -151,7 +167,7 @@ function renderMonthlyService() {
   });
 
   var rows = Object.keys(childMap).map(function(cid){
-    var child    = children.find(function(c){ return String(c.id)===cid; });
+    var child    = mseChildById[cid];
     var name     = child ? child.name : ('아동#'+cid);
     var teachers = Object.keys(childMap[cid].teachers).join(', ') || '-';
     return { cid:cid, name:name, teachers:teachers, data:childMap[cid],
@@ -352,13 +368,29 @@ function renderSettlement() {
   var monthScheds = schedules.filter(function(sc){ return (sc.date||'').startsWith(ym); });
   var monthSess   = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
 
+  // O(n) 룩업 테이블: 날짜별 세션 목록
+  var stlSessByDate = {};
+  monthSess.forEach(function(s){
+    var d = s.date || '';
+    if (!stlSessByDate[d]) stlSessByDate[d] = [];
+    stlSessByDate[d].push(s);
+  });
+  // O(n) 룩업 테이블: "childId_date" 복합키로 스케줄 존재 여부
+  var stlSchedKeySet = {};
+  monthScheds.forEach(function(sc){
+    stlSchedKeySet[String(sc.childId) + '_' + sc.date] = true;
+  });
+  // O(n) 룩업 테이블: childId → child 객체
+  var stlChildById = {};
+  children.forEach(function(c){ stlChildById[String(c.id)] = c; });
+
   // 선생님별 집계
   var teacherMap = {};
   monthScheds.forEach(function(sc){
     var t = sc.teacher || '미지정';
     if (!teacherMap[t]) teacherMap[t] = { done:0, pending:0, cancelled:0, makeup:0, carried:0, rows:[] };
-    var status = _schedStatus(sc, monthSess.filter(function(s){ return s.date===sc.date; }));
-    var child = children.find(function(c){ return String(c.id)===String(sc.childId); });
+    var status = _schedStatus(sc, stlSessByDate[sc.date] || []);
+    var child = stlChildById[String(sc.childId)];
     var fee   = child ? (child.feePerSession||0) : 0;
     var vtype = child ? (child.voucherType||'일반') : '일반';
     teacherMap[t][status] = (teacherMap[t][status]||0) + 1;
@@ -366,11 +398,11 @@ function renderSettlement() {
   });
   // 스케줄 없이 세션만 있는 경우
   monthSess.forEach(function(s){
-    var hasSched = monthScheds.find(function(sc){ return String(sc.childId)===String(s.childId) && sc.date===s.date; });
+    var hasSched = stlSchedKeySet[String(s.childId) + '_' + s.date];
     if (!hasSched) {
       var t = s.teacher || '미지정';
       if (!teacherMap[t]) teacherMap[t] = { done:0, pending:0, cancelled:0, makeup:0, carried:0, rows:[] };
-      var child = children.find(function(c){ return String(c.id)===String(s.childId); });
+      var child = stlChildById[String(s.childId)];
       var fee   = child ? (child.feePerSession||0) : 0;
       var vtype = child ? (child.voucherType||'일반') : '일반';
       teacherMap[t].done++;
@@ -458,11 +490,27 @@ function exportSettlementExcel() {
   var monthScheds = schedules.filter(function(sc){ return (sc.date||'').startsWith(ym); });
   var monthSess   = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
 
+  // O(n) 룩업 테이블: 날짜별 세션 목록
+  var xlsSessByDate = {};
+  monthSess.forEach(function(s){
+    var d = s.date || '';
+    if (!xlsSessByDate[d]) xlsSessByDate[d] = [];
+    xlsSessByDate[d].push(s);
+  });
+  // O(n) 룩업 테이블: "childId_date" 복합키로 스케줄 존재 여부
+  var xlsSchedKeySet = {};
+  monthScheds.forEach(function(sc){
+    xlsSchedKeySet[String(sc.childId) + '_' + sc.date] = true;
+  });
+  // O(n) 룩업 테이블: childId → child 객체
+  var xlsChildById = {};
+  children.forEach(function(c){ xlsChildById[String(c.id)] = c; });
+
   // 전체 행 생성
   var excelRows = [];
   monthScheds.forEach(function(sc){
-    var status = _schedStatus(sc, monthSess.filter(function(s){ return s.date===sc.date; }));
-    var child = children.find(function(c){ return String(c.id)===String(sc.childId); });
+    var status = _schedStatus(sc, xlsSessByDate[sc.date] || []);
+    var child = xlsChildById[String(sc.childId)];
     var si = _svcStatusInfo(status);
     excelRows.push({
       '날짜': sc.date,
@@ -479,9 +527,9 @@ function exportSettlementExcel() {
   });
   // 스케줄 없는 세션
   monthSess.forEach(function(s){
-    var hasSched = monthScheds.find(function(sc){ return String(sc.childId)===String(s.childId)&&sc.date===s.date; });
+    var hasSched = xlsSchedKeySet[String(s.childId) + '_' + s.date];
     if (!hasSched) {
-      var child = children.find(function(c){ return String(c.id)===String(s.childId); });
+      var child = xlsChildById[String(s.childId)];
       excelRows.push({
         '날짜': s.date,
         '시간': '',
