@@ -449,9 +449,21 @@ var LIBRARY_CATEGORIES = ['조음·음운', '언어발달', '유창성', '인지
 function renderLibrary() {
   var el = document.getElementById('bdLibraryContent');
   if (!el) return;
+  // superadmin이 아닌 경우 center_id 없으면 안전 차단
+  if (!currentUser) return;
+  if (currentUser.role !== 'superadmin' && !currentUser.center_id) {
+    el.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ 센터 정보가 없어 자료실을 불러올 수 없습니다.</p></div>';
+    return;
+  }
   el.innerHTML = '<div class="loading"><div class="spinner"></div><p>자료실을 불러오는 중...</p></div>';
 
-  supaFetch('madi_lounge_posts?visibility=eq.resource&order=created_at.desc&limit=200', 'GET')
+  // superadmin: 전체 센터 조회, admin/teacher: 자기 센터만 (RLS 이중 방어)
+  var _libPath = 'madi_lounge_posts?visibility=eq.resource&order=created_at.desc&limit=200';
+  if (currentUser.role !== 'superadmin') {
+    _libPath += '&center_id=eq.' + encodeURIComponent(currentUser.center_id);
+  }
+
+  supaFetch(_libPath, 'GET')
     .then(function(data) {
       libraryPostsDB = data || [];
       _renderLibraryUI(libraryPostsDB);

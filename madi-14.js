@@ -428,11 +428,16 @@ function loadCentersByIdCache() {
 
 // 센터 공지 목록 조회
 function loadCenterNotices() {
-  // teacher: Edge Function이 자동 필터 (center_id=eq.X)
-  // admin: 클라이언트에서 직접 필터 (admin.html 패턴)
   // superadmin: 필터 없음 (모든 센터)
+  // admin/teacher: 자기 센터만 (RLS 이중 방어)
+  if (!currentUser) return;
   var query = 'madi_notices?order=pinned.desc,created_at.desc&limit=100';
-  if (currentUser && currentUser.role === 'admin' && currentUser.center_id) {
+  if (currentUser.role !== 'superadmin') {
+    if (!currentUser.center_id) {
+      var c = document.getElementById('bdCenterList');
+      if (c) c.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>센터 정보가 없어 공지를 불러올 수 없습니다.</p></div>';
+      return;
+    }
     query = 'madi_notices?center_id=eq.' + encodeURIComponent(currentUser.center_id)
           + '&order=pinned.desc,created_at.desc&limit=100';
   }
@@ -583,6 +588,13 @@ function saveCenterNotice() {
 function deleteCenterNotice(id) {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
     showToast('❌ 삭제 권한이 없습니다'); return;
+  }
+  // superadmin: 모든 글 삭제 허용
+  // admin: 본인이 작성한 글만 삭제 허용
+  if (currentUser.role === 'admin') {
+    var target = (centerNoticesDB || []).filter(function(n) { return String(n.id) === String(id); })[0];
+    if (!target) { showToast('❌ 공지를 찾을 수 없습니다'); return; }
+    if (!_isMyPost(target)) { showToast('❌ 본인이 작성한 공지만 삭제할 수 있습니다'); return; }
   }
   showConfirm('이 공지를 삭제할까요?', function() {
     supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
