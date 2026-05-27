@@ -22,6 +22,7 @@ function loadCenterApiKey(showFeedback) {
     })
     .catch(function(err) {
       console.error('센터 키 로드 실패:', err);
+      showToast('⚠️ API 키 로드 실패');
     });
 }
 

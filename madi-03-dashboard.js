@@ -448,6 +448,7 @@ function _dpLoadTeacherMessages() {
       if (kpiEl) kpiEl.innerHTML = '-<em> 건</em>';
       if (kpiSub) { kpiSub.textContent = '불러오기 실패'; kpiSub.className = 'dp-kpi-delta flat'; }
       msgEl.innerHTML = '<div class="dp-empty">메시지를 불러오지 못했습니다</div>';
+      showToast('⚠️ 로드 실패');
     });
 }
 
