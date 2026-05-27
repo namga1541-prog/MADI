@@ -1,7 +1,11 @@
 /* eslint-disable */
 // 아이마디아이 ESLint 설정
-// 목적: innerHTML XSS 패턴을 커밋 전에 자동 차단
-// 핵심 규칙: no-unsanitized (escHtml() 래핑 없이 innerHTML 직접 삽입 차단)
+// 목적:
+//   1) innerHTML XSS 패턴을 커밋 전에 자동 차단
+//   2) 잉여 코드(미사용 지역 변수) 누적 차단
+// 핵심 규칙:
+//   - no-unsanitized: escHtml() 래핑 없이 innerHTML 직접 삽입 차단
+//   - no-unused-vars: 미사용 지역 변수 누적 차단 (의도적 미사용은 _prefix)
 
 module.exports = {
   env: {
@@ -67,6 +71,19 @@ module.exports = {
         escape: {
           methods: ['escHtml'],
         },
+      },
+    ],
+
+    // ── [WARN] 잉여 코드 누적 차단 — package.json 의 --max-warnings=0 과 결합되어 커밋 차단 ──
+    // 의도적 미사용 변수는 _prefix 사용 (예: function foo(_unused) {})
+    // — 이미 코드베이스에 _unusedSessions 패턴 존재 (madi-15.js)
+    'no-unused-vars': [
+      'warn',
+      {
+        args: 'none',                  // 함수 인자 미사용은 검사 안 함 (콜백 패턴 다수)
+        vars: 'local',                 // 전역 변수는 globals 항목으로 별도 관리
+        caughtErrors: 'none',          // catch (e) { /* silent */ } 패턴 허용
+        varsIgnorePattern: '^_',       // _NL, _unused 등 underscore prefix 무시
       },
     ],
   },
