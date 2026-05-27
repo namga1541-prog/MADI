@@ -244,6 +244,8 @@ function renderMonthGrid() {
     cells.push({ date: toLocal(new Date(year, month + 1, cells.length - firstDay - lastDate + 1)), other: true });
   }
   renderTeacherFilter();
+  var childById = {};
+  childDB.forEach(function(c) { childById[c.id] = c; });
   var html = '';
   cells.forEach(function(cell) {
     var allScheds = scheduleDB.filter(function(s) { return s.date === cell.date; })
@@ -256,7 +258,7 @@ function renderMonthGrid() {
     var extra = dayScheds.length - shown.length;
     var hiddenByFilter = allScheds.length - dayScheds.length;
     shown.forEach(function(s) {
-      var child = childDB.find(function(c) { return c.id === s.childId; });
+      var child = childById[s.childId];
       var therapist = s.therapist || s.teacher || '';
       var color = therapist ? getTeacherColor(therapist) : (child ? child.color : '#64748b');
       var lbl = ((s.startTime||s.time) ? (s.startTime||s.time).slice(0,5)+' ' : '');
@@ -315,6 +317,8 @@ function renderWeekGrid() {
     '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='therapist'?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='child'&&!_weekDupOnly?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=true;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekDupOnly?'background:#f97316;color:#fff;font-weight:700;border-color:#f97316;':'background:#fff;color:#64748b;') + '">🔴 중복 수업만</button>';
+  var childById = {};
+  childDB.forEach(function(c) { childById[c.id] = c; });
   var allWeekScheds = scheduleDB.filter(function(s) { return weekDates.some(function(w){ return w.str === s.date; }); });
   var weekScheds = _schedTeacherFilter === '전체' ? allWeekScheds
     : allWeekScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
@@ -349,7 +353,7 @@ function renderWeekGrid() {
           html += '<td style="padding:4px;border:1px solid #e2e8f0;height:44px;"></td>';
         } else {
           var items = cells.map(function(s) {
-            var child = childDB.find(function(c){ return c.id === s.childId; });
+            var child = childById[s.childId];
             var time  = (s.startTime||s.time||'').slice(0,5);
             return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
@@ -378,6 +382,8 @@ function renderDayGrid() {
   var lbl = document.getElementById('schedNavLabel');
   if (lbl) lbl.textContent = (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dayNames[d.getDay()] + ')';
   renderTeacherFilter();
+  var childById = {};
+  childDB.forEach(function(c) { childById[c.id] = c; });
 
   var allScheds = scheduleDB.filter(function(s) { return s.date === dateStr; })
     .sort(function(a, b) {
@@ -415,7 +421,7 @@ function renderDayGrid() {
       html += '<span style="margin-left:auto;font-size:11px;background:' + color + '20;color:' + color + ';padding:2px 8px;border-radius:10px;font-weight:700;">' + scheds.length + '건</span>';
       html += '</div>';
       scheds.forEach(function(s, idx) {
-        var child = childDB.find(function(c){ return c.id === s.childId; });
+        var child = childById[s.childId];
         var cname = child ? escHtml(child.name) : '?';
         var time = (s.startTime || s.time || '').slice(0, 5);
         var type = escHtml(s.type || '언어재활');
@@ -482,7 +488,7 @@ function renderDayGrid() {
         } else {
           var color = getTeacherColor(t);
           var items = cell.map(function(s) {
-            var child = childDB.find(function(c){ return c.id === s.childId; });
+            var child = childById[s.childId];
             var type = escHtml(s.type || '');
             return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')"><span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
@@ -503,6 +509,8 @@ function renderDayGrid() {
 function renderSessionListForPeriod(dates) {
   var el = document.getElementById('weekSessionList');
   if (!el) return;
+  var childById = {};
+  childDB.forEach(function(c) { childById[c.id] = c; });
   var all = [];
   var targetDates = dates || [];
   if (!dates) {
@@ -513,7 +521,7 @@ function renderSessionListForPeriod(dates) {
   }
   targetDates.forEach(function(date) {
     scheduleDB.filter(function(s){ return s.date === date; }).forEach(function(s) {
-      var child = childDB.find(function(c){ return c.id === s.childId; });
+      var child = childById[s.childId];
       var hasNote = sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
       all.push({ date: date, child: child, sched: s, hasNote: hasNote });
     });
