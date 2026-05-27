@@ -155,10 +155,10 @@ function addStaffAccount() {
     showToast('❌ 관리자만 계정을 추가할 수 있습니다');
     return;
   }
-  var name     = ((document.getElementById('fixedStaffName')   || {value:''}).value || '').trim();
-  var username = ((document.getElementById('newStaffUsername') || {value:''}).value || '').trim();
-  var pw       = ((document.getElementById('fixedStaffPw')     || {value:''}).value || '').trim();
-  var role     = ((document.getElementById('fixedStaffRole')   || {value:''}).value || '');
+  var name     = ((document.getElementById('staffNewName')     || {value:''}).value || '').trim();
+  var username = ((document.getElementById('staffNewUsername') || {value:''}).value || '').trim();
+  var pw       = ((document.getElementById('staffNewPassword') || {value:''}).value || '').trim();
+  var role     = ((document.getElementById('staffNewRole')     || {value:''}).value || '');
   var resultEl = document.getElementById('staffAddResult');
   if (!name || !username || !pw) {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 이름·아이디·비밀번호를 모두 입력해주세요.</span>';
@@ -181,9 +181,9 @@ function addStaffAccount() {
     }]);
   }).then(function() {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--green);">✅ ' + escHtml(name) + ' 선생님 계정 추가됨</span>';
-    var _nameEl = document.getElementById('fixedStaffName');   if (_nameEl) _nameEl.value = '';
-    var _unEl   = document.getElementById('newStaffUsername'); if (_unEl)   _unEl.value = '';
-    var _pwEl   = document.getElementById('fixedStaffPw');     if (_pwEl)   _pwEl.value = '';
+    var _nameEl = document.getElementById('staffNewName');     if (_nameEl) _nameEl.value = '';
+    var _unEl   = document.getElementById('staffNewUsername'); if (_unEl)   _unEl.value = '';
+    var _pwEl   = document.getElementById('staffNewPassword'); if (_pwEl)   _pwEl.value = '';
     loadStaffMgmtList();
   }).catch(function(err) {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
