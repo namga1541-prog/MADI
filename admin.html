@@ -18,6 +18,9 @@
   <!-- 보안 헤더 -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.supabase.co https://ujxdhafzjyrglaclarwe.supabase.co; connect-src 'self' https://ujxdhafzjyrglaclarwe.supabase.co https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <!-- 초기 네트워크 핸드셰이크 사전 처리 (TTFB 단축) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2007,9 +2010,9 @@ function renderNoticeList() {
     return '<div class="notice-card '+typeClass+'">'
       +'<span class="notice-badge '+badgeClass+'">'+badgeText+'</span>'
       +'<span style="float:right;">'+delBtn+'</span>'
-      +'<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">'+(n.title||'')+'</div>'
-      +'<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">'+(n.content||'')+'</div>'
-      +'<div style="font-size:11px;color:var(--text2);margin-top:8px;">'+dateStr+(n.author_name?' · '+n.author_name:'')+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">'+escHtml(n.title||'')+'</div>'
+      +'<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">'+escHtml(n.content||'')+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-top:8px;">'+escHtml(dateStr)+(n.author_name?' · '+escHtml(n.author_name):'')+'</div>'
       +'</div>';
   }).join('');
 }
@@ -2621,7 +2624,7 @@ function filterParentChildList(q) {
     drop.innerHTML = '<div style="padding:12px 14px;color:#94a3b8;text-align:center;font-size:13px;">검색 결과 없음</div>';
   } else {
     drop.innerHTML = filtered.slice(0,30).map(function(c) {
-      return '<div onclick="selectParentChild(\'' + c.id + '\',\'' + escHtml(c.name) + '\',\'' + escHtml(c.center_id) + '\')" '
+      return '<div onclick="selectParentChild(\'' + escHtml(String(c.id)) + '\',\'' + escHtml(c.name) + '\',\'' + escHtml(c.center_id) + '\')" '
         + 'style="padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#1e293b;" '
         + 'onmouseover="this.style.background=\'#e0f7f6\'" onmouseout="this.style.background=\'\'">'
         + escHtml(c.name) + (c.birth ? ' <span style="color:#94a3b8;font-size:11px;">(' + escHtml(c.birth) + ')</span>' : '')
