@@ -57,6 +57,9 @@ Deno.serve(async (req: Request) => {
       SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(sub) + '&select=password_changed_at,session_revoked_at',
       { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
     )
+    if (!sessRes.ok) {
+      return new Response(JSON.stringify({ error: '세션 검증 실패 — 잠시 후 다시 시도해주세요' }), { status: 500, headers: CORS })
+    }
     const sessRows = await sessRes.json() as Array<{ password_changed_at?: string; session_revoked_at?: string }>
     const sessRow  = sessRows && sessRows[0]
     if (sessRow) {
@@ -82,6 +85,9 @@ Deno.serve(async (req: Request) => {
       SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(userId) + '&select=totp_enabled',
       { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
     )
+    if (!r.ok) {
+      return new Response(JSON.stringify({ error: 'DB 조회 실패 — 잠시 후 다시 시도해주세요' }), { status: 500, headers: CORS })
+    }
     const rows = await r.json() as Array<{ totp_enabled?: boolean }>
     return new Response(
       JSON.stringify({ enabled: !!(rows && rows[0] && rows[0].totp_enabled) }),
@@ -145,6 +151,9 @@ Deno.serve(async (req: Request) => {
       SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(userId) + '&select=totp_secret,totp_enabled',
       { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
     )
+    if (!r.ok) {
+      return new Response(JSON.stringify({ error: 'DB 조회 실패 — 잠시 후 다시 시도해주세요' }), { status: 500, headers: CORS })
+    }
     const rows = await r.json() as Array<{ totp_secret?: string; totp_enabled?: boolean }>
     const cur  = rows && rows[0]
     if (!cur || !cur.totp_enabled || !cur.totp_secret) {

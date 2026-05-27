@@ -94,8 +94,8 @@ Deno.serve(async (req: Request) => {
 
   try {
     await verifyJwt(token, JWT_SECRET)
-  } catch (e) {
-    return new Response(JSON.stringify({ error: '인증 실패: ' + (e as Error).message }), {
+  } catch {
+    return new Response(JSON.stringify({ error: '인증 오류' }), {
       status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }

@@ -58,7 +58,7 @@ async function verifyJwt(token: string, secret: string) {
   const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(`${header}.${body}`))
   if (!valid) throw new Error('JWT 서명 불일치')
   const payload = JSON.parse(atob(body.replace(/-/g, '+').replace(/_/g, '/')))
-  if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) throw new Error('JWT 만료')
+  if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) throw new Error('토큰 만료')
   return payload
 }
 
@@ -88,8 +88,9 @@ async function deployFile(
 
   const putRes = await fetch(apiBase, { method: 'PUT', headers, body: JSON.stringify(body) })
   if (!putRes.ok) {
-    const err = await putRes.json() as { message?: string }
-    throw new Error(err.message || `${filename} 업로드 실패 (HTTP ${putRes.status})`)
+    // GitHub API 에러 메시지를 클라이언트에 그대로 전달하지 않음 — 내부 정보 노출 방지
+    console.error('[github-deploy] PUT failed status=%d file=%s', putRes.status, filename)
+    throw new Error('파일 업로드 실패: ' + filename)
   }
 }
 
@@ -161,6 +162,13 @@ Deno.serve(async (req: Request) => {
     const results: Array<{ name: string; ok: boolean; error?: string }> = []
 
     for (const f of files) {
+      // 경로 순회(../) 및 절대 경로 공격 차단
+      if (f.name.includes('..') || f.name.startsWith('/')) {
+        return new Response(
+          JSON.stringify({ error: '허용되지 않는 경로: ' + f.name }),
+          { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } }
+        )
+      }
       try {
         await deployFile(GITHUB_PAT, GITHUB_OWNER, GITHUB_REPO, f.name, f.content, f.commitMsg)
         results.push({ name: f.name, ok: true })

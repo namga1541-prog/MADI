@@ -22,7 +22,7 @@ async function sq<T>(url: string, key: string, path: string): Promise<T[]> {
   const res = await fetch(`${url}/rest/v1/${path}`, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
   });
-  if (!res.ok) throw new Error(`sq ${path} → ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`DB 쿼리 실패: ${res.status}`);
   let data: unknown;
   try { data = await res.json() } catch { data = [] }
   return data as T[];

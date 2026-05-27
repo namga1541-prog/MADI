@@ -79,6 +79,9 @@ Deno.serve(async (req: Request) => {
     SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.sub + '&select=password',
     { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
   )
+  if (!dbRes.ok) {
+    return new Response(JSON.stringify({ error: '사용자 조회 실패 — 잠시 후 다시 시도해주세요' }), { status: 500, headers: CORS })
+  }
   const rows = await dbRes.json()
   const row  = Array.isArray(rows) ? rows[0] : null
   if (!row) {
