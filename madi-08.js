@@ -697,7 +697,7 @@ function renderEffectStats() {
 
   var html = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
     + statCard(totalSessions + '회', '누적 세션', null, 'var(--mint)')
-    + statCard(thisMonthSessions + '회', '이번 달', '지난달 ' + lastMonthSessions + '회', lastMonthSessions > 0 && thisMonthSessions >= lastMonthSessions ? 'var(--green)' : 'var(--amber)')
+    + statCard(thisMonthSessions + '회', '이번 달', '지난달 ' + lastMonthSessions + '회', thisMonthSessions > 0 && thisMonthSessions >= lastMonthSessions ? 'var(--green)' : 'var(--amber)')
     + statCard(avgScore != null ? avgScore + '%' : '—', '평균 달성도', '전체 세션 기준', avgScore == null ? 'var(--text2)' : avgScore >= 70 ? 'var(--green)' : avgScore >= 40 ? 'var(--amber)' : 'var(--red)')
     + statCard(childDB.filter(function(c){ return (c.status||'등록')==='등록'; }).length + '명', '등록 아동', null, 'var(--purple)')
     + '</div>';

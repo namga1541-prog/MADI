@@ -494,6 +494,7 @@ function autoCalcAssessScores() {
     callClaude(SYSTEM, USER, 500, getAIModel())
       .then(function(raw) {
         var parsed = parseJSON(raw);
+        if (!parsed) { _resetAutoCalcBtn(); return; }
         var aiCount = 0;
         (parsed.results||[]).forEach(function(r) { if(r.key&&r.val){var el=document.getElementById('af_'+r.key);if(el&&el.value===''){el.value=r.val;aiCount++;}} });
         if (aiCount > 0) showToast((filled > 0 ? '+ ' : '') + 'AI로 ' + aiCount + '개 추가 보완');
@@ -501,8 +502,8 @@ function autoCalcAssessScores() {
           var n=document.getElementById('assessCalcNote');
           if(n){n.style.display='block';n.textContent='⚠️ AI 추정값 포함 — 공식 규준집으로 확인하세요';}
         }
+        _resetAutoCalcBtn();
       })
-      .then(function(){ _resetAutoCalcBtn(); })
       .catch(function(e) {
         if(window.console&&console.warn)console.warn('[madi-11 autoCalc]',e&&e.message);
         showToast('❌ 자동 계산 실패 — 다시 시도해주세요');
@@ -646,10 +647,13 @@ function getAssessFieldValues() {
 function addAssessment(opts) {
   opts = opts || {};
   var childId  = parseInt(document.getElementById('assessChild').value);
-  var date     = document.getElementById('assessDate').value;
+  var _dateEl  = document.getElementById('assessDate');
+  if (!_dateEl) return false;
+  var date     = _dateEl.value;
   var typeVal  = document.getElementById('assessType').value;
+  var _customEl = document.getElementById('assessCustomNameInput');
   var testName = typeVal === 'OTHER'
-    ? (document.getElementById('assessCustomNameInput').value.trim() || '직접입력')
+    ? ((_customEl ? _customEl.value.trim() : '') || '직접입력')
     : typeVal;
   var memo     = document.getElementById('assessMemo').value.trim();
 
@@ -707,7 +711,7 @@ function renderAssessmentList() {
   var el = document.getElementById('assessmentList');
   if (!el) return;
   var list = assessmentDB.filter(function(a) { return !childId || a.childId === childId; })
-    .sort(function(a,b) { return b.date < a.date ? -1 : 1; });
+    .sort(function(a,b) { return b.date < a.date ? 1 : -1; });
   if (list.length === 0) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>검사 결과가 없습니다.</p></div>'; return; }
   var html = '';
   list.forEach(function(a) {
