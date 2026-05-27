@@ -25,10 +25,27 @@ rls_security_setup.sql
 supabase/rls_policies.sql
 ```
 
-- 전 테이블(10개) RLS 활성화 + anon/authenticated 직접 접근 전면 차단
+- 관리·보조 테이블(10개) RLS 활성화 + anon/authenticated 직접 접근 전면 차단
+  - `madi_users`, `madi_centers`, `madi_audit_log`, `madi_notifications`, `madi_portfolios`,
+    `madi_rate_limits`, `madi_push_subscriptions`, `madi_push_settings`, `madi_settings`,
+    `madi_parent_children`
 - **service_role(Edge Function)은 RLS를 우회하므로 기존 앱 동작은 무변경**
 - 이 파일을 실행하지 않으면 RLS가 꺼진 상태로 운영 중인 것임
 - Supabase Dashboard → SQL Editor → 전체 내용 붙여넣기 → Run
+
+## 1-C. 핵심 업무 테이블 차단 정책 (1-B 의존, 2026-05-26 추가)
+
+```
+supabase/rls_core_tables.sql
+```
+
+- 핵심 업무 테이블(11개) RLS 활성화 + anon/authenticated 직접 접근 전면 차단
+  - `madi_children`, `madi_sessions`, `madi_schedules`, `madi_assessments`, `madi_iep_history`,
+    `madi_notices`, `madi_global_notices`, `madi_lounge_posts`, `madi_lounge_comments`,
+    `madi_activities`, `madi_error_logs`
+- 1-B와 동일한 `FOR ALL USING (false)` 패턴, service_role 우회 동일
+- **반드시 1-B 적용 이후 실행**
+- 적용 후 파일 하단 주석의 확인 쿼리로 11개 행 모두 `qual: false` 검증
 
 ## 2. 학부모 격리 (1번 의존)
 
