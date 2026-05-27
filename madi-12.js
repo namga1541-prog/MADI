@@ -902,7 +902,6 @@ function confirmImport() {
     }
   });
   refreshChildAges();   // 임포트 직후 age 최신화
-  saveChildren();
 
   sessions.forEach(function(s) {
     var childId = nameToId[s.childName];
@@ -917,28 +916,55 @@ function confirmImport() {
     });
     sessionCount++;
   });
-  saveSessions();
+
+  // localStorage 동기화 (서버 저장 결과와 무관하게 즉시 반영)
+  markMyChange();
+  _optionsCacheKey = null;
+  safeSetItem('cn3_children', JSON.stringify(childDB));
+  safeSetItem('cn3_sessions', JSON.stringify(sessionDB));
 
   window._importPreview = null;
   renderChildGrid();
   populateChildSelects();
 
   var importResult = document.getElementById('importResult');
-  if (!importResult) return;
-  // eslint-disable-next-line no-unsanitized/property
-  importResult.innerHTML =
-    '<div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:4px solid var(--green);">'
-    + '<div style="font-weight:700;color:var(--green);margin-bottom:6px;">✅ 가져오기 완료!</div>'
-    + '<div style="font-size:13px;line-height:1.8;">'
-    + '아동 추가: <strong>' + addedCount + '명</strong><br>'
-    + (skippedCount > 0 ? '중복 스킵: <strong>' + skippedCount + '명</strong><br>' : '')
-    + '세션 기록: <strong>' + sessionCount + '개</strong>'
-    + '</div></div>';
+  if (importResult) {
+    // eslint-disable-next-line no-unsanitized/property
+    importResult.innerHTML =
+      '<div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:4px solid var(--green);">'
+      + '<div style="font-weight:700;color:var(--green);margin-bottom:6px;">✅ 가져오기 완료!</div>'
+      + '<div style="font-size:13px;line-height:1.8;">'
+      + '아동 추가: <strong>' + addedCount + '명</strong><br>'
+      + (skippedCount > 0 ? '중복 스킵: <strong>' + skippedCount + '명</strong><br>' : '')
+      + '세션 기록: <strong>' + sessionCount + '개</strong>'
+      + '</div></div>';
+  }
 
   showToast('✅ ' + addedCount + '명 추가! 서버 저장 중...(잠시 기다려주세요)');
-  setTimeout(function() {
-    showToast('☁️ 서버 저장 완료! 아동 ' + childDB.length + '명');
-  }, addedCount * 100 + 3000);
+
+  // 서버 저장: children → sessions 순서로 직렬 처리, 실제 완료 후 결과 토스트
+  var _cid = getCenterId();
+  var childRows = childDB.map(function(c) { return { id: c.id, center_id: _cid, data: c }; });
+  var sessRows  = sessionDB.map(function(s) { return { id: s.id, center_id: _cid, data: s }; });
+
+  function _batchPost(endpoint, rows) {
+    if (!rows || rows.length === 0) return Promise.resolve();
+    var batches = [];
+    for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
+    return batches.reduce(function(p, batch) {
+      return p.then(function() { return supaFetch(endpoint, 'POST', batch); });
+    }, Promise.resolve());
+  }
+
+  _batchPost('madi_children?on_conflict=id', childRows)
+    .then(function() { return _batchPost('madi_sessions?on_conflict=id', sessRows); })
+    .then(function() {
+      showToast('☁️ 서버 저장 완료! 아동 ' + childDB.length + '명');
+    })
+    .catch(function(e) {
+      var msg = e && e.message ? e.message : '오류';
+      showToast('❌ 서버 저장 실패 — ' + msg);
+    });
 }
 
 function cancelImport() {

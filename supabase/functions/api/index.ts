@@ -252,13 +252,70 @@ Deno.serve(async (req: Request) => {
         for (const row of rows) {
           if (!row || typeof row !== 'object') continue
           const obj = row as Record<string, unknown>
-          const touchesRole = ('role' in obj) || ('permissions' in obj)
+          const touchesRole        = 'role' in obj
+          const touchesPermissions = 'permissions' in obj
+
+          // role 변경은 superadmin만 허용
           if (touchesRole && user.role !== 'superadmin') {
             return new Response(
-              JSON.stringify({ error: 'role/permissions 는 슈퍼관리자만 변경할 수 있습니다' }),
+              JSON.stringify({ error: 'role 은 슈퍼관리자만 변경할 수 있습니다' }),
               { status: 403, headers: CORS }
             )
           }
+
+          // permissions 변경: superadmin은 무조건 허용,
+          // admin은 같은 센터의 teacher 계정에 한해 허용 (자기 센터 권한 관리)
+          if (touchesPermissions && user.role !== 'superadmin') {
+            if (user.role !== 'admin') {
+              return new Response(
+                JSON.stringify({ error: 'permissions 는 관리자 이상만 변경할 수 있습니다' }),
+                { status: 403, headers: CORS }
+              )
+            }
+            // admin: 대상 user의 center_id·role 검증 (id=eq.xxx 필터가 path에 있어야 함)
+            const idMatch = path.match(/[?&]id=eq\.([^&]+)/)
+            if (!idMatch) {
+              return new Response(
+                JSON.stringify({ error: '권한 변경 시 단일 사용자 ID 필터(id=eq.xxx)가 필요합니다' }),
+                { status: 400, headers: CORS }
+              )
+            }
+            const targetId = decodeURIComponent(idMatch[1])
+            const targetRes = await fetch(
+              SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(targetId)
+                + '&select=center_id,role',
+              { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+            )
+            if (!targetRes.ok) {
+              return new Response(
+                JSON.stringify({ error: '대상 사용자 조회 실패' }),
+                { status: 500, headers: CORS }
+              )
+            }
+            const targets = await targetRes.json() as Array<{ center_id: unknown; role: string }>
+            const target  = targets && targets[0]
+            if (!target) {
+              return new Response(
+                JSON.stringify({ error: '대상 사용자를 찾을 수 없습니다' }),
+                { status: 404, headers: CORS }
+              )
+            }
+            // 같은 센터인지 확인
+            if (String(target.center_id) !== String(user.center_id)) {
+              return new Response(
+                JSON.stringify({ error: '다른 센터의 사용자 권한은 변경할 수 없습니다' }),
+                { status: 403, headers: CORS }
+              )
+            }
+            // admin 또는 superadmin 계정의 permissions는 admin이 변경 불가 (권한 상승 방지)
+            if (target.role === 'admin' || target.role === 'superadmin') {
+              return new Response(
+                JSON.stringify({ error: '관리자·슈퍼관리자 계정의 권한은 변경할 수 없습니다' }),
+                { status: 403, headers: CORS }
+              )
+            }
+          }
+
           // 누구든 PATCH 시 password 컬럼은 이 엔드포인트로 변경 불가 (change-password 함수 전용)
           if ('password' in obj || 'password_hash' in obj) {
             return new Response(
