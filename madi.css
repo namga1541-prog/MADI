@@ -845,7 +845,7 @@
 
     /* 모바일: 기존 팝업 방식 유지 */
     .chat-window {
-      position: fixed; bottom: 92px; right: 20px; z-index: 200;
+      position: fixed; bottom: 92px; right: 20px; z-index: 201;
       width: 340px; max-height: min(520px, calc(100dvh - 110px));
       background: var(--card-bg, white); border-radius: 20px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.18);
