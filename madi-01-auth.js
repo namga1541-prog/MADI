@@ -17,7 +17,7 @@ function showLoginScreen(){ var _ls = document.getElementById('loginScreen'); if
 function hideLoginScreen(){ var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'none'; showDashboard(); }
 function loadUserList() {
   var un = document.getElementById('loginUsernameInput'), pw = document.getElementById('loginPwInput'), err = document.getElementById('loginError');
-  var lastId = localStorage.getItem('madi_last_id') || '';
+  var lastId; try { lastId = localStorage.getItem('madi_last_id') || ''; } catch (e) { lastId = ''; }
   if (un) un.value = lastId; if (pw) pw.value = ''; if (err) err.textContent = '';
   if (lastId) { if (pw) setTimeout(function(){ pw.focus(); }, 200); } else { if (un) setTimeout(function(){ un.focus(); }, 200); }
 }

@@ -119,7 +119,7 @@ function safeSetItem(key, value) {
   // 모든 데이터는 Supabase + 인메모리로만 운용. DevTools / 공유 기기에서 PII 평문 노출 방지.
   if (typeof key === 'string' && key.indexOf('cn3_') === 0) return true;
   try { localStorage.setItem(key, value); return true; }
-  catch (e) { console.error('localStorage 저장 실패:', key, e); if (e && e.name === 'QuotaExceededError') showToast('⚠️ 로컬 저장 공간 부족 — 데이터는 서버에 안전하게 저장됩니다'); return false; }
+  catch (e) { if (e && e.name === 'QuotaExceededError') showToast('⚠️ 로컬 저장 공간 부족 — 데이터는 서버에 안전하게 저장됩니다'); return false; }
 }
 
 // 옛 cn3_* 잔존 캐시를 일소 — 로그인 직후 호출

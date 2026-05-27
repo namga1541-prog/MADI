@@ -84,7 +84,7 @@ function saveChildren() {
   var cid = getCenterId(), rows = childDB.map(function(c){ return { id: c.id, center_id: cid, data: c }; }), batches = [];
   for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
   batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_children?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
-    .catch(function(e) { console.error('아동 저장 실패:', e); showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요'); });
+    .catch(function(e) { showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요'); });
 }
 function getSaveErrMsg(e, label) {
   var msg = e && e.message ? e.message : '';
