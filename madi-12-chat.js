@@ -594,7 +594,9 @@ function sendChat() {
     return;
   }
 
-  var apiKey = document.getElementById('apiKey').value.trim();
+  var apiKeyEl = document.getElementById('apiKey');
+  if (!apiKeyEl) return;
+  var apiKey = apiKeyEl.value.trim();
   if (!apiKey) { addAiMsg('API 키를 상단에 먼저 입력해주세요! 🔑'); return; }
 
   input.value = '';
@@ -746,7 +748,8 @@ function buildChatContext() {
     lines.push(line);
   });
 
-  var uw = getUnwrittenSessions();
+  var uw = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
+  if (!Array.isArray(uw)) uw = [];
   // 선생님: 본인 담당 미작성만 표시
   if (!_isAdminCtx) uw = uw.filter(function(u) { return u.teacher === _myName; });
   if (uw.length > 0) {
