@@ -118,6 +118,68 @@ ORDER  BY tablename, policyname;
 SELECT jobname, schedule, active FROM cron.job;
 ```
 
+### 정상 상태 baseline (1-B + 1-C 적용 후 기대 결과)
+
+신규 환경 셋업이나 운영 점검 시 위 쿼리 결과를 아래 baseline과 비교해 회귀 여부를 확인한다.
+
+#### ① RLS 활성화 — 21개 테이블 모두 `rowsecurity = true`
+
+| tablename | rowsecurity |
+|-----------|-------------|
+| madi_activities | t |
+| madi_assessments | t |
+| madi_audit_log | t |
+| madi_centers | t |
+| madi_children | t |
+| madi_error_logs | t |
+| madi_global_notices | t |
+| madi_iep_history | t |
+| madi_lounge_comments | t |
+| madi_lounge_posts | t |
+| madi_notices | t |
+| madi_notifications | t |
+| madi_parent_children | t |
+| madi_portfolios | t |
+| madi_push_settings | t |
+| madi_push_subscriptions | t |
+| madi_rate_limits | t |
+| madi_schedules | t |
+| madi_sessions | t |
+| madi_settings | t |
+| madi_users | t |
+
+→ 행 수 21, `f`(false) 단 1행도 없어야 정상.
+
+#### ② 차단 정책 — 모든 정책의 `qual = false`
+
+| 출처 SQL | 정책명 패턴 | 대상 테이블 |
+|----------|------------|------------|
+| `rls_policies.sql` (1-B) | `<table>_all_blocked` (또는 users는 `*_blocked`) | 10개 |
+| `rls_core_tables.sql` (1-C) | `<table>_all_blocked` | 11개 |
+
+정책 행 합계 **22개 이상** (madi_users는 `users_select_blocked` + `users_write_blocked` 2건).
+모든 행의 `qual` 컬럼이 `false` 가 아니면 즉시 점검.
+
+#### ③ pg_cron 작업 — `daily_digest_setup.sql` 적용 시
+
+| jobname | active |
+|---------|--------|
+| (예) `madi-daily-digest` | t |
+
+`daily_digest_setup.sql` 미적용 환경에서는 빈 결과여도 정상.
+
+### 회귀 감지 워크플로우
+
+운영 점검 시:
+1. 위 3개 검증 쿼리를 SQL Editor에서 실행
+2. 결과를 위 baseline 표와 시각 비교
+3. 불일치가 있다면:
+   - 누락 테이블 → 해당 SQL 파일 재실행 (멱등 작성됨)
+   - `qual ≠ false` 정책 → 누군가 정책을 수정한 흔적, audit_log 점검
+   - `rowsecurity = f` → 비상 롤백 절차가 가동된 상태일 가능성
+
+> baseline 변경 시 이 표도 함께 갱신할 것.
+
 ## 롤백 시
 
 `rls_security_setup.sql` 적용 후 문제가 생기면 RLS 비활성화로 임시 우회:
