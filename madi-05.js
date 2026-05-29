@@ -345,7 +345,7 @@ function getVoucherUsed(childId) {
 }
 
 function deleteChild(id) {
-  if (typeof canDo !== 'function' || !canDo('deleteChild')) {
+  if (!currentUser || !isAdminRole(currentUser.role)) {
     showToast('⚠️ 아동 삭제 권한이 없습니다');
     return;
   }
@@ -621,7 +621,7 @@ function renderChildGrid() {
       + (_childStatusFilter !== '종결'
           ? '<button class="btn-ghost" style="color:#f59e0b;border-color:#f59e0b;" onclick="event.stopPropagation();closeChild(\'' + child.id + '\')">🔒 종결</button>'
           : '<button class="btn-ghost" style="color:var(--mint);border-color:var(--mint);" onclick="event.stopPropagation();reopenChild(\'' + child.id + '\')">↩️ 재등록</button>')
-      + (canDo('deleteChild')
+      + (currentUser && isAdminRole(currentUser.role)
           ? '<button class="btn-ghost" style="color:#ef4444;border-color:#ef4444;" onclick="event.stopPropagation();deleteChild(\'' + child.id + '\')">🗑️ 삭제</button>'
           : '')
       + '</div>'

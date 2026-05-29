@@ -98,6 +98,10 @@ function _schedStatus(sc, daySessions) {
 }
 
 function changeSchedStatus(schedId, newStatus) {
+  if (!isStaffRole(currentUser && currentUser.role)) {
+    showToast('⚠️ 권한이 없습니다');
+    return;
+  }
   var sc = scheduleDB.find(function(s){ return String(s.id) === String(schedId); });
   if (!sc) return;
   sc.status = newStatus;
