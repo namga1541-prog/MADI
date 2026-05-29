@@ -211,6 +211,13 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: '슈퍼관리자만 수정할 수 있습니다' }), { status: 403, headers: CORS })
     }
 
+    // ★ D2: madi_children 하드 삭제는 admin/superadmin 전용 (teacher 차단)
+    //   teacher의 아동 종결은 status PATCH(closeChild)이므로 PATCH는 허용, DELETE만 제한.
+    if (tableName === 'madi_children' && method === 'DELETE'
+        && user.role !== 'admin' && user.role !== 'superadmin') {
+      return new Response(JSON.stringify({ error: '아동 삭제는 관리자 이상만 가능합니다' }), { status: 403, headers: CORS })
+    }
+
     // 학부모 쓰기 차단
     if (user.role === 'parent' && PARENT_READONLY_TABLES.includes(tableName) && method && method !== 'GET') {
       return new Response(JSON.stringify({ error: '학부모는 해당 데이터를 수정할 수 없습니다' }), { status: 403, headers: CORS })
