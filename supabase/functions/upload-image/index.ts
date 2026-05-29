@@ -11,7 +11,7 @@
  * - Supabase Storage board-images 버킷에 저장
  */
 
-import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts'
+import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt, requireFreshSession } from '../_shared/auth.ts'
 
 // upload-image: sandboxed iframe CSRF 차단 위해 'null' Origin 거부
 function makeCORS(origin: string | null): Record<string, string> {
@@ -92,10 +92,18 @@ Deno.serve(async (req: Request) => {
     })
   }
 
+  let user: Record<string, unknown>
   try {
-    await verifyJwt(token, JWT_SECRET)
+    user = await verifyJwt(token, JWT_SECRET)
   } catch {
     return new Response(JSON.stringify({ error: '인증 오류' }), {
+      status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
+  // ── 세션 무효화 검증 (D1): 로그아웃·비번변경·강제종료 이후 옛 토큰 거부 ──
+  if (!(await requireFreshSession(user, SUPABASE_URL, SERVICE_KEY))) {
+    return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), {
       status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }

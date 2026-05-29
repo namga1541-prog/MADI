@@ -11,7 +11,7 @@
  * 응답: Anthropic API 원본 응답 전달
  */
 
-import { makeCORS, getAuthToken, verifyJwt, checkRateLimit } from '../_shared/auth.ts'
+import { makeCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit } from '../_shared/auth.ts'
 
 // ── 메인 핸들러 ───────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
@@ -31,6 +31,11 @@ Deno.serve(async (req: Request) => {
   let user: Record<string, unknown>
   try { user = await verifyJwt(token, JWT_SECRET) } catch {
     return new Response(JSON.stringify({ error: '인증이 필요합니다' }), { status: 401, headers: CORS })
+  }
+
+  // ── 세션 무효화 검증 (D1): 로그아웃·비번변경·강제종료 이후 옛 토큰 거부 ──
+  if (!(await requireFreshSession(user, SUPA_URL, SUPA_KEY))) {
+    return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
   }
 
   const centerId = user.center_id as string

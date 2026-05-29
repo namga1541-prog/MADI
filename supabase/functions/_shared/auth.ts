@@ -90,6 +90,61 @@ export async function verifyJwt(token: string, secret: string): Promise<Record<s
   return payload
 }
 
+// ── 세션 무효화 검증 (D1) ──────────────────────────────────────────────────
+// 로그아웃·비밀번호 변경·관리자 강제 세션종료(session_revoked_at) 이후 발급 전(=옛)
+// 토큰을 거부한다. api/index.ts 의 인라인 검증과 동일 의미론을 단일 헬퍼로 추출:
+//   · 단위: DB 의 timestamptz 를 Math.floor(getTime()/1000) 로 "초" 단위 변환,
+//           payload.iat(초) 와 비교 — api/index.ts(L155,165) 와 동일.
+//   · 부등호: tokenIat + 1 < at  → 1초 clock-skew 여유, 동일 초 발급 토큰은 유효
+//           (api/index.ts L157,166 과 정확히 동일 방향·여유).
+//   · session_revoked_at 컬럼 미존재(마이그레이션 전) 환경을 위해 base 컬럼만으로 retry
+//           (api/index.ts L143-149 와 동일한 defensive 패턴).
+//   · fail-open: DB 일시 오류·파싱 실패 시 true 반환 — api/index.ts 가 catch(_){} 로
+//           검증을 건너뛰고 요청을 계속 처리하는 것과 동일(다른 보안 계층이 막음).
+// 반환값: true = 세션 유효(통과), false = 무효(호출측에서 401 반환).
+export async function requireFreshSession(
+  payload: Record<string, unknown>,
+  supaUrl: string,
+  supaKey: string
+): Promise<boolean> {
+  try {
+    const tokenIat = Number(payload.iat || 0)
+    if (!(tokenIat > 0)) return true  // iat 없는 토큰은 본 검증 대상 아님 (api 동일)
+
+    // session_revoked_at 컬럼 미존재면 base 컬럼만으로 retry (api/index.ts 동일)
+    let res = await fetch(
+      supaUrl + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(payload.sub))
+        + '&select=password_changed_at,session_revoked_at',
+      { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
+    )
+    if (!res.ok) {
+      res = await fetch(
+        supaUrl + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(payload.sub))
+          + '&select=password_changed_at',
+        { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
+      )
+    }
+    if (!res.ok) return true  // DB 조회 실패 → fail-open (api 동일)
+
+    const rows = await res.json() as Array<{ password_changed_at?: string; session_revoked_at?: string }>
+    const row  = rows && rows[0]
+    if (!row) return true
+
+    if (row.password_changed_at) {
+      const pwAt = Math.floor(new Date(row.password_changed_at).getTime() / 1000)
+      if (tokenIat + 1 < pwAt) return false
+    }
+    if (row.session_revoked_at) {
+      const rvAt = Math.floor(new Date(row.session_revoked_at).getTime() / 1000)
+      if (tokenIat + 1 < rvAt) return false
+    }
+    return true
+  } catch (_) {
+    // 검증 실패는 무시 (DB 일시 오류 시 사용자 차단 X — api/index.ts 와 동일 fail-open)
+    return true
+  }
+}
+
 // ── JWT 서명 (login 함수 전용) ────────────────────────────────────────────
 function b64url(buf: ArrayBuffer | Uint8Array): string {
   const view = buf instanceof Uint8Array ? buf : new Uint8Array(buf)

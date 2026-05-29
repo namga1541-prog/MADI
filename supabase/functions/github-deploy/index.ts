@@ -17,49 +17,20 @@
  *   GITHUB_REPO     — 예: "MADI"
  */
 
-// ── CORS ──────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = new Set([
-  'https://namga1541-prog.github.io',
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'null',
-])
+// ── 공통 인증·CORS·세션검증 유틸 (D4: alg:none/confusion 차단 포함) ──────────
+//   기존 인라인 verifyJwt 는 JWT 헤더의 alg 를 검증하지 않아 alg:none / 비대칭→대칭
+//   confusion 공격에 노출돼 있었음(D4). _shared/auth.ts 의 verifyJwt 는 alg==='HS256'
+//   강제 + exp 필수 검증을 포함하므로 이를 사용해 교체한다.
+import {
+  makeCORS as makeBaseCORS,
+  getAuthToken,
+  verifyJwt,
+  requireFreshSession,
+} from '../_shared/auth.ts'
 
+// github-deploy CORS: 기존과 동일 (null Origin 허용, authorization/content-type 헤더)
 function makeCORS(origin: string | null): Record<string, string> {
-  const o = origin ?? 'null'
-  const acao = ALLOWED_ORIGINS.has(o) ? o : 'https://namga1541-prog.github.io'
-  return {
-    'Access-Control-Allow-Origin':      acao,
-    'Access-Control-Allow-Headers':     'authorization, content-type',
-    'Access-Control-Allow-Methods':     'POST, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
-    'Vary': 'Origin',
-  }
-}
-
-function getCookieToken(req: Request): string {
-  const cookie = req.headers.get('cookie') || ''
-  const match  = cookie.match(/(?:^|;\s*)madi_session=([^;]+)/)
-  return match ? match[1] : ''
-}
-
-// ── JWT 검증 ──────────────────────────────────────────────────────────────
-async function verifyJwt(token: string, secret: string) {
-  const [header, body, sig] = token.split('.')
-  if (!header || !body || !sig) throw new Error('JWT 형식 오류')
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
-  )
-  const b64 = sig.replace(/-/g, '+').replace(/_/g, '/')
-  const raw = atob(b64)
-  const sigBytes = new Uint8Array(raw.length)
-  for (let i = 0; i < raw.length; i++) sigBytes[i] = raw.charCodeAt(i)
-  const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(`${header}.${body}`))
-  if (!valid) throw new Error('JWT 서명 불일치')
-  const payload = JSON.parse(atob(body.replace(/-/g, '+').replace(/_/g, '/')))
-  if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) throw new Error('토큰 만료')
-  return payload
+  return makeBaseCORS(origin, { headers: 'authorization, content-type' })
 }
 
 // ── GitHub 파일 업로드 ────────────────────────────────────────────────────
@@ -131,11 +102,13 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   const JWT_SECRET   = Deno.env.get('MADI_JWT_SECRET')
+  const SUPA_URL     = Deno.env.get('SUPABASE_URL')
+  const SUPA_KEY     = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const GITHUB_PAT   = Deno.env.get('GITHUB_PAT')
   const GITHUB_OWNER = Deno.env.get('GITHUB_OWNER') || 'namga1541-prog'
   const GITHUB_REPO  = Deno.env.get('GITHUB_REPO')  || 'MADI'
 
-  if (!JWT_SECRET) {
+  if (!JWT_SECRET || !SUPA_URL || !SUPA_KEY) {
     return new Response(JSON.stringify({ error: '서버 설정 오류' }), { status: 500, headers: CORS })
   }
   if (!GITHUB_PAT) {
@@ -143,12 +116,17 @@ Deno.serve(async (req: Request) => {
   }
 
   // 인증 토큰: httpOnly 쿠키 우선, Bearer 헤더 하위 호환 유지
-  const auth        = req.headers.get('Authorization') || ''
-  const bearerToken = auth.replace('Bearer ', '').trim()
-  const token       = getCookieToken(req) || bearerToken
+  const token = getAuthToken(req)
   let user: Record<string, unknown>
+  // verifyJwt(_shared) 는 alg==='HS256' 강제 + exp 필수 검증 포함 (D4: alg 미검증 결함 해소)
   try { user = await verifyJwt(token, JWT_SECRET) } catch {
     return new Response(JSON.stringify({ error: '인증이 필요합니다' }), { status: 401, headers: CORS })
+  }
+
+  // ── 세션 무효화 검증 (D1): 로그아웃·비번변경·강제종료 이후 옛 토큰 거부 ──
+  //   소스 코드를 운영에 배포하는 가장 치명적 엔드포인트 — 탈취 토큰 재사용 차단 필수.
+  if (!(await requireFreshSession(user, SUPA_URL, SUPA_KEY))) {
+    return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
   }
 
   // superadmin 만 배포 가능 (admin·teacher·parent 모두 차단)
