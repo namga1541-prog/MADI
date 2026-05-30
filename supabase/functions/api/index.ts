@@ -249,6 +249,40 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: '학부모는 해당 데이터에 접근할 수 없습니다' }), { status: 403, headers: CORS })
     }
 
+    // ★ 라운지 댓글 센터별 격리 — 댓글엔 center_id 컬럼이 없어 부모 글(post)의 center_id 로 검증.
+    //   service_role 프록시는 RLS 를 우회하므로, RLS 의 post-기반 센터 격리를 여기서 복제한다.
+    //   GET/POST 는 post_id 의 소속 센터 일치를 강제, PATCH/DELETE 는 author_id 소유권(GLOBAL_OWNER_COL)이
+    //   본인 댓글(=본인 센터)로 한정하므로 추가 검증 불필요. superadmin 은 운영 지원 위해 전체 예외.
+    if (tableName === 'madi_lounge_comments' && user.role !== 'superadmin'
+        && (!method || method === 'GET' || method === 'POST')) {
+      let postId: string | null = null
+      if (method === 'POST') {
+        const row = Array.isArray(body) ? body[0] : body
+        if (row && typeof row === 'object') {
+          const pv = (row as Record<string, unknown>).post_id
+          if (pv !== undefined && pv !== null) postId = String(pv)
+        }
+      } else {
+        const m = path.match(/[?&]post_id=eq\.([^&]+)/)
+        if (m) postId = decodeURIComponent(m[1])
+      }
+      if (!postId) {
+        return new Response(JSON.stringify({ error: '댓글은 글(post_id) 범위로만 접근할 수 있습니다' }), { status: 400, headers: CORS })
+      }
+      const postRes = await fetch(
+        SUPA_URL + '/rest/v1/madi_lounge_posts?id=eq.' + encodeURIComponent(postId) + '&select=center_id&limit=1',
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+      )
+      if (!postRes.ok) {
+        return new Response(JSON.stringify({ error: '글 검증 실패' }), { status: 500, headers: CORS })
+      }
+      const postRows = await postRes.json() as Array<{ center_id: unknown }>
+      const parentPost = postRows && postRows[0]
+      if (!parentPost || String(parentPost.center_id) !== String(user.center_id)) {
+        return new Response(JSON.stringify({ error: '다른 센터의 라운지에는 접근할 수 없습니다' }), { status: 403, headers: CORS })
+      }
+    }
+
     // ══════════════════════════════════════════════════════════
     // ★ madi_users 추가 보강 — 시니어 보안 진단 후속
     //   1) 비밀번호 해시 컬럼이 응답에 절대 노출되지 않게 select 정제
