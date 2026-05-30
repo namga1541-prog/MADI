@@ -254,6 +254,21 @@ function openQuickForm(schedId) {
   var age = ch ? (ch.age || '') : '';
   var diag = ch ? (ch.type || '') : '';
 
+  // 저장된 사진(photoUrl)이 board-images public URL 이면 서명 URL 로 치환(폴백 유지)
+  // 후 폼 렌더. 서명 실패·미응답이면 원본 public URL 그대로 사용(무중단).
+  if (existing && existing.photoUrl && typeof signBoardImages === 'function'
+      && _boardImgPath(existing.photoUrl)) {
+    signBoardImages([existing.photoUrl], function(mapFn) {
+      existing.photoUrl = mapFn(existing.photoUrl);
+      _quickRenderForm(schedId, sched, ch, existing, name, age, diag);
+    });
+    return;
+  }
+  _quickRenderForm(schedId, sched, ch, existing, name, age, diag);
+}
+
+function _quickRenderForm(schedId, sched, ch, existing, name, age, diag) {
+
   var list = document.getElementById('quickCardList');
   var form = document.getElementById('quickFormPanel');
   if (list) list.style.display = 'none';
@@ -397,11 +412,12 @@ function _quickFormHtml(sched, name, age, diag, existing) {
 
 function _quickPhotoHtml() {
   if (_quickPhotoDataUrl) {
-    // 보안: dataURL(신규 업로드) 또는 Storage public URL(기존 저장본) 만 허용
+    // 보안: dataURL(신규 업로드) 또는 Storage URL(기존 저장본) 만 허용
     // - data:image/<jpeg|png|webp|heic|heif|gif>;base64,...
     // - https://<sub>.supabase.co/storage/v1/object/public/board-images/quick/<uuid>.<ext>
+    // - https://<sub>.supabase.co/storage/v1/object/sign/board-images/quick/<uuid>.<ext>?token=...  (비공개 전환 후 서명 URL)
     var isDataUrl    = /^data:image\/(jpeg|png|webp|heic|heif|gif);base64,/i.test(_quickPhotoDataUrl);
-    var isStorageUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/board-images\/quick\//i.test(_quickPhotoDataUrl);
+    var isStorageUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/(public|sign)\/board-images\/quick\//i.test(_quickPhotoDataUrl);
     if (!isDataUrl && !isStorageUrl) {
       _quickPhotoDataUrl = '';
       return _quickPhotoHtml();
@@ -692,11 +708,26 @@ function _quickBackfillOnePhoto() {
 // 사진 dataURL → Supabase Storage 업로드 (upload-image Edge Function)
 // 결과 public URL 을 jsonb 에 저장 — jsonb 비대화 방지 (최적화 2026-05-21)
 // ─────────────────────────────────────────────
+// 서명 board-images URL(.../object/sign/...?token=...) → 안정적 public URL 로 환원.
+// board-images 가 아니거나 이미 public 이면 원본 그대로(폴백).
+function _quickNormalizeStorageUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  if (typeof _boardImgPath !== 'function') return url;
+  var path = _boardImgPath(url);            // <folder>/<uuid>.<ext> (쿼리 제거)
+  if (!path) return url;                     // board-images 아님 → 그대로
+  // 이미 public 이고 쿼리스트링도 없으면 손대지 않음
+  if (url.indexOf('/object/public/board-images/') !== -1 && url.indexOf('?') === -1) return url;
+  var m = url.match(/^(https:\/\/[a-z0-9-]+\.supabase\.co)\/storage\/v1\/object\//i);
+  if (!m) return url;
+  return m[1] + '/storage/v1/object/public/board-images/' + path;
+}
+
 function _quickUploadPhoto(dataUrl) {
   if (typeof EDGE_URL === 'undefined') { if (typeof showToast === 'function') showToast('⚠️ 서버 주소를 불러오는 중입니다.'); return Promise.resolve(''); }
   if (!dataUrl) return Promise.resolve('');
-  // 이미 Storage URL 이면 그대로
-  if (dataUrl.indexOf('data:') !== 0) return Promise.resolve(dataUrl);
+  // 이미 Storage URL 이면 그대로 — 단, 서명 URL(.../sign/...?token=)은
+  // 만료되므로 DB 엔 항상 안정적인 public URL 을 저장한다(정규화).
+  if (dataUrl.indexOf('data:') !== 0) return Promise.resolve(_quickNormalizeStorageUrl(dataUrl));
   var m = dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/i);
   if (!m) return Promise.resolve('');
   var mimeType = m[1];

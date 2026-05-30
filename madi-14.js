@@ -59,6 +59,58 @@ function renderImageThumbs(urls) {
     + '</div>';
 }
 
+// ─────── board-images 서명 URL 통합 ───────
+// 버킷 비공개 전환 대비. public/서명 URL 또는 경로에서 'board-images/' 이후
+// 경로(<folder>/<uuid>.<ext>)만 추출 — 쿼리스트링 제거. board-images 가 아니면 ''.
+function _boardImgPath(url) {
+  if (!url || typeof url !== 'string') return '';
+  var marker = 'board-images/';
+  var idx = url.indexOf(marker);
+  if (idx === -1) return '';
+  var rest = url.slice(idx + marker.length);
+  // 쿼리스트링·프래그먼트 제거
+  var q = rest.indexOf('?');
+  if (q !== -1) rest = rest.slice(0, q);
+  var h = rest.indexOf('#');
+  if (h !== -1) rest = rest.slice(0, h);
+  return rest;
+}
+
+// 입력 URL/경로 배열에서 board-images 경로만 모아 서명 URL 발급 요청.
+// cb(mapFn) 형태로 콜백 — mapFn(originalUrl) 은 "서명 URL 있으면 서명, 없으면
+// originalUrl 그대로(폴백)". board-images 가 아닌 외부 URL 은 그대로 통과.
+// ★ 무중단 원칙: 서명 실패·미응답 경로는 반드시 원본 public URL 유지.
+function signBoardImages(urlsOrPaths, cb) {
+  function _noopMap(u) { return u; }
+  if (typeof cb !== 'function') return;
+  var list = urlsOrPaths || [];
+  var paths = [];
+  var i, p;
+  for (i = 0; i < list.length; i++) {
+    p = _boardImgPath(list[i]);
+    if (p && paths.indexOf(p) === -1) paths.push(p);
+  }
+  // board-images 경로가 하나도 없으면 서명 불필요 — 원본 그대로
+  if (paths.length === 0) { cb(_noopMap); return; }
+
+  supaFetch('__sign_board_images__', 'POST', { paths: paths })
+    .then(function(resp) {
+      var urls = (resp && resp.urls) ? resp.urls : {};
+      cb(function _mapFn(originalUrl) {
+        var path = _boardImgPath(originalUrl);
+        // board-images 아니면 원본(외부 URL) 그대로 통과
+        if (!path) return originalUrl;
+        var signed = urls[path];
+        // 서명 URL 있으면 교체, 없으면 원본 유지 (폴백)
+        return (signed && typeof signed === 'string') ? signed : originalUrl;
+      });
+    })
+    .catch(function() {
+      // 네트워크 실패 등 — 전부 원본 유지
+      cb(_noopMap);
+    });
+}
+
 // 파일 input change → 미리보기 갱신 (글 작성 폼)
 var MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB
 

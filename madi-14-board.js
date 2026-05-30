@@ -50,6 +50,26 @@ function visibilityMeta(vis) {
   return { label: '고객센터', icon: '📢', color: '#3b82f6', bg: '#dbeafe' };
 }
 
+// 라운지 글 목록의 image_urls[] 를 서명 URL 로 일괄 치환(폴백 유지) 후 done()
+function _signLoungePostImages(posts, done) {
+  if (typeof signBoardImages !== 'function') { done(); return; }
+  var all = [];
+  (posts || []).forEach(function(p) {
+    if (p && p.image_urls && p.image_urls.length) {
+      p.image_urls.forEach(function(u) { all.push(u); });
+    }
+  });
+  if (all.length === 0) { done(); return; }
+  signBoardImages(all, function(mapFn) {
+    (posts || []).forEach(function(p) {
+      if (p && p.image_urls && p.image_urls.length) {
+        p.image_urls = p.image_urls.map(mapFn);
+      }
+    });
+    done();
+  });
+}
+
 function loadLoungePosts() {
   var ui = document.getElementById('bdPanel_lounge');
   if (!ui) return;
@@ -66,17 +86,21 @@ function loadLoungePosts() {
     .then(function(data) {
       if (gen !== _boardLoadGen) return;
       loungePostsDB = data || [];
-      // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
-      if (currentUser && currentUser.role === 'superadmin') {
-        // ES5 호환: .finally() 미지원 환경 — then/catch 양쪽에서 동일 렌더
-        function _renderLoungeAfterCache() {
-          if (gen !== _boardLoadGen) return;
+      // board-images 표시 URL 을 서명 URL 로 치환(폴백 유지) 후 렌더
+      _signLoungePostImages(loungePostsDB, function() {
+        if (gen !== _boardLoadGen) return;
+        // 슈퍼어드민이면 센터 이름 캐시 로드 (배지 표시용)
+        if (currentUser && currentUser.role === 'superadmin') {
+          // ES5 호환: .finally() 미지원 환경 — then/catch 양쪽에서 동일 렌더
+          function _renderLoungeAfterCache() {
+            if (gen !== _boardLoadGen) return;
+            renderLoungeUI();
+          }
+          loadCentersByIdCache().then(_renderLoungeAfterCache, _renderLoungeAfterCache);
+        } else {
           renderLoungeUI();
         }
-        loadCentersByIdCache().then(_renderLoungeAfterCache, _renderLoungeAfterCache);
-      } else {
-        renderLoungeUI();
-      }
+      });
     })
     .catch(function(err) {
       showToast('⚠️ 게시물 로드 실패');
@@ -322,7 +346,18 @@ function loadComments(postId) {
   supaFetch('madi_lounge_comments?post_id=eq.' + encodeURIComponent(postId) + '&select=*&order=created_at.asc', 'GET')
     .then(function(data) {
       loungeCommentsCache[postId] = data || [];
-      renderComments(postId);
+      // 댓글 첨부 이미지(c.image_url)를 서명 URL 로 치환(폴백 유지) 후 렌더
+      var _cs = loungeCommentsCache[postId];
+      var _curls = [];
+      _cs.forEach(function(c) { if (c && c.image_url) _curls.push(c.image_url); });
+      if (typeof signBoardImages === 'function' && _curls.length > 0) {
+        signBoardImages(_curls, function(mapFn) {
+          _cs.forEach(function(c) { if (c && c.image_url) c.image_url = mapFn(c.image_url); });
+          renderComments(postId);
+        });
+      } else {
+        renderComments(postId);
+      }
     })
     .catch(function(err) {
       showToast('⚠️ 댓글 로드 실패');
@@ -466,11 +501,40 @@ function renderLibrary() {
   supaFetch(_libPath, 'GET')
     .then(function(data) {
       libraryPostsDB = data || [];
-      _renderLibraryUI(libraryPostsDB);
+      // 자료실 첨부 이미지(p.images[])를 서명 URL 로 치환(폴백 유지) 후 렌더
+      _signLibraryImages(libraryPostsDB, function() {
+        _renderLibraryUI(libraryPostsDB);
+      });
     })
     .catch(function(err) {
       el.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
     });
+}
+
+// 자료실 글의 images(문자열 JSON 또는 배열)를 정규화 후 서명 URL 로 치환(폴백 유지)
+function _signLibraryImages(posts, done) {
+  if (typeof signBoardImages !== 'function') { done(); return; }
+  var all = [];
+  (posts || []).forEach(function(p) {
+    if (!p) return;
+    var imgs = p.images;
+    if (typeof imgs === 'string') {
+      try { imgs = JSON.parse(imgs); } catch (e) { imgs = []; }
+    }
+    if (!Array.isArray(imgs)) imgs = [];
+    // 정규화한 배열을 다시 보관 — 렌더부와 일관성 유지
+    p.images = imgs;
+    imgs.forEach(function(u) { all.push(u); });
+  });
+  if (all.length === 0) { done(); return; }
+  signBoardImages(all, function(mapFn) {
+    (posts || []).forEach(function(p) {
+      if (p && Array.isArray(p.images) && p.images.length) {
+        p.images = p.images.map(mapFn);
+      }
+    });
+    done();
+  });
 }
 
 function _renderLibraryUI(posts) {

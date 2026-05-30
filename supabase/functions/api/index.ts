@@ -212,6 +212,45 @@ Deno.serve(async (req: Request) => {
     let   path             = reqBody.path   // 정제·재작성 가능하도록 let
     const tableName = path.split('?')[0].split('&')[0]
 
+    // ★ Storage 서명 URL 발급 — board-images 비공개 전환 대비.
+    //   인증된 사용자(verifyJwt 통과)만 호출. body.paths 의 각 항목(public URL·서명 URL·생경로 모두 허용)을
+    //   board-images 내부 경로로 정규화 후 Supabase Storage 배치 sign API 로 1시간 서명 URL 발급.
+    //   실패 시 빈 결과 → 클라이언트는 기존 public URL 로 폴백(버킷 비공개 전 무중단).
+    if (tableName === '__sign_board_images__') {
+      if (method !== 'POST') {
+        return new Response(JSON.stringify({ error: 'POST 필요' }), { status: 405, headers: CORS })
+      }
+      const inPaths = (body && typeof body === 'object' && Array.isArray((body as Record<string, unknown>).paths))
+        ? ((body as Record<string, unknown>).paths as unknown[])
+        : []
+      const norm = inPaths.slice(0, 100).map(function (p) {
+        const s = String(p || '')
+        const mm = s.match(/board-images\/([^?]+)/)
+        return mm ? mm[1] : s.replace(/^\/+/, '')
+      }).filter(function (p) { return p && !p.includes('..') })
+      if (norm.length === 0) {
+        return new Response(JSON.stringify({ urls: {} }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } })
+      }
+      try {
+        const signRes = await fetch(SUPA_URL + '/storage/v1/object/sign/board-images', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+          body:    JSON.stringify({ expiresIn: 3600, paths: norm }),
+        })
+        if (!signRes.ok) {
+          return new Response(JSON.stringify({ urls: {} }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } })
+        }
+        const arr  = await signRes.json() as Array<{ path?: string; signedURL?: string }>
+        const urls: Record<string, string> = {}
+        for (const it of (Array.isArray(arr) ? arr : [])) {
+          if (it && it.path && it.signedURL) urls[it.path] = SUPA_URL + '/storage/v1' + it.signedURL
+        }
+        return new Response(JSON.stringify({ urls: urls }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } })
+      } catch (_) {
+        return new Response(JSON.stringify({ urls: {} }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } })
+      }
+    }
+
     // 허용 테이블 체크
     if (!ALLOWED_TABLES.includes(tableName)) {
       return new Response(JSON.stringify({ error: '접근 불가 테이블: ' + tableName }), { status: 403, headers: CORS })
