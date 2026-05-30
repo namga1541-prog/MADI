@@ -441,6 +441,21 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // ★ 작성자 위장 차단 — 라운지/공지 POST 의 author_id·author_name 을 JWT(서버)에서 강제.
+    //   클라이언트가 타인 author_id 나 NULL(작성자 추적 우회)을 보내도 무시하고 본인으로 덮어쓴다.
+    if (method === 'POST' &&
+        (tableName === 'madi_lounge_posts' || tableName === 'madi_lounge_comments'
+         || tableName === 'madi_notices' || tableName === 'madi_global_notices')) {
+      const authorRows = Array.isArray(body) ? body : (body ? [body] : [])
+      for (const row of authorRows) {
+        if (row && typeof row === 'object') {
+          const obj = row as Record<string, unknown>
+          obj.author_id   = String(user.sub)
+          obj.author_name = String(user.name || '')
+        }
+      }
+    }
+
     let finalPath = path
 
     // ══════════════════════════════════════════════════════════
@@ -652,6 +667,13 @@ Deno.serve(async (req: Request) => {
       'Content-Type':  'application/json',
       'apikey':        SUPA_KEY,
       'Authorization': 'Bearer ' + SUPA_KEY,
+    }
+    // ★ 감사 로그 actor 전달 — service_role 컨텍스트에선 트리거의 auth.uid() 가 NULL 이라
+    //   누가 변경했는지 기록이 안 됨. JWT 의 실제 행위자를 PostgREST request.headers 로 전달해
+    //   madi_log_audit 트리거가 actor_id/actor_role 을 채우도록 한다(쓰기 작업에만).
+    if (method && method !== 'GET') {
+      if (user.sub  !== undefined && user.sub  !== null) fetchHeaders['x-madi-actor-id']   = String(user.sub)
+      if (user.role !== undefined && user.role !== null) fetchHeaders['x-madi-actor-role'] = String(user.role)
     }
     // ★ merge-duplicates 는 UPSERT_TABLES 화이트리스트에만 부여 (임의 PK 덮어쓰기 IDOR 방지).
     //   그 외 POST 는 일반 insert — 충돌 시 PostgREST 가 409 로 거부(타 row 무단 갱신 차단).

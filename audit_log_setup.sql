@@ -58,7 +58,20 @@ DECLARE
   v_changed_cols text[];
   v_data_new     jsonb;
   v_data_old     jsonb;
+  v_hdrs         jsonb;
+  v_actor_hdr    text;
+  v_role_hdr     text;
 BEGIN
+  -- 실제 행위자: api Edge Function 이 service_role 로 호출하므로 auth.uid() 는 NULL.
+  -- PostgREST request.headers 로 전달된 x-madi-actor-* 를 우선 사용하고, 없으면 auth.uid()/role 폴백.
+  BEGIN
+    v_hdrs := nullif(current_setting('request.headers', true), '')::jsonb;
+  EXCEPTION WHEN OTHERS THEN
+    v_hdrs := NULL;
+  END;
+  v_actor_hdr := v_hdrs ->> 'x-madi-actor-id';
+  v_role_hdr  := v_hdrs ->> 'x-madi-actor-role';
+
   -- row_id 추출 (모든 핵심 테이블이 id 컬럼을 가짐)
   IF TG_OP = 'DELETE' THEN
     v_row_id := COALESCE((OLD)::jsonb ->> 'id', '');
@@ -114,8 +127,12 @@ BEGIN
     actor_id, actor_role, action, table_name, row_id,
     center_id, child_id, changed_cols
   ) VALUES (
-    auth.uid(),
-    madi_my_role(),
+    COALESCE(
+      CASE WHEN v_actor_hdr ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+           THEN v_actor_hdr::uuid ELSE NULL END,
+      auth.uid()
+    ),
+    COALESCE(v_role_hdr, madi_my_role()),
     TG_OP,
     TG_TABLE_NAME,
     v_row_id,

@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /vapid-keygen.html
+Disallow: /design-system.html
+Disallow: /design-previews/
