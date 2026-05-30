@@ -200,6 +200,9 @@ Deno.serve(async (req: Request) => {
   const uploadRes = await fetch(uploadUrl, {
     method:  'POST',
     headers: {
+      // 신형 API 키(sb_secret_) 환경: Storage 는 apikey 헤더로 인증. apikey 없이
+      // Authorization Bearer 만 보내면 Storage 가 JWT 파싱 시도 → "Invalid Compact JWS" 로 거부됨.
+      'apikey':        SERVICE_KEY,
       'Authorization': `Bearer ${SERVICE_KEY}`,
       'Content-Type':  detectedMime,
       'x-upsert':      'false',
@@ -209,7 +212,6 @@ Deno.serve(async (req: Request) => {
 
   if (!uploadRes.ok) {
     const err = await uploadRes.text()
-    // 내부 정보(버킷명, 권한 메시지) 노출 방지 — 상세는 서버 로그에만
     console.error('[upload-image] storage error status=%d body=%s', uploadRes.status, err)
     return new Response(JSON.stringify({ error: '파일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.' }), {
       status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
