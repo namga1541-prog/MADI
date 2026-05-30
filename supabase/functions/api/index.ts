@@ -35,6 +35,20 @@ const GLOBAL_TABLES = [
   'madi_global_notices', 'madi_lounge_comments', 'madi_push_subscriptions', 'madi_settings'
 ]
 
+// ★ UPSERT(merge-duplicates) 허용 테이블 화이트리스트.
+//   POST 시 임의 PK 지정으로 타 row 를 덮어쓰는 IDOR 를 막기 위해, 실제 클라이언트가
+//   upsert 에 의존하는 테이블만 merge-duplicates 를 부여하고 그 외엔 일반 insert.
+//   조사(클라이언트 supaFetch POST 사용처) 근거:
+//   · madi_children/sessions/schedules/assessments/iep_history/activities
+//       → madi-01-app.js·madi-12.js 가 `?on_conflict=id` + id 포함 row 로 동기화(재저장 시 갱신)
+//   · madi_settings → madi-03.js 가 {key:'api_key', value} 를 PK(key) 충돌로 재저장(키 덮어쓰기)
+//   이 외 POST(회원가입·공지·알림·라운지·포트폴리오·푸시구독 등)는 전부 auto-PK 신규 insert 라
+//   merge-duplicates 불필요 → 화이트리스트에서 제외.
+const UPSERT_TABLES = [
+  'madi_children', 'madi_sessions', 'madi_schedules', 'madi_assessments',
+  'madi_iep_history', 'madi_activities', 'madi_settings',
+]
+
 // 학부모 쓰기 금지 테이블 — 임상 데이터 위변조 방지
 const PARENT_READONLY_TABLES = [
   'madi_children', 'madi_sessions', 'madi_schedules',
@@ -291,17 +305,37 @@ Deno.serve(async (req: Request) => {
     // SEC6: totp_secret 도 절대 응답에 노출 금지 (저장된 secret 이 새면 2FA 우회 가능)
     const USER_SENSITIVE_COLS = new Set(['password', 'password_hash', 'pw', 'pwd', 'totp_secret'])
     const USER_SAFE_DEFAULTS  = 'id,username,name,role,center_id,color,permissions,totp_enabled'
+    // ★ select 화이트리스트 — 이 집합에 속한 컬럼만 명시 select 가능.
+    //   집합 밖 컬럼·별칭(`:`)·`*`·민감컬럼이 하나라도 있으면 전체를 USER_SAFE_DEFAULTS 로 강제.
+    const USER_SELECT_WHITELIST = new Set([
+      'id', 'username', 'name', 'role', 'center_id', 'color', 'permissions',
+      'totp_enabled', 'totp_enrolled_at', 'status', 'password_changed_at',
+      'session_revoked_at', 'failed_login_count', 'last_failed_at', 'locked_until',
+      'prog_types', 'created_at',
+    ])
 
     if (tableName === 'madi_users') {
-      // ── select 파라미터 정제 ──
+      // ── select 파라미터 정제 (화이트리스트 방식) ──
+      //   완전일치 제거(blacklist)는 `select=*`·별칭(`pw:password`)·대문자(`Password`) 우회가
+      //   가능했음. 이제 요청 컬럼이 USER_SELECT_WHITELIST 에 모두 속할 때만 그대로 통과하고,
+      //   `*`·별칭·화이트리스트 밖 토큰이 하나라도 있으면 전체를 USER_SAFE_DEFAULTS 로 치환.
       if (/[?&]select=/.test(path)) {
         path = path.replace(/([?&])select=([^&]*)/g, (_m, sep, cols) => {
-          const cleaned = String(cols)
+          const raw = String(cols)
             .split(',')
             .map((c: string) => c.trim())
-            .filter((c: string) => c && !USER_SENSITIVE_COLS.has(c.toLowerCase()))
-            .join(',')
-          return sep + 'select=' + (cleaned || USER_SAFE_DEFAULTS)
+            .filter((c: string) => c.length > 0)
+          // 토큰을 소문자 기준으로 화이트리스트 검사. `*`·별칭(`:`)·민감컬럼·미허용 컬럼은
+          // 전부 거부 사유 → 하나라도 걸리면 안전 기본값으로 강제 치환.
+          let safe = raw.length > 0
+          for (const tok of raw) {
+            const lower = tok.toLowerCase()
+            if (tok === '*' || tok.indexOf('*') !== -1) { safe = false; break }
+            if (tok.indexOf(':') !== -1) { safe = false; break }        // 별칭 우회 차단
+            if (USER_SENSITIVE_COLS.has(lower)) { safe = false; break }
+            if (!USER_SELECT_WHITELIST.has(lower)) { safe = false; break }
+          }
+          return sep + 'select=' + (safe ? raw.join(',') : USER_SAFE_DEFAULTS)
         })
       } else if (!method || method === 'GET') {
         // select 지정 안 한 GET 요청은 안전 기본 컬럼 강제
@@ -619,7 +653,13 @@ Deno.serve(async (req: Request) => {
       'apikey':        SUPA_KEY,
       'Authorization': 'Bearer ' + SUPA_KEY,
     }
-    if (method === 'POST')   fetchHeaders['Prefer'] = 'return=representation,resolution=merge-duplicates'
+    // ★ merge-duplicates 는 UPSERT_TABLES 화이트리스트에만 부여 (임의 PK 덮어쓰기 IDOR 방지).
+    //   그 외 POST 는 일반 insert — 충돌 시 PostgREST 가 409 로 거부(타 row 무단 갱신 차단).
+    if (method === 'POST') {
+      fetchHeaders['Prefer'] = UPSERT_TABLES.includes(tableName)
+        ? 'return=representation,resolution=merge-duplicates'
+        : 'return=representation'
+    }
     if (method === 'PATCH')  fetchHeaders['Prefer'] = 'return=representation'
     if (method === 'DELETE') fetchHeaders['Prefer'] = 'return=representation'
 

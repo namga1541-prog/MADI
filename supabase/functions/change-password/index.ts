@@ -11,7 +11,7 @@
  */
 
 import bcrypt from "npm:bcryptjs@2.4.3"
-import { makeCORS, getAuthToken, verifyJwt, checkRateLimit } from '../_shared/auth.ts'
+import { makeCORS, getAuthToken, verifyJwt, checkRateLimit, requireFreshSession, signJwt } from '../_shared/auth.ts'
 
 // ── 비밀번호 유틸 ──────────────────────────────────────────────────────────
 async function sha256Hex(s: string): Promise<string> {
@@ -20,7 +20,12 @@ async function sha256Hex(s: string): Promise<string> {
 }
 
 async function verifyPassword(plain: string, stored: string): Promise<boolean> {
-  if (stored.startsWith('$2')) return await bcrypt.compare(plain, stored)
+  if (stored.startsWith('$2')) {
+    if (await bcrypt.compare(plain, stored)) return true
+    // 회원가입 시 클라이언트가 SHA-256 해시를 전송한 계정: 저장값이 bcrypt(sha256(plain))
+    // login 의 verifyPassword 와 동일하게 처리 — 미로그인 계정도 비번 변경 가능하도록.
+    return await bcrypt.compare(await sha256Hex(plain), stored)
+  }
   return (await sha256Hex(plain)) === stored
 }
 
@@ -42,6 +47,11 @@ Deno.serve(async (req: Request) => {
   let user: Record<string, unknown>
   try { user = await verifyJwt(token, JWT_SECRET) } catch {
     return new Response(JSON.stringify({ error: '인증이 필요합니다' }), { status: 401, headers: CORS })
+  }
+
+  // 세션 무효화 검증 — 로그아웃·강제종료된 토큰으로는 비번 변경 불가 (failClosed: 고위험 작업)
+  if (!(await requireFreshSession(user, SUPA_URL, SUPA_KEY, { failClosed: true }))) {
+    return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
   }
 
   // ── Rate Limit: 사용자별 분당 3회 / 시간당 5회 ──
@@ -96,21 +106,39 @@ Deno.serve(async (req: Request) => {
   // 새 비밀번호 bcrypt 해싱 (cost 12)
   const newHash = await bcrypt.hash(newPw, 12)
 
+  const changedAtMs = Date.now()
   const patchRes = await fetch(
     SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.sub,
     {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
       // password_changed_at 도 함께 업데이트 → 이 시각 이전에 발급된 모든 JWT 가 api 에서 거부됨
-      body:    JSON.stringify({ password: newHash, password_changed_at: new Date().toISOString() }),
+      body:    JSON.stringify({ password: newHash, password_changed_at: new Date(changedAtMs).toISOString() }),
     }
   )
   if (!patchRes.ok) {
     return new Response(JSON.stringify({ error: '비밀번호 변경 실패 — 잠시 후 다시 시도해주세요' }), { status: 500, headers: CORS })
   }
 
+  // 비번 변경 시 password_changed_at 갱신으로 기존 토큰(다른 기기 포함)이 모두 무효화된다.
+  // 본인(요청한 기기)은 끊기지 않도록 새 JWT 쿠키를 발급(회전). iat = password_changed_at 초라
+  // requireFreshSession 의 `tokenIat+1 < pwAt` 검사를 본인 새 토큰만 통과한다(다른 기기 옛 토큰은 거부).
+  const iat = Math.floor(changedAtMs / 1000)
+  const newPayload: Record<string, unknown> = {
+    sub:       user.sub,
+    username:  user.username,
+    name:      user.name,
+    role:      user.role,
+    center_id: user.center_id,
+    iat,
+    exp:       iat + 24 * 3600,
+  }
+  if (user.parent_child_id !== undefined) newPayload.parent_child_id = user.parent_child_id
+  const newToken     = await signJwt(newPayload, JWT_SECRET)
+  const cookieHeader = `madi_session=${newToken}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=86400`
+
   return new Response(
     JSON.stringify({ ok: true, sessions_invalidated: true }),
-    { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } }
+    { status: 200, headers: { ...CORS, 'Content-Type': 'application/json', 'Set-Cookie': cookieHeader } }
   )
 })

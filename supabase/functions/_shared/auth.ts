@@ -53,6 +53,19 @@ export function getAuthToken(req: Request): string {
   return auth.replace(/^Bearer\s+/i, '').trim()
 }
 
+// ── 클라이언트 IP 추출 (rate-limit 일관성) ─────────────────────────────────
+// cf-connecting-ip(Cloudflare 가 세팅하면 위조 불가) 최우선 → x-real-ip → xff 첫 IP.
+// login/parent-auth 가 제각각(첫 IP vs 마지막 IP, cf 우선 vs xff 우선)이던 추출을 단일화.
+export function getClientIp(req: Request): string {
+  const cf = req.headers.get('cf-connecting-ip')
+  if (cf && cf.trim()) return cf.trim()
+  const xrip = req.headers.get('x-real-ip')
+  if (xrip && xrip.trim()) return xrip.trim()
+  const xff   = req.headers.get('x-forwarded-for') ?? ''
+  const first = xff ? xff.split(',')[0].trim() : ''
+  return first || 'unknown'
+}
+
 // ── JWT 검증 (HS256, exp 강제) ─────────────────────────────────────────────
 // - alg:none / 비대칭→대칭 confusion 공격 차단
 // - exp 클레임 없으면 거부 (무기한 토큰 방지)
@@ -123,11 +136,18 @@ export async function requireFreshSession(
       { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
     )
     if (!res.ok) {
-      res = await fetch(
-        supaUrl + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(payload.sub))
-          + '&select=password_changed_at',
-        { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
-      )
+      // 컬럼 미존재(PostgREST 400)일 때만 base 컬럼으로 retry.
+      // 5xx·네트워크 등 일시 오류는 revoke 검증을 조용히 건너뛰지 않도록 onError 로 보낸다
+      // (failClosed 면 거부 — 로그아웃/강제종료 무효화의 간헐 누락 방지).
+      if (res.status === 400) {
+        res = await fetch(
+          supaUrl + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(payload.sub))
+            + '&select=password_changed_at',
+          { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
+        )
+      } else {
+        return onError
+      }
     }
     if (!res.ok) return onError  // DB 조회 실패 → failClosed 면 거부
 

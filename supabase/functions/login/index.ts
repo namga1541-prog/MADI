@@ -11,7 +11,7 @@
  */
 
 import bcrypt from "npm:bcryptjs@2.4.3"
-import { makeCORS as makeBaseCORS, signJwt, checkRateLimit, verifyTotp } from '../_shared/auth.ts'
+import { makeCORS as makeBaseCORS, signJwt, checkRateLimit, verifyTotp, getClientIp } from '../_shared/auth.ts'
 
 function makeCORS(origin: string | null): Record<string, string> {
   return makeBaseCORS(origin, { headers: 'content-type' })
@@ -73,11 +73,9 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 레이트 리밋: IP+username 키, 분당 10회/시간당 50회 ──
-  // x-forwarded-for는 스푸핑 가능 — 참고용으로만 사용 (단독 보안 결정 금지)
-  // cf-connecting-ip (Cloudflare) 가 있으면 우선 사용, 없으면 xff 첫 번째 IP 사용
-  const xff   = req.headers.get('x-forwarded-for') ?? ''
-  const xffIp = xff ? xff.split(',')[0].trim() : ''
-  const ip    = req.headers.get('cf-connecting-ip') || xffIp || 'unknown'
+  // IP 추출은 _shared 의 getClientIp 로 단일화 (cf-connecting-ip 우선). parent-auth 와 동일 로직.
+  // 헤더는 스푸핑 가능 — 단독 보안 결정 금지(계정 lockout 이 1차 방어).
+  const ip    = getClientIp(req)
   const rlKey = `login:${ip}:${username.toLowerCase()}`
   const rl    = await checkRateLimit(rlKey, SUPA_URL, SUPA_KEY, 10, 50)
   if (!rl.allowed) {

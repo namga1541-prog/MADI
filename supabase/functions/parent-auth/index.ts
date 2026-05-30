@@ -15,6 +15,7 @@
  */
 
 import bcrypt from "npm:bcryptjs@2.4.3"
+import { getClientIp } from '../_shared/auth.ts'
 
 const ALLOWED_ORIGINS = new Set([
   'https://namga1541-prog.github.io',
@@ -39,8 +40,9 @@ function makeCORS(origin: string | null): Record<string, string> {
 // 메모리 fallback 은 DB 호출 실패 시에만 사용 (cold-start 보호용)
 const memFallback = new Map<string, { count: number; windowStart: number; hourCount: number; hourStart: number }>()
 
-const RATE_PER_MINUTE = 5
-const RATE_PER_HOUR   = 20
+// 전화번호 enumeration(가입여부·아동명 oracle) 완화 — 무인증 lookup 이라 보수적으로.
+const RATE_PER_MINUTE = 3
+const RATE_PER_HOUR   = 10
 
 async function checkRateLimit(
   key: string,
@@ -121,11 +123,8 @@ Deno.serve(async (req: Request) => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-  // x-forwarded-for 의 가장 오른쪽 IP — proxy chain 상 클라이언트와 가장 가까운 신뢰 가능 IP.
-  // 가장 왼쪽을 쓰면 공격자가 임의 IP 를 prepend 해 rate limit 우회 가능.
-  const xff   = req.headers.get('x-forwarded-for') ?? ''
-  const xffIp = xff ? xff.split(',').pop()!.trim() : ''
-  const ip    = xffIp || req.headers.get('cf-connecting-ip') || 'unknown'
+  // IP 추출은 _shared 의 getClientIp 로 단일화 (cf-connecting-ip 우선) — login 과 동일 로직.
+  const ip = getClientIp(req)
 
   let body: { action?: string; phone?: string; password?: string; childIds?: string[] }
   try {

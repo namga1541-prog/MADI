@@ -79,8 +79,11 @@ Deno.serve(async (req: Request) => {
   const idsParam  = parentIds.map(encodeURIComponent).join(',');
 
   // 구독 조회
+  // center_id 직접 필터로 격리 강화 (parentIds 2단계 의존에 더해 DB 레벨에서 타 센터 구독 배제).
+  // madi_push_subscriptions.center_id 가 NULL 인 레거시 행은 이 필터로 제외될 수 있으나,
+  // 센터 격리(IDOR 방지)가 우선이라 의도된 동작.
   const subsRes = await fetch(
-    `${SUPA_URL}/rest/v1/madi_push_subscriptions?user_id=in.(${idsParam})&select=user_id,endpoint,p256dh,auth`,
+    `${SUPA_URL}/rest/v1/madi_push_subscriptions?user_id=in.(${idsParam})&center_id=eq.${encodeURIComponent(centerId)}&select=user_id,endpoint,p256dh,auth`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
   );
   if (!subsRes.ok) {

@@ -11,7 +11,7 @@
  * - Supabase Storage board-images 버킷에 저장
  */
 
-import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt, requireFreshSession } from '../_shared/auth.ts'
+import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit } from '../_shared/auth.ts'
 
 // upload-image: sandboxed iframe CSRF 차단 위해 'null' Origin 거부
 function makeCORS(origin: string | null): Record<string, string> {
@@ -102,9 +102,30 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 세션 무효화 검증 (D1): 로그아웃·비번변경·강제종료 이후 옛 토큰 거부 ──
-  if (!(await requireFreshSession(user, SUPABASE_URL, SERVICE_KEY))) {
+  // 업로드는 Storage 비용·쓰기를 유발하므로 failClosed=true → DB 검증 불가 시 거부 우선.
+  if (!(await requireFreshSession(user, SUPABASE_URL, SERVICE_KEY, { failClosed: true }))) {
     return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), {
       status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
+  // ── 1-b. 역할 검증: parent 차단 (teacher/admin/superadmin 만 업로드 허용) ──
+  if (user.role === 'parent') {
+    return new Response(JSON.stringify({ error: '이미지 업로드 권한이 없습니다.' }), {
+      status: 403, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
+  // ── 1-c. Rate Limit: 사용자별 분당 20·시간당 100 (Storage 남용 방지) ──
+  const rl = await checkRateLimit('upload:' + String(user.sub), SUPABASE_URL, SERVICE_KEY, 20, 100)
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ error: '업로드 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' }), {
+      status: 429,
+      headers: {
+        ...cors,
+        'Content-Type': 'application/json',
+        'Retry-After':  String(rl.retryAfter ?? 60),
+      }
     })
   }
 

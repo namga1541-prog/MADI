@@ -7,11 +7,19 @@ const SUPA_KEY   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const VAPID_PUB  = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
 const VAPID_PRIV = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
 const VAPID_SUB  = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:namga1541@gmail.com';
+const CRON_SECRET = Deno.env.get('CRON_SECRET');
 
 // ── KST 헬퍼 ─────────────────────────────────────────────────────────
+// KST '오늘'(자정 기준) 날짜를 먼저 구한 뒤 일(day) 단위로 offset 을 더한다.
+// 단순히 now+9h 에 offsetDays*24h 를 더하면 KST 자정~09시 구간에서
+// (UTC 기준 전날) 날짜가 하루 틀어지는 문제가 있어 날짜 문자열을 파싱해 계산한다.
 function kstDate(offsetDays = 0): string {
-  return new Date(Date.now() + (9 + offsetDays * 24) * 3600_000)
-    .toISOString().slice(0, 10);
+  const kstTodayStr = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
+  if (offsetDays === 0) return kstTodayStr;
+  const [y, m, d] = kstTodayStr.split('-').map(Number);
+  // UTC 자정 기준으로 날짜만 다루므로 시간대 영향 없이 offsetDays 가산
+  const dt = new Date(Date.UTC(y, m - 1, d) + offsetDays * 24 * 3600_000);
+  return dt.toISOString().slice(0, 10);
 }
 function kstHHMM(): string {
   return new Date(Date.now() + 9 * 3600_000).toISOString().slice(11, 16);
@@ -40,7 +48,18 @@ async function sp(url: string, key: string, table: string, filter: string, data:
 }
 
 // ── 메인 ─────────────────────────────────────────────────────────────
-Deno.serve(async () => {
+Deno.serve(async (req: Request) => {
+  // ── 무인증 cron 보호 ──────────────────────────────────────────────
+  // CRON_SECRET 이 설정돼 있으면 x-cron-secret 헤더 일치 요구 (외부 대량 푸시 차단).
+  // 미설정 시 하위호환을 위해 통과시키되 경고 로깅 — 운영에서는 반드시 설정 권장.
+  if (CRON_SECRET) {
+    if (req.headers.get('x-cron-secret') !== CRON_SECRET) {
+      return new Response(JSON.stringify({ ok: false, reason: '인증 실패 (x-cron-secret 불일치)' }), { status: 401 });
+    }
+  } else {
+    console.warn('[notify-tomorrow] CRON_SECRET 미설정 — 무인증 호출 허용 중. 운영에서는 CRON_SECRET env + 트리거 헤더 동시 설정 필요.');
+  }
+
   if (!SUPA_URL || !SUPA_KEY) {
     console.error('Missing required env vars: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
     return new Response(JSON.stringify({ ok: false, reason: '서버 설정 오류 (env 미설정)' }), { status: 500 });
@@ -101,19 +120,22 @@ Deno.serve(async () => {
         `madi_schedules?center_id=eq.${enc(cfg.center_id)}&data->>date=eq.${tomorrowKST}&select=id,child_id,data`
       );
       if (!scheds.length) {
-        await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+        // 실제 발송 시도가 없었으므로 last_sent_date 갱신하지 않음.
+        // push_time 윈도우(약 10분)가 이미 지나면 다음 cron 에서 재선택되지 않아 무한 재시도 없음.
+        console.warn(`[push] center ${cfg.center_id}: 내일(${tomorrowKST}) 스케줄 없음 — 미발송, last_sent_date 미갱신`);
         continue;
       }
 
       const childIds = [...new Set(scheds.map(s => s.child_id))];
 
       // ③ 학부모-자녀 연결
+      // center_id 필터로 타 센터 학부모-자녀 연결 침범 방지 (IDOR 차단)
       interface Link { parent_user_id: string; child_id: string }
       const links = await sq<Link>(_url, _key,
-        `madi_parent_children?child_id=in.(${childIds.join(',')})&select=parent_user_id,child_id`
+        `madi_parent_children?child_id=in.(${childIds.join(',')})&center_id=eq.${enc(cfg.center_id)}&select=parent_user_id,child_id`
       );
       if (!links.length) {
-        await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+        console.warn(`[push] center ${cfg.center_id}: 학부모-자녀 연결 없음 — 미발송, last_sent_date 미갱신`);
         continue;
       }
 
@@ -130,7 +152,7 @@ Deno.serve(async () => {
         `madi_push_subscriptions?user_id=in.(${parentIds.map(encodeURIComponent).join(',')})&select=user_id,endpoint,p256dh,auth`
       );
       if (!subs.length) {
-        await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
+        console.warn(`[push] center ${cfg.center_id}: 푸시 구독 없음 — 미발송, last_sent_date 미갱신`);
         continue;
       }
 
