@@ -274,7 +274,7 @@ function onSIChildChange() {}
 
 function collectSIData() {
   if (!childDB) return null;
-  var childId = parseInt(document.getElementById('siChild') && document.getElementById('siChild').value) || 0;
+  var childId = String((document.getElementById('siChild') && document.getElementById('siChild').value) || '');
   var child   = childId ? childDB.find(function(c){ return c.id === childId; }) : null;
 
   // 선택된 검사 수집

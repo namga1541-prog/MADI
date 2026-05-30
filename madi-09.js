@@ -363,7 +363,7 @@ function generatePortfolio() {
   var portfolioChildEl = document.getElementById('portfolioChild');
   var portfolioMonthEl = document.getElementById('portfolioMonth');
   if (!portfolioChildEl || !portfolioMonthEl) return;
-  var childId = parseInt(portfolioChildEl.value);
+  var childId = String(portfolioChildEl.value || '');
   var month = portfolioMonthEl.value;
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   if (!month) { showToast('대상 월을 선택해주세요.'); return; }
@@ -518,7 +518,7 @@ function togglePortfolioVisibility(portfolioId, makeVisible) {
       showToast(makeVisible ? '👁️ 학부모에게 공개됨' : '🔒 학부모 비공개로 전환됨');
       // 현재 child 의 히스토리 재렌더
       var childIdEl = document.getElementById('portfolioChild');
-      var childId   = childIdEl ? parseInt(childIdEl.value) : 0;
+      var childId   = childIdEl ? String(childIdEl.value || '') : '';
       if (childId) renderPortfolioHistory(childId);
       // 결과 영역의 토글 상태도 즉시 반영
       var btn = document.getElementById('portfolioVisToggleBtn');
@@ -591,7 +591,7 @@ function deletePortfolio(portfolioId) {
       .then(function() {
         showToast('🗑️ 포트폴리오 삭제됨');
         var childIdEl = document.getElementById('portfolioChild');
-        var childId   = childIdEl ? parseInt(childIdEl.value) : 0;
+        var childId   = childIdEl ? String(childIdEl.value || '') : '';
         if (childId) renderPortfolioHistory(childId);
       })
       .catch(function() { showToast('❌ 삭제 실패'); });
@@ -601,7 +601,7 @@ function deletePortfolio(portfolioId) {
 // ─── 아동 선택 변경 시 히스토리 자동 로드 ───
 function onPortfolioChildChange() {
   var childIdEl = document.getElementById('portfolioChild');
-  var childId   = childIdEl ? parseInt(childIdEl.value) : 0;
+  var childId   = childIdEl ? String(childIdEl.value || '') : '';
   renderPortfolioHistory(childId);
 }
 
@@ -770,7 +770,7 @@ function generateFAQ() {
   var faqChildEl = document.getElementById('faqChild');
   var faqQuestionEl = document.getElementById('faqQuestion');
   if (!faqChildEl || !faqQuestionEl) return;
-  var childId = parseInt(faqChildEl.value);
+  var childId = String(faqChildEl.value || '');
   var question = faqQuestionEl.value.trim();
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   if (!question) { showToast('부모 질문을 입력해주세요.'); return; }

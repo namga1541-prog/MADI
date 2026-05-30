@@ -1,7 +1,7 @@
 function generateReport() {
   if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('reportChild').value);
+  var childId = String(document.getElementById('reportChild').value || '');
   var period = document.getElementById('reportPeriod').value;
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
 
@@ -233,7 +233,7 @@ function toggleReportEdit() {
 function generateIEP() {
   if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('iepChild').value);
+  var childId = String(document.getElementById('iepChild').value || '');
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
 
   var child = childDB.find(function(c) { return c.id === childId; });
@@ -441,7 +441,7 @@ function renderIEP(p, childName) {
   // 장단기계획(IEP) 자동 저장
   var _iepChildEl = document.getElementById('iepChild');
   if (!_iepChildEl) return;
-  var childId = parseInt(_iepChildEl.value) || 0;
+  var childId = String(_iepChildEl.value || '');
   var todayStr = getTodayKST();
   var record = {
     id: generateClientId(),

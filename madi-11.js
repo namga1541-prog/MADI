@@ -20,7 +20,7 @@ function calcLivingAge(birthStr, testDateStr) {
 
 // ── 아동 + 검사일 → 생활연령 표시 ──
 function onAssessChildChange() {
-  var childId = parseInt(document.getElementById('assessChild').value);
+  var childId = String(document.getElementById('assessChild').value || '');
   var el      = document.getElementById('assessAgeDisplay');
   if (!el) return;
   var child   = childId ? childDB.find(function(c) { return c.id === childId; }) : null;
@@ -328,7 +328,7 @@ function parseAgeToMonths(ageStr) {
 // ── 통합 자동 계산 함수 ──
 function autoCalcAssessScores() {
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('assessChild').value);
+  var childId = String(document.getElementById('assessChild').value || '');
   if (!childId) { showToast('아동을 먼저 선택해주세요.'); return; }
   var child   = childDB.find(function(c) { return c.id === childId; });
   if (!child)  { showToast('아동 정보를 찾을 수 없습니다.'); return; }
@@ -535,7 +535,7 @@ function renderSeveritySummary() {
   if (!panel) return;
   var typeVal  = document.getElementById('assessType') ? document.getElementById('assessType').value : '';
   var schema   = ASSESS_SCHEMA[typeVal] || ASSESS_SCHEMA['OTHER'];
-  var childId  = parseInt((document.getElementById('assessChild') || {}).value || '0');
+  var childId  = String((document.getElementById('assessChild') || {}).value || '');
   var child    = childId ? childDB.find(function(c) { return c.id === childId; }) : null;
   var ageStr   = child ? (child._testAge || child.age || '') : '';
 
@@ -612,7 +612,7 @@ function copyAssessInterp() {
 
 // ── 저장 + 바로 보고서 생성 ──
 function addAndReport() {
-  var childId = parseInt(document.getElementById('assessChild').value);
+  var childId = String(document.getElementById('assessChild').value || '');
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   addAssessment();
   // 저장 후 보고서 생성 (저장 완료 대기)
@@ -743,7 +743,7 @@ function getAssessFieldValues() {
 
 function addAssessment(opts) {
   opts = opts || {};
-  var childId  = parseInt(document.getElementById('assessChild').value);
+  var childId  = String(document.getElementById('assessChild').value || '');
   var _dateEl  = document.getElementById('assessDate');
   if (!_dateEl) return false;
   var date     = _dateEl.value;
@@ -804,7 +804,7 @@ function formatAssessScores(a) {
 }
 
 function renderAssessmentList() {
-  var childId = parseInt(document.getElementById('assessChild').value);
+  var childId = String(document.getElementById('assessChild').value || '');
   var el = document.getElementById('assessmentList');
   if (!el) return;
   var list = assessmentDB.filter(function(a) { return !childId || a.childId === childId; })
@@ -857,7 +857,7 @@ function deleteAssessment(id) {
 function generateAssessReport() {
   if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('assessChild').value);
+  var childId = String(document.getElementById('assessChild').value || '');
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   var child = childDB.find(function(c) { return c.id === childId; });
   if (!child) return;
@@ -1029,7 +1029,7 @@ function generateAssessReport() {
 function generateParentEdu() {
   if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
-  var childId = parseInt(document.getElementById('eduChild').value);
+  var childId = String(document.getElementById('eduChild').value || '');
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
 
   var child   = childDB.find(function(c) { return c.id === childId; });

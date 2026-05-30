@@ -776,7 +776,7 @@ function updateBulkCountLabel() {
 }
 
 function bulkChangeStatus(newStatus) {
-  var ids = Object.keys(_bulkSelected).map(function(s){ return parseInt(s, 10); });
+  var ids = Object.keys(_bulkSelected);
   if (ids.length === 0) {
     showToast('⚠️ 선택된 아동이 없습니다');
     return;

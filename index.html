@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ko"><head>
   <script>
   (function(){
@@ -1184,12 +1185,12 @@
     <!-- ⚡ 빠른 기록 버튼 (teacher 역할일 때만 표시) -->
     <button id="headerQuickBtn" onclick="openQuickPanel()" style="display:none;background:rgba(250,204,21,0.18);border:1.5px solid rgba(250,204,21,0.55);color:#1a1a1a;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;min-height:32px;touch-action:manipulation;" title="오늘 수업 빠른 기록">⚡ 빠른 기록</button>
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
-      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">02:45</div>
-      <div id="clockNext" style="display:none;">아동 467명</div>
+      <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;"></div>
+      <div id="clockNext" style="display:none;"></div>
     </div>
     <div class="header-user" id="headerUser" style="display: flex;">
-      <div class="header-user-name" id="headerUserName">남그</div>
-      <div class="header-user-badge" id="headerUserBadge">관리자</div>
+      <div class="header-user-name" id="headerUserName"></div>
+      <div class="header-user-badge" id="headerUserBadge"></div>
       <button class="header-logout-btn" onclick="showLogoutMenu()" title="로그아웃">로그아웃</button>
     </div>
   </div>
@@ -1311,8 +1312,8 @@
   <div id="dashLegacy" class="dash-content" style="display:none;">
     <div class="dash-greeting">
       <div>
-        <div class="dash-greeting-name" id="dashWelcome">오늘도 좋은 하루 시작해요, 남그 선생님! 🌅</div>
-        <div class="dash-greeting-date" id="dashDate">2026.05.05(수)</div>
+        <div class="dash-greeting-name" id="dashWelcome">오늘도 좋은 하루 시작해요! 🌅</div>
+        <div class="dash-greeting-date" id="dashDate"></div>
       </div>
       <div style="font-size:12px;color:rgba(255,255,255,0.92);font-weight:600;background:rgba(255,255,255,0.15);padding:5px 12px;border-radius:20px;" id="dashMiniStat">오늘 일정 0건</div>
     </div>
@@ -1323,7 +1324,7 @@
       </div>
       <div class="dash-card" onclick="switchTab(1)">
         <div class="dash-card-hd"><div class="dash-card-ico dash-ico-blue">👤</div><span class="dash-card-hd-title">아동 현황</span><span class="dash-arrow">›</span></div>
-        <div class="dash-card-body" id="dashChildStat"><div class="dash-stat-row"><div class="dash-stat-item"><div class="dash-stat-num mint">2</div><div class="dash-stat-lbl">등록</div></div><div class="dash-stat-item"><div class="dash-stat-num amber">0</div><div class="dash-stat-lbl">대기</div></div><div class="dash-stat-item"><div class="dash-stat-num gray">11</div><div class="dash-stat-lbl">종결</div></div><div class="dash-stat-item"><div class="dash-stat-num navy">467</div><div class="dash-stat-lbl">전체</div></div></div></div>
+        <div class="dash-card-body" id="dashChildStat"><div class="dash-stat-row"><div class="dash-stat-item"><div class="dash-stat-num mint">–</div><div class="dash-stat-lbl">등록</div></div><div class="dash-stat-item"><div class="dash-stat-num amber">–</div><div class="dash-stat-lbl">대기</div></div><div class="dash-stat-item"><div class="dash-stat-num gray">–</div><div class="dash-stat-lbl">종결</div></div><div class="dash-stat-item"><div class="dash-stat-num navy">–</div><div class="dash-stat-lbl">전체</div></div></div></div>
       </div>
       <div class="dash-card" onclick="switchTab(2)">
         <div class="dash-card-hd"><div class="dash-card-ico dash-ico-amber">📝</div><span class="dash-card-hd-title">미작성 세션</span><span class="dash-arrow">›</span></div>
@@ -1413,7 +1414,7 @@
 
       <div class="form-group">
         <label class="form-label">아동 선택</label>
-        <div class="ss-wrap" style="position: relative; display: block;"><input type="text" class="form-input ss-input" placeholder="아동 검색..." autocomplete="off" style="width: 100%; box-sizing: border-box; padding-right: 36px;"><div class="ss-wrap" style="position: relative; display: block;"><input type="text" class="form-input ss-input" placeholder="아동 검색..." autocomplete="off" style="width: 100%; box-sizing: border-box; padding-right: 36px;"><select class="form-input" id="sessionChild" style="display: none;"><option value="">아동 검색...</option></select><button type="button" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; cursor: pointer; font-size: 11px; color: rgb(148, 163, 184); padding: 4px; touch-action: manipulation;">▼</button><div class="ss-drop"></div></div><button type="button" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; cursor: pointer; font-size: 11px; color: rgb(148, 163, 184); padding: 4px; touch-action: manipulation;">▼</button><div class="ss-drop"></div></div>
+        <select class="form-input" id="sessionChild"><option value="">아동 검색...</option></select>
       </div>
       <div class="form-group">
         <label class="form-label">세션 날짜</label>
@@ -1487,7 +1488,7 @@
       <div id="lastSessionRec"></div>
       <div class="card">
         <div class="card-title"><div class="card-title-left">📋 최근 세션 <span id="sessionListCount" style="font-size:12px;color:#64748b;font-weight:500;margin-left:4px;"></span></div><button onclick="window.print()" style="padding:6px 14px;background:var(--mint,#0ea5a0);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📄 PDF/프린트</button></div>
-        <div id="sessionList"><div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:4px solid #ef4444;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:15px;font-weight:700;color:#ef4444;">남재현룡왕의가더</span><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;color:#64748b;">📅 2026-05-05</span><button class="btn-ghost" style="padding:7px 10px;font-size:11px;" onclick="editSessionDate(1777916033476)">✏️</button><button class="btn-del" style="padding:7px 12px;font-size:11px;" onclick="deleteSession(1777916033476)">삭제</button></div></div><div style="font-size:13px;color:#334155;margin-top:8px;line-height:1.6;padding:8px 10px;background:#f8fafc;border-radius:8px;">ㅎㅇ</div></div></div>
+        <div id="sessionList"></div>
       </div>
     </div>
     </div><!-- /.rep-grid-2 -->

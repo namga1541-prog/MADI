@@ -48,6 +48,22 @@ const PARENT_BLOCKED_TABLES = [
   'madi_sessions'
 ]
 
+// ★ 학부모 허용 테이블 화이트리스트 — default-deny (라운지·내부 데이터 유출 차단)
+//   ALLOWED_TABLES 에 새 테이블이 추가돼도 이 목록에 없으면 학부모는 자동 403.
+//   라운지(madi_lounge_posts/comments)·초대(madi_parent_invites) 등 스태프 내부 채널은 의도적으로 제외.
+const PARENT_ALLOWED_TABLES = [
+  // 임상 데이터 (center_id + child_id + parent_visible 필터는 아래 학부모 READ 블록에서 강제)
+  'madi_children', 'madi_schedules', 'madi_assessments',
+  'madi_activities', 'madi_iep_history', 'madi_programs',
+  'madi_notices', 'madi_portfolios',
+  // user_id 스코프 (알림·아동 연결)
+  'madi_parent_children', 'madi_notifications',
+  // 본인 푸시 구독 (GET 은 아래에서 user_id 소유 스코프)
+  'madi_push_subscriptions',
+  // 전역 공지 (읽기 전용 안내)
+  'madi_global_notices',
+]
+
 // 학부모 user_id 스코프 테이블
 const PARENT_USER_SCOPED: Record<string, string> = {
   'madi_parent_children': 'parent_user_id',
@@ -226,6 +242,11 @@ Deno.serve(async (req: Request) => {
     // ★ 학부모 전체 차단 — 세션 기록 등 (선생님 보호 정책)
     if (user.role === 'parent' && PARENT_BLOCKED_TABLES.includes(tableName)) {
       return new Response(JSON.stringify({ error: '학부모는 해당 데이터를 열람할 수 없습니다' }), { status: 403, headers: CORS })
+    }
+
+    // ★ 학부모 default-deny — 허용 화이트리스트 외 전면 차단 (라운지·초대 등 내부 채널 IDOR 방지)
+    if (user.role === 'parent' && !PARENT_ALLOWED_TABLES.includes(tableName)) {
+      return new Response(JSON.stringify({ error: '학부모는 해당 데이터에 접근할 수 없습니다' }), { status: 403, headers: CORS })
     }
 
     // ══════════════════════════════════════════════════════════
@@ -517,6 +538,16 @@ Deno.serve(async (req: Request) => {
             + ownerCol + '=eq.' + encodeURIComponent(String(user.sub))
         }
       }
+    }
+
+    // ★ push_subscriptions GET 도 본인 소유만 — 전체 구독(endpoint·p256dh·auth) 유출(IDOR) 차단
+    //   PATCH/DELETE 는 위 GLOBAL_OWNER_COL 블록에서 이미 소유권 강제. GET 은 어느 분기에도
+    //   걸리지 않아(GLOBAL_TABLES → center 스코프 스킵) 무필터로 전 사용자 키가 노출됐었음.
+    //   superadmin 은 운영 모니터링 위해 예외(기존 소유권 정책과 동일).
+    if (tableName === 'madi_push_subscriptions' && (!method || method === 'GET')
+        && user.role !== 'superadmin') {
+      finalPath = finalPath + (finalPath.includes('?') ? '&' : '?')
+        + 'user_id=eq.' + encodeURIComponent(String(user.sub))
     }
 
     // ══════════════════════════════════════════════════════════
