@@ -125,7 +125,9 @@ Deno.serve(async (req: Request) => {
 
   // ── 세션 무효화 검증 (D1): 로그아웃·비번변경·강제종료 이후 옛 토큰 거부 ──
   //   소스 코드를 운영에 배포하는 가장 치명적 엔드포인트 — 탈취 토큰 재사용 차단 필수.
-  if (!(await requireFreshSession(user, SUPA_URL, SUPA_KEY))) {
+  //   failClosed=true: DB 검증 불가 시 통과 대신 거부(fail-open 약점 차단). 배포는 드문
+  //   superadmin 작업이라 DB 일시 오류 시 잠깐 막혀도 가용성 영향 미미하고 보안이 우선.
+  if (!(await requireFreshSession(user, SUPA_URL, SUPA_KEY, { failClosed: true }))) {
     return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
   }
 

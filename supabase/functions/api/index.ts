@@ -410,57 +410,61 @@ Deno.serve(async (req: Request) => {
     let finalPath = path
 
     // ══════════════════════════════════════════════════════════
-    // ★ 학부모 전용 READ 필터 — child_id 기반 서버 격리
-    // 같은 센터 내 다른 아동 데이터 노출 차단
-    // JWT claim 의 parent_child_id 는 서명되어 있어 위조 불가하지만,
-    // 토큰 발급 이후 연결이 끊긴 경우(아동 이관·학부모 권한 회수)를 대비해
-    // 매 요청 madi_parent_children 매핑을 재검증한다.
+    // ★ 학부모 전용 READ 필터 — child_id 기반 서버 격리 (다자녀 지원)
+    // 같은 센터 내 다른 아동 데이터 노출 차단.
+    // JWT 의 단일 parent_child_id 에 의존하지 않고, 매 요청 madi_parent_children 에서
+    // 이 학부모에게 연결된 '모든' child_id 를 권위 조회해 집합(in)으로 격리한다.
+    //   · 다자녀(형제 2명+) 전원의 데이터 접근 가능 (기존엔 첫 자녀만 보여 둘째가 안 나옴)
+    //   · 클라이언트가 보낸 id=eq.<활성자녀> 가 이 집합과 AND 되어 자녀 전환이 정상 동작
+    //   · 아동 이관·연결 회수도 재로그인 없이 즉시 반영(authoritative)
     // ══════════════════════════════════════════════════════════
     if (user.role === 'parent' && PARENT_READONLY_TABLES.includes(tableName) && (!method || method === 'GET')) {
-      const centerId      = user.center_id as string
-      const parentChildId = user.parent_child_id as string | undefined
+      const centerId = user.center_id as string
 
       if (!centerId) {
         return new Response(JSON.stringify({ error: '센터 정보 없음' }), { status: 403, headers: CORS })
       }
 
-      // 서버측 재검증: (parent_user_id, child_id) 쌍이 실제 존재해야 함
-      if (parentChildId) {
-        try {
-          const linkRes = await fetch(
-            SUPA_URL + '/rest/v1/madi_parent_children'
-              + '?parent_user_id=eq.' + encodeURIComponent(String(user.sub))
-              + '&child_id=eq.'       + encodeURIComponent(String(parentChildId))
-              + '&select=child_id&limit=1',
-            { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
-          )
-          if (!linkRes.ok) {
-            return new Response(JSON.stringify({ error: '권한 검증 실패' }), { status: 500, headers: CORS })
-          }
-          const linkRows = await linkRes.json() as Array<{ child_id: string }>
-          if (!Array.isArray(linkRows) || linkRows.length === 0) {
-            return new Response(
-              JSON.stringify({ error: '연결된 아동 정보가 없습니다. 다시 로그인해주세요.' }),
-              { status: 403, headers: CORS }
-            )
-          }
-        } catch (_) {
+      // 서버 권위 목록: 연결된 모든 child_id 재조회
+      let childIds: string[] = []
+      try {
+        const linkRes = await fetch(
+          SUPA_URL + '/rest/v1/madi_parent_children'
+            + '?parent_user_id=eq.' + encodeURIComponent(String(user.sub))
+            + '&select=child_id',
+          { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+        )
+        if (!linkRes.ok) {
           return new Response(JSON.stringify({ error: '권한 검증 실패' }), { status: 500, headers: CORS })
         }
+        const linkRows = await linkRes.json() as Array<{ child_id: unknown }>
+        if (Array.isArray(linkRows)) {
+          childIds = linkRows
+            .map(function (r) { return String(r.child_id) })
+            .filter(function (c) { return c && c !== 'null' && c !== 'undefined' })
+        }
+      } catch (_) {
+        return new Response(JSON.stringify({ error: '권한 검증 실패' }), { status: 500, headers: CORS })
+      }
+      if (childIds.length === 0) {
+        return new Response(
+          JSON.stringify({ error: '연결된 아동 정보가 없습니다. 다시 로그인해주세요.' }),
+          { status: 403, headers: CORS }
+        )
       }
 
       // 기본: center_id 필터
       let extraFilter = 'center_id=eq.' + centerId
 
-      if (parentChildId) {
-        if (tableName === 'madi_children') {
-          extraFilter += '&id=eq.' + parentChildId
-        } else if (PARENT_CHILD_FILTER_TABLES.includes(tableName)) {
-          extraFilter += '&data->>childId=eq.' + parentChildId
-        } else if (PARENT_CHILD_COLUMN_TABLES.includes(tableName)) {
-          // child_id 가 실 컬럼인 테이블 (madi_portfolios 등)
-          extraFilter += '&child_id=eq.' + parentChildId
-        }
+      // child 격리: 연결된 자녀 '집합'(in) 으로 제한
+      const inList = childIds.map(function (c) { return encodeURIComponent(c) }).join(',')
+      if (tableName === 'madi_children') {
+        extraFilter += '&id=in.(' + inList + ')'
+      } else if (PARENT_CHILD_FILTER_TABLES.includes(tableName)) {
+        extraFilter += '&data->>childId=in.(' + inList + ')'
+      } else if (PARENT_CHILD_COLUMN_TABLES.includes(tableName)) {
+        // child_id 가 실 컬럼인 테이블 (madi_portfolios 등)
+        extraFilter += '&child_id=in.(' + inList + ')'
       }
 
       // ★ parent_visible 가시성 강제 — 선생님이 OPEN 한 row 만 노출

@@ -132,7 +132,7 @@ function _quickGetMySchedules() {
     return t === myName
       && (s.center_id || '') === ((currentUser && currentUser.center_id) || '');
   }).sort(function(a, b) {
-    return safeCmp(a.time, b.time);
+    return safeCmp(a.startTime || a.time, b.startTime || b.time);
   });
 }
 
@@ -210,7 +210,7 @@ function _quickRenderCards(scheds) {
     }
     html += '<button class="quick-card ' + (done ? 'qc-done' : 'qc-todo') + '" onclick="openQuickForm(' + JSON.stringify(String(s.id)) + ')" type="button">'
       + '<div class="qc-row1">'
-      +   '<span class="qc-time">' + escHtml(s.time || '') + '</span>'
+      +   '<span class="qc-time">' + escHtml(s.startTime || s.time || '') + '</span>'
       +   (done
             ? '<span class="qc-badge qc-badge-done">✅ 기록됨' + (savedAgo ? ' · ' + escHtml(savedAgo) : '') + '</span>'
             : '<span class="qc-badge qc-badge-todo">미기록</span>')
@@ -340,7 +340,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +   '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;">'
     +     '<div>'
     +       '<div style="font-size:18px;font-weight:800;color:var(--text);">🧒 ' + escHtml(name) + (age ? ' <span style="font-size:13px;color:var(--text2);font-weight:600;">(' + escHtml(age) + ')</span>' : '') + '</div>'
-    +       '<div style="font-size:12px;color:var(--text2);margin-top:3px;">' + escHtml(sched.date) + ' · ' + escHtml(sched.time || '') + (sched.duration ? ' · ' + escHtml(String(sched.duration || '')) + '분' : '') + (diag ? ' · ' + escHtml(diag) : '') + '</div>'
+    +       '<div style="font-size:12px;color:var(--text2);margin-top:3px;">' + escHtml(sched.date) + ' · ' + escHtml(sched.startTime || sched.time || '') + (sched.duration ? ' · ' + escHtml(String(sched.duration || '')) + '분' : '') + (diag ? ' · ' + escHtml(diag) : '') + '</div>'
     +     '</div>'
     +     '<button type="button" class="btn" onclick="closeQuickForm()" style="padding:7px 12px;font-size:12px;background:var(--card-bg);border:1px solid var(--border);color:var(--text);">✕ 닫기</button>'
     +   '</div>'

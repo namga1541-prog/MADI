@@ -109,14 +109,21 @@ function renderDashboardTeacher() {
   var _schedules = (typeof scheduleDB !== 'undefined' && Array.isArray(scheduleDB)) ? scheduleDB : [];
   var _assessments = (typeof assessmentDB !== 'undefined' && Array.isArray(assessmentDB)) ? assessmentDB : [];
   var myName = (currentUser && currentUser.name) || '';
+  var myId = (currentUser && currentUser.id != null) ? String(currentUser.id) : '';
+  // 본인 항목 판별: teacher_id 우선, 없으면(레거시) 이름 폴백
+  function _isMine(s) {
+    if (!s) return false;
+    if (s.teacher_id) return String(s.teacher_id) === myId;
+    return !!s.teacher && s.teacher === myName;
+  }
   var todayStr = ymd(nowKST());
   var today = nowKST(); today.setHours(0,0,0,0);
   var mon = _dpMonday(today), sun = _dpSunday(today);
   var monStr = ymd(mon), sunStr = ymd(sun);
 
   // 데이터 계산
-  var mySched = _schedules.filter(function(s){ return s.teacher === myName; });
-  var mySession = _sessions.filter(function(s){ return s.teacher === myName; });
+  var mySched = _schedules.filter(function(s){ return _isMine(s); });
+  var mySession = _sessions.filter(function(s){ return _isMine(s); });
   var todaySched = mySched.filter(function(s){ return s.date === todayStr; })
     .sort(function(a,b){ return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
 
@@ -138,7 +145,7 @@ function renderDashboardTeacher() {
 
   // 미작성 세션 (내 것만)
   var unwrittenAll = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
-  var unwritten = (Array.isArray(unwrittenAll) ? unwrittenAll : []).filter(function(u){ return u.teacher === myName; });
+  var unwritten = (Array.isArray(unwrittenAll) ? unwrittenAll : []).filter(function(u){ return _isMine(u); });
 
   // 최근 만난 순 4명 (오늘 일정 우선, 그다음 최근 세션 날짜)
   var lastMet = {};
@@ -536,30 +543,36 @@ function renderDashboardAdmin() {
   var closedThisWeek = weekChildren.filter(function(c){ return c.status === '종결'; }).length;
   var waitThisWeek   = weekChildren.filter(function(c){ return c.status === '대기'; }).length;
 
-  // 선생님 활동 — 일단 sessionDB / scheduleDB 의 teacher 이름들로 집계 (사용자 테이블 조회 없이 즉시)
+  // 선생님 활동 — teacher_id 우선 키로 집계(동명이인/개명 안전), 레거시는 이름 키로 폴백. 표시는 이름 사용.
+  // 키 규칙: teacher_id 있으면 'id:'+id, 없으면 'nm:'+name. 일정/미작성 항목은 teacher_id 부재 → 이름 키로 병합.
   var teacherStats = {};
+  function _tsKey(o){ return o.teacher_id ? ('id:' + o.teacher_id) : ('nm:' + o.teacher); }
+  function _tsBucket(o){
+    var k = _tsKey(o);
+    if (!teacherStats[k]) teacherStats[k] = { name: o.teacher, children:{}, weekSched:0, weekSession:0, unwritten:0 };
+    return teacherStats[k];
+  }
   _schedules.forEach(function(s){
     if (!s.teacher) return;
-    if (!teacherStats[s.teacher]) teacherStats[s.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
-    teacherStats[s.teacher].children[s.childId] = true;
-    if (s.date >= monStr && s.date <= sunStr) teacherStats[s.teacher].weekSched++;
+    var b = _tsBucket(s);
+    b.children[s.childId] = true;
+    if (s.date >= monStr && s.date <= sunStr) b.weekSched++;
   });
   _sessions.forEach(function(s){
     if (!s.teacher) return;
-    if (!teacherStats[s.teacher]) teacherStats[s.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
-    teacherStats[s.teacher].children[s.childId] = true;
-    if (s.date >= monStr && s.date <= sunStr) teacherStats[s.teacher].weekSession++;
+    var b = _tsBucket(s);
+    b.children[s.childId] = true;
+    if (s.date >= monStr && s.date <= sunStr) b.weekSession++;
   });
   var _uwForAdmin = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
   if (!Array.isArray(_uwForAdmin)) _uwForAdmin = [];
   _uwForAdmin.forEach(function(u){
     if (!u.teacher) return;
-    if (!teacherStats[u.teacher]) teacherStats[u.teacher] = { children:{}, weekSched:0, weekSession:0, unwritten:0 };
-    teacherStats[u.teacher].unwritten++;
+    _tsBucket(u).unwritten++;
   });
-  var teacherList = Object.keys(teacherStats).map(function(name){
-    var s = teacherStats[name];
-    return { name:name, count: Object.keys(s.children).length, weekSched:s.weekSched, weekSession:s.weekSession, unwritten:s.unwritten };
+  var teacherList = Object.keys(teacherStats).map(function(k){
+    var s = teacherStats[k];
+    return { name:s.name, count: Object.keys(s.children).length, weekSched:s.weekSched, weekSession:s.weekSession, unwritten:s.unwritten };
   }).sort(function(a,b){ return b.count - a.count; });
 
   // 일별 카운트 (이번 달 추이 — 계획 vs 실제)

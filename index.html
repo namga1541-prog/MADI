@@ -65,11 +65,11 @@
 <body class="theme-linear">
 
 <!-- ─── 어휘/표현 오류 신고 모달 ─── -->
-<div id="vocabFeedbackModal" class="modal-overlay" style="display:none;">
+<div id="vocabFeedbackModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="vfModalTitle">
   <div class="modal-card">
     <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:var(--r-lg) var(--r-lg) 0 0;">
       <div class="modal-ico" data-icon="alert-tri" data-icon-size="26" style="color:#fff;"></div>
-      <h3 class="modal-title" style="color:#fff;">어휘 / 표현 오류 신고</h3>
+      <h3 id="vfModalTitle" class="modal-title" style="color:#fff;">어휘 / 표현 오류 신고</h3>
       <p class="modal-subtitle" style="color:rgba(255,255,255,0.85);">발견하신 잘못된 임상 표현을 알려주세요.<br>검토 후 AI 어휘 사전에 바로 반영됩니다.</p>
     </div>
 
@@ -112,16 +112,16 @@
 </div>
 
 <!-- 삭제 확인 모달 (D2: 인라인 → 클래스) -->
-<div id="deleteConfirmModal" class="modal-overlay" style="display:none;">
+<div id="deleteConfirmModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="dcmTitle">
   <div class="modal-card">
     <div class="modal-header danger">
       <div class="modal-ico" data-icon="alert-tri" data-icon-size="26"></div>
       <h3 id="dcmTitle" class="modal-title"></h3>
       <p id="dcmSubtitle" class="modal-subtitle"></p>
     </div>
-    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r-sm);padding:12px;margin-bottom:14px;">
-      <div style="font-size:var(--fs-xs);font-weight:700;color:#dc2626;margin-bottom:6px;">확인 문구</div>
-      <div id="dcmKeyword" style="font-size:var(--fs-base);font-weight:700;color:#dc2626;background:white;border-radius:var(--r-sm);padding:6px 10px;text-align:center;margin-bottom:8px;letter-spacing:0.5px;"></div>
+    <div style="background:var(--danger-soft-bg);border:1px solid var(--danger-soft-border);border-radius:var(--r-sm);padding:12px;margin-bottom:14px;">
+      <div style="font-size:var(--fs-xs);font-weight:700;color:var(--color-danger);margin-bottom:6px;">확인 문구</div>
+      <div id="dcmKeyword" style="font-size:var(--fs-base);font-weight:700;color:var(--color-danger);background:var(--white);border-radius:var(--r-sm);padding:6px 10px;text-align:center;margin-bottom:8px;letter-spacing:0.5px;"></div>
       <input id="dcmInput" class="form-input" type="text" placeholder="확인 문구를 입력하면 버튼이 활성화됩니다" style="text-align:center;" oninput="checkDcmInput()">
     </div>
     <div class="modal-actions">
@@ -132,11 +132,11 @@
 </div>
 
 <!-- 일괄 종결일 입력 모달 (D2: 인라인 → 클래스) -->
-<div id="bulkClosedDateModal" class="modal-overlay" style="display:none;">
+<div id="bulkClosedDateModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="bcdModalTitle">
   <div class="modal-card">
     <div class="modal-header warning">
       <div class="modal-ico" data-icon="lock" data-icon-size="26"></div>
-      <h3 class="modal-title">일괄 종결 처리</h3>
+      <h3 id="bcdModalTitle" class="modal-title">일괄 종결 처리</h3>
       <p class="modal-subtitle">
         <span id="bcdCount" style="color:var(--mint);font-weight:700;">0</span>명 아동을 종결 처리합니다
       </p>
@@ -1170,7 +1170,7 @@
 </div>
 <div class="header">
   <div style="display:flex;align-items:center;gap:10px;">
-    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="메뉴 접기/펼치기">☰</button>
+    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="메뉴 접기/펼치기" aria-label="메뉴 접기/펼치기">☰</button>
     <div class="logo">
       <div class="logo-icon" onclick="showDashboard()" style="cursor:pointer;" title="홈으로 이동"><div class="madi-icon" style="width:38px;height:38px;border-radius:10px;"></div></div>
       <div class="logo-text">
@@ -1200,7 +1200,7 @@
   <label>🔑 API Key</label>
   <div style="flex:1;display:flex;align-items:center;gap:6px;position:relative;">
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" onfocus="onApiKeyFocus()" onblur="onApiKeyBlur()" style="display: none;">
-    <button type="button" onclick="toggleApiKeyVisibility()" id="apiKeyEye" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); color: rgb(148, 163, 184); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0; display: none;" title="키 보기/숨기기">👁️</button>
+    <button type="button" onclick="toggleApiKeyVisibility()" id="apiKeyEye" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); color: rgb(148, 163, 184); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0; display: none;" title="키 보기/숨기기" aria-label="API 키 보기/숨기기">👁️</button>
   </div>
   <span id="apiKeyMasked" style="display: block; font-family: monospace; font-size: 12px; color: rgb(148, 163, 184); flex: 1 1 0%; padding: 7px 12px; background: rgba(255, 255, 255, 0.07); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer;" onclick="editApiKey()" title="클릭해서 수정">sk-ant-a••••••••QAAA</span>
 </div>
@@ -1296,7 +1296,7 @@
     <div class="notice-banner-icon">📢</div>
     <div class="notice-banner-text" id="noticeBannerText" onclick="switchTab(4);switchBoardTab('center')"></div>
     <div class="notice-banner-dots" id="noticeBannerDots"></div>
-    <button class="notice-banner-close" onclick="closeNoticeBanner()" title="닫기">✕</button>
+    <button class="notice-banner-close" onclick="closeNoticeBanner()" title="닫기" aria-label="공지 배너 닫기">✕</button>
   </div>
 </div>
 <!-- ─── 홈 대시보드 (페르소나별 분기) ─── -->
@@ -1362,7 +1362,7 @@
         <option value="reg">등록순</option>
       </select>
       <button class="bulk-toggle-btn" id="bulkToggleBtn" onclick="toggleBulkMode()" title="일괄 처리 모드">☑️ 일괄</button>
-      <button class="btn btn-primary" style="flex-shrink:0;width:42px;height:42px;padding:0;font-size:20px;margin-top:0;" onclick="openChildRegModal()" title="이용자 등록">➕</button>
+      <button class="btn btn-primary" style="flex-shrink:0;width:42px;height:42px;padding:0;font-size:20px;margin-top:0;" onclick="openChildRegModal()" title="이용자 등록" aria-label="이용자 등록">➕</button>
     </div>
 
     <!-- 일괄 처리 액션바 (일괄 모드 ON 시 표시) -->
@@ -1513,9 +1513,9 @@
         <button class="view-toggle-btn" id="viewBtn_day" onclick="setSchedView('day')">일일</button>
       </div>
       <div class="week-nav">
-        <button class="week-nav-btn" onclick="moveSchedPeriod(-1)">◀</button>
+        <button class="week-nav-btn" onclick="moveSchedPeriod(-1)" aria-label="이전 기간">◀</button>
         <span class="week-label" id="schedNavLabel">2026년 5월</span>
-        <button class="week-nav-btn" onclick="moveSchedPeriod(1)">▶</button>
+        <button class="week-nav-btn" onclick="moveSchedPeriod(1)" aria-label="다음 기간">▶</button>
       </div>
       <div id="teacherFilterBar" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"><button onclick="setTeacherFilter('전체')" style="padding:5px 12px;border-radius:20px;border:2px solid var(--mint);background:var(--mint);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">전체</button><button onclick="setTeacherFilter('한기성')" style="padding:5px 12px;border-radius:20px;border:2px solid #0ea5a0;background:white;color:#0ea5a0;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">한기성</button></div>
       <div id="monthViewWrap">
@@ -2270,7 +2270,7 @@
       <div class="chat-header-name">마로 (마디 AI)</div>
       <div class="chat-header-status">● 온라인 · 아동 데이터 연동 중</div>
     </div>
-    <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+    <button class="chat-close-btn" onclick="toggleChat()" aria-label="AI 비서 닫기">✕</button>
   </div>
   <div class="chat-messages" id="chatMessages"></div>
   <div class="chat-quick-btns" id="chatQuickBtns">
@@ -2281,8 +2281,8 @@
   </div>
   <div class="chat-input-row">
     <textarea class="chat-input" id="chatInput" placeholder="무엇이든 물어보세요..." rows="1" onkeydown="onChatKeydown(event)" oninput="autoResizeChat(this)" onclick="this.focus()" style="font-size:16px;"></textarea>
-    <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleChatVoiceInput()" title="음성 입력">🎤</button>
-    <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()">➤</button>
+    <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleChatVoiceInput()" title="음성 입력" aria-label="음성 입력">🎤</button>
+    <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()" aria-label="메시지 보내기">➤</button>
   </div>
 </div>
 
@@ -2290,11 +2290,11 @@
 </div><!-- /app-main -->
 
 <!-- ─── PWA 설치 안내 모달 ─── -->
-<div class="pwa-modal-bg" id="pwaGuideModal" onclick="if(event.target===this)closePWAGuide()">
+<div class="pwa-modal-bg" id="pwaGuideModal" onclick="if(event.target===this)closePWAGuide()" role="dialog" aria-modal="true" aria-labelledby="pwaModalTitle">
   <div class="pwa-modal">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-size:16px;font-weight:700;color:var(--navy);">📱 홈 화면에 추가하기</div>
-      <button onclick="closePWAGuide()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:4px;">✕</button>
+      <div id="pwaModalTitle" style="font-size:16px;font-weight:700;color:var(--navy);">📱 홈 화면에 추가하기</div>
+      <button onclick="closePWAGuide()" aria-label="안내 닫기" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:4px;">✕</button>
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">🍎 아이폰 / 아이패드 (Safari)</div>
     <div class="pwa-step"><div class="pwa-step-num">1</div><div class="pwa-step-text">하단 가운데 <b>📤 공유</b> 버튼을 탭하세요</div></div>

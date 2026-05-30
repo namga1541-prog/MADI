@@ -58,11 +58,24 @@
       --color-success: #10b981;
       --color-warning: #f59e0b;
       --color-danger:  #ef4444;
+      /* 위험 액션 영역 연한 배경 (삭제 확인 모달 등) — 다크모드 대응 토큰 */
+      --danger-soft-bg:     #fef2f2;
+      --danger-soft-border: #fecaca;
 
       /* 통일된 브랜드 그라데이션 (D7: 헤더 단일화) */
       --grad-brand:  linear-gradient(135deg, #0ea5a0 0%, #0c8c88 100%);
       --grad-brand-soft: linear-gradient(135deg, #e0f7f6 0%, #d1f0ee 100%);
     }
+    /* ── 키보드 포커스 표시 (WCAG 2.4.7) ──────────────────
+       마우스 클릭 시엔 안 보이고, 키보드 Tab 이동 시에만 윤곽선 표시.
+       기존 input:focus 의 outline:none 은 마우스용으로 유지하되,
+       :focus-visible 가 모든 포커스 가능 요소에 일관된 키보드 표시를 보장. */
+    :focus-visible {
+      outline: 2px solid var(--mint, #0ea5a0);
+      outline-offset: 2px;
+    }
+    /* :focus-visible 를 지원하는 브라우저에서는 마우스 :focus 윤곽선 제거 */
+    :focus:not(:focus-visible) { outline: none; }
     /* ── 커스텀 Confirm 모달 ── */
     .confirm-ov {
       position:fixed; inset:0; background:rgba(0,0,0,0.48);
@@ -98,6 +111,9 @@
       --green:#34d399; --purple:#a78bfa; --text:#e2e8f0; --text2:#94a3b8;
       --border:#334155; --shadow:0 2px 14px rgba(0,0,0,0.4);
       --card-bg:#1e293b; --input-bg:#0f172a; --input-border:#475569;
+      --color-danger:#f87171;
+      /* 위험 액션 연한 배경 — 다크모드용 (밝은 흰 박스 → 어두운 적색조) */
+      --danger-soft-bg:rgba(248,113,113,0.12); --danger-soft-border:rgba(248,113,113,0.35);
     }
     /* 다크 모드 인라인 스타일 보정 */
     body.dark-mode .form-input,

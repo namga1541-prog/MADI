@@ -87,6 +87,20 @@ Deno.serve(async (req: Request) => {
     )
   }
 
+  // ── IP 단위 전역 카운터 ──
+  // 위 키는 username 종속이라 아이디를 회전시키면(크리덴셜 스터핑/패스워드 스프레이)
+  // 매번 키가 달라져 우회됨. IP 단독 카운터로 username 무관 상한을 둔다.
+  // ip 가 'unknown'(헤더 없음)인 경우는 다수 사용자가 합산되어 오탐 우려 → 건너뜀.
+  if (ip !== 'unknown') {
+    const rlIp = await checkRateLimit(`login-ip:${ip}`, SUPA_URL, SUPA_KEY, 40, 300)
+    if (!rlIp.allowed) {
+      return new Response(
+        JSON.stringify({ error: `해당 네트워크에서 로그인 시도가 너무 많습니다. ${rlIp.retryAfter}초 후 다시 시도해주세요.` }),
+        { status: 429, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(rlIp.retryAfter ?? 60) } }
+      )
+    }
+  }
+
   // DB에서 사용자 조회 (SEC4: 잠금 + SEC6: 2FA 컬럼도 같이)
   // ⚠️ Defensive: 마이그레이션 전 환경에서도 동작하도록 단계적 select fallback.
   //    1차: 신규 컬럼 포함 / 2차: base 컬럼만 (SEC3/4/6 기능 비활성, 로그인 자체는 살림)

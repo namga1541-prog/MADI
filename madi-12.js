@@ -299,14 +299,27 @@ var GITHUB_REPO  = 'MADI';
 var GITHUB_FILE  = 'index.html';
 var GITHUB_SW    = 'sw.js';
 
+// 인라인 SW 폴백 — 실제 sw.js 와 동기화 유지 (캐시명·SWR·푸시·notificationclick·offline·민감경로 차단).
+// 평상시 배포는 폴더의 실제 sw.js 파일을 직접 업로드하며, 이 상수는 다음 두 경우에만 사용:
+//   ① 배포 중 폴더에서 sw.js 를 못 읽을 때 폴백, ② ./sw.js 등록 실패 시 Blob URL 폴백(initPWA).
 var _swNow = new Date();
-var SW_BUILD = 'madi-v4-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')
+var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')
              + '-' + String(_swNow.getHours()).padStart(2,'0')
              + String(_swNow.getMinutes()).padStart(2,'0');
 var SW_LINES = [
   'var CACHE_NAME = "' + SW_BUILD + '";',
-  'var SKIP_URLS = ["api.anthropic.com","supabase.co","googleapis.com","cdnjs","jsdelivr","fonts.g"];',
-  'self.addEventListener("install", function(e) { self.skipWaiting(); });',
+  'var SKIP_HOSTS = ["api.anthropic.com","googleapis.com"];',
+  'var SKIP_PATH_FRAGMENTS = ["/functions/v1/","/rest/v1/","/storage/v1/","/auth/v1/"];',
+  'var SWR_HOSTS = ["cdnjs.cloudflare.com","cdn.jsdelivr.net","fonts.googleapis.com","fonts.gstatic.com"];',
+  'var OFFLINE_URL = "./offline.html";',
+  'self.addEventListener("install", function(e) {',
+  '  e.waitUntil(',
+  '    caches.open(CACHE_NAME).then(function(c) {',
+  '      return c.add(new Request(OFFLINE_URL, { cache: "reload" }));',
+  '    }).catch(function(){})',
+  '  );',
+  '  self.skipWaiting();',
+  '});',
   'self.addEventListener("activate", function(e) {',
   '  e.waitUntil(',
   '    caches.keys().then(function(keys) {',
@@ -314,18 +327,83 @@ var SW_LINES = [
   '    }).then(function(){ return clients.claim(); })',
   '  );',
   '});',
-  'self.addEventListener("fetch", function(e) {',
-  '  var url = e.request.url;',
-  '  if (SKIP_URLS.some(function(s){ return url.includes(s); })) return;',
-  '  if (e.request.method !== "GET") return;',
-  '  e.respondWith(',
-  '    fetch(e.request).then(function(res) {',
-  '      if (!res || res.status !== 200 || res.type === "opaque") return res;',
+  'function networkFirst(req, isHTML, e) {',
+  '  return fetch(req).then(function(res) {',
+  '    if (res && res.status === 200 && res.type !== "opaque") {',
   '      var clone = res.clone();',
-  '      caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });',
+  '      var cacheWrite = caches.open(CACHE_NAME).then(function(c) { return c.put(req, clone); });',
+  '      if (e) e.waitUntil(cacheWrite);',
+  '    }',
+  '    return res;',
+  '  }).catch(function() {',
+  '    return caches.match(req).then(function(cached) {',
+  '      if (cached) return cached;',
+  '      if (isHTML) {',
+  '        return caches.match(OFFLINE_URL).then(function(offlinePage) {',
+  '          return offlinePage || new Response("오프라인 상태입니다.", { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } });',
+  '        });',
+  '      }',
+  '      return Response.error();',
+  '    });',
+  '  });',
+  '}',
+  'function staleWhileRevalidate(req, e) {',
+  '  return caches.match(req).then(function(cached) {',
+  '    var networkPromise = fetch(req).then(function(res) {',
+  '      if (res && res.status === 200 && res.type !== "opaque") {',
+  '        var clone = res.clone();',
+  '        var cacheWrite = caches.open(CACHE_NAME).then(function(c) { return c.put(req, clone); });',
+  '        if (e) e.waitUntil(cacheWrite);',
+  '      }',
   '      return res;',
-  '    }).catch(function() {',
-  '      return caches.match(e.request);',
+  '    }).catch(function() { return cached || Response.error(); });',
+  '    return cached || networkPromise;',
+  '  });',
+  '}',
+  'self.addEventListener("fetch", function(e) {',
+  '  if (e.request.method !== "GET") return;',
+  '  var url;',
+  '  try { url = new URL(e.request.url); } catch (err) { return; }',
+  '  if (SKIP_HOSTS.indexOf(url.hostname) !== -1) return;',
+  '  if (url.hostname.endsWith(".supabase.co")) return;',
+  '  if (SKIP_PATH_FRAGMENTS.some(function(p){ return url.pathname.indexOf(p) !== -1; })) return;',
+  '  var isHTML = e.request.destination === "document" || url.pathname.endsWith(".html") || url.pathname === "/" || url.pathname.endsWith("/");',
+  '  if (isHTML) { e.respondWith(networkFirst(e.request, true, e)); return; }',
+  '  if (SWR_HOSTS.indexOf(url.hostname) !== -1) { e.respondWith(staleWhileRevalidate(e.request, e)); return; }',
+  '  e.respondWith(staleWhileRevalidate(e.request, e));',
+  '});',
+  'function _scopeUrl(rel) {',
+  '  try { return new URL(rel, self.registration.scope).href; }',
+  '  catch (e) { return rel; }',
+  '}',
+  'self.addEventListener("push", function(e) {',
+  '  var data = {};',
+  '  try { if (e.data) data = e.data.json(); } catch(_) {}',
+  '  var title = data.title || "마디";',
+  '  var targetUrl = data.url || self.registration.scope;',
+  '  try {',
+  '    var parsed = new URL(targetUrl);',
+  '    var scopeParsed = new URL(self.registration.scope);',
+  '    if (parsed.origin !== scopeParsed.origin) targetUrl = self.registration.scope;',
+  '  } catch(e) { targetUrl = self.registration.scope; }',
+  '  var opts = {',
+  '    body: data.body || "",',
+  '    icon:  _scopeUrl("icon-192.png"),',
+  '    badge: _scopeUrl("icon-192.png"),',
+  '    data:  { url: targetUrl },',
+  '    requireInteraction: false',
+  '  };',
+  '  e.waitUntil(self.registration.showNotification(title, opts));',
+  '});',
+  'self.addEventListener("notificationclick", function(e) {',
+  '  e.notification.close();',
+  '  var target = (e.notification.data && e.notification.data.url) || self.registration.scope;',
+  '  e.waitUntil(',
+  '    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(list) {',
+  '      for (var i = 0; i < list.length; i++) {',
+  '        if (list[i].url === target && "focus" in list[i]) return list[i].focus();',
+  '      }',
+  '      if (clients.openWindow) return clients.openWindow(target);',
   '    })',
   '  );',
   '});'
@@ -484,12 +562,14 @@ function deployToGitHub() {
 
   // 배포 대상 파일은 폴더 스캔 + SHA 변경 감지로 동적 결정
   var JS_FILES, ALL_FILES, TOTAL_FILES, FILES_TO_UPLOAD;
+  var _madiFolderHandle = null; // sw.js 직접 읽기용 — 이후 .then 단계에서 재사용
   var deployStartTs = Date.now(); // GitHub Pages 빌드 폴링 기준 시각
 
   showToast('📡 배포 준비 중...');
 
   getMadiFolderHandle()
     .then(function(folderHandle) {
+      _madiFolderHandle = folderHandle;
       return scanMadiFiles(folderHandle).then(function(jsFiles) {
         if (jsFiles.length === 0) throw new Error('madi-*.js 파일을 찾을 수 없습니다');
         JS_FILES  = jsFiles;
@@ -595,8 +675,17 @@ function deployToGitHub() {
     })
     .then(function() {
       // sw.js는 항상 업로드 (캐시 갱신 보장)
+      // 실제 레포의 sw.js 를 폴더에서 직접 읽어 그대로 업로드 → 인라인 구버전 롤백 방지.
+      // 폴더에서 sw.js 를 못 읽으면 동기화된 인라인 SW_CODE 로 폴백.
       showToast('📡 sw.js 업로드 중... (' + TOTAL_FILES + '/' + TOTAL_FILES + ')');
-      return deployFileViaProxy(GITHUB_SW, SW_CODE, '마디 SW 업데이트 — ' + commitTime);
+      return _madiFolderHandle.getFileHandle(GITHUB_SW)
+        .then(function(fh) { return fh.getFile(); })
+        .then(function(f) { return f.text(); })
+        .catch(function() { return SW_CODE; })
+        .then(function(swContent) {
+          if (!swContent) swContent = SW_CODE;
+          return deployFileViaProxy(GITHUB_SW, swContent, '마디 SW 업데이트 — ' + commitTime);
+        });
     })
     .then(function() {
       btn.dataset.busy = '';

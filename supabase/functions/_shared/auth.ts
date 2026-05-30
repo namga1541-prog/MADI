@@ -105,8 +105,13 @@ export async function verifyJwt(token: string, secret: string): Promise<Record<s
 export async function requireFreshSession(
   payload: Record<string, unknown>,
   supaUrl: string,
-  supaKey: string
+  supaKey: string,
+  opts: { failClosed?: boolean } = {}
 ): Promise<boolean> {
+  // 고위험 엔드포인트(github-deploy 등 코드 배포)는 failClosed=true 로 호출 →
+  // DB 검증 불가(일시 오류·사용자 row 없음·예외) 시 통과 대신 거부한다.
+  // 일반 읽기/AI/업로드 등 기본 호출은 failClosed 생략 → 기존대로 fail-open(가용성 우선).
+  const onError = opts.failClosed === true ? false : true
   try {
     const tokenIat = Number(payload.iat || 0)
     if (!(tokenIat > 0)) return true  // iat 없는 토큰은 본 검증 대상 아님 (api 동일)
@@ -124,11 +129,11 @@ export async function requireFreshSession(
         { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
       )
     }
-    if (!res.ok) return true  // DB 조회 실패 → fail-open (api 동일)
+    if (!res.ok) return onError  // DB 조회 실패 → failClosed 면 거부
 
     const rows = await res.json() as Array<{ password_changed_at?: string; session_revoked_at?: string }>
     const row  = rows && rows[0]
-    if (!row) return true
+    if (!row) return onError  // 사용자 row 없음(삭제 등) → failClosed 면 거부
 
     if (row.password_changed_at) {
       const pwAt = Math.floor(new Date(row.password_changed_at).getTime() / 1000)
@@ -140,8 +145,8 @@ export async function requireFreshSession(
     }
     return true
   } catch (_) {
-    // 검증 실패는 무시 (DB 일시 오류 시 사용자 차단 X — api/index.ts 와 동일 fail-open)
-    return true
+    // DB 일시 오류 등 → failClosed 면 거부, 아니면 통과(가용성 우선, 다른 계층이 방어)
+    return onError
   }
 }
 

@@ -319,6 +319,14 @@ function doLogout() {
     } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     // sessionStorage 도 전체 정리 (madi_error_log 등)
     try { sessionStorage.clear(); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+    // 공유 기기 보호: 슈퍼관리자 배포용 소스 폴더 핸들(IndexedDB madi_deploy/handles)이
+    // 잔류하면 다음 사용자가 소스 폴더 접근 권한을 그대로 물려받음 → 로그아웃 시 DB 제거.
+    // 존재 여부·권한 무관하게 안전 (없으면 no-op).
+    try {
+      if (typeof indexedDB !== 'undefined' && indexedDB.deleteDatabase) {
+        indexedDB.deleteDatabase('madi_deploy');
+      }
+    } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     // 인메모리 DB도 비우기
     childDB=[]; sessionDB=[]; scheduleDB=[]; assessmentDB=[]; activityDB=[]; iepDB=[];
     if (typeof window._parentChildren !== 'undefined') {

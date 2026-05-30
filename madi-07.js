@@ -1,3 +1,10 @@
+// ─────── 본인 세션 판별 (teacher_id 우선, 레거시는 이름 폴백) ───────
+function _isMySession(s) {
+  if (!s || !currentUser) return false;
+  if (s.teacher_id) return String(s.teacher_id) === String(currentUser.id);
+  return !!s.teacher && s.teacher === currentUser.name;
+}
+
 // ─────── 세션 저장 ───────
 function saveSession(aiNote) {
   if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 세션 기록 권한이 없습니다'); return; }
@@ -18,7 +25,7 @@ function saveSession(aiNote) {
   });
 
   var sessionId = generateClientId();
-  sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
+  sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', teacher_id: (currentUser && currentUser.id != null) ? String(currentUser.id) : '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
   saveSessions();
   // 저장된 날짜를 기억 (소급 입력 시 다음 세션도 같은 날짜로 편의 제공)
   try { localStorage.setItem('madi_last_session_date', date); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
@@ -103,6 +110,7 @@ function saveSessionAI() {
       sessionDB.push({
         id: sessionId, childId: childId, date: date,
         teacher: (currentUser && currentUser.name) || '',
+        teacher_id: (currentUser && currentUser.id != null) ? String(currentUser.id) : '',
         goals: p.goals || [],
         memo: _san(p.memo || aiText, 'clinical'),
         aiNote: _san(p.aiNote || '', 'clinical'),
@@ -232,7 +240,7 @@ function renderSessionList() {
   // 권한별 필터: admin은 전체, 그 외는 본인 세션만 (teacher 필드 없으면 admin만 노출)
   var visible = sessionDB.slice().reverse();
   if (currentUser && currentUser.role !== 'admin') {
-    visible = visible.filter(function(s){ return s.teacher && s.teacher === currentUser.name; });
+    visible = visible.filter(function(s){ return _isMySession(s); });
   }
   // 펼치기 상태에 따라 최근 20개 또는 전체
   var recent = sessionListExpanded ? visible : visible.slice(0, 20);
@@ -425,28 +433,35 @@ function deleteSession(id) {
     '삭제된 세션은 복구할 수 없습니다.\n' + (backup.date || '') + ' 세션 기록이 삭제됩니다.',
     '세션삭제확인',
     function() {
-      supaFetch('madi_sessions?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE').catch(function(e) {
-        if(window.console&&console.warn)console.warn('[madi-07 deleteSession]',e&&e.message);
-        showToast('❌ 세션 삭제 실패 — 다시 시도해주세요');
-      });
-      sessionDB = sessionDB.filter(function(s) { return s.id !== id; });
-      saveSessions();
-      renderSessionList();
-      renderChildGrid();
-      showToast('🗑️ 세션 삭제됨', {
-        undo: function() {
-          sessionDB.push(backup);
+      supaFetch('madi_sessions?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE')
+        .then(function() {
+          // 서버 삭제 성공 시에만 로컬 반영 (실패 시 부활 방지)
+          sessionDB = sessionDB.filter(function(s) { return s.id !== id; });
           saveSessions();
-          var row = Object.assign({}, backup);
-          supaFetch('madi_sessions', 'POST', [row]).catch(function(e) {
-            if(window.console&&console.warn)console.warn('[madi-07 undoSession]',e&&e.message);
-            showToast('❌ 복원 실패 — 다시 시도해주세요');
-          });
           renderSessionList();
           renderChildGrid();
-          showToast('↩️ 세션 복원됨');
-        }
-      });
+          showToast('🗑️ 세션 삭제됨', {
+            undo: function() {
+              var row = Object.assign({}, backup);
+              supaFetch('madi_sessions', 'POST', [row])
+                .then(function() {
+                  sessionDB.push(backup);
+                  saveSessions();
+                  renderSessionList();
+                  renderChildGrid();
+                  showToast('↩️ 세션 복원됨');
+                })
+                .catch(function(e) {
+                  if(window.console&&console.warn)console.warn('[madi-07 undoSession]',e&&e.message);
+                  showToast('❌ 복원 실패 — 다시 시도해주세요');
+                });
+            }
+          });
+        })
+        .catch(function(e) {
+          if(window.console&&console.warn)console.warn('[madi-07 deleteSession]',e&&e.message);
+          showToast('❌ 세션 삭제 실패 — 다시 시도해주세요');
+        });
     }
   );
 }
