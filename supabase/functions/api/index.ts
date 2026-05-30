@@ -491,6 +491,9 @@ Deno.serve(async (req: Request) => {
           const obj = row as Record<string, unknown>
           obj.author_id   = String(user.sub)
           obj.author_name = String(user.name || '')
+          // author_role 은 NOT NULL 컬럼 — 자료실 등 일부 경로가 누락해 INSERT 400 발생.
+          // 작성자 위장 차단 겸 서버에서 JWT role 로 강제(클라 값 무시).
+          obj.author_role = String(user.role || '')
         }
       }
     }
