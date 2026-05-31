@@ -364,7 +364,7 @@ function deleteChild(id) {
   var p4 = assIds.length   > 0 ? supaFetch('madi_assessments?id=in.(' + assIds.join(',')   + ')', 'DELETE') : Promise.resolve();
   Promise.all([p1, p2, p3, p4])
     .then(function() {
-      return supaFetch('madi_children?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE');
+      return supaFetch('madi_children?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE');
     })
     .then(function() {
       // 로컬 삭제

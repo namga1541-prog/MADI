@@ -260,7 +260,7 @@ function setupGlobalErrorHandler() {
     if (!e.message || e.message === 'Script error.') return;
     var filename = (e.filename || '').split('/').pop() || '(unknown)';
     var src = filename + ':' + (e.lineno || '?') + (e.colno ? ':' + e.colno : '');
-    console.error('[Global Error]', maskPII(e.message), src);
+    if (window.console && console.error) console.error('[Global Error]', maskPII(e.message), src);
     pushErrorLog({
       ts: Date.now(),
       message: maskPII(e.message),
@@ -277,7 +277,7 @@ function setupGlobalErrorHandler() {
   });
   window.addEventListener('unhandledrejection', function(e) {
     var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
-    console.error('[Unhandled Promise]', maskPII(msg));
+    if (window.console && console.error) console.error('[Unhandled Promise]', maskPII(msg));
     pushErrorLog({ ts: Date.now(), message: 'Promise: ' + maskPII(msg), source: 'unhandledrejection' });
     if (!window._lastErrorToast || Date.now() - window._lastErrorToast > 30000) {
       window._lastErrorToast = Date.now();
@@ -408,7 +408,7 @@ function autoBackup() {
       if (window.console && console.debug) console.debug('[자동 백업] ' + dateKey + ' 저장됨 (' + Math.round(snapshot.size/1024) + 'KB)');
     })
     .catch(function(err) {
-      console.error('[자동 백업 실패]', err);
+      if (window.console && console.error) console.error('[자동 백업 실패]', err);
     });
 }
 

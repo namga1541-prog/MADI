@@ -103,14 +103,17 @@ Edge Function이나 SQL에서 컬럼을 참조할 때는 아래 목록 기준으
 |--------|------|
 | `madi_users` | `id`, `username`, `name`, `password`, `role`, `center_id`, `color`, `permissions`, `password_changed_at`, `status`, `session_revoked_at`, `failed_login_count`, `last_failed_at`, `locked_until`, `totp_secret`, `totp_enabled`, `totp_enrolled_at`, `prog_types` (JSONB, 선생님 담당 프로그램 목록) |
 | `madi_parent_children` | `parent_user_id`, `child_id`, `center_id` |
-| `madi_centers` | `id` (PK, center_id로 사용) |
+| `madi_centers` | `id` (PK, center_id로 사용), `name`, `invite_code`, `invite_expires_at`, `session_interval` |
 | `madi_notifications` | `id`, `user_id`, `center_id`, `type`, `title`, `body`, `link`, `read_at`, `created_at` |
-| `madi_audit_log` | `id`, `actor_id`, `actor_name`, `action`, `table_name`, `record_id`, `child_id`, `changed_cols`, `occurred_at` |
+| `madi_audit_log` | `id`, `occurred_at`, `actor_id`, `actor_role`, `action`, `table_name`, `row_id`, `center_id`, `child_id`, `changed_cols` (text[]), `client_ip`, `user_agent` |
 | `madi_portfolios` | `id`, `child_id`, `center_id`, `parent_visible`, `created_by`, `created_by_name`, `opened_by`, `opened_at`, `month`, `content`, `data`, `created_at` |
 | `madi_rate_limits` | `key` (PK), `count`, `window_start`, `hour_count`, `hour_start`, `updated_at` |
-| `madi_push_subscriptions` | `id`, `user_id`, `endpoint`, `p256dh`, `auth`, `created_at` |
+| `madi_push_subscriptions` | `id`, `user_id`, `endpoint`, `p256dh`, `auth`, `center_id`, `created_at` |
 | `madi_push_settings` | `center_id`, `enabled`, `push_time`, `message_title`, `message_body`, `last_sent_date` |
 | `madi_settings` | `key` (PK), `value` — **전역 테이블, center_id 컬럼 없음** |
+| `madi_lounge_posts` | `id`, `center_id`, `author_id`, `author_name`, `author_role`, `title`, `content`, `images`, `image_urls`, `note`, `visibility`, `created_at` |
+| `madi_lounge_comments` | `id`, `post_id`, `center_id`, `author_id`, `author_name`, `author_role`, `content`, `created_at` |
+| `madi_error_logs` | `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` |
 
 > 위 목록에 없는 컬럼을 추가하려면 코드와 DB 스키마를 동시에 수정해야 함.
 > SQL 파일 실행 순서는 [MIGRATIONS_RUNBOOK.md](./MIGRATIONS_RUNBOOK.md) 참고.

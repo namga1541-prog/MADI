@@ -894,8 +894,8 @@ function execSchedDelete(id, future) {
   var failedIds = [];
   // 서버 DELETE 모두 시도 후 실패한 id는 로컬에서도 복원 (서버/로컬 불일치 방지)
   Promise.all(toDeleteIds.map(function(did){
-    return supaFetch('madi_schedules?id=eq.' + did + '&center_id=eq.' + currentUser.center_id, 'DELETE')
-      .catch(function(e){ console.warn('일정 삭제 실패 id=' + did, e); failedIds.push(did); });
+    return supaFetch('madi_schedules?id=eq.' + encodeURIComponent(did) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE')
+      .catch(function(e){ if (window.console && console.warn) console.warn('[madi-10 스케줄 삭제 실패] id=' + did, e && e.message); failedIds.push(did); });
   })).then(function(){
     scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1 || failedIds.indexOf(x.id) !== -1; });
     // 실패한 항목은 snapshot에서 다시 복원

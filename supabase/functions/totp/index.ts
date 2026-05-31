@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
     if (sessRow) {
       const changedAt = sessRow.password_changed_at ? Math.floor(new Date(sessRow.password_changed_at).getTime() / 1000) : 0
       const revokedAt = sessRow.session_revoked_at  ? Math.floor(new Date(sessRow.session_revoked_at).getTime()  / 1000) : 0
-      if (iat < changedAt || iat < revokedAt) {
+      if (iat + 1 < changedAt || iat + 1 < revokedAt) {
         return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
       }
     }

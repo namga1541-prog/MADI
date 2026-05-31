@@ -269,7 +269,7 @@ function parseAction(reply) {
     var action = JSON.parse(match[1].trim());
     return { displayText: displayText, action: action };
   } catch(e) {
-    console.warn('[Action] JSON 파싱 실패:', e);
+    if (window.console && console.warn) console.warn('[madi-12-chat]', '[Action] JSON 파싱 실패:', e);
     return { displayText: reply, action: null };
   }
 }
@@ -283,10 +283,10 @@ function executeAction(action) {
       case 'openParentReport':    actOpenParentReport(action); break;
       case 'switchTab':           actSwitchTab(action); break;
       case 'showUnwritten':       actShowUnwritten(); break;
-      default: console.warn('[Action] 알 수 없는 액션:', action.type);
+      default: if (window.console && console.warn) console.warn('[madi-12-chat]', '[Action] 알 수 없는 액션:', action.type);
     }
   } catch(e) {
-    console.error('[Action] 실행 실패:', e);
+    if (window.console && console.error) console.error('[madi-12-chat]', '[Action] 실행 실패:', e);
     showToast('❌ 액션 실행에 실패했습니다.');
   }
 }

@@ -21,7 +21,7 @@ function loadCenterApiKey(showFeedback) {
       }
     })
     .catch(function(err) {
-      console.error('센터 키 로드 실패:', err);
+      if (window.console && console.error) console.error('센터 키 로드 실패:', err && err.message);
       showToast('⚠️ API 키 로드 실패');
     });
 }
@@ -224,7 +224,7 @@ function removeStaffAccountFromBtn(btn) {
 
 function removeStaffAccount(id, name) {
   showConfirm(name + ' 선생님 계정을 삭제할까요?', function() {
-    supaFetch('madi_users?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE')
+    supaFetch('madi_users?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE')
       .then(function() {
         showToast('🗑️ ' + name + ' 계정 삭제됨');
         loadStaffMgmtList();

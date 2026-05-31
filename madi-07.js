@@ -433,7 +433,7 @@ function deleteSession(id) {
     '삭제된 세션은 복구할 수 없습니다.\n' + (backup.date || '') + ' 세션 기록이 삭제됩니다.',
     '세션삭제확인',
     function() {
-      supaFetch('madi_sessions?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE')
+      supaFetch('madi_sessions?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE')
         .then(function() {
           // 서버 삭제 성공 시에만 로컬 반영 (실패 시 부활 방지)
           sessionDB = sessionDB.filter(function(s) { return s.id !== id; });

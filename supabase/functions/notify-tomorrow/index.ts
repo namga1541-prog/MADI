@@ -47,6 +47,8 @@ async function sp(url: string, key: string, table: string, filter: string, data:
   if (!res.ok) console.error(`sp ${table}:`, await res.text());
 }
 
+const CORS_HEADERS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+
 // ── 메인 ─────────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   // ── 무인증 cron 보호 ──────────────────────────────────────────────
@@ -55,16 +57,16 @@ Deno.serve(async (req: Request) => {
   if (!CRON_SECRET) {
     return new Response(
       JSON.stringify({ error: 'CRON_SECRET 환경변수가 설정되지 않았습니다' }),
-      { status: 503, headers: { 'Content-Type': 'application/json' } }
+      { status: 503, headers: CORS_HEADERS }
     )
   }
   if (req.headers.get('x-cron-secret') !== CRON_SECRET) {
-    return new Response(JSON.stringify({ ok: false, reason: '인증 실패 (x-cron-secret 불일치)' }), { status: 401 });
+    return new Response(JSON.stringify({ ok: false, reason: '인증 실패 (x-cron-secret 불일치)' }), { status: 401, headers: CORS_HEADERS });
   }
 
   if (!SUPA_URL || !SUPA_KEY) {
     console.error('Missing required env vars: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
-    return new Response(JSON.stringify({ ok: false, reason: '서버 설정 오류 (env 미설정)' }), { status: 500 });
+    return new Response(JSON.stringify({ ok: false, reason: '서버 설정 오류 (env 미설정)' }), { status: 500, headers: CORS_HEADERS });
   }
   const _url = SUPA_URL as string;
   const _key = SUPA_KEY as string;
@@ -73,14 +75,14 @@ Deno.serve(async (req: Request) => {
     || VAPID_PUB === 'REPLACE_ME' || VAPID_PRIV === 'REPLACE_ME'
     || VAPID_PUB.length < 43 || VAPID_PRIV.length < 43;
   if (VAPID_BAD) {
-    return new Response(JSON.stringify({ ok: false, reason: 'VAPID 키 미설정 또는 placeholder' }), { status: 200 });
+    return new Response(JSON.stringify({ ok: false, reason: 'VAPID 키 미설정 또는 placeholder' }), { status: 200, headers: CORS_HEADERS });
   }
 
   try {
     webpush.setVapidDetails(VAPID_SUB, VAPID_PUB, VAPID_PRIV);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    return new Response(JSON.stringify({ ok: false, reason: 'VAPID 초기화 오류: ' + msg }), { status: 200 });
+    return new Response(JSON.stringify({ ok: false, reason: 'VAPID 초기화 오류: ' + msg }), { status: 200, headers: CORS_HEADERS });
   }
 
   const nowHHMM     = kstHHMM();
@@ -107,7 +109,7 @@ Deno.serve(async (req: Request) => {
   });
 
   if (!targets.length) {
-    return new Response(JSON.stringify({ ok: true, sent: 0, checked: allCfg.length }), { status: 200 });
+    return new Response(JSON.stringify({ ok: true, sent: 0, checked: allCfg.length }), { status: 200, headers: CORS_HEADERS });
   }
 
   let totalSent = 0;
@@ -225,6 +227,6 @@ Deno.serve(async (req: Request) => {
 
   return new Response(JSON.stringify({ ok: true, sent: totalSent }), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: CORS_HEADERS,
   });
 });

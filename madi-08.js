@@ -566,7 +566,7 @@ function deleteIEPRecord(id) {
     var childId = r ? r.childId : 0;
     iepDB = iepDB.filter(function(x){ return x.id !== id; });
     saveIEP();
-    supaFetch('madi_iep_history?id=eq.' + id + '&center_id=eq.' + currentUser.center_id, 'DELETE').catch(function(e) {
+    supaFetch('madi_iep_history?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE').catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-08 deleteIEP]',e&&e.message);
       showToast('❌ 장단기계획 삭제 실패 — 다시 시도해주세요');
     });
