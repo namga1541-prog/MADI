@@ -12,13 +12,14 @@
 
 // ── CORS ─────────────────────────────────────────────────────────────────
 // 'null' Origin 허용 여부는 함수별로 다르므로 옵션으로 분리.
-// - login / api / change-password / ai-proxy: file:// 로컬 실행 지원 위해 allowNullOrigin=true
-// - upload-image / parent-auth: sandboxed iframe CSRF 차단 위해 allowNullOrigin=false
+// - login / api / change-password / ai-proxy: file:// 로컬 실행 지원 위해 allowNullOrigin=true 로 명시
+// - upload-image / parent-auth: sandboxed iframe CSRF 차단 위해 기본값 false (미설정 시 차단)
+// ★ 기본값 변경: allowNullOrigin 미설정 → false (fail-closed). null Origin 허용이 필요한 함수만 명시적으로 true 전달.
 export function makeCORS(
   origin: string | null,
   opts: { allowNullOrigin?: boolean; methods?: string; headers?: string } = {}
 ): Record<string, string> {
-  const allowNull = opts.allowNullOrigin !== false
+  const allowNull = opts.allowNullOrigin === true
   const allowed   = new Set<string>([
     'https://namga1541-prog.github.io',
     'http://localhost:3000',

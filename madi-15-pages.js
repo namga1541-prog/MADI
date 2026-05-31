@@ -569,9 +569,14 @@ function _subscribePush(reg) {
         showToast('⚠️ 구독 정보를 읽을 수 없습니다. 브라우저를 업데이트해주세요.');
         return;
       }
-      supaFetch('madi_push_subscriptions', 'POST', {
+      var _cid = (currentUser && currentUser.center_id) || window._parentCenterId || '';
+      if (!_cid) {
+        showToast('⚠️ 센터 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+      supaFetch('madi_push_subscriptions?on_conflict=user_id,endpoint', 'POST', {
         user_id:   currentUser.id,
-        center_id: currentUser.center_id || window._parentCenterId || '',
+        center_id: _cid,
         endpoint:  j.endpoint,
         p256dh:    j.keys.p256dh,
         auth:      j.keys.auth

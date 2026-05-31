@@ -52,12 +52,14 @@ Deno.serve(async (req: Request) => {
   // ── 무인증 cron 보호 ──────────────────────────────────────────────
   // CRON_SECRET 이 설정돼 있으면 x-cron-secret 헤더 일치 요구 (외부 대량 푸시 차단).
   // 미설정 시 하위호환을 위해 통과시키되 경고 로깅 — 운영에서는 반드시 설정 권장.
-  if (CRON_SECRET) {
-    if (req.headers.get('x-cron-secret') !== CRON_SECRET) {
-      return new Response(JSON.stringify({ ok: false, reason: '인증 실패 (x-cron-secret 불일치)' }), { status: 401 });
-    }
-  } else {
-    console.warn('[notify-tomorrow] CRON_SECRET 미설정 — 무인증 호출 허용 중. 운영에서는 CRON_SECRET env + 트리거 헤더 동시 설정 필요.');
+  if (!CRON_SECRET) {
+    return new Response(
+      JSON.stringify({ error: 'CRON_SECRET 환경변수가 설정되지 않았습니다' }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+  if (req.headers.get('x-cron-secret') !== CRON_SECRET) {
+    return new Response(JSON.stringify({ ok: false, reason: '인증 실패 (x-cron-secret 불일치)' }), { status: 401 });
   }
 
   if (!SUPA_URL || !SUPA_KEY) {

@@ -106,7 +106,8 @@ function doSignup() {
       .then(function(loginData) {
         currentUser = (loginData && loginData.user) ? loginData.user
           : { id: result.user.id, username: result.user.username, name: result.user.name, role: result.user.role, color: result.user.color, center_id: result.user.center_id, permissions: result.user.permissions };
-        try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', result.user.username); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+        var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types };
+        try { localStorage.setItem('madi_user', JSON.stringify(_toStore)); localStorage.setItem('madi_last_id', result.user.username); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
         var _scr = document.getElementById('signupScreen'); if (_scr) _scr.style.display = 'none'; hideLoginScreen();
         if (typeof applyUserUI === 'function') applyUserUI();
         if (typeof applyRoleUI === 'function') applyRoleUI();
@@ -150,7 +151,8 @@ function doLogin(_totpCode) {
     if (data.error) { if (errEl) errEl.textContent = data.error; return; }
     // 토큰은 서버가 httpOnly 쿠키로 발급 — 클라이언트는 user 정보만 저장
     currentUser = data.user;
-    try { localStorage.setItem('madi_user', JSON.stringify(currentUser)); localStorage.setItem('madi_last_id', un); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+    var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types };
+    try { localStorage.setItem('madi_user', JSON.stringify(_toStore)); localStorage.setItem('madi_last_id', un); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     _purgeLegacyCnCache(); // 이전 사용자의 cn3_* PII 잔존 데이터 일소
     hideLoginScreen(); if (typeof applyUserUI === 'function') applyUserUI(); if (typeof applyRoleUI === 'function') applyRoleUI(); if (typeof loadCenterApiKey === 'function') loadCenterApiKey(); if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(); if (typeof initRealtime === 'function') initRealtime(); if (typeof loadCenterSessionInterval === 'function') loadCenterSessionInterval();
     // 로그인 직후 마디 업데이트 팝업 표시 (대시보드 렌더 후 약간의 딜레이)
@@ -166,7 +168,8 @@ function _promptTotpCode(username, password, prevErr) {
   if (typeof showInputPrompt !== 'function') {
     // 폴백: native prompt
     var code = window.prompt(prevErr || '인증 코드 6자리');
-    if (code) doLogin(code.trim());
+    if (!code) return;
+    doLogin(code.trim());
     return;
   }
   showInputPrompt({

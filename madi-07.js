@@ -239,7 +239,7 @@ function renderSessionList() {
   if (!c) return;
   // 권한별 필터: admin은 전체, 그 외는 본인 세션만 (teacher 필드 없으면 admin만 노출)
   var visible = sessionDB.slice().reverse();
-  if (currentUser && currentUser.role !== 'admin') {
+  if (currentUser && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
     visible = visible.filter(function(s){ return _isMySession(s); });
   }
   // 펼치기 상태에 따라 최근 20개 또는 전체
@@ -247,7 +247,7 @@ function renderSessionList() {
   // 카드 제목 옆 카운터 갱신 (권한별 라벨 + 표시/전체 개수 + 펼치기 토글)
   var countEl = document.getElementById('sessionListCount');
   if (countEl) {
-    var isAdmin   = currentUser && currentUser.role === 'admin';
+    var isAdmin   = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
     var label     = isAdmin ? '전체' : '본인';
     var canToggle = visible.length > 20;
     var arrow     = canToggle ? (sessionListExpanded ? ' ▲' : ' ▼') : '';

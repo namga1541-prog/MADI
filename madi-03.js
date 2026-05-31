@@ -36,7 +36,7 @@ function saveCenterApiKey() {
   var statusEl = document.getElementById('centerKeyStatus');
   if (statusEl) statusEl.innerHTML = '<span style="color:var(--text2);">저장 중...</span>';
 
-  supaFetch('madi_settings', 'POST', [{ key: 'api_key', value: key }])
+  supaFetch('madi_settings?on_conflict=key', 'POST', [{ key: 'api_key', value: key }])
     .then(function() {
       // 현재 세션에도 즉시 적용 (DOM만, localStorage 캐싱 안 함)
       var _akEl = document.getElementById('apiKey'); if (_akEl) _akEl.value = key;
@@ -357,7 +357,7 @@ function renderDashboardLegacy() {
   var safeChildDB    = (typeof childDB    !== 'undefined' && Array.isArray(childDB))    ? childDB    : [];
   // 오늘의 일정
   var ts=safeScheduleDB.filter(function(s){return s.date===todayStr;});
-  if(currentUser&&currentUser.role!=='admin') ts=ts.filter(function(s){return s.teacher===currentUser.name;});
+  if(currentUser&&currentUser.role!=='admin'&&currentUser.role!=='superadmin') ts=ts.filter(function(s){return s.teacher===currentUser.name;});
   ts.sort(function(a,b){return (a.startTime||'')<(b.startTime||'')?-1:1;});
   var se=document.getElementById('dashTodaySched');
   var ms=document.getElementById('dashMiniStat'); if(ms) ms.textContent='오늘 일정 '+ts.length+'건';
@@ -387,7 +387,7 @@ function renderDashboardLegacy() {
   // 미작성 세션
   var uw=typeof getUnwrittenSessions==='function'?getUnwrittenSessions():[];
   if(!Array.isArray(uw)) uw=[];
-  if(currentUser&&currentUser.role!=='admin') uw=uw.filter(function(u){return u.teacher===currentUser.name;});
+  if(currentUser&&currentUser.role!=='admin'&&currentUser.role!=='superadmin') uw=uw.filter(function(u){return u.teacher===currentUser.name;});
   var uwEl=document.getElementById('dashUnwritten');
   if(uwEl){ if(!uw.length){uwEl.innerHTML='<div class="dash-empty">✅ 미작성 세션 없음</div>';}
   else{
@@ -835,6 +835,11 @@ function fanoutSessionNotification(session) {
 }
 
 function deleteNotice(id) {
+  var _flags = typeof getRoleFlags === 'function' ? getRoleFlags() : {};
+  if (!currentUser || !_flags.isAdminOrSuper) {
+    showToast('⚠️ 권한이 없습니다');
+    return;
+  }
   showConfirm('이 공지를 삭제할까요?', function() {
     supaFetch('madi_notices?id=eq.' + encodeURIComponent(id), 'DELETE')
       .then(function() {

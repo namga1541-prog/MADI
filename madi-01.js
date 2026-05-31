@@ -41,13 +41,13 @@ function fmtDateKR(s) { if (!s) return ''; var p = s.split('-'); if (!p || p.len
 var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };
 function canDo(perm) {
   if (!currentUser) return false;
-  if (currentUser.role === 'admin') return true;
+  if (currentUser.role === 'admin' || currentUser.role === 'superadmin') return true;
   var p = currentUser.permissions || {};
   return p[perm] !== false;
 }
 function isMyChild(childId) {
   if (!currentUser) return false;
-  if (currentUser.role === 'admin') return true;
+  if (currentUser.role === 'admin' || currentUser.role === 'superadmin') return true;
   var myName = currentUser.name;
   var hasSession = (typeof sessionDB !== 'undefined') && sessionDB.some(function(s){ return s.childId === childId && s.teacher === myName; });
   if (hasSession) return true;
@@ -301,17 +301,17 @@ function _reportClientError(msg, src, lineno, colno, err) {
   _errReportCount++;
   var payload = {
     actor_id:     currentUser.id,
-    actor_name:   currentUser.name || '',
+    actor_role:   currentUser.role || 'unknown',
     action:       'client_error',
     table_name:   (src || location.pathname).slice(0, 200),
-    changed_cols: JSON.stringify({
+    changed_cols: [JSON.stringify({
       message: m.slice(0, 500),
       stack:   (err && err.stack) ? String(err.stack).slice(0, 1000) : '',
       line:    lineno || 0,
       col:     colno  || 0,
       ua:      navigator.userAgent.slice(0, 200),
       url:     location.href.slice(0, 200)
-    })
+    })]
   };
   // supaFetch 대신 직접 fetch — 에러 리포터 자체가 에러를 일으키는 순환 방지
   try {

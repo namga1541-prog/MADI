@@ -12,7 +12,7 @@
 import { makeCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts'
 
 Deno.serve(async (req: Request) => {
-  const CORS = makeCORS(req.headers.get('origin'))
+  const CORS = makeCORS(req.headers.get('origin'), { allowNullOrigin: true })
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   // 쿠키 만료 헤더 (로그아웃 자체는 항상 성공)

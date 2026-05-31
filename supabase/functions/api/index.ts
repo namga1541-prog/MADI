@@ -383,6 +383,26 @@ Deno.serve(async (req: Request) => {
 
       // ── PATCH 권한 escalation 방어 ──
       if (method === 'PATCH') {
+        // ── teacher IDOR 방어: teacher 는 자신의 row 만 수정 가능 ──
+        // admin 은 center_id 필터(PostgREST RLS)로 충분, superadmin 은 제한 없음.
+        if (user.role === 'teacher') {
+          const idMatch = path.match(/[?&]id=eq\.([^&]+)/)
+          if (!idMatch) {
+            // id=eq.xxx 필터 없이 bulk PATCH 시도 — teacher 에게 불허
+            return new Response(
+              JSON.stringify({ error: '자신의 계정(id=eq.xxx)에 한해 수정 가능합니다' }),
+              { status: 403, headers: CORS }
+            )
+          }
+          const targetId = decodeURIComponent(idMatch[1])
+          if (targetId !== String(user.sub)) {
+            return new Response(
+              JSON.stringify({ error: '다른 사용자의 계정을 수정할 수 없습니다' }),
+              { status: 403, headers: CORS }
+            )
+          }
+        }
+
         const rows = Array.isArray(body) ? body : [body]
         for (const row of rows) {
           if (!row || typeof row !== 'object') continue

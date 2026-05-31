@@ -880,7 +880,7 @@ function execSchedDeleteChoice(id) {
 }
 
 function execSchedDelete(id, future) {
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
     showToast('⚠️ 관리자만 일정을 삭제할 수 있습니다.');
     return;
   }
@@ -924,7 +924,7 @@ function execSchedDelete(id, future) {
 }
 
 function saveEditSched(id) {
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
     showToast('⚠️ 관리자만 일정을 수정할 수 있습니다.');
     return;
   }

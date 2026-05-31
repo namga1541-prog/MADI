@@ -105,7 +105,7 @@ function renderStaffCard() {
   var card = document.getElementById('staffCard');
   var deployCard = document.getElementById('deployCard');
   if (!card) return;
-  var isAdmin = currentUser && currentUser.role === 'admin';
+  var isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
   var isSuperAdmin = currentUser && currentUser.role === 'superadmin';
   card.style.display = isAdmin ? 'block' : 'none';
   // 배포 카드는 superadmin 전용 (admin/teacher/parent 모두에게 숨김)
@@ -1135,7 +1135,9 @@ function initPWA() {
   if ('serviceWorker' in navigator) {
     // SW 업데이트 감지 시 자동 새로고침
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      window.location.reload();
+      if (confirm('새 버전이 준비됐습니다. 지금 새로고침하시겠습니까?')) {
+        window.location.reload();
+      }
     });
     // 1차 시도: 배포된 ./sw.js (GitHub Pages 환경)
     // updateViaCache: 'none' — sw.js 자체가 HTTP 캐시에서 서빙되지 않도록 강제.

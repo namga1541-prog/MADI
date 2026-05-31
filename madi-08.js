@@ -102,7 +102,7 @@ function downloadPDF(name, sourceId, title) {
     + '</style></head><body>'
     + '<h2>' + escHtml(title || '') + '</h2>'
     + '<p style="font-size:12px;color:#64748b;margin-bottom:24px;">대상 아동: ' + escHtml(name || '') + ' &nbsp;|&nbsp; 작성일: ' + today + '</p>'
-    + '<p>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>'
+    + '<p>' + escHtml(content) + '</p>'
     + '<div class="footer">마디아이(MadiAI) AI 보조 작성 보고서</div>'
     + '</body></html>');
   win.document.close();

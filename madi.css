@@ -2020,6 +2020,11 @@ body.dark-mode .sidebar-item.active { background:rgba(255,255,255,0.08); color:w
 body.dark-mode .breadcrumb-bar { background:#0f172a; border-bottom-color:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); }
 body.dark-mode .breadcrumb-bar .bc-home { color:white; }
 
+/* === 대시보드 dp-* 다크모드 === */
+body.dark-mode .dp-panel { background:#1e2124; color:#e0e0e0; border-color:#444; }
+body.dark-mode .dp-panel-link { color:#7eb8f7; }
+body.dark-mode .dp-title { color:#a0a0a0; }
+
 /* ═══════════════════════════════════════════════════════════
    보고서 페이지 PC 레이아웃 (panel1 세션 / panel3 평가 / panel5 리포트 / panelSI 감통)
    - .content-wide: 860 → 1280 최대폭 확장 (PC 가로 활용)

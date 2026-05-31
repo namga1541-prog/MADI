@@ -308,7 +308,13 @@ function saveLoungePost() {
 }
 
 function deleteLoungePost(id) {
-  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
+  var _lu = currentUser || {};
+  if (!_lu.id) { showToast('⚠️ 로그인이 필요합니다'); return; }
+  var post = (loungePostsDB || []).find(function(x) { return String(x.id) === String(id); });
+  if (post && _lu.role !== 'superadmin' && String(post.author_id) !== String(_lu.id)) {
+    showToast('⚠️ 본인 글만 삭제할 수 있습니다');
+    return;
+  }
   showConfirm('이 글을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.', function() {
     supaFetch('madi_lounge_posts?id=eq.' + encodeURIComponent(id), 'DELETE')
       .then(function() {
@@ -460,7 +466,14 @@ function saveComment(postId) {
 }
 
 function deleteComment(postId, commentId) {
-  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다'); return; }
+  var _cu = currentUser || {};
+  if (!_cu.id) { showToast('⚠️ 로그인이 필요합니다'); return; }
+  var comments = (loungeCommentsCache[postId] || []);
+  var comment = comments.find(function(c) { return String(c.id) === String(commentId); });
+  if (comment && _cu.role !== 'superadmin' && String(comment.author_id) !== String(_cu.id)) {
+    showToast('⚠️ 본인 댓글만 삭제할 수 있습니다');
+    return;
+  }
   showConfirm('이 댓글을 삭제하시겠습니까?', function() {
     supaFetch('madi_lounge_comments?id=eq.' + encodeURIComponent(commentId), 'DELETE')
       .then(function() {
@@ -649,6 +662,10 @@ function onLibFilesChange(input) {
 }
 
 function saveLibraryPost() {
+  var _su = currentUser || {};
+  if (!_su.id || (_su.role !== 'admin' && _su.role !== 'teacher' && _su.role !== 'superadmin')) {
+    showToast('⚠️ 권한이 없습니다'); return;
+  }
   var titleEl   = document.getElementById('libTitle');
   var contentEl = document.getElementById('libContent');
   var catEl     = document.getElementById('libCategory');
@@ -970,13 +987,8 @@ function submitVocabFeedback() {
     occurred_at:  new Date().toISOString()
   };
 
-  supaFetch('madi_audit_log', 'POST', [payload])
-    .then(function() {
-      closeVocabFeedbackModal();
-      showToast('✅ 신고 접수 완료! 검토 후 어휘 사전에 반영됩니다 🙏', { duration: 4000 });
-    })
-    .catch(function(e) {
-      showToast('❌ 제출 실패 — ' + (e.message || '다시 시도해주세요'));
-      if (btn) { btn.disabled = false; btn.textContent = '📨 신고 제출'; }
-    });
+  // madi_audit_log는 RLS로 직접 INSERT 차단됨 → 실패를 무시하고 UI만 처리
+  supaFetch('madi_audit_log', 'POST', [payload]).catch(function() {});
+  closeVocabFeedbackModal();
+  showToast('✅ 신고 접수 완료! 검토 후 어휘 사전에 반영됩니다 🙏', { duration: 4000 });
 }

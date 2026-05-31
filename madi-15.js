@@ -717,7 +717,10 @@ function _redrawParentVoucherPanel() {
         window._parentVoucherUsed = past.length;
         _redrawParentVoucherPanel();
       })
-      .catch(function(){});
+      .catch(function(err) {
+        window._parentVoucherUsed = 0;
+        _redrawParentVoucherPanel();
+      });
   }
 }
 

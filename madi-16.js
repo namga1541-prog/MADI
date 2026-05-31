@@ -657,6 +657,7 @@ function quickAiClean() {
   var USER = '원문:\n' + raw;
   callClaude(SYSTEM, USER, 300, (typeof MODEL_HAIKU !== 'undefined') ? MODEL_HAIKU : undefined)
     .then(function(out) {
+      if (btn) { btn.disabled = false; btn.textContent = '✨ AI 정리'; }
       var raw2 = String(out || '').trim().replace(/^["']|["']$/g, '').replace(/\n+/g, ' ');
       var clean = raw2.slice(0, 240);
       if (clean) ta.value = clean;
@@ -666,10 +667,8 @@ function quickAiClean() {
       }
     })
     .catch(function(e) {
-      if (typeof showToast === 'function') showToast('⚠️ AI 정리 실패: ' + (e && e.message ? e.message : e));
-    })
-    .then(function() {
       if (btn) { btn.disabled = false; btn.textContent = '✨ AI 정리'; }
+      if (typeof showToast === 'function') showToast('⚠️ AI 정리 실패: ' + (e && e.message ? e.message : e));
     });
 }
 
