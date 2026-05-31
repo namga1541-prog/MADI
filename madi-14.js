@@ -40,7 +40,7 @@ function uploadBoardImage(file, folder) {
 function isSafeUrl(url) {
   if (!url || typeof url !== 'string') return false;
   var lower = url.trim().toLowerCase();
-  return lower.indexOf('https://') === 0 || lower.indexOf('http://') === 0 || lower.indexOf('/') === 0;
+  return lower.indexOf('https://') === 0 || lower.indexOf('/') === 0;
 }
 
 // 이미지 URL 배열을 가로 스크롤 썸네일로 렌더

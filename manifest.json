@@ -22,27 +22,5 @@
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "screenshots": [
-    {
-      "src": "./store-assets/screenshots/phone-01-dashboard.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "선생님 홈 대시보드"
-    },
-    {
-      "src": "./store-assets/screenshots/phone-02-quick.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "빠른 세션 기록"
-    },
-    {
-      "src": "./store-assets/screenshots/tablet-01-dashboard.png",
-      "sizes": "1920x1200",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "태블릿 대시보드"
-    }
-  ]
+  "screenshots": []
 }

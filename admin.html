@@ -2498,7 +2498,7 @@ function renderOpsDashboard() {
       else if(avg2<60) insights.push('평균 목표 달성률이 '+avg2+'%로 낮습니다. 목표 재설정을 검토해보세요.');
     }
     var iEl=document.getElementById('opsAIInsight'), itEl=document.getElementById('opsInsightText');
-    if(iEl&&itEl){ iEl.style.display=insights.length?'block':'none'; itEl.innerHTML=insights.map(function(i){return '• '+i;}).join('<br>'); }
+    if(iEl&&itEl){ iEl.style.display=insights.length?'block':'none'; itEl.innerHTML=insights.map(function(i){return '• '+escHtml(String(i));}).join('<br>'); }
   } catch(e) { console.error('renderOpsDashboard error:', e); }
 }
 
