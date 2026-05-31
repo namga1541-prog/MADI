@@ -1,180 +1,174 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>개인정보처리방침 — 아이마디</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.8; font-size: 15px; }
-  .wrap { max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
-  .header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 2px solid #e2e8f0; }
-  .logo { font-size: 24px; font-weight: 800; color: #0ea5a0; margin-bottom: 8px; }
-  .title { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
-  .date { font-size: 13px; color: #64748b; }
-  .notice { background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 18px; margin-bottom: 36px; font-size: 13px; color: #92400e; line-height: 1.7; }
-  h2 { font-size: 17px; font-weight: 700; color: #0f172a; margin: 36px 0 14px; padding-left: 12px; border-left: 4px solid #0ea5a0; }
-  h3 { font-size: 15px; font-weight: 700; color: #334155; margin: 20px 0 8px; }
-  p { margin-bottom: 12px; color: #334155; }
-  ul, ol { padding-left: 20px; margin-bottom: 12px; }
-  li { margin-bottom: 6px; color: #334155; }
-  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; }
-  th { background: #f0fdfa; color: #0f766e; font-weight: 700; padding: 10px 12px; border: 1px solid #d1fae5; text-align: left; }
-  td { padding: 10px 12px; border: 1px solid #e2e8f0; vertical-align: top; }
-  .sensitive { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
-  .sensitive-title { font-weight: 700; color: #dc2626; margin-bottom: 6px; font-size: 14px; }
-  .contact { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 10px; padding: 16px 20px; margin-top: 16px; }
-  .contact p { margin-bottom: 4px; }
-  .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8; }
-  @media (max-width: 600px) { .wrap { padding: 24px 16px 60px; } h2 { font-size: 15px; } }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>개인정보처리방침 — 아이마디</title>
+  <link rel="stylesheet" href="madi.css">
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: var(--bg, #f4f8fb); color: var(--text, #1e293b); line-height: 1.8; font-size: 15px; }
+    .pp-back-bar { display: flex; align-items: center; padding: 12px 24px; background: var(--white, #fff); border-bottom: 1px solid var(--border, #e2e8f0); }
+    .pp-back-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--mint, #0ea5a0); font-weight: 600; padding: 6px 12px 6px 0; display: flex; align-items: center; gap: 6px; }
+    .pp-back-btn:hover { opacity: 0.75; }
+    .pp-wrap { max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+    .pp-header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 2px solid var(--border, #e2e8f0); }
+    .pp-logo { font-size: 24px; font-weight: 800; color: var(--mint, #0ea5a0); margin-bottom: 8px; }
+    .pp-title { font-size: 22px; font-weight: 700; color: var(--navy, #0f2942); margin-bottom: 8px; }
+    .pp-date { font-size: 13px; color: var(--text2, #64748b); }
+    .pp-notice { background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 18px; margin-bottom: 36px; font-size: 13px; color: #92400e; line-height: 1.7; }
+    .pp-wrap h2 { font-size: 17px; font-weight: 700; color: var(--navy, #0f2942); margin: 36px 0 14px; padding-left: 12px; border-left: 4px solid var(--mint, #0ea5a0); }
+    .pp-wrap h3 { font-size: 15px; font-weight: 700; color: #334155; margin: 20px 0 8px; }
+    .pp-wrap p { margin-bottom: 12px; color: #334155; }
+    .pp-wrap ul, .pp-wrap ol { padding-left: 20px; margin-bottom: 12px; }
+    .pp-wrap li { margin-bottom: 6px; color: #334155; }
+    .pp-table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; }
+    .pp-table th { background: #f0fdfa; color: #0f766e; font-weight: 700; padding: 10px 12px; border: 1px solid #d1fae5; text-align: left; }
+    .pp-table td { padding: 10px 12px; border: 1px solid var(--border, #e2e8f0); vertical-align: top; }
+    .pp-sensitive { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+    .pp-sensitive-title { font-weight: 700; color: #dc2626; margin-bottom: 6px; font-size: 14px; }
+    .pp-contact { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 10px; padding: 16px 20px; margin-top: 16px; }
+    .pp-contact p { margin-bottom: 4px; }
+    .pp-footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border, #e2e8f0); text-align: center; font-size: 12px; color: #94a3b8; }
+    @media (max-width: 600px) { .pp-wrap { padding: 24px 16px 60px; } .pp-wrap h2 { font-size: 15px; } .pp-back-bar { padding: 10px 16px; } }
+  </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="header">
-    <div class="logo">아이마디</div>
-    <div class="title">개인정보처리방침</div>
-    <div class="date">시행일: 2026년 5월 9일 &nbsp;|&nbsp; 최종 수정: 2026년 5월 23일</div>
+  <!-- 헤더 네비게이션 -->
+  <div class="pp-back-bar">
+    <button class="pp-back-btn" onclick="history.back()">← 앱으로 돌아가기</button>
   </div>
 
-  <div class="notice">
-    ⚠️ 아이마디는 아동의 언어재활 치료 기록을 다루는 서비스로, 수집되는 정보 중 일부는 <strong>개인정보보호법 제23조의 민감정보</strong>에 해당합니다. 본 방침을 통해 수집 목적과 보호 조치를 투명하게 안내합니다.
+  <div class="pp-wrap">
+
+    <div class="pp-header">
+      <div class="pp-logo">아이마디</div>
+      <div class="pp-title">개인정보처리방침</div>
+      <div class="pp-date">시행일: 2025년 1월 1일</div>
+    </div>
+
+    <div class="pp-notice">
+      ⚠️ 아이마디는 아동의 언어재활 치료 기록을 다루는 서비스로, 수집되는 정보 중 일부는 <strong>개인정보보호법 제23조의 민감정보</strong>에 해당합니다. 본 방침을 통해 수집 목적과 보호 조치를 투명하게 안내합니다.
+    </div>
+
+    <!-- 제1조: 수집 항목 -->
+    <h2>제1조 (수집하는 개인정보 항목)</h2>
+
+    <h3>① 아동 (치료 대상)</h3>
+    <div class="pp-sensitive">
+      <div class="pp-sensitive-title">🔴 민감정보 — 개인정보보호법 제23조 적용</div>
+      아동의 진단명, 치료 기록, 평가 결과는 건강 정보에 해당하는 민감정보로, 법정대리인의 사전 동의 없이는 수집·제3자 제공이 불가합니다.
+    </div>
+    <table class="pp-table">
+      <tr><th>항목</th><th>비고</th></tr>
+      <tr><td>이름, 생년월일, 성별</td><td>치료 대상 식별</td></tr>
+      <tr><td>진단명, 장애 유형</td><td>민감정보 — 법정대리인 동의 필수</td></tr>
+      <tr><td>세션 기록, 목표 달성률</td><td>민감정보 — 법정대리인 동의 필수</td></tr>
+      <tr><td>표준화검사 결과 (K-DST, SP2 등)</td><td>민감정보 — 법정대리인 동의 필수</td></tr>
+    </table>
+
+    <h3>② 치료사 / 관리자</h3>
+    <table class="pp-table">
+      <tr><th>항목</th><th>비고</th></tr>
+      <tr><td>이름, 아이디</td><td>계정 생성 및 식별</td></tr>
+      <tr><td>비밀번호</td><td>SHA-256 해시 저장 (원문 미저장)</td></tr>
+    </table>
+
+    <h3>③ 학부모</h3>
+    <table class="pp-table">
+      <tr><th>항목</th><th>비고</th></tr>
+      <tr><td>이름, 아이디</td><td>포털 계정 식별</td></tr>
+      <tr><td>연락처</td><td>치료 연계 및 안내</td></tr>
+    </table>
+
+    <h3>④ 자동 수집</h3>
+    <table class="pp-table">
+      <tr><th>항목</th><th>비고</th></tr>
+      <tr><td>접속 로그 (IP, 브라우저 정보)</td><td>보안·부정 이용 방지</td></tr>
+      <tr><td>오류 로그</td><td>서비스 안정성 개선</td></tr>
+    </table>
+
+    <!-- 제2조: 수집 목적 -->
+    <h2>제2조 (개인정보의 처리 목적)</h2>
+    <ul>
+      <li>언어치료 세션 기록 및 치료 경과 관리</li>
+      <li>IEP(개별화 교육 계획) 및 AI 보고서 자동 생성을 통한 치료 진행 공유</li>
+      <li>치료사 간 업무 협력 및 스케줄 관리</li>
+      <li>학부모 포털을 통한 가정 연계 활동 안내</li>
+      <li>서비스 운영, 이용 통계 및 품질 개선</li>
+    </ul>
+
+    <!-- 제3조: 보유 기간 -->
+    <h2>제3조 (개인정보의 보유 기간)</h2>
+    <p>개인정보는 수집 목적이 달성된 후 지체 없이 파기합니다. 단, 관계 법령에 따라 보존이 필요한 경우에는 해당 기간 동안 보관합니다.</p>
+    <table class="pp-table">
+      <tr><th>정보 유형</th><th>보유 기간</th></tr>
+      <tr><td>아동 치료 정보 (진단·기록·평가)</td><td>탈퇴 또는 센터 이용 종료 후 <strong>5년</strong></td></tr>
+      <tr><td>치료사·관리자 계정 정보</td><td>탈퇴 또는 센터 이용 종료 후 <strong>5년</strong></td></tr>
+      <tr><td>학부모 계정 정보</td><td>탈퇴 또는 센터 이용 종료 후 <strong>5년</strong></td></tr>
+      <tr><td>접속·오류 로그</td><td>수집일로부터 1년</td></tr>
+    </table>
+
+    <!-- 제4조: 제3자 제공 -->
+    <h2>제4조 (개인정보의 제3자 제공)</h2>
+    <p>아이마디는 수집한 개인정보를 원칙적으로 제3자에게 제공하지 않습니다. 단, 다음의 경우는 예외입니다.</p>
+    <ul>
+      <li>정보 주체(보호자)의 명시적 동의가 있는 경우</li>
+      <li>법령에 근거하거나 수사기관의 적법한 요청이 있는 경우</li>
+    </ul>
+
+    <!-- 제5조: 처리 위탁 -->
+    <h2>제5조 (개인정보 처리 위탁)</h2>
+    <p>아이마디는 원활한 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를 위탁하고 있으며, 위탁 계약 시 개인정보 보호 관련 법규를 준수하도록 규정합니다.</p>
+    <table class="pp-table">
+      <tr><th>수탁업체</th><th>국가</th><th>위탁 업무</th><th>보유 기간</th></tr>
+      <tr><td>Supabase Inc.</td><td>미국</td><td>데이터베이스 및 파일 저장 (서버 운영)</td><td>계약 종료 시까지</td></tr>
+      <tr><td>Anthropic PBC</td><td>미국</td><td>AI 보고서·메모 생성 (세션 내용 임시 처리)</td><td>API 요청 처리 후 즉시 파기</td></tr>
+    </table>
+
+    <!-- 제6조: 정보주체 권리 -->
+    <h2>제6조 (정보 주체의 권리)</h2>
+    <p>아동의 보호자 및 서비스 이용자는 언제든지 다음 권리를 행사할 수 있습니다.</p>
+    <ul>
+      <li><strong>열람:</strong> 보유 중인 개인정보의 열람 요청</li>
+      <li><strong>수정:</strong> 오류가 있는 경우 정정 요청</li>
+      <li><strong>삭제:</strong> 불필요한 개인정보의 삭제 요청 (단, 법령상 보존 의무가 있는 경우 제외)</li>
+      <li><strong>처리정지:</strong> 개인정보 처리의 정지 요청</li>
+    </ul>
+    <p>권리 행사는 아래 개인정보보호 담당자에게 이메일로 요청하시면 10영업일 이내에 처리합니다.</p>
+
+    <!-- 제7조: 파기 -->
+    <h2>제7조 (개인정보의 파기 절차 및 방법)</h2>
+    <p>개인정보는 보유 기간이 경과하거나 처리 목적이 달성된 경우 즉시 파기합니다.</p>
+    <ul>
+      <li><strong>전자파일:</strong> 복구 불가능한 방법으로 영구 삭제 (덮어쓰기 또는 즉시 삭제)</li>
+      <li><strong>서면 자료:</strong> 분쇄 또는 소각</li>
+      <li><strong>센터 해지 시:</strong> 해지일로부터 30일 이내 아동 데이터 파기 처리</li>
+    </ul>
+
+    <!-- 제8조: 보호책임자 -->
+    <h2>제8조 (개인정보보호 담당자)</h2>
+    <div class="pp-contact">
+      <p><strong>서비스명:</strong> 아이마디 (MADI)</p>
+      <p><strong>개인정보보호 담당자:</strong> [담당자명 입력 필요]</p>
+      <p><strong>연락처:</strong> [연락처 입력 필요]</p>
+      <p><strong>문의 처리 기간:</strong> 접수 후 10영업일 이내</p>
+    </div>
+    <p style="margin-top:14px;">개인정보 처리와 관련한 불만이나 피해 구제는 아래 기관에도 신청하실 수 있습니다.</p>
+    <ul>
+      <li>개인정보보호위원회: <a href="https://www.pipc.go.kr" target="_blank" rel="noopener noreferrer">www.pipc.go.kr</a> / 국번없이 182</li>
+      <li>한국인터넷진흥원 개인정보침해신고센터: <a href="https://privacy.kisa.or.kr" target="_blank" rel="noopener noreferrer">privacy.kisa.or.kr</a> / 국번없이 118</li>
+    </ul>
+
+    <!-- 제9조: 시행일 -->
+    <h2>제9조 (개인정보처리방침 시행 및 변경)</h2>
+    <p>본 방침은 <strong>2025년 1월 1일</strong>부터 시행됩니다.</p>
+    <p>본 방침이 변경될 경우 시행일 최소 7일 전에 서비스 내 공지사항을 통해 안내합니다. 민감정보 처리 등 중요한 사항이 변경될 경우 30일 전에 별도 동의를 받겠습니다.</p>
+
+    <div class="pp-footer">
+      <p>아이마디(MADI) 2025</p>
+    </div>
+
   </div>
-
-  <!-- 1조 -->
-  <h2>제1조 (개인정보처리방침의 목적)</h2>
-  <p>아이마디(이하 "서비스")는 언어재활 치료사 및 언어재활 센터가 아동의 치료를 체계적으로 관리할 수 있도록 지원하는 SaaS 플랫폼입니다. 본 방침은 「개인정보보호법」에 따라 수집·이용·보관하는 개인정보의 처리 기준을 명시합니다.</p>
-
-  <!-- 2조 -->
-  <h2>제2조 (수집하는 개인정보 항목)</h2>
-
-  <h3>① 서비스 이용자 (치료사·센터 관리자)</h3>
-  <table>
-    <tr><th>항목</th><th>수집 목적</th><th>보유 기간</th></tr>
-    <tr><td>이름, 소속 센터</td><td>계정 생성 및 식별</td><td>회원 탈퇴 후 30일</td></tr>
-    <tr><td>접속 로그, IP</td><td>보안·부정 이용 방지</td><td>1년</td></tr>
-    <tr><td>Claude API 사용량</td><td>서비스 운영 및 과금</td><td>1년</td></tr>
-  </table>
-
-  <h3>② 아동 (치료 대상)</h3>
-  <div class="sensitive">
-    <div class="sensitive-title">🔴 민감정보 — 개인정보보호법 제23조 적용</div>
-    아동의 진단명, 치료 기록, 평가 결과는 건강 정보에 해당하는 민감정보로, 별도의 동의 없이는 제3자에게 제공되지 않습니다.
-  </div>
-  <table>
-    <tr><th>항목</th><th>수집 목적</th><th>보유 기간</th></tr>
-    <tr><td>이름, 생년월일, 성별</td><td>치료 대상 식별</td><td>센터 삭제 또는 요청 시까지</td></tr>
-    <tr><td>진단명, 장애 유형</td><td>치료 계획 수립</td><td>동일</td></tr>
-    <tr><td>세션 기록, 목표 달성률</td><td>치료 경과 추적</td><td>동일</td></tr>
-    <tr><td>평가 결과 (K-DST, SP2 등)</td><td>표준화 검사 결과 관리</td><td>동일</td></tr>
-    <tr><td>보호자 연락처</td><td>치료 연계 및 안내</td><td>동일</td></tr>
-  </table>
-
-  <!-- 3조 -->
-  <h2>제2조의2 (만 14세 미만 아동의 개인정보 처리)</h2>
-  <p>아이마디는 언어재활 치료 대상 아동의 정보를 다루며, 「개인정보보호법」 제22조의2 및 「아동·청소년의 성보호에 관한 법률」을 준수합니다.</p>
-  <div class="sensitive">
-    <div class="sensitive-title">법정대리인 동의 필수</div>
-    <p>만 14세 미만 아동에 관한 개인정보(이름, 생년월일, 진단, 치료기록, 평가결과 등)는 반드시 <strong>법정대리인(부모 또는 보호자)의 동의</strong>를 받은 후에만 수집·이용·저장됩니다.</p>
-  </div>
-  <h3>아동 정보 수집·이용 절차</h3>
-  <ul>
-    <li>치료 계약 체결 시 보호자로부터 개인정보 수집·이용 동의서를 서면 또는 전자 서명으로 수령</li>
-    <li>본 서비스에 등록되는 모든 아동 정보는 위 동의서를 근거로 함</li>
-    <li>보호자는 언제든지 동의를 철회할 수 있으며, 철회 시 즉시 해당 아동의 데이터 처리를 중단</li>
-    <li>학부모 포털 계정 발급 시, 본인이 해당 아동의 법정대리인임을 확인한 후 발급</li>
-  </ul>
-  <h3>보호자가 행사할 수 있는 권리</h3>
-  <ul>
-    <li>아동 개인정보 열람·정정·삭제·처리정지 요청</li>
-    <li>아동 데이터 다운로드(이동권) 요청</li>
-    <li>동의 철회 및 계정 해지 요청</li>
-  </ul>
-  <p style="font-size:13px;color:#64748b;">※ 본 서비스는 아동이 직접 가입하거나 정보를 입력하는 구조가 아니며, 모든 등록·수정은 권한이 부여된 치료사 또는 보호자에 의해서만 가능합니다.</p>
-
-  <h2>제3조 (개인정보의 처리 목적)</h2>
-  <ul>
-    <li>언어재활 세션 기록 및 치료 경과 관리</li>
-    <li>IEP(개별화 교육 계획) 및 AI 보고서 자동 생성</li>
-    <li>치료사 간 업무 협력 및 스케줄 관리</li>
-    <li>부모 리포트 및 가정 연계 활동 안내</li>
-    <li>서비스 이용 통계 및 품질 개선</li>
-  </ul>
-
-  <!-- 4조 -->
-  <h2>제4조 (개인정보의 제3자 제공)</h2>
-  <p>아이마디는 수집한 개인정보를 원칙적으로 제3자에게 제공하지 않습니다. 단, 다음의 경우는 예외입니다.</p>
-  <ul>
-    <li>정보 주체(보호자)의 명시적 동의가 있는 경우</li>
-    <li>법령에 근거하거나 수사기관의 적법한 요청이 있는 경우</li>
-  </ul>
-
-  <!-- 5조 -->
-  <h2>제5조 (개인정보 처리 위탁)</h2>
-  <table>
-    <tr><th>수탁업체</th><th>위탁 업무</th><th>보유 기간</th></tr>
-    <tr><td>Supabase Inc.</td><td>데이터베이스 및 파일 저장</td><td>계약 종료 시까지</td></tr>
-    <tr><td>Anthropic PBC</td><td>AI 보고서·메모 생성 (세션 내용 임시 처리)</td><td>API 요청 처리 후 즉시 파기</td></tr>
-    <tr><td>GitHub Inc.</td><td>서비스 배포 (코드만, 개인정보 미포함)</td><td>계약 종료 시까지</td></tr>
-  </table>
-
-  <!-- 6조 -->
-  <h2>제6조 (개인정보의 보유 및 파기)</h2>
-  <p>개인정보는 수집 목적이 달성된 후 지체 없이 파기합니다. 전자파일 형태는 복구 불가능한 방법으로 삭제하며, 서면은 분쇄 또는 소각합니다.</p>
-  <ul>
-    <li><strong>센터 해지 시:</strong> 해지일로부터 30일 이내 모든 아동 데이터 파기</li>
-    <li><strong>아동 종결 처리 후:</strong> 보호자 요청 시 즉시 파기 가능</li>
-    <li><strong>법령 의무 보존:</strong> 해당 법령이 정한 기간 동안 보관 후 파기</li>
-  </ul>
-
-  <!-- 7조 -->
-  <h2>제7조 (정보 주체의 권리)</h2>
-  <p>아동의 보호자 및 치료사는 언제든지 다음 권리를 행사할 수 있습니다.</p>
-  <ul>
-    <li>개인정보 열람 요청</li>
-    <li>오류가 있는 경우 정정 요청</li>
-    <li>삭제 요청 (단, 법령상 보존 의무가 있는 경우 제외)</li>
-    <li>처리 정지 요청</li>
-  </ul>
-  <p>권리 행사는 아래 개인정보보호 담당자에게 이메일로 요청하시면 10일 이내에 처리합니다.</p>
-
-  <!-- 8조 -->
-  <h2>제8조 (개인정보의 안전성 확보 조치)</h2>
-  <ul>
-    <li><strong>암호화:</strong> 비밀번호 SHA-256 해시 처리, 전송 구간 TLS 1.2 이상 적용</li>
-    <li><strong>접근 제한:</strong> Supabase RLS(행 수준 보안)로 센터 간 데이터 격리</li>
-    <li><strong>권한 관리:</strong> 슈퍼관리자·센터장·치료사 역할 분리, 최소 권한 원칙 적용</li>
-    <li><strong>접속 로그:</strong> 비정상 접근 탐지 및 기록 보관</li>
-    <li><strong>AI 처리:</strong> AI 보고서 생성 시 Anthropic API에 전달되는 데이터는 세션 처리 후 즉시 파기됨을 계약으로 보장</li>
-  </ul>
-
-  <!-- 9조 -->
-  <h2>제9조 (쿠키 및 서비스 워커)</h2>
-  <p>아이마디는 로그인 상태 유지를 위해 브라우저 localStorage를 사용합니다. 마케팅 목적의 쿠키나 추적 스크립트는 사용하지 않습니다. 서비스 워커(SW)는 오프라인 접속 지원 목적으로만 운영됩니다.</p>
-
-  <!-- 10조 -->
-  <h2>제10조 (개인정보보호 담당자)</h2>
-  <div class="contact">
-    <p><strong>서비스명:</strong> 아이마디 (아이마디)</p>
-    <p><strong>개인정보보호 담당자:</strong> 남재현</p>
-    <p><strong>이메일:</strong> namga1541@gmail.com</p>
-    <p><strong>문의 처리 기간:</strong> 접수 후 10영업일 이내</p>
-  </div>
-  <p style="margin-top:14px;">개인정보 처리와 관련한 불만이나 피해 구제는 아래 기관에도 신청하실 수 있습니다.</p>
-  <ul>
-    <li>개인정보보호위원회: <a href="https://www.pipc.go.kr" target="_blank" rel="noopener noreferrer">www.pipc.go.kr</a> / 국번없이 182</li>
-    <li>한국인터넷진흥원 개인정보침해신고센터: <a href="https://privacy.kisa.or.kr" target="_blank" rel="noopener noreferrer">privacy.kisa.or.kr</a> / 국번없이 118</li>
-  </ul>
-
-  <!-- 11조 -->
-  <h2>제11조 (방침의 변경)</h2>
-  <p>본 방침이 변경될 경우 시행일 최소 7일 전에 서비스 내 공지사항을 통해 안내합니다. 중요한 사항(민감정보 처리 등)이 변경될 경우 30일 전에 별도 동의를 받겠습니다.</p>
-
-  <div class="footer">
-    <p>© 2026 아이마디. 본 개인정보처리방침은 2026년 5월 9일부터 시행되며, 2026년 5월 23일 만 14세 미만 아동 개인정보 처리 조항(제2조의2)이 추가되었습니다.</p>
-  </div>
-
-</div>
 </body>
 </html>

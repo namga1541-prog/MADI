@@ -168,6 +168,8 @@ function loadParentHome() {
   // 알림 카드 먼저 로드 (홈 진입 시마다)
   loadParentNotifications();
   loadParentPushToggle();
+  // 관찰기록 섹션 (홈 하단 — 아동 ID 필요하므로 내부에서 getMyChildInfo 재호출)
+  if (typeof loadParentObservations === 'function') loadParentObservations();
   getMyChildInfo(function(childId, centerId) {
     renderParentChildSwitcher();
     var today = getTodayKST();

@@ -789,3 +789,81 @@ function populateChildSelects() {
     acWrap.appendChild(acSel._ssWrap);
   }
 }
+
+// ─────── 발화 샘플 분석 (MLU · TTR) ───────
+function toggleSpeechPanel() {
+  var panel = document.getElementById('speechSamplePanel');
+  var btn   = document.getElementById('speechPanelToggleBtn');
+  if (!panel) return;
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (btn) {
+    btn.style.background = isOpen ? '#f0f9ff' : '#e0f2fe';
+    btn.style.borderColor = isOpen ? '' : '#0369a1';
+  }
+}
+
+function analyzeSpeechSample(text) {
+  var lines = text.split('\n').filter(function(l) { return l.trim().length > 0; });
+  if (!lines.length) return null;
+  var allWords = [];
+  for (var i = 0; i < lines.length; i++) {
+    allWords = allWords.concat(lines[i].trim().split(/\s+/));
+  }
+  var uniq = {};
+  for (var j = 0; j < allWords.length; j++) {
+    uniq[allWords[j].toLowerCase()] = 1;
+  }
+  var ucount = Object.keys(uniq).length;
+  return {
+    utterances:  lines.length,
+    totalWords:  allWords.length,
+    uniqueWords: ucount,
+    mlu:  Math.round(allWords.length / lines.length * 100) / 100,
+    ttr:  Math.round(ucount / allWords.length * 1000) / 10
+  };
+}
+
+function runSpeechAnalysis() {
+  var inp = document.getElementById('speechSampleInput');
+  var resultBox  = document.getElementById('speechAnalysisResult');
+  var statsEl    = document.getElementById('speechAnalysisStats');
+  if (!inp || !resultBox || !statsEl) return;
+  var text = inp.value.trim();
+  if (!text) { showToast('⚠️ 발화 내용을 입력해주세요'); return; }
+  var r = analyzeSpeechSample(text);
+  if (!r) { showToast('⚠️ 유효한 발화가 없습니다'); return; }
+
+  var items = [
+    { label: '📝 발화 수',    value: r.utterances + '개',                 color: '#0369a1' },
+    { label: '🔤 총 단어수',   value: r.totalWords + '개',                 color: '#0369a1' },
+    { label: '💡 고유 단어수', value: r.uniqueWords + '개',                color: '#7c3aed' },
+    { label: '📏 MLU',        value: r.mlu + ' 어절/발화',                color: '#059669' },
+    { label: '🌈 TTR',        value: r.ttr + '%',                         color: '#dc2626' }
+  ];
+
+  var html = '';
+  for (var k = 0; k < items.length; k++) {
+    html += '<div style="background:#fff;border-radius:8px;padding:8px 10px;border:1px solid #e2e8f0;">'
+      + '<div style="font-size:11px;color:var(--text2);margin-bottom:2px;">' + escHtml(items[k].label) + '</div>'
+      + '<div style="font-size:16px;font-weight:700;color:' + escHtml(items[k].color) + ';">' + escHtml(items[k].value) + '</div>'
+      + '</div>';
+  }
+  // eslint-disable-next-line no-unsanitized/property
+  statsEl.innerHTML = html;
+  resultBox.style.display = 'block';
+}
+
+function appendSpeechResultToMemo() {
+  var inp     = document.getElementById('speechSampleInput');
+  var memoEl  = document.getElementById('sessionMemo');
+  if (!inp || !memoEl) return;
+  var text = inp.value.trim();
+  if (!text) { showToast('⚠️ 분석 결과가 없습니다'); return; }
+  var r = analyzeSpeechSample(text);
+  if (!r) { showToast('⚠️ 분석 결과가 없습니다'); return; }
+  var summary = '[발화 분석] 발화수 ' + r.utterances + '개 / 총단어 ' + r.totalWords + '개 / 고유단어 ' + r.uniqueWords + '개 / MLU ' + r.mlu + ' / TTR ' + r.ttr + '%';
+  var cur = memoEl.value.trim();
+  memoEl.value = cur ? cur + '\n' + summary : summary;
+  showToast('✅ 세션 메모에 분석 결과가 추가되었습니다');
+}

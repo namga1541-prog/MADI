@@ -609,3 +609,153 @@ function _unsubscribePush(sub) {
     });
   }).catch(function(e){ showToast('⚠️ 알림 해제 실패: ' + (e.message || '오류가 발생했습니다')); });
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// 📝 학부모 관찰기록 전송 (가정 관찰 → 선생님 전달)
+// ══════════════════════════════════════════════════════════════════════
+
+// 카테고리 레이블 맵
+var _obsCategories = {
+  'speech':    '말/언어발달',
+  'behavior':  '행동/정서',
+  'general':   '기타'
+};
+
+// ─── 관찰기록 홈 패널 렌더링 (홈 탭 하단에 삽입) ───
+function loadParentObservations() {
+  if (!currentUser || currentUser.role !== 'parent') return;
+  var container = document.getElementById('parentObsSection');
+  if (!container) return;
+
+  getMyChildInfo(function(childId, centerId) {
+    _renderParentObsForm(container, childId, centerId);
+    _loadParentObsList(childId, centerId);
+  });
+}
+
+// 관찰기록 입력 폼 렌더링
+function _renderParentObsForm(container, childId, centerId) {
+  // eslint-disable-next-line no-unsanitized/property
+  container.innerHTML =
+    '<div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+    + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">📝 관찰 기록 보내기</div>'
+    + '<div style="margin-bottom:10px;">'
+    +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">분류</label>'
+    +   '<select id="parentObsCategorySelect" class="form-input" style="margin-bottom:0;">'
+    +     '<option value="speech">말/언어발달</option>'
+    +     '<option value="behavior">행동/정서</option>'
+    +     '<option value="general" selected>기타</option>'
+    +   '</select>'
+    + '</div>'
+    + '<div style="margin-bottom:10px;">'
+    +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">오늘 가정에서 관찰한 내용</label>'
+    +   '<textarea id="parentObsTextarea" class="form-input" rows="4" placeholder="예: 오늘 밥을 먹으면서 \'엄마\' 라는 말을 두 번 했어요. 새로운 단어를 따라 하려는 모습을 보였습니다." style="resize:vertical;min-height:90px;margin-bottom:0;"></textarea>'
+    + '</div>'
+    + '<button id="parentObsSendBtn" onclick="submitParentObservation(\'' + childId + '\',\'' + centerId + '\')" '
+    +   'style="width:100%;padding:11px;background:var(--mint);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">전송하기</button>'
+    + '</div>'
+    + '<div id="parentObsList" style="margin-bottom:12px;"><div class="loading"><div class="spinner"></div><p>불러오는 중...</p></div></div>';
+}
+
+// 관찰기록 전송
+function submitParentObservation(childId, centerId) {
+  if (!currentUser || currentUser.role !== 'parent') return;
+  var textarea = document.getElementById('parentObsTextarea');
+  var catSel   = document.getElementById('parentObsCategorySelect');
+  var btn      = document.getElementById('parentObsSendBtn');
+  if (!textarea || !catSel || !btn) return;
+
+  var content  = textarea.value.trim();
+  var category = catSel.value || 'general';
+
+  if (!content) {
+    showToast('⚠️ 관찰 내용을 입력해주세요');
+    textarea.focus();
+    return;
+  }
+  if (content.length > 2000) {
+    showToast('⚠️ 내용이 너무 깁니다 (최대 2,000자)');
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = '⏳ 전송 중...';
+
+  supaFetch('madi_parent_observations', 'POST', {
+    parent_user_id: currentUser.id,
+    child_id:       String(childId),
+    center_id:      centerId,
+    content:        content,
+    category:       category
+  }).then(function() {
+    showToast('✅ 관찰 기록이 전송됐습니다');
+    textarea.value  = '';
+    catSel.value    = 'general';
+    btn.disabled    = false;
+    btn.textContent = '전송하기';
+    _loadParentObsList(childId, centerId);
+  }).catch(function(err) {
+    btn.disabled    = false;
+    btn.textContent = '전송하기';
+    showToast('❌ 전송 실패: ' + ((err && err.message) || '오류가 발생했습니다'));
+  });
+}
+
+// 내 관찰기록 목록 불러오기 (최근 5개)
+function _loadParentObsList(childId, centerId) {
+  var listEl = document.getElementById('parentObsList');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="loading"><div class="spinner"></div><p>불러오는 중...</p></div>';
+
+  supaFetch(
+    'madi_parent_observations'
+    + '?parent_user_id=eq.' + encodeURIComponent(currentUser.id)
+    + '&child_id=eq.'       + encodeURIComponent(String(childId))
+    + '&center_id=eq.'      + encodeURIComponent(centerId)
+    + '&order=created_at.desc&limit=5',
+    'GET'
+  ).then(function(rows) {
+    if (!Array.isArray(rows) || rows.length === 0) {
+      // eslint-disable-next-line no-unsanitized/property
+      listEl.innerHTML = '<div class="empty" style="padding:10px 0;"><div class="empty-icon">📋</div><p style="font-size:12px;color:var(--text2);">전송한 관찰기록이 없습니다</p></div>';
+      return;
+    }
+    // eslint-disable-next-line no-unsanitized/property
+    listEl.innerHTML =
+      '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">내가 보낸 최근 기록</div>'
+      + rows.map(_renderParentObsCard).join('');
+  }).catch(function() {
+    // eslint-disable-next-line no-unsanitized/property
+    listEl.innerHTML = '<div class="empty"><p style="font-size:12px;color:var(--text2);">목록을 불러오지 못했습니다</p></div>';
+  });
+}
+
+// 관찰기록 카드 렌더링
+function _renderParentObsCard(row) {
+  var catLabel  = _obsCategories[row.category] || '기타';
+  var dateStr   = (row.created_at || '').slice(0, 10);
+  var hasReply  = !!(row.teacher_reply);
+  var replyDate = hasReply ? (row.replied_at || '').slice(0, 10) : '';
+
+  var replyHtml = '';
+  if (hasReply) {
+    replyHtml =
+      '<div style="margin-top:10px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:10px;padding:10px 12px;">'
+      + '<div style="font-size:11px;font-weight:700;color:#15803d;margin-bottom:4px;">👩‍⚕️ 선생님 답글 · ' + escHtml(replyDate) + '</div>'
+      + '<div style="font-size:13px;line-height:1.7;color:#166534;">' + escHtml(row.teacher_reply) + '</div>'
+      + '</div>';
+  } else {
+    replyHtml =
+      '<div style="margin-top:8px;font-size:11px;color:var(--text2);font-style:italic;">답글 대기 중...</div>';
+  }
+
+  return '<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">'
+    +   '<span style="font-size:11px;font-weight:700;background:var(--bg);color:var(--text2);padding:3px 9px;border-radius:10px;">' + escHtml(catLabel) + '</span>'
+    +   '<span style="font-size:11px;color:var(--text2);">' + escHtml(dateStr) + '</span>'
+    +   (hasReply ? '<span style="font-size:11px;font-weight:700;color:#15803d;background:#f0fdf4;padding:3px 9px;border-radius:10px;">답글 도착</span>' : '')
+    + '</div>'
+    + '<div style="font-size:13px;line-height:1.75;color:var(--text);white-space:pre-wrap;">' + escHtml(row.content) + '</div>'
+    + replyHtml
+    + '</div>';
+}

@@ -662,10 +662,10 @@ var ASSESS_SCHEMA = {
     {key:'sentPct',   label:'문장수준 %ile', type:'num'}
   ],
   'PFA': [
-    {key:'totalPct',  label:'전체 말더듬 심도 %ile', type:'num'},
-    {key:'frequency', label:'말더듬 빈도 (%)', type:'num'},
-    {key:'duration',  label:'평균 지속시간 (초)', type:'text', ph:'예: 1.2'},
-    {key:'severity',  label:'심도 등급', type:'text', ph:'예: 경도/중도/심도'}
+    {key:'sld_pct',          label:'SLD% (말더듬유사비유창성)', type:'num',  ph:'예: 8.5',  manual:true},
+    {key:'nd_pct',           label:'ND% (정상비유창성)',         type:'num',  ph:'예: 3.2',  manual:true},
+    {key:'total_disfluency', label:'총비유창성%',                type:'num',  ph:'예: 11.7', manual:true},
+    {key:'spm',              label:'말속도 (SPM, 음절/분)',      type:'num',  ph:'예: 180',  manual:true}
   ],
   'LSSC': [
     {key:'semanticRaw',   label:'의미 원점수', type:'num'},

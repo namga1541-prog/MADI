@@ -4,6 +4,9 @@ var _madiApiKey = '';
 function loadCenterApiKey(showFeedback) {
   // Supabase에서 센터 공용 API 키 로드
   // cowork High #4: 클라이언트 localStorage 캐싱 제거 (DevTools 추출 방지)
+  // TODO: add_center_api_keys.sql 실행 후 아래 주석 해제
+  // supaFetch('madi_center_settings?center_id=eq.'+currentUser.center_id,'GET')
+  //   .then(function(r){ if(r&&r[0]&&r[0].anthropic_api_key) window._madiApiKey=r[0].anthropic_api_key; });
   return supaFetch('madi_settings?key=eq.api_key&select=value', 'GET')
     .then(function(rows) {
       if (!rows || rows.length === 0 || !rows[0].value) {

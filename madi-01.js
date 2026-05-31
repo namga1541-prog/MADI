@@ -192,9 +192,40 @@ function supaCacheInvalidate(pathOrTable) {
 }
 function supaCacheClearAll() { _supaCache = {}; }
 
+// ─── 오프라인 쓰기 큐 ───────────────────────────────────────────────
+var _offlineQueue = [];
+var _offlineQueueBusy = false;
+(function(){
+  try { var s = localStorage.getItem('_madiOQ'); if (s) _offlineQueue = JSON.parse(s); } catch(e){}
+})();
+function _oqSave(){ try { localStorage.setItem('_madiOQ', JSON.stringify(_offlineQueue)); } catch(e){} }
+function _oqEnqueue(path, method, body){
+  _offlineQueue.push({path: path, method: method, body: body});
+  _oqSave();
+  if (typeof showToast === 'function') showToast('📶 오프라인 상태 — 연결 시 자동 저장됩니다.');
+}
+function _oqFlush(){
+  if (_offlineQueueBusy || !_offlineQueue.length) return;
+  _offlineQueueBusy = true;
+  var item = _offlineQueue[0];
+  supaFetch(item.path, item.method, item.body)
+    .then(function(){
+      _offlineQueue.shift(); _oqSave(); _offlineQueueBusy = false;
+      if (_offlineQueue.length) setTimeout(_oqFlush, 500);
+      else if (typeof showToast === 'function') showToast('✅ 오프라인 기록이 저장되었습니다.');
+    }).catch(function(){ _offlineQueueBusy = false; });
+}
+window.addEventListener('online', function(){ setTimeout(_oqFlush, 1000); });
+// ─────────────────────────────────────────────────────────────────────
+
 function supaFetch(path, method, body, opts) {
   var m = method || 'GET';
   opts = opts || {};
+  // 오프라인 상태에서 쓰기 요청은 큐에 적재 후 즉시 반환
+  if (!navigator.onLine && (m === 'POST' || m === 'PATCH' || m === 'DELETE')) {
+    _oqEnqueue(path, m, body);
+    return Promise.resolve({_queued: true});
+  }
   // GET 캐시 hit 시 즉시 반환 (네트워크 우회)
   if (m === 'GET' && !opts.noCache) {
     var cached = _supaCacheGet(path);

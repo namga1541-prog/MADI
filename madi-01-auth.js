@@ -157,6 +157,24 @@ function doLogin(_totpCode) {
     hideLoginScreen(); if (typeof applyUserUI === 'function') applyUserUI(); if (typeof applyRoleUI === 'function') applyRoleUI(); if (typeof loadCenterApiKey === 'function') loadCenterApiKey(); if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(); if (typeof initRealtime === 'function') initRealtime(); if (typeof loadCenterSessionInterval === 'function') loadCenterSessionInterval();
     // 로그인 직후 마디 업데이트 팝업 표시 (대시보드 렌더 후 약간의 딜레이)
     setTimeout(function(){ if (typeof showLoginUpdatePopup === 'function') showLoginUpdatePopup(); }, 500);
+    // 2FA 미설정 경고 모달 (admin/superadmin 대상)
+    if ((currentUser.role === 'admin' || currentUser.role === 'superadmin') && !currentUser.totp_enabled) {
+      setTimeout(function() {
+        if (sessionStorage.getItem('_2fa_warned')) return;
+        sessionStorage.setItem('_2fa_warned', '1');
+        var modal = document.createElement('div');
+        modal.id = '_2faWarnModal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+        modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;margin:16px;text-align:center;">' +
+          '<div style="font-size:40px;margin-bottom:12px;">🔐</div>' +
+          '<h3 style="margin:0 0 12px;font-size:18px;color:#1e293b;">2단계 인증 설정 필요</h3>' +
+          '<p style="margin:0 0 20px;font-size:14px;color:#64748b;line-height:1.6;">관리자 계정은 보안을 위해 2단계 인증(TOTP) 설정을 권장합니다.</p>' +
+          '<button onclick="document.getElementById(\'_2faWarnModal\').remove();" style="background:#e2e8f0;color:#475569;border:none;padding:10px 20px;border-radius:8px;margin-right:8px;cursor:pointer;font-size:14px;">나중에</button>' +
+          '<button onclick="document.getElementById(\'_2faWarnModal\').remove();if(typeof switchTab===\'function\')switchTab(5);" style="background:#4f46e5;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;">지금 설정</button>' +
+          '</div>';
+        document.body.appendChild(modal);
+      }, 1500);
+    }
   }).catch(function() {
     if (btn) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🔐 로그인'; }
     if (errEl) errEl.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';

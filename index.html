@@ -808,7 +808,7 @@
           <h5>지원</h5>
           <a href="mailto:namga1541@gmail.com">문의하기</a>
           <a href="./privacy.html" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>
-          <a href="mailto:namga1541@gmail.com?subject=서비스 이용약관 문의">이용약관 문의</a>
+          <a href="terms.html" target="_blank" rel="noopener noreferrer">이용약관</a>
         </div>
         <div class="lp-footer-col">
           <h5>회사</h5>
@@ -931,7 +931,7 @@
       </div>
     </div>
     <div class="login-form-meta">
-      <a href="#" onclick="return false;">개인정보 처리방침</a> · <a href="#" onclick="return false;">이용약관</a>
+      <a href="privacy.html" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a> · <a href="terms.html" target="_blank" rel="noopener noreferrer">이용약관</a>
     </div>
   </div>
 
@@ -1042,7 +1042,7 @@
       </div>
     </div>
     <div class="login-form-meta">
-      <a href="#" onclick="return false;">개인정보 처리방침</a> · <a href="#" onclick="return false;">이용약관</a>
+      <a href="privacy.html" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a> · <a href="terms.html" target="_blank" rel="noopener noreferrer">이용약관</a>
     </div>
   </div>
 
@@ -1163,7 +1163,7 @@
       </div>
     </div>
     <div class="login-form-meta">
-      <a href="#" onclick="return false;">개인정보 처리방침</a> · <a href="#" onclick="return false;">이용약관</a>
+      <a href="privacy.html" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a> · <a href="terms.html" target="_blank" rel="noopener noreferrer">이용약관</a>
     </div>
   </div>
 
@@ -1467,6 +1467,25 @@
                 <input class="form-input" id="phonemeCustomInput" placeholder="직접 입력 (예: ㅈ)" style="flex:1;font-size:13px;padding:7px 10px;" maxlength="3" onkeydown="if(event.key==='Enter'){addPhonemeRow(document.getElementById('phonemeCustomInput').value);this.value='';}">
                 <button class="btn-ghost" style="flex-shrink:0;padding:7px 12px;" onclick="var v=document.getElementById('phonemeCustomInput').value;if(v){addPhonemeRow(v);document.getElementById('phonemeCustomInput').value='';}">추가</button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 발화 샘플 분석 패널 -->
+        <div class="form-group" style="margin-top:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <button class="add-goal-btn" id="speechPanelToggleBtn" onclick="toggleSpeechPanel()" style="background:#f0f9ff;color:#0369a1;font-size:12px;">💬 발화 샘플 분석 (MLU·TTR)</button>
+          </div>
+          <div id="speechSamplePanel" style="display:none;">
+            <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5;">
+              발화를 줄바꿈으로 구분하여 입력하면 평균발화길이(MLU)와 어휘다양도(TTR)를 자동으로 계산합니다.
+            </div>
+            <textarea class="form-input" id="speechSampleInput" placeholder="예:&#10;엄마 밥 줘&#10;나 이거 싫어&#10;강아지가 뛰어가요" style="min-height:100px;font-size:13px;"></textarea>
+            <button class="btn-ghost" style="margin-top:6px;width:100%;" onclick="runSpeechAnalysis()">📊 분석</button>
+            <div id="speechAnalysisResult" style="display:none;margin-top:10px;padding:12px;background:#f8fafc;border-radius:10px;border:1px solid var(--border);">
+              <div style="font-size:12px;font-weight:700;color:var(--mint);margin-bottom:8px;">📊 분석 결과</div>
+              <div id="speechAnalysisStats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
+              <button class="btn-ghost" style="width:100%;font-size:12px;" onclick="appendSpeechResultToMemo()">📋 세션 메모에 추가</button>
             </div>
           </div>
         </div>
@@ -2151,6 +2170,9 @@
         </div>
       </div>
     </div>
+
+    <!-- 📝 관찰기록 전송 섹션 -->
+    <div id="parentObsSection" style="margin-top:12px;"></div>
   </div>
 </div>
 
