@@ -534,6 +534,19 @@ function renderDashboardAdmin() {
   }).length;
   var kTotal = _children.length;
 
+  // 이번 달 매출 추정 (바우처 단가 × 완료 세션)
+  var _childMap = {};
+  _children.forEach(function(c){ _childMap[String(c.id)] = c; });
+  var revTotal = 0;
+  var revByVoucher = {};
+  thisMonthSessions.forEach(function(s){
+    var child = _childMap[String(s.childId)] || null;
+    var price = _dpEstSessionPrice(child);
+    revTotal += price;
+    var vt = (child && child.voucherType) ? child.voucherType : '일반';
+    revByVoucher[vt] = (revByVoucher[vt] || 0) + price;
+  });
+
   // 이번 주 변동
   var weekChildren = _children.filter(function(c){
     var d = c.updatedAt || c.createdAt || c.regDate || '';
@@ -737,6 +750,31 @@ function renderDashboardAdmin() {
     +   '</div>'
     + '</div>';
 
+  // 매출 추정 패널 (바우처 단가 × 완료 세션)
+  var revBreakdownRows = Object.keys(revByVoucher).map(function(vt){
+    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f1f5f9;">'
+      + '<span style="color:#64748b;">' + escHtml(vt) + '</span>'
+      + '<span style="font-weight:600;">' + escHtml(_dpFmtWon(revByVoucher[vt])) + '</span>'
+      + '</div>';
+  }).join('');
+  var revOpen = !!window._dpRevOpen;
+  html += ''
+    + '<div class="dp-panel" style="margin-top:12px;">'
+    +   '<div class="dp-panel-head">'
+    +     '<div><div class="dp-panel-title">💰 이번 달 매출 추정</div>'
+    +       '<div class="dp-panel-sub">바우처 단가 × 완료 세션 기준 (추정값)</div></div>'
+    +     '<button id="dpRevToggleBtn" class="dp-panel-link" onclick="_dpToggleRevBreakdown()">'
+    +       '📌 바우처 단가 × 완료 세션 추정값 · ' + (revOpen ? '접기 ▴' : '자세히 ▾')
+    +     '</button>'
+    +   '</div>'
+    +   '<div class="dp-panel-body">'
+    +     '<div style="font-size:1.6rem;font-weight:700;color:#0f3b66;padding:8px 0;">' + escHtml(_dpFmtWon(revTotal)) + '</div>'
+    +     '<div id="dpRevBreakdown" style="' + (revOpen ? '' : 'display:none;') + 'padding-top:8px;">'
+    +       (revBreakdownRows || '<div class="dp-empty">세션 데이터 없음</div>')
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+
   // 상단 html 먼저 root 에 set, 이후 하단 패널을 append
   // eslint-disable-next-line no-unsanitized/property
   root.innerHTML = html;
@@ -908,10 +946,10 @@ function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
     .catch(function(e) {
       if (window.console && console.warn) console.warn('[silent dpAdmin teachers]', e && e.message);
       showToast('⚠️ 데이터 로드 실패');
-      var fallback = Object.keys(teacherStats).map(function(name){
-        var s = teacherStats[name];
+      var fallback = Object.keys(teacherStats).map(function(key){
+        var s = teacherStats[key];
         return {
-          name: name, count: Object.keys(s.children).length,
+          name: s.name || key, count: Object.keys(s.children).length,
           weekSched: s.weekSched, weekSession: s.weekSession, unwritten: s.unwritten,
           inactive: false
         };

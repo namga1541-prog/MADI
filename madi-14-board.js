@@ -443,6 +443,7 @@ function saveComment(postId) {
     author_id:   user.id,
     author_name: user.name,
     author_role: user.role,
+    center_id:   currentUser.center_id,
     content:     content
   };
 
@@ -990,5 +991,5 @@ function submitVocabFeedback() {
   // madi_audit_log는 RLS로 직접 INSERT 차단됨 → 실패를 무시하고 UI만 처리
   supaFetch('madi_audit_log', 'POST', [payload]).catch(function() {});
   closeVocabFeedbackModal();
-  showToast('✅ 신고 접수 완료! 검토 후 어휘 사전에 반영됩니다 🙏', { duration: 4000 });
+  showToast('📝 접수되었습니다. 검토 후 어휘 사전에 반영됩니다.', { duration: 4000 });
 }

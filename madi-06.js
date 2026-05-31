@@ -735,10 +735,10 @@ function populateChildSelects() {
   var sc = document.getElementById('sessionChild');
   if (sc) {
     sc.onchange = function() {
-      var id = parseInt(this.value);
+      var id = this.value;
       if (id) loadGoalRows(id);
     };
-    if (sc.value) loadGoalRows(parseInt(sc.value));
+    if (sc.value) loadGoalRows(sc.value);
     // 종결 아동 포함 토글 버튼 삽입 (중복 방지)
     if (!document.getElementById('sessionDischargedToggle')) {
       var toggleBtn = document.createElement('button');
@@ -773,7 +773,7 @@ function populateChildSelects() {
   if (ic && !ic._iepBound) {
     ic._iepBound = true;
     ic.addEventListener('change', function() {
-      var id = parseInt(this.value) || 0;
+      var id = this.value;
       renderIEPHistory(id);
     });
   }

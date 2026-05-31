@@ -873,16 +873,16 @@ function confirmSchedDelete(id, hasGroup) {
     + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--mint);border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="one" checked style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이번일정만</div></div></label>'
     + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="future" style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이후 반복일정포함</div></div></label>'
     + '</div><div style="display:flex;gap:8px;">'
-    + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove();document.removeEventListener(\'keydown\',_delEsc)">아니요</button>'
+    + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove();document.removeEventListener(\'keydown\',window._delEsc);window._delEsc=null;">아니요</button>'
     + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + escHtml(String(id)) + '\')">네, 삭제하겠습니다</button>'
     + '</div></div>';
   document.body.appendChild(delOv);
-  var _delEsc = function(e) {
+  window._delEsc = function(e) {
     var ol = document.getElementById('delSchedOverlay');
-    if (!ol) { document.removeEventListener('keydown', _delEsc); return; }
-    if (e.key === 'Escape') { ol.remove(); document.removeEventListener('keydown', _delEsc); }
+    if (!ol) { document.removeEventListener('keydown', window._delEsc); window._delEsc = null; return; }
+    if (e.key === 'Escape') { ol.remove(); document.removeEventListener('keydown', window._delEsc); window._delEsc = null; }
   };
-  document.addEventListener('keydown', _delEsc);
+  document.addEventListener('keydown', window._delEsc);
 }
 
 function execSchedDeleteChoice(id) {

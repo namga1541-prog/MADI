@@ -56,9 +56,9 @@ function isMyChild(childId) {
 function applyPermissions() {
   if (!currentUser) return;
   var isAdminOrSuper = getRoleFlags().isAdminOrSuper;
-  var settingsBtn = document.getElementById('tabBtn5');
+  var settingsBtn = document.getElementById('sbTab5');
   if (settingsBtn) settingsBtn.style.display = isAdminOrSuper ? '' : 'none';
-  var svcBtn = document.getElementById('tabBtn4');
+  var svcBtn = document.getElementById('sbTab4');
   if (svcBtn) svcBtn.style.display = isAdminOrSuper ? '' : 'none';
   if (isAdminOrSuper) return;
   if (!canDo('useAI')) { var aiSubBtn = document.getElementById('ptBtn_ai'); if (aiSubBtn) aiSubBtn.style.display = 'none'; }

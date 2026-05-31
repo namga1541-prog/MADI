@@ -469,6 +469,10 @@ function switchTab(idx) {
     var _bt = document.getElementById('bulkToggleBtn'); if (_bt) _bt.classList.remove('active');
     document.body.classList.remove('bulk-mode');
   }
+  // admin 전용 탭(4: 서비스관리, 5: 관리자설정) 권한 가드
+  if ((idx === 4 || idx === 5) && currentUser && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+    return;
+  }
   // 모든 패널 숨기기
   ALL_PANELS_NEW.forEach(function(id) {
     var p = document.getElementById(id);

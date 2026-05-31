@@ -883,7 +883,7 @@
 
         <div class="login-field">
           <label for="loginPwInput">비밀번호</label>
-          <input class="login-input" type="password" id="loginPwInput" placeholder="비밀번호를 입력하세요" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin();">
+          <input class="login-input" type="password" id="loginPwInput" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
         </div>
 
         <button class="login-btn-pri" id="loginSubmitBtn" onclick="doLogin()">로그인</button>
@@ -1218,7 +1218,7 @@
   <button class="more-menu-item" onclick="closeMoreMenu();switchTab(3);">
     <span class="mmi-ico" data-icon="folder" data-icon-size="18"></span><span>성장기록</span>
   </button>
-  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(4);">
+  <button class="more-menu-item" onclick="closeMoreMenu();switchTab(7);">
     <span class="mmi-ico" data-icon="clipboard" data-icon-size="18"></span><span>게시판</span>
   </button>
   <button class="more-menu-item" id="moreItemService" onclick="closeMoreMenu();goToAdmin('service');">
@@ -1294,7 +1294,7 @@
 <div id="noticeBanner" style="display:none;">
   <div class="notice-banner-track">
     <div class="notice-banner-icon">📢</div>
-    <div class="notice-banner-text" id="noticeBannerText" onclick="switchTab(4);switchBoardTab('center')"></div>
+    <div class="notice-banner-text" id="noticeBannerText" onclick="switchTab(7);switchBoardTab('center')"></div>
     <div class="notice-banner-dots" id="noticeBannerDots"></div>
     <button class="notice-banner-close" onclick="closeNoticeBanner()" title="닫기" aria-label="공지 배너 닫기">✕</button>
   </div>

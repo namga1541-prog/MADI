@@ -674,16 +674,16 @@ function renderPhonemeChart(childId) {
 
   // 차트 그리기
   if (phonemeChartObj) { phonemeChartObj.destroy(); phonemeChartObj = null; }
-  var wrap = document.getElementById('phonemeChart');
+  var wrap = document.getElementById('phonemeChart_init');
   if (!wrap) return;
 
   if (datasets.length === 0) {
-    wrap.parentNode.innerHTML = '<div class="empty" style="padding:16px;text-align:center;font-size:13px;color:var(--text2);">선택한 음소의 데이터가 없습니다.</div><canvas id="phonemeChart"></canvas>';
+    wrap.parentNode.innerHTML = '<div class="empty" style="padding:16px;text-align:center;font-size:13px;color:var(--text2);">선택한 음소의 데이터가 없습니다.</div><canvas id="phonemeChart_init"></canvas>';
     return;
   }
 
   ensureChart().then(function() {
-    var wrapEl = document.getElementById('phonemeChart');
+    var wrapEl = document.getElementById('phonemeChart_init');
     if (!wrapEl) return;
     phonemeChartObj = new Chart(wrapEl, {
       type: 'line',
@@ -765,7 +765,7 @@ function setPhonemePos(pos) {
   if (childId) renderPhonemeChart(childId);
 }
 
-function detectStagnation() {
+function detectStagnation(btnEl) {
   if (!getApiKeyOrAlert()) return;
   var childId = String(document.getElementById('chartChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
@@ -795,7 +795,7 @@ function detectStagnation() {
     + 'actions는 정체가 있을 때만 최대 3개, 없으면 빈 배열. urgency는 정체 심각도에 따라 설정.';
   var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n\n세션별 달성도:\n' + sessionLog;
 
-  var stagnBtn = document.querySelector('[onclick*="detectStagnation"]');
+  var stagnBtn = btnEl || document.querySelector('[onclick*="detectStagnation"]');
   if (stagnBtn) { if (stagnBtn.dataset.busy === '1') return; stagnBtn.dataset.busy = '1'; stagnBtn.disabled = true; }
 
   // ES5 호환: .finally() 미지원 환경 대응

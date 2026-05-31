@@ -428,7 +428,7 @@ function renderIEP(p, childName) {
 
   // 경쟁 조건 방지: childId 별 독립 저장 (연속 생성 시 PDF 오출력 방지)
   if (!window._iepDataMap) window._iepDataMap = {};
-  var _iepCId = String(parseInt((document.getElementById('iepChild') || {}).value) || 0);
+  var _iepCId = String((document.getElementById('iepChild') || {}).value);
   window._iepDataMap[_iepCId] = p;
   var _iepResEl = document.getElementById('iepResult');
   if (!_iepResEl) return;

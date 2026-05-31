@@ -103,6 +103,7 @@ function savePermissions() {
 
 // ─────── 선생님 계정 관리 (관리자 전용) ───────
 function renderStaffCard() {
+  // TODO: staffCard UI가 HTML에 없어 비활성 상태 (admin.html에 #staffCard, #staffList, #deployCard 요소 없음)
   var card = document.getElementById('staffCard');
   var deployCard = document.getElementById('deployCard');
   if (!card) return;
@@ -719,6 +720,7 @@ function deployToGitHub() {
 }
 
 function processImportFile(file) {
+  // TODO: importResult UI가 HTML에 없어 비활성 상태 (admin.html에 #importResult 요소 없음 — 엑셀 import 기능 미구현)
   if (!getApiKeyOrAlert()) return;
 
   var resultEl = document.getElementById('importResult');
