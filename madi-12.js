@@ -181,7 +181,8 @@ function deleteStaff(id, name) {
     '데이터가 완전히 삭제되고 복구할 수 없음을 확인하였습니다.',
     '삭제확인',
     function() {
-      supaFetch('madi_users?id=eq.' + id, 'DELETE').then(function() {
+      var _centerFilter = currentUser.center_id ? '&center_id=eq.' + encodeURIComponent(currentUser.center_id) : '';
+      supaFetch('madi_users?id=eq.' + encodeURIComponent(id) + _centerFilter, 'DELETE').then(function() {
         _teacherList = [];
         renderStaffCard();
         showToast('🗑️ ' + escHtml(name) + ' 계정 삭제됨');
@@ -262,6 +263,7 @@ function _saveFolderHandle(handle) {
       tx.objectStore('handles').put(handle, 'madiFolder');
       tx.oncomplete = resolve;
       tx.onerror = function() { reject(tx.error); };
+      tx.onabort = function() { reject(tx.error || new Error('IDB 트랜잭션이 중단되었습니다')); };
     });
   });
 }
@@ -272,6 +274,7 @@ function _loadFolderHandle() {
       var req = tx.objectStore('handles').get('madiFolder');
       req.onsuccess = function() { resolve(req.result || null); };
       req.onerror = function() { resolve(null); };
+      tx.onabort = function() { resolve(null); };
     });
   });
 }
