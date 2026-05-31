@@ -164,6 +164,7 @@ function moveSchedPeriod(dir) {
 var _schedTeacherFilter = '전체';
 var _weekViewMode  = 'therapist';
 var _weekDupOnly   = false;
+var _lastTeacherBarKey = '';
 
 function renderTeacherFilter() {
   var bar = document.getElementById('teacherFilterBar');
@@ -173,6 +174,10 @@ function renderTeacherFilter() {
     if (s.teacher && teachers.indexOf(s.teacher) < 0) teachers.push(s.teacher);
   });
   teachers.sort();
+  // ★ 캐시 가드: 선생님 목록 + 현재 필터 동일하면 DOM 업데이트 스킵
+  var _newBarKey = teachers.join(',') + '|' + (_schedTeacherFilter || '전체');
+  if (_lastTeacherBarKey === _newBarKey) return;
+  _lastTeacherBarKey = _newBarKey;
   var html = '';
   ['전체'].concat(teachers).forEach(function(t) {
     var color = t === '전체' ? 'var(--mint)' : getTeacherColor(t);
@@ -209,7 +214,7 @@ function buildTeacherOptions(selectedName) {
 
 function loadTeacherList(callback) {
   if (_teacherList.length > 0) { if (callback) callback(); return; }
-  supaFetch('madi_users?' + centerFilter() + '&select=name,role&order=name.asc')
+  supaFetch('madi_users?' + centerFilter() + '&select=id,username,name,role,color,prog_types&order=name.asc')
     .then(function(users) {
       if (Array.isArray(users)) _teacherList = users.filter(function(u){ return u.name; });
       if (callback) callback();
@@ -456,18 +461,28 @@ function renderDayGrid() {
     var groups = {};
     var groupOrder = stdTimes.slice();
     groupOrder.forEach(function(t){ groups[t] = []; });
+    // stdTimes 분 단위 사전 계산 (루프 바깥, 한 번만) — O(n×m) → O(n·log m)
+    var _stdMins = [];
+    for (var _si = 0; _si < stdTimes.length; _si++) {
+      _stdMins.push(parseInt(stdTimes[_si].slice(0,2),10)*60 + parseInt(stdTimes[_si].slice(3,5),10));
+    }
     dayScheds.forEach(function(s) {
       var rawTime = (s.startTime || s.time || '').slice(0, 5);
       if (!rawTime || rawTime.length < 5) {
         if (!groups['시간미정']) { groups['시간미정'] = []; groupOrder.push('시간미정'); }
         groups['시간미정'].push(s); return;
       }
-      var rawMm = parseInt(rawTime.slice(0,2))*60 + parseInt(rawTime.slice(3,5));
-      var closestTime = stdTimes.reduce(function(best, t) {
-        return Math.abs(parseInt(t.slice(0,2))*60 + parseInt(t.slice(3,5)) - rawMm)
-             < Math.abs(parseInt(best.slice(0,2))*60 + parseInt(best.slice(3,5)) - rawMm) ? t : best;
-      }, stdTimes[0]);
-      groups[closestTime].push(s);
+      var rawMm = parseInt(rawTime.slice(0,2),10)*60 + parseInt(rawTime.slice(3,5),10);
+      // 이진탐색으로 가장 가까운 stdTime 인덱스 찾기
+      var lo = 0, hi = _stdMins.length - 1;
+      while (lo < hi) {
+        var mid = Math.floor((lo + hi) / 2);
+        if (_stdMins[mid] < rawMm) lo = mid + 1;
+        else hi = mid;
+      }
+      // 인접 슬롯과 비교해 더 가까운 쪽 선택
+      if (lo > 0 && Math.abs(_stdMins[lo-1] - rawMm) <= Math.abs(_stdMins[lo] - rawMm)) lo--;
+      groups[stdTimes[lo]].push(s);
     });
     html += '<table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;">';
     html += '<colgroup><col style="width:60px;">';

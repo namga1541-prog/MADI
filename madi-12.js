@@ -112,7 +112,7 @@ function renderStaffCard() {
   // 배포 카드는 superadmin 전용 (admin/teacher/parent 모두에게 숨김)
   if (deployCard) deployCard.style.display = isSuperAdmin ? 'block' : 'none';
   if (!isAdmin) return;
-  supaFetch('madi_users?' + centerFilter() + '&select=id,username,name,role,color&order=role.desc,name.asc')
+  supaFetch('madi_users?' + centerFilter() + '&select=id,username,name,role,color,prog_types&order=role.desc,name.asc')
     .then(function(users) {
       if (!Array.isArray(users)) return;
       var html = '';

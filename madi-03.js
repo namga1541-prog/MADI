@@ -193,7 +193,7 @@ function addStaffAccount() {
 function loadStaffMgmtList() {
   var el = document.getElementById('staffMgmtList');
   if (!el) return;
-  supaFetch('madi_users?' + centerFilter() + '&select=id,name,username,role&order=name.asc', 'GET')
+  supaFetch('madi_users?' + centerFilter() + '&select=id,username,name,role,color,prog_types&order=name.asc', 'GET')
     .then(function(rows) {
       if (!rows || rows.length === 0) {
         el.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">등록된 선생님이 없습니다.</div>';
