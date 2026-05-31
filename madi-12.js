@@ -85,6 +85,7 @@ function savePermissions() {
     showToast('⚠️ 자신의 권한은 변경할 수 없습니다'); return;
   }
   // admin이 superadmin 계정의 권한을 변경하려는 경우 차단
+  // 서버 RLS에서도 강제 필요 (TODO: Edge Function 검증)
   if (currentUser.role === 'admin' && _permData._targetRole === 'superadmin') {
     showToast('⚠️ 슈퍼관리자 계정의 권한은 변경할 수 없습니다'); return;
   }
@@ -93,11 +94,21 @@ function savePermissions() {
   for (var k in _permData) {
     if (k !== '_targetRole') payload[k] = _permData[k];
   }
+  var _savedPermUserId = _permUserId;
   supaFetch('madi_users?id=eq.' + _permUserId, 'PATCH', { permissions: payload })
     .then(function() {
       showToast('✅ 권한 저장 완료');
       var _permOverlay = document.querySelector('.sched-modal-overlay');
       if (_permOverlay) _permOverlay.remove();
+      supaFetch('madi_audit_log', 'POST', {
+        actor_id: currentUser.id,
+        actor_role: currentUser.role,
+        action: 'UPDATE_PERMISSIONS',
+        table_name: 'madi_users',
+        row_id: _savedPermUserId,
+        center_id: currentUser.center_id,
+        changed_cols: ['permissions', 'role']
+      }).catch(function(){});  // 감사 로그 실패가 주 기능을 막으면 안 됨
     }).catch(function() { showToast('❌ 저장 실패'); });
 }
 
@@ -183,10 +194,19 @@ function deleteStaff(id, name) {
     '삭제확인',
     function() {
       var _centerFilter = currentUser.center_id ? '&center_id=eq.' + encodeURIComponent(currentUser.center_id) : '';
+      var _deletedUserId = id;
       supaFetch('madi_users?id=eq.' + encodeURIComponent(id) + _centerFilter, 'DELETE').then(function() {
         _teacherList = [];
         renderStaffCard();
         showToast('🗑️ ' + escHtml(name) + ' 계정 삭제됨');
+        supaFetch('madi_audit_log', 'POST', {
+          actor_id: currentUser.id,
+          actor_role: currentUser.role,
+          action: 'DELETE_STAFF',
+          table_name: 'madi_users',
+          row_id: _deletedUserId,
+          center_id: currentUser.center_id
+        }).catch(function(){});  // 감사 로그 실패가 주 기능을 막으면 안 됨
       }).catch(function() {
         showToast('❌ 계정 삭제에 실패했습니다. 다시 시도해주세요.');
       });

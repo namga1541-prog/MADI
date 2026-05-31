@@ -208,7 +208,7 @@ function _quickRenderCards(scheds) {
       var ts = parseInt(String(se.id).slice(0, 13));
       if (!isNaN(ts) && ts > 0) savedAgo = _quickTimeAgo(ts);
     }
-    html += '<button class="quick-card ' + (done ? 'qc-done' : 'qc-todo') + '" onclick="openQuickForm(' + JSON.stringify(String(s.id)) + ')" type="button">'
+    html += '<button class="quick-card ' + (done ? 'qc-done' : 'qc-todo') + '" onclick="openQuickForm(' + JSON.stringify(String(s.id)) + ')" type="button" aria-label="' + escHtml(name) + ' 아동 세션 기록">'
       + '<div class="qc-row1">'
       +   '<span class="qc-time">' + escHtml(s.startTime || s.time || '') + '</span>'
       +   (done
@@ -365,7 +365,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
     +       '<label class="form-label" style="margin:0;">📝 한 줄 요약</label>'
     +       '<div style="display:flex;gap:6px;">'
-    +         '<button type="button" id="quickMicBtn" onclick="quickToggleDictation()" class="btn" style="padding:7px 12px;font-size:13px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;font-weight:700;">🎤 받아쓰기</button>'
+    +         '<button type="button" id="quickMicBtn" onclick="quickToggleDictation()" class="btn" aria-label="음성 입력" style="padding:7px 12px;font-size:13px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;font-weight:700;">🎤 받아쓰기</button>'
     +         '<button type="button" id="quickAiBtn" onclick="quickAiClean()" class="btn" style="padding:7px 12px;font-size:13px;background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6;font-weight:700;">✨ AI 정리</button>'
     +       '</div>'
     +     '</div>'
@@ -383,7 +383,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     // 다음 목표 체크박스
     +   '<div class="quick-section">'
     +     '<label class="form-label">✅ 다음 목표</label>'
-    +     '<div id="quickGoalsBox"></div>'
+    +     '<div id="quickGoalsBox" aria-live="polite"></div>'
     +     '<div style="display:flex;gap:6px;margin-top:8px;">'
     +       '<input type="text" id="quickGoalInput" class="form-input" maxlength="' + _QUICK_GOAL_MAX_LEN + '" placeholder="새 목표 추가" style="flex:1;">'
     +       '<button type="button" onclick="quickAddGoal()" class="btn btn-secondary" style="padding:9px 14px;font-size:13px;">+ 추가</button>'
@@ -404,7 +404,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
 
     // 저장 버튼
     +   '<div style="margin-top:18px;display:flex;gap:8px;">'
-    +     '<button type="button" class="btn btn-primary" onclick="quickSave()" style="flex:1;padding:14px;font-size:15px;font-weight:800;">💾 저장 → 다음 수업</button>'
+    +     '<button type="button" class="btn btn-primary" onclick="quickSave()" aria-label="빠른 기록 저장" style="flex:1;padding:14px;font-size:15px;font-weight:800;">💾 저장 → 다음 수업</button>'
     +   '</div>'
 
     + '</div>';

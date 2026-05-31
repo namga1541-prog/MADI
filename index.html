@@ -1172,7 +1172,7 @@
   <div style="display:flex;align-items:center;gap:10px;">
     <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="메뉴 접기/펼치기" aria-label="메뉴 접기/펼치기">☰</button>
     <div class="logo">
-      <div class="logo-icon" onclick="showDashboard()" style="cursor:pointer;" title="홈으로 이동"><div class="madi-icon" style="width:38px;height:38px;border-radius:10px;"></div></div>
+      <div class="logo-icon" onclick="showDashboard()" style="cursor:pointer;" title="홈으로 이동" aria-label="홈으로 이동" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')showDashboard()"><div class="madi-icon" style="width:38px;height:38px;border-radius:10px;"></div></div>
       <div class="logo-text">
         <h1>아이마디</h1>
         <p style="font-size:11px;opacity:0.7;margin-top:1px;font-weight:500;letter-spacing:0.3px;">언어가 자라는 곳</p>
@@ -1205,12 +1205,12 @@
   <span id="apiKeyMasked" style="display: block; font-family: monospace; font-size: 12px; color: rgb(148, 163, 184); flex: 1 1 0%; padding: 7px 12px; background: rgba(255, 255, 255, 0.07); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer;" onclick="editApiKey()" title="클릭해서 수정">sk-ant-a••••••••QAAA</span>
 </div>
 
-<div class="tabs">
-  <button class="tab-btn active" id="tabBtnHome" onclick="showDashboard()"><span class="tab-ico" data-icon="home" data-icon-size="22"></span><span class="tab-lbl">홈</span></button>
-  <button class="tab-btn" id="tabBtn0" onclick="switchTab(0)"><span class="tab-ico" data-icon="calendar" data-icon-size="22"></span><span class="tab-lbl">캘린더</span></button>
-  <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)"><span class="tab-ico" data-icon="user" data-icon-size="22"></span><span class="tab-lbl">아동</span></button>
-  <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><span class="tab-ico" data-icon="chart" data-icon-size="22"></span><span class="tab-lbl">보고서</span></button>
-  <button class="tab-btn" id="tabBtnMore" onclick="toggleMoreMenu(event)" style="position:relative;"><span class="tab-ico" data-icon="more-h" data-icon-size="22"></span><span class="tab-lbl">더보기</span></button>
+<div class="tabs" role="tablist" aria-label="메인 탭">
+  <button class="tab-btn active" id="tabBtnHome" role="tab" aria-selected="true" tabindex="0" onclick="showDashboard()"><span class="tab-ico" data-icon="home" data-icon-size="22"></span><span class="tab-lbl">홈</span></button>
+  <button class="tab-btn" id="tabBtn0" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(0)"><span class="tab-ico" data-icon="calendar" data-icon-size="22"></span><span class="tab-lbl">캘린더</span></button>
+  <button class="tab-btn" id="tabBtn1" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(1)"><span class="tab-ico" data-icon="user" data-icon-size="22"></span><span class="tab-lbl">아동</span></button>
+  <button class="tab-btn" id="tabBtn2" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(2)"><span class="tab-ico" data-icon="chart" data-icon-size="22"></span><span class="tab-lbl">보고서</span></button>
+  <button class="tab-btn" id="tabBtnMore" role="tab" aria-selected="false" tabindex="-1" aria-expanded="false" aria-haspopup="true" onclick="toggleMoreMenu(event)" style="position:relative;"><span class="tab-ico" data-icon="more-h" data-icon-size="22"></span><span class="tab-lbl">더보기</span></button>
 </div>
 
 <!-- ─── 더보기 드롭다운 메뉴 (탭바 아래) ─── -->
@@ -1236,11 +1236,11 @@
 </div>
 
 <!-- ─── 학부모 전용 탭바 (parent 역할 로그인 시에만 표시) ─── -->
-<div class="tabs" id="parentTabs" style="display:none;">
-  <button class="tab-btn active" id="ptBtnHome" onclick="switchParentTab('home')"><span class="tab-ico" data-icon="home" data-icon-size="22"></span><span class="tab-lbl">홈</span></button>
-  <button class="tab-btn" id="ptBtnSched" onclick="switchParentTab('sched')"><span class="tab-ico" data-icon="calendar" data-icon-size="22"></span><span class="tab-lbl">일정</span></button>
-  <button class="tab-btn" id="ptBtnReport" onclick="switchParentTab('report')"><span class="tab-ico" data-icon="folder" data-icon-size="22"></span><span class="tab-lbl">포트폴리오</span></button>
-  <button class="tab-btn" id="ptBtnNotice" onclick="switchParentTab('notice')"><span class="tab-ico" data-icon="bell" data-icon-size="22"></span><span class="tab-lbl">공지</span></button>
+<div class="tabs" id="parentTabs" role="tablist" aria-label="학부모 포털 탭" style="display:none;">
+  <button class="tab-btn active" id="ptBtnHome" role="tab" aria-selected="true" tabindex="0" onclick="switchParentTab('home')"><span class="tab-ico" data-icon="home" data-icon-size="22"></span><span class="tab-lbl">홈</span></button>
+  <button class="tab-btn" id="ptBtnSched" role="tab" aria-selected="false" tabindex="-1" onclick="switchParentTab('sched')"><span class="tab-ico" data-icon="calendar" data-icon-size="22"></span><span class="tab-lbl">일정</span></button>
+  <button class="tab-btn" id="ptBtnReport" role="tab" aria-selected="false" tabindex="-1" onclick="switchParentTab('report')"><span class="tab-ico" data-icon="folder" data-icon-size="22"></span><span class="tab-lbl">포트폴리오</span></button>
+  <button class="tab-btn" id="ptBtnNotice" role="tab" aria-selected="false" tabindex="-1" onclick="switchParentTab('notice')"><span class="tab-ico" data-icon="bell" data-icon-size="22"></span><span class="tab-lbl">공지</span></button>
 </div>
 
 <!-- ─── PC 사이드바 + 메인 래퍼 ─── -->
@@ -1301,7 +1301,7 @@
 </div>
 <!-- ─── 홈 대시보드 (페르소나별 분기) ─── -->
 <!-- 라우터: madi-03.js renderDashboard() 가 role 별로 아래 컨테이너 중 하나만 보이게 채움 -->
-<div class="tab-panel active" id="panelHome">
+<div class="tab-panel active" id="panelHome" role="tabpanel" aria-labelledby="tabBtnHome" tabindex="0">
   <!-- 선생님 페르소나 (⑥) — renderDashboardTeacher() -->
   <div id="dashTeacher" class="dash-persona" style="display:none;"></div>
 
@@ -1337,7 +1337,7 @@
     </div>
   </div>
 </div>
-<div class="tab-panel" id="panel0">
+<div class="tab-panel" id="panel0" role="tabpanel" aria-labelledby="tabBtn0" tabindex="0">
   <div class="content">
 
     <!-- 아동 상태 탭 -->
@@ -1395,7 +1395,7 @@
 </div>
 
 <!-- TAB 3: 보고서 (서브탭 wrapper) -->
-<div class="tab-panel" id="panelReport">
+<div class="tab-panel" id="panelReport" role="tabpanel" aria-labelledby="tabBtn2" tabindex="0">
   <div class="subtab-nav">
     <button class="subtab-btn active" id="rtBtn_session" onclick="switchReportTab('session')">📝 세션기록</button>
     <button class="subtab-btn" id="rtBtn_assess" onclick="switchReportTab('assess')">📋 AI 언어평가보고서</button>
@@ -1497,7 +1497,7 @@
 
 
 <!-- TAB 2: 스케줄 -->
-<div class="tab-panel" id="panel2">
+<div class="tab-panel" id="panel2" role="tabpanel" aria-labelledby="tabBtn1" tabindex="0">
   <div class="content" style="max-width:100%;padding:14px 20px;">
     <div class="card">
       <div class="card-title">

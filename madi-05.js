@@ -377,6 +377,15 @@ function deleteChild(id) {
       if (typeof saveIEP === 'function') saveIEP();
       renderChildGrid();
       showToast('🗑️ 삭제 완료 (세션·일정 포함)');
+      supaFetch('madi_audit_log', 'POST', {
+        actor_id: currentUser.id,
+        actor_role: currentUser.role,
+        action: 'DELETE_CHILD',
+        table_name: 'madi_children',
+        row_id: id,
+        center_id: currentUser.center_id,
+        child_id: id
+      }).catch(function(){});
     })
     .catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-05 deleteChild]',e&&e.message);

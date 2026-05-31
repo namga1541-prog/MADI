@@ -340,3 +340,8 @@ if (typeof window !== 'undefined' && !window._madiErrorBound) {
     );
   });
 }
+
+// ── MADI 네임스페이스 (점진적 캡슐화용) ──────────────────
+// 현재는 기존 전역 변수 구조를 유지하면서 향후 마이그레이션을 위한 네임스페이스만 생성
+window.MADI = window.MADI || {};
+// TODO: childDB, sessionDB 등 전역 변수를 window.MADI.db.* 로 순차 이전

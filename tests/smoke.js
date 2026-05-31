@@ -1,8 +1,38 @@
 // ─────────────────────────────────────────────
 // 아이마디아이 유닛 스모크 테스트 (Node.js 실행)
 // 사용: node tests/smoke.js
+//
+// tests/lib/madi-pure-utils.js 에서 madi-01.js 의 실제 구현을 로드한다.
+// 파일이 없을 경우 인라인 폴백으로 동작하므로 환경 제약 없이 실행 가능하다.
 // ─────────────────────────────────────────────
 'use strict';
+
+// ── madi-01.js 실제 소스 함수 로드 (폴백 포함) ──────────────────────
+var _utils;
+try { _utils = require('./lib/madi-pure-utils.js'); } catch (e) { _utils = null; }
+
+// 실제 소스 구현을 우선 사용하고, 로드 실패 시 인라인 폴백으로 대체한다.
+var escHtml = _utils ? _utils.escHtml : function(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+var ymd = _utils ? _utils.ymd : function(d) {
+  return d.getFullYear() + '-'
+    + String(d.getMonth() + 1).padStart(2, '0')
+    + '-' + String(d.getDate()).padStart(2, '0');
+};
+
+var getTodayKST = _utils ? _utils.getTodayKST : function() {
+  var d = (function(x) { return new Date(x.getTime() + x.getTimezoneOffset() * 60000 + 9 * 3600000); })(new Date());
+  return d.getFullYear() + '-'
+    + String(d.getMonth() + 1).padStart(2, '0')
+    + '-' + String(d.getDate()).padStart(2, '0');
+};
 
 var passed = 0, failed = 0;
 
@@ -28,36 +58,6 @@ function assertEq(label, actual, expected) {
 }
 
 function section(name) { console.log('\n▸ ' + name); }
-
-// ──────────────────────────────────
-// 테스트용 유틸 함수 재구현 (브라우저 의존 없이)
-// ──────────────────────────────────
-
-// escHtml (madi-01.js)
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-// ymd (madi-01.js)
-function ymd(d) {
-  return d.getFullYear() + '-'
-    + String(d.getMonth() + 1).padStart('0', 2)
-    + '-' + String(d.getDate()).padStart('0', 2);
-}
-
-// KST 날짜 (madi-01.js)
-function toKST(d) { return new Date(d.getTime() + d.getTimezoneOffset() * 60000 + 9 * 3600000); }
-function getTodayKST() {
-  var d = toKST(new Date());
-  return d.getFullYear() + '-'
-    + String(d.getMonth() + 1).padStart(2, '0')
-    + '-' + String(d.getDate()).padStart(2, '0');
-}
 
 // validatePasswordStrength (madi-01.js 패턴)
 function validatePasswordStrength(pw) {

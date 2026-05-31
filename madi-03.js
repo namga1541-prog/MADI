@@ -1,3 +1,6 @@
+// API 키 메모리 저장소 — DOM #apiKey input에 평문 노출 방지
+var _madiApiKey = '';
+
 function loadCenterApiKey(showFeedback) {
   // Supabase에서 센터 공용 API 키 로드
   // cowork High #4: 클라이언트 localStorage 캐싱 제거 (DevTools 추출 방지)
@@ -8,7 +11,13 @@ function loadCenterApiKey(showFeedback) {
         return;
       }
       var key = rows[0].value;
-      var _akLoadEl = document.getElementById('apiKey'); if (_akLoadEl) _akLoadEl.value = key;
+      // 메모리에 저장 (window 전역으로 다른 파일에서도 접근 가능)
+      _madiApiKey = key;
+      window._madiApiKey = key;
+      // #apiKey input은 type="password" 강제 — DevTools Elements 탭에서 평문 노출 차단
+      // input.value는 showMaskedApiKey() 마스킹 UI 동작에 필요하므로 유지
+      var _akLoadEl = document.getElementById('apiKey');
+      if (_akLoadEl) { _akLoadEl.type = 'password'; _akLoadEl.value = key; }
       showMaskedApiKey();
       if (showFeedback) showToast('✅ 센터 AI 키 불러옴');
 
@@ -38,8 +47,11 @@ function saveCenterApiKey() {
 
   supaFetch('madi_settings?on_conflict=key', 'POST', [{ key: 'api_key', value: key }])
     .then(function() {
-      // 현재 세션에도 즉시 적용 (DOM만, localStorage 캐싱 안 함)
-      var _akEl = document.getElementById('apiKey'); if (_akEl) _akEl.value = key;
+      // 현재 세션에도 즉시 적용 — 메모리에 저장, DOM은 password 타입 강제
+      _madiApiKey = key;
+      window._madiApiKey = key;
+      var _akEl = document.getElementById('apiKey');
+      if (_akEl) { _akEl.type = 'password'; _akEl.value = key; }
       showMaskedApiKey();
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 저장 완료: ' + escHtml(maskApiKey(key)) + '</span>';
       showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
@@ -511,6 +523,16 @@ function switchTab(idx) {
   }
   var tb = document.getElementById('tabBtn' + idx);
   if (tb) tb.classList.add('active');
+  // aria-selected 업데이트
+  var allTabBtns = document.querySelectorAll('[role="tab"]');
+  for (var i = 0; i < allTabBtns.length; i++) {
+    allTabBtns[i].setAttribute('aria-selected', 'false');
+    allTabBtns[i].setAttribute('tabindex', '-1');
+  }
+  if (tb) {
+    tb.setAttribute('aria-selected', 'true');
+    tb.setAttribute('tabindex', '0');
+  }
   syncSidebarActive(idx);
   updateBreadcrumb(idx);
 
@@ -991,26 +1013,24 @@ function changeMyPassword() {
 
   setResult('<span style="color:var(--text2);">변경 중...</span>');
 
-  hashPassword(oldPw)
-    .then(function(oldHash) {
-      return supaFetch('madi_users?id=eq.' + encodeURIComponent(currentUser.id) + '&password=eq.' + encodeURIComponent(oldHash) + '&select=id', 'GET');
-    })
-    .then(function(rows) {
-      if (!Array.isArray(rows) || rows.length === 0) throw new Error('현재 비밀번호가 올바르지 않아요.');
-      return hashPassword(newPw);
-    })
-    .then(function(newHash) {
-      return supaFetch('madi_users?id=eq.' + encodeURIComponent(currentUser.id), 'PATCH', { password: newHash });
-    })
-    .then(function() {
-      setResult('<span style="color:var(--green);">✅ 비밀번호가 변경됐어요!</span>');
-      var _opEl  = document.getElementById('oldPassword');  if (_opEl)  _opEl.value  = '';
-      var _npEl  = document.getElementById('newPassword');  if (_npEl)  _npEl.value  = '';
-      var _np2El = document.getElementById('newPassword2'); if (_np2El) _np2El.value = '';
-    })
-    .catch(function(err) {
-      setResult('<span style="color:var(--red);">❌ ' + escHtml(err.message || '변경 실패') + '</span>');
-    });
+  // Edge Function /change-password 경유 — 직접 PATCH 대신 서버 검증 (서버 로그 해시 노출 방지)
+  fetchWithRetry(EDGE_URL + '/change-password', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentPassword: oldPw, newPassword: newPw })
+  }, { retries: 0, label: '비밀번호 변경' })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) { setResult('<span style="color:var(--red);">❌ ' + escHtml(data.error) + '</span>'); return; }
+    setResult('<span style="color:var(--green);">✅ 비밀번호가 변경됐어요!</span>');
+    var _opEl  = document.getElementById('oldPassword');  if (_opEl)  _opEl.value  = '';
+    var _npEl  = document.getElementById('newPassword');  if (_npEl)  _npEl.value  = '';
+    var _np2El = document.getElementById('newPassword2'); if (_np2El) _np2El.value = '';
+  })
+  .catch(function() {
+    setResult('<span style="color:var(--red);">❌ 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</span>');
+  });
 }
 
 // ───────────────────────────────────────────────────────────────────────

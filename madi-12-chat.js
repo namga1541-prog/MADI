@@ -209,6 +209,10 @@ function addUserMsg(text) {
 function renderChatMessages() {
   var container = document.getElementById('chatMessages');
   if (!container) return;
+  if (!container.getAttribute('aria-live')) {
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('role', 'log');
+  }
   var html = '';
   chatHistory.forEach(function(msg) {
     var isUser = msg.role === 'user';
@@ -594,10 +598,9 @@ function sendChat() {
     return;
   }
 
-  var apiKeyEl = document.getElementById('apiKey');
-  if (!apiKeyEl) return;
-  var apiKey = apiKeyEl.value.trim();
-  if (!apiKey) { addAiMsg('API 키를 상단에 먼저 입력해주세요! 🔑'); return; }
+  var _key = window._madiApiKey || (document.getElementById('apiKey') && document.getElementById('apiKey').value) || '';
+  _key = _key.trim ? _key.trim() : _key;
+  if (!_key) { showToast('⚠️ AI 설정이 필요합니다.'); return; }
 
   input.value = '';
   input.style.height = 'auto';

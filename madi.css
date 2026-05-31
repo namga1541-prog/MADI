@@ -61,6 +61,8 @@
       /* 위험 액션 영역 연한 배경 (삭제 확인 모달 등) — 다크모드 대응 토큰 */
       --danger-soft-bg:     #fef2f2;
       --danger-soft-border: #fecaca;
+      --success-soft-bg:    #f0fdf4;
+      --success-soft-border:#d1fae5;
 
       /* 통일된 브랜드 그라데이션 (D7: 헤더 단일화) */
       --grad-brand:  linear-gradient(135deg, #0ea5a0 0%, #0c8c88 100%);
@@ -114,6 +116,7 @@
       --color-danger:#f87171;
       /* 위험 액션 연한 배경 — 다크모드용 (밝은 흰 박스 → 어두운 적색조) */
       --danger-soft-bg:rgba(248,113,113,0.12); --danger-soft-border:rgba(248,113,113,0.35);
+      --success-soft-bg:rgba(52,211,153,0.10); --success-soft-border:rgba(52,211,153,0.28);
     }
     /* 다크 모드 인라인 스타일 보정 */
     body.dark-mode .form-input,
@@ -332,7 +335,7 @@
       flex:1 1 0;
       min-width:48px;
       padding:7px 2px 6px;
-      font-size:9px;
+      font-size:11px;
       font-weight:700;
       color:var(--text2);
       cursor:pointer;
@@ -353,7 +356,7 @@
       box-sizing:border-box;
     }
     .tab-btn .tab-ico { font-size:18px; line-height:1.1; display:block; }
-    .tab-btn .tab-lbl { font-size:9px; font-weight:700; line-height:1.1; display:block; white-space:nowrap; }
+    .tab-btn .tab-lbl { font-size:11px; font-weight:700; line-height:1.1; display:block; white-space:nowrap; }
     .tab-btn.active { color:var(--mint); border-bottom-color:var(--mint); }
     /* ─── 홈 버튼 전용 스타일 ─── */
     #tabBtnHome {
@@ -647,7 +650,7 @@
       /* 탭 폰트 */
       .tab-btn { min-width:40px; }
       .tab-btn .tab-ico { font-size:16px; }
-      .tab-btn .tab-lbl { font-size:8.5px; }
+      .tab-btn .tab-lbl { font-size:11px; }
       /* API Key 바 레이블 숨김 (입력란 공간 확보) */
       .apikey-bar label { display:none; }
       /* 삭제 버튼 터치 영역 확대 (최소 44px) */
@@ -2105,7 +2108,7 @@ body.dark-mode .dp-title { color:#a0a0a0; }
 .quick-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06); }
 .quick-card:active { transform: scale(0.99); }
 .quick-card.qc-todo { border-color: #fca5a5; background: linear-gradient(180deg, #fff, #fef2f2); }
-.quick-card.qc-done { border-color: #d1fae5; background: #f0fdf4; opacity: 0.85; }
+.quick-card.qc-done { border-color: var(--success-soft-border); background: var(--success-soft-bg); opacity: 0.85; }
 .quick-card .qc-row1 {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
