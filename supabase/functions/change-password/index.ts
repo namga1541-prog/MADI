@@ -73,9 +73,9 @@ Deno.serve(async (req: Request) => {
   if (!currentPw || !newPw) {
     return new Response(JSON.stringify({ error: '현재 비밀번호와 새 비밀번호를 모두 입력해주세요' }), { status: 400, headers: CORS })
   }
-  // 비밀번호 최소 길이: 8자
-  if (newPw.length < 8) {
-    return new Response(JSON.stringify({ error: '새 비밀번호는 8자 이상이어야 합니다' }), { status: 400, headers: CORS })
+  // 비밀번호 최소 길이: 4자 (테스트 기간 — 정식 배포 시 8자로 변경)
+  if (newPw.length < 4) {
+    return new Response(JSON.stringify({ error: '새 비밀번호는 4자 이상이어야 합니다' }), { status: 400, headers: CORS })
   }
   if (newPw.length > 128) {
     return new Response(JSON.stringify({ error: '새 비밀번호는 128자 이하여야 합니다' }), { status: 400, headers: CORS })

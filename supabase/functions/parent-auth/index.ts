@@ -225,9 +225,9 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // 비밀번호 최소 8자, 최대 128자
-    if (password.length < 8) {
-      return new Response(JSON.stringify({ error: '비밀번호는 8자 이상이어야 합니다' }), {
+    // 비밀번호 최소 4자, 최대 128자 (테스트 기간 — 정식 배포 시 8자로 변경)
+    if (password.length < 4) {
+      return new Response(JSON.stringify({ error: '비밀번호는 4자 이상이어야 합니다' }), {
         status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
