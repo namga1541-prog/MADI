@@ -386,7 +386,7 @@ function setupNetworkMonitor() {
   function showOfflineBanner() {
     if (document.getElementById('offlineBanner')) return;
     var b = document.createElement('div'); b.id = 'offlineBanner';
-    b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:8px 14px;font-size:12px;font-weight:700;text-align:center;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:8px 14px;font-size:12px;font-weight:700;text-align:center;z-index:10001;box-shadow:0 2px 8px rgba(0,0,0,0.2);'; /* 10001: 모달(10000) 위에 표시 */
     b.innerHTML = '🔌 인터넷 연결 끊김 — 변경사항은 연결 복구 시 자동 동기화됩니다'; document.body.appendChild(b);
   }
   function hideOfflineBanner() { var b = document.getElementById('offlineBanner'); if (b) { b.style.background = '#10b981'; b.innerHTML = '✅ 인터넷 연결 복구'; setTimeout(function() { b.remove(); }, 2500); } }

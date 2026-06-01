@@ -480,15 +480,15 @@
     .btn-purple { background:var(--purple); color:white; width:100%; }
     .btn-purple:hover:not(:disabled) { background:#7c3aed; }
     .btn-purple:disabled { background:#94a3b8; cursor:not-allowed; }
-    .btn-outline { background:white; color:var(--mint); border:2px solid var(--mint); padding:8px 14px; font-size:13px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
+    .btn-outline { background:white; color:var(--mint); border:2px solid var(--mint); padding:8px 14px; font-size:13px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); min-height:44px; }
     .pg-btn { min-width:36px; height:36px; padding:0 10px; border:1.5px solid var(--border); background:var(--card-bg, white); color:var(--text); border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); transition:all 0.15s; }
     .pg-btn:hover:not(:disabled) { border-color:var(--mint); color:var(--mint); }
     .pg-btn:disabled { opacity:0.4; cursor:not-allowed; }
     .pg-btn-active { background:var(--mint); color:white !important; border-color:var(--mint); }
     body.dark-mode .pg-btn { background:var(--card-bg); color:var(--text); border-color:var(--border); }
-    .btn-ghost { background:#f8fafc; color:var(--text2); border:1px solid var(--border); padding:7px 12px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
+    .btn-ghost { background:#f8fafc; color:var(--text2); border:1px solid var(--border); padding:7px 12px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); min-height:44px; }
     .btn-ghost:hover { background:var(--mint2); color:var(--mint); }
-    .btn-del { padding:5px 10px; font-size:11px; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; font-weight:600; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); }
+    .btn-del { padding:5px 10px; font-size:11px; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; font-weight:600; touch-action:manipulation; -webkit-tap-highlight-color:rgba(0,0,0,0); min-height:44px; }
     .btn-row { display:flex; gap:8px; }
     .btn-row .btn { flex:1; }
 
@@ -515,7 +515,8 @@
     body.dark-mode .child-card.bulk-selected { background:#064e3b22; }
     .bulk-checkbox { width:22px; height:22px; flex-shrink:0; cursor:pointer; accent-color:var(--mint); }
     .bulk-action-bar {
-      position:fixed; left:0; right:0; bottom:62px;
+      position:fixed; left:0; right:0;
+      bottom:62px; bottom:calc(62px + env(safe-area-inset-bottom, 0px));
       background:var(--navy); color:white; padding:10px 14px;
       display:flex; align-items:center; gap:8px; flex-wrap:wrap;
       box-shadow:0 -4px 12px rgba(0,0,0,0.15); z-index:900;
@@ -755,7 +756,7 @@
     .header-user { display:flex; align-items:center; gap:8px; }
     .header-user-name { color:white; font-size:12px; font-weight:700; }
     .header-user-badge { background:rgba(255,255,255,0.25); color:white; font-size:10px; padding:3px 9px; border-radius:12px; border:1px solid rgba(255,255,255,0.35); font-weight:700; }
-    .header-logout-btn { background:rgba(255,255,255,0.15); color:white; font-size:11px; font-weight:700; padding:5px 12px; border-radius:16px; border:1.5px solid rgba(255,255,255,0.35); cursor:pointer; white-space:nowrap; min-height:30px; touch-action:manipulation; transition:background 0.15s; }
+    .header-logout-btn { background:rgba(255,255,255,0.15); color:white; font-size:11px; font-weight:700; padding:5px 12px; border-radius:16px; border:1.5px solid rgba(255,255,255,0.35); cursor:pointer; white-space:nowrap; min-height:44px; touch-action:manipulation; transition:background 0.15s; }
     .header-logout-btn:hover { background:rgba(255,255,255,0.28); }
     .voucher-bar { display:flex; align-items:center; gap:6px; margin-top:5px; }
     .voucher-track { flex:1; height:6px; background:#e2e8f0; border-radius:10px; overflow:hidden; }
@@ -1314,7 +1315,7 @@
         radial-gradient(circle at 100% 0%, rgba(125,211,208,0.20) 0%, transparent 50%),
         linear-gradient(135deg,#e0f7f6 0%,#f1f8f7 50%,#e8f7f6 100%);
       overflow:auto;
-      min-height:100vh;
+      min-height:100vh; min-height:100dvh;
       position:relative;
     }
     /* 기존 원 장식 제거 (login-v2 일 때만) */
@@ -1714,6 +1715,9 @@ button.dp-rev-tag:hover { background:rgba(252,211,77,0.32); color:#fef3c7; }
 
 /* 변동 아동 (Admin) */
 .dp-change-sum { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#f1f5f9; border:1px solid #e7ecf2; border-radius:10px; overflow:hidden; margin-bottom:12px; }
+@media (max-width:360px) {
+  .dp-change-sum { grid-template-columns:1fr; }
+}
 .dp-change-cell { background:white; padding:13px 10px; text-align:center; }
 .dp-change-num { font-size:19px; font-weight:900; line-height:1; letter-spacing:-0.3px; }
 .dp-change-num.up { color:#15803d; }
@@ -2284,6 +2288,8 @@ body.pwa-banner-open .chat-window { bottom: calc(156px + env(safe-area-inset-bot
   .btn:hover,
   .btn-primary:hover,
   .btn-ghost:hover,
+  .btn-outline:hover,
+  .header-logout-btn:hover,
   .sidebar-item:hover,
   .child-card:hover,
   .sched-block:hover,
@@ -2321,6 +2327,17 @@ html, body { overscroll-behavior-y: contain; }
   .child-session-count,
   .month-day-label,
   .stat-lbl { line-height: 1.5; }
+
+  /* 10px 이하 폰트 최소 12px 보장 */
+  .dp-change-label,
+  .dp-change-detail,
+  .child-age-badge,
+  .voucher-label,
+  .treat-duration,
+  .header-user-badge { font-size: 12px; }
+
+  /* 아동 이름 max-width 해제 — 좁은 화면에서 flex 컨텍스트가 제어 */
+  .child-name { max-width: none; }
 }
 
 /* (8) iOS Safari visualViewport 키보드 대응 — body 에 --kb-offset 변수 활용
