@@ -132,6 +132,31 @@ assertEq('아동 없으면 이름 빈 문자열', rowNoChild.이용자, '');
 assertEq('아동 없으면 바우처 빈 문자열', rowNoChild.바우처, '');
 
 // ──────────────────────────────────
+// 회귀 테스트 — 2026-06-01~02 수정한 버그 클래스 재발 방지
+// (DOM/통합 버그는 e2e 영역, 여기선 순수 로직 컨벤션을 박제)
+// ──────────────────────────────────
+section('회귀: ID 문자열 컨벤션');
+var _idDB = [{ id: '1717000001' }, { id: '1717000002' }];
+// 수정본: String 비교 → 찾음
+assert('String 비교로 childId 매칭됨',
+  _idDB.find(function (c) { return String(c.id) === '1717000001'; }) !== undefined);
+// 회귀 감지: parseInt/숫자 비교는 매칭이 깨진다 (madi-10:56·114 버그 클래스)
+assert('parseInt/숫자비교는 매칭 실패(버그 클래스 박제)',
+  _idDB.find(function (c) { return c.id === parseInt('1717000001', 10); }) === undefined);
+
+section('회귀: 날짜 KST');
+// ymd 는 로컬 컴포넌트 기반 — 어느 TZ에서 돌려도 동일 (CI=UTC 안전)
+assertEq('ymd 포맷(YYYY-MM-DD)', ymd(new Date(2026, 5, 2)), '2026-06-02');
+// toISOString()(UTC)을 날짜로 쓰면 KST 새벽에 하루 어긋남 — _isoDaysAgo 버그 클래스 박제
+var _utcDawn = new Date('2026-06-01T20:00:00Z'); // KST 로는 06-02 05:00
+assert('toISOString().slice 는 UTC라 날짜용 부적합(버그 클래스 박제)',
+  _utcDawn.toISOString().slice(0, 10) === '2026-06-01');
+
+section('회귀: escHtml 작은따옴표');
+// 음소 oninput 등 inline 핸들러 인자 안전성 (madi-05 저장형 XSS 수정)
+assert("작은따옴표(')를 이스케이프", escHtml("a'b").indexOf("'") === -1);
+
+// ──────────────────────────────────
 // 결과 출력
 // ──────────────────────────────────
 console.log('\n' + '═'.repeat(40));

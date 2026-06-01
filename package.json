@@ -8,7 +8,9 @@
     "lint": "eslint \"madi-*.js\" --max-warnings=0",
     "lint:fix": "eslint \"madi-*.js\" --fix",
     "check": "eslint \"madi-*.js\" --max-warnings=0 && node tests/smoke.js && node tools/check-patterns.js",
-    "funcindex": "node tools/gen-functions.js"
+    "funcindex": "node tools/gen-functions.js",
+    "setup": "git config core.hooksPath .githooks && node tools/gen-functions.js && echo setup done: hooksPath=.githooks",
+    "deploy:fn": "node tools/deploy-fn.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",

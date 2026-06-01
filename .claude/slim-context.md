@@ -16,17 +16,10 @@
 - 반드시 supaFetch() 경유 (직접 fetch + anon key 금지)
 - 패턴: supaFetch('table?col=eq.val', 'GET').then(function(rows){...}).catch(function(e){ showToast('⚠️ '+e.message); })
 
-[DB 스키마 핵심 — 존재하지 않는 컬럼 select 시 PostgREST 400 반환]
-- madi_users       : id, username, name, password, role, center_id, color, permissions,
-                     prog_types(JSONB), totp_secret, totp_enabled, locked_until, session_revoked_at
-                     ⚠️ status 컬럼 없음 — POST 시 주입하면 PostgREST 400
-- madi_centers     : id  (center_id로 사용)
-- madi_settings    : key, value  ⚠️ center_id 컬럼 없음 — 전역 테이블
-- madi_portfolios  : id, child_id, center_id, parent_visible, month, content, data, created_at
-- madi_notifications: id, user_id, center_id, type, title, body, link, read_at, created_at
-- madi_audit_log   : id, actor_id, actor_name, action, table_name, record_id, child_id, changed_cols, occurred_at
-- madi_push_settings: center_id, enabled, push_time, message_title, message_body, last_sent_date
-- madi_rate_limits : key(PK), count, window_start, hour_count, hour_start, updated_at
+[DB 스키마]
+- 정본: **SCHEMA.md** 참조 (컬럼 표를 여기 복붙하지 말 것 — 사본 드리프트 방지).
+- 핵심만: 임상 데이터(children/sessions/schedules/assessments/iep)는 {id, center_id, data JSONB} 제네릭 구조.
+  madi_settings 는 전역(center_id 없음). madi_users 에 status 컬럼 없음(400 유발).
 
 [UI 패턴]
 - 성공: showToast('✅ 저장됨')   오류: showToast('⚠️ 메시지')

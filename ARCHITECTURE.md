@@ -2,7 +2,7 @@
 
 > 매 세션·매 에이전트가 **재조사하지 말아야 할 핵심 사실**만 모은 치트시트.
 > 코드 수정·감사 전에 먼저 읽으면 오탐과 헛조사를 막는다. (변하면 즉시 갱신)
-> 위치 인덱스는 [FUNCTIONS.md](./FUNCTIONS.md), DB 스키마는 [CLAUDE.md](./CLAUDE.md).
+> 위치 인덱스는 [FUNCTIONS.md](./FUNCTIONS.md), DB 스키마는 [SCHEMA.md](./SCHEMA.md).
 
 ## ID 규칙
 - **모든 ID는 문자열**(childId, user id, center_id, session/schedule id). `generateClientId()`·`safeMap` 이 String 으로 정규화.

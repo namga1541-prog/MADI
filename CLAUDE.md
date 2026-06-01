@@ -136,29 +136,10 @@
 - `console.log` 운영 코드에 추가 금지
 - Supabase anon key를 소스에 하드코딩 금지
 
-## DB 스키마 (검증된 컬럼)
+## DB 스키마
 
-Edge Function이나 SQL에서 컬럼을 참조할 때는 아래 목록 기준으로 확인할 것.
-존재하지 않는 컬럼을 select에 포함하면 PostgREST가 400을 반환하고, 에러 메시지가 인증 실패처럼 보일 수 있음.
-
-| 테이블 | 컬럼 |
-|--------|------|
-| `madi_users` | `id`, `username`, `name`, `password`, `role`, `center_id`, `color`, `permissions`, `password_changed_at`, `session_revoked_at`, `failed_login_count`, `last_failed_at`, `locked_until`, `login_attempts`, `totp_secret`, `totp_enabled`, `totp_enrolled_at`, `totp_last_step`, `created_at`, `prog_types` (JSONB, 선생님 담당 프로그램 목록) — ⚠️ **`status` 컬럼은 실제 DB에 없음** (POST 시 주입하면 PostgREST 42703/400) |
-| `madi_parent_children` | `parent_user_id`, `child_id`, `center_id` |
-| `madi_centers` | `id` (PK, center_id로 사용), `name`, `invite_code`, `invite_expires_at`, `session_interval` |
-| `madi_notifications` | `id`, `user_id`, `center_id`, `type`, `title`, `body`, `link`, `read_at`, `created_at` |
-| `madi_audit_log` | `id`, `occurred_at`, `actor_id`, `actor_role`, `action`, `table_name`, `row_id`, `center_id`, `child_id`, `changed_cols` (text[]), `client_ip`, `user_agent` |
-| `madi_portfolios` | `id`, `child_id`, `center_id`, `parent_visible`, `created_by`, `created_by_name`, `opened_by`, `opened_at`, `month`, `content`, `data`, `created_at` |
-| `madi_rate_limits` | `key` (PK), `count`, `window_start`, `hour_count`, `hour_start`, `updated_at` |
-| `madi_push_subscriptions` | `id`, `user_id`, `endpoint`, `p256dh`, `auth`, `center_id`, `created_at` |
-| `madi_push_settings` | `center_id`, `enabled`, `push_time`, `message_title`, `message_body`, `last_sent_date` |
-| `madi_settings` | `key` (PK), `value` — **전역 테이블, center_id 컬럼 없음** |
-| `madi_lounge_posts` | `id`, `center_id`, `author_id`, `author_name`, `author_role`, `title`, `content`, `images`, `image_urls`, `note`, `visibility`, `created_at` |
-| `madi_lounge_comments` | `id`, `post_id`, `center_id`, `author_id`, `author_name`, `author_role`, `content`, `created_at` |
-| `madi_error_logs` | `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` |
-
-> 위 목록에 없는 컬럼을 추가하려면 코드와 DB 스키마를 동시에 수정해야 함.
-> SQL 파일 실행 순서는 [MIGRATIONS_RUNBOOK.md](./MIGRATIONS_RUNBOOK.md) 참고.
+> **정본은 [SCHEMA.md](./SCHEMA.md) 하나뿐이다.** (중복 표를 두지 않는다 — 과거 `status` 컬럼 오기처럼 사본이 갈라지는 사고 방지.)
+> 컬럼 참조·추가 전 SCHEMA.md 확인. SQL 실행 순서는 [MIGRATIONS_RUNBOOK.md](./MIGRATIONS_RUNBOOK.md).
 
 ## 멀티에이전트 하네스
 
