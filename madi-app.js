@@ -79,15 +79,32 @@ function _loadOlderHistory(d90, d30) {
   });
 }
 
-// 반환: Promise<boolean> — true=성공, false=실패(❌ 토스트는 내부 표시). saveSessions 와 동일 패턴.
-function saveChildren() {
-  markMyChange(); _optionsCacheKey = null; safeSetItem('cn3_children', JSON.stringify(childDB));
-  if (childDB.length === 0) return Promise.resolve(true);
-  var cid = getCenterId(), rows = childDB.map(function(c){ return { id: c.id, center_id: cid, data: c }; }), batches = [];
+// ── 컬렉션 저장 공통 헬퍼 ──
+// localStorage 미러 → 서버 배치 upsert(50개씩). 반환 Promise<boolean>(true=성공).
+// 실패 시 ❌ 토스트는 내부에서 표시. 호출부는 .then(ok) 로 성공 시에만 ✅ 표시(거짓 성공 방지).
+/**
+ * @param {{db:any[], lsKey:string, table:string, label:string, mapRow?:Function, before?:Function}} o
+ * @returns {Promise<boolean>}
+ */
+function _saveCollection(o) {
+  markMyChange();
+  if (o.before) o.before();
+  safeSetItem(o.lsKey, JSON.stringify(o.db));
+  if (o.db.length === 0) return Promise.resolve(true);
+  var cid = getCenterId();
+  var mapRow = o.mapRow || function(x) { return { id: x.id, center_id: cid, data: x }; };
+  var rows = o.db.map(mapRow), batches = [];
   for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
-  return batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_children?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
+  return batches.reduce(function(p, batch) {
+    return p.then(function() { return supaFetch(o.table + '?on_conflict=id', 'POST', batch); });
+  }, Promise.resolve())
     .then(function() { return true; })
-    .catch(function(e) { showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요'); return false; });
+    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, o.label)); return false; });
+}
+/** @returns {Promise<boolean>} */
+function saveChildren() {
+  return _saveCollection({ db: childDB, lsKey: 'cn3_children', table: 'madi_children', label: '아동',
+    before: function() { _optionsCacheKey = null; } });
 }
 function getSaveErrMsg(e, label) {
   var msg = e && e.message ? e.message : '';
@@ -106,29 +123,18 @@ function _userErrMsg(e, action) {
   if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1) return action + ' 실패 — 서버 응답이 없습니다. 잠시 후 다시 시도해주세요';
   return action + '에 실패했습니다. 잠시 후 다시 시도해주세요';
 }
-// 반환: Promise<boolean> — true=서버 저장 성공, false=실패(❌ 토스트는 내부에서 표시).
-// 호출부가 .then(ok) 으로 성공 시에만 ✅ 표시하도록(거짓 성공 방지). 미체이닝 호출부는 기존대로 동작.
+/** @returns {Promise<boolean>} */
 function saveSessions() {
-  markMyChange(); safeSetItem('cn3_sessions', JSON.stringify(sessionDB)); if (sessionDB.length === 0) return Promise.resolve(true);
-  var cid = getCenterId(), rows = sessionDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; }), batches = [];
-  for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
-  return batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_sessions?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
-    .then(function() { return true; })
-    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '세션')); return false; });
+  return _saveCollection({ db: sessionDB, lsKey: 'cn3_sessions', table: 'madi_sessions', label: '세션' });
 }
+/** @returns {Promise<boolean>} */
 function saveSchedule() {
-  markMyChange(); safeSetItem('cn3_schedule', JSON.stringify(scheduleDB)); if (scheduleDB.length === 0) return;
-  var cid = getCenterId(), rows = scheduleDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; }), batches = [];
-  for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
-  batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_schedules?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
-    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '일정')); });
+  return _saveCollection({ db: scheduleDB, lsKey: 'cn3_schedule', table: 'madi_schedules', label: '일정' });
 }
+/** @returns {Promise<boolean>} */
 function saveAssess() {
-  markMyChange(); safeSetItem('cn3_assess', JSON.stringify(assessmentDB)); if (assessmentDB.length === 0) return;
-  var cid = getCenterId(), rows = assessmentDB.map(function(a){ return { id: a.id, center_id: cid, user_id: a.user_id || null, data: a }; }), batches = [];
-  for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
-  batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_assessments?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
-    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '검사')); });
+  return _saveCollection({ db: assessmentDB, lsKey: 'cn3_assess', table: 'madi_assessments', label: '검사',
+    mapRow: function(a) { return { id: a.id, center_id: getCenterId(), user_id: a.user_id || null, data: a }; } });
 }
 
 /** @type {Child[]} */       var childDB = [];
