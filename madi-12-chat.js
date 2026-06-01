@@ -47,7 +47,8 @@ function _maroDbg(msg) {
   if (!box) {
     box = document.createElement('div');
     box.id = '_maroDbgBox';
-    box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.88);color:#39ff14;font:11px/1.4 monospace;padding:6px 8px;max-height:45vh;overflow:auto;white-space:pre-wrap;pointer-events:none;';
+    // 버튼을 가리지 않도록 상단 작은 바로 제한 (높이 ↓, 반투명)
+    box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.78);color:#39ff14;font:10px/1.35 monospace;padding:4px 6px;max-height:84px;overflow:auto;white-space:pre-wrap;pointer-events:none;';
     if (document.body) document.body.appendChild(box);
   }
   box.textContent = ('▶ ' + msg + '\n' + box.textContent).slice(0, 1800);
@@ -200,6 +201,18 @@ function initFloatBtnDrag() {
       btn.dataset.dragged = '1';
       setTimeout(function() { delete btn.dataset.dragged; }, 400);
       if (!didMove) toggleChat();
+      // 스냅 애니메이션이 끝난 뒤 최종 안착 위치 보고 (사라짐 여부 확정용)
+      if (_maroDbgOn()) {
+        setTimeout(function() {
+          var fr = btn.getBoundingClientRect();
+          var fc = getComputedStyle(btn);
+          var onScreen = fr.top >= 0 && fr.top <= window.innerHeight &&
+                         fr.left >= 0 && fr.left <= window.innerWidth;
+          _maroDbg('★최종 RECT top=' + Math.round(fr.top) + ' left=' + Math.round(fr.left) +
+            ' | display=' + fc.display + ' vis=' + fc.visibility + ' opa=' + fc.opacity +
+            ' | 화면안=' + onScreen);
+        }, 320);
+      }
     });
     btn.addEventListener('touchcancel', function() {
       _active = false; _dragging = false; _moved = false;
