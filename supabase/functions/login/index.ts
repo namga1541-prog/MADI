@@ -278,8 +278,12 @@ Deno.serve(async (req: Request) => {
   // SameSite=None;Secure: 크로스 오리진(GitHub Pages → Supabase) 쿠키 전송 허용
   const cookieHeader = `madi_session=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=86400`
 
+  // iOS Safari ITP 대응: 응답 body 에도 token 포함
+  // Safari 는 Cross-Site httpOnly 쿠키를 ITP 로 차단하는 경우가 있어,
+  // 클라이언트가 sessionStorage 에 저장 후 Authorization: Bearer 헤더로 폴백할 수 있게 함.
+  // 보안 트레이드오프: JS 접근 가능하나 sessionStorage 는 탭 종료 시 자동 소멸 (24h 만료)
   return new Response(
-    JSON.stringify({ user: safeUser }),
+    JSON.stringify({ user: safeUser, token }),
     { status: 200, headers: { ...CORS, 'Content-Type': 'application/json', 'Set-Cookie': cookieHeader } }
   )
 })

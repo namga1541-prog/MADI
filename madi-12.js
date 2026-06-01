@@ -1120,9 +1120,17 @@ function init() {
 
   var savedUser;
   try { savedUser = localStorage.getItem('madi_user'); } catch(_e) { savedUser = null; }
-  // 토큰은 httpOnly 쿠키에만 존재 — savedUser만 있으면 세션 복원
-  // (쿠키가 만료됐다면 첫 API 호출 시 401 → 자동 로그인 화면 전환)
-  if (savedUser) {
+
+  // iOS Safari ITP 대응: sessionStorage 토큰 유무로 세션 유효성 사전 확인
+  // madi-01.js 에서 이미 sessionStorage → _madiToken 복원이 완료된 상태
+  // 토큰이 없으면 쿠키도 차단된 것으로 간주 → 대시보드 플래시 없이 즉시 로그인
+  var _hasSessToken = (typeof _madiToken !== 'undefined' && !!_madiToken);
+  if (!_hasSessToken) {
+    try { _hasSessToken = !!sessionStorage.getItem('madi_sess'); } catch(_e) {}
+  }
+
+  if (savedUser && _hasSessToken) {
+    // 세션 토큰 유효 — 대시보드 표시 후 데이터 로드
     try {
       currentUser = JSON.parse(savedUser);
       applyUserUI();
@@ -1133,11 +1141,25 @@ function init() {
       initRealtime();
     } catch(e) {
       currentUser = null;
-      localStorage.removeItem('madi_user');
+      try { localStorage.removeItem('madi_user'); } catch(_e) {}
       showLanding();
     }
+  } else if (savedUser && !_hasSessToken) {
+    // madi_user 는 있지만 세션 토큰 없음 = 새 브라우저 세션 (쿠키·토큰 만료)
+    // iOS Safari 에서 가장 자주 발생하는 케이스:
+    //   기존: 대시보드 플래시 → "데이터 로드 실패" 오류 → 1.5초 후 로그인 화면 (혼란스러운 UX)
+    //   개선: 오류 없이 즉시 로그인 화면으로 이동
+    try { localStorage.removeItem('madi_user'); } catch(_e) {}
+    loadDB();
+    renderChildGrid();
+    populateChildSelects();
+    renderGoalRows();
+    renderSessionList();
+    renderUnwrittenAlert();
+    showLoginScreen();  // 랜딩이 아닌 로그인 화면 (재방문 사용자이므로)
   } else {
-    localStorage.removeItem('madi_user');
+    // 첫 방문 또는 명시적 로그아웃 후
+    try { localStorage.removeItem('madi_user'); } catch(_e) {}
     loadDB();
     renderChildGrid();
     populateChildSelects();

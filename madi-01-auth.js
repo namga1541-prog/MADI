@@ -106,6 +106,11 @@ function doSignup() {
       .then(function(loginData) {
         currentUser = (loginData && loginData.user) ? loginData.user
           : { id: result.user.id, username: result.user.username, name: result.user.name, role: result.user.role, color: result.user.color, center_id: result.user.center_id, permissions: result.user.permissions };
+        // iOS Safari 쿠키 차단 대응: 가입 직후 로그인 응답의 token 저장
+        if (loginData && loginData.token) {
+          if (typeof setToken === 'function') setToken(loginData.token);
+          try { sessionStorage.setItem('madi_sess', loginData.token); } catch (_e) {}
+        }
         var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types };
         try { localStorage.setItem('madi_user', JSON.stringify(_toStore)); localStorage.setItem('madi_last_id', result.user.username); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
         var _scr = document.getElementById('signupScreen'); if (_scr) _scr.style.display = 'none'; hideLoginScreen();
@@ -149,8 +154,14 @@ function doLogin(_totpCode) {
       return;
     }
     if (data.error) { if (errEl) errEl.textContent = data.error; return; }
-    // 토큰은 서버가 httpOnly 쿠키로 발급 — 클라이언트는 user 정보만 저장
+    // 토큰은 서버가 httpOnly 쿠키로 발급 (주) + sessionStorage 폴백 (iOS Safari ITP 대응)
     currentUser = data.user;
+    // iOS Safari 쿠키 차단 대응: 응답에 포함된 token 을 sessionStorage 에 저장
+    // (탭·브라우저 앱 종료 시 자동 소멸 — localStorage 저장 금지 정책 유지)
+    if (data.token) {
+      if (typeof setToken === 'function') setToken(data.token);
+      try { sessionStorage.setItem('madi_sess', data.token); } catch (_e) {}
+    }
     var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types };
     try { localStorage.setItem('madi_user', JSON.stringify(_toStore)); localStorage.setItem('madi_last_id', un); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     _purgeLegacyCnCache(); // 이전 사용자의 cn3_* PII 잔존 데이터 일소
@@ -320,6 +331,8 @@ function doLogout() {
   showConfirm(currentUser.name + '님, 로그아웃 하시겠습니까?', function() {
     // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
     fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
+    // iOS Safari 폴백 토큰도 정리 (clearToken() 이 sessionStorage 도 삭제하지만 명시적으로도)
+    try { sessionStorage.removeItem('madi_sess'); } catch (_e) {}
     if (typeof stopRealtime === 'function') stopRealtime(); currentUser = null; clearToken();
     // 보안: supaFetch 메모리 캐시 전체 클리어 — 다른 사용자에게 잔여 PII 노출 방지
     if (typeof supaCacheClearAll === 'function') supaCacheClearAll();

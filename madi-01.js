@@ -109,10 +109,16 @@ function loadCenterSessionInterval() {
 var EDGE_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';
 var _madiToken = null;
 // 토큰은 인메모리에만 보관 — localStorage 저장 금지 (XSS 탈취 방지)
-// 페이지 새로고침 후에는 httpOnly 쿠키로 서버 인증이 자동 처리됨
+// iOS Safari 는 Cross-Site httpOnly 쿠키를 ITP 로 차단하므로 sessionStorage 폴백 사용:
+//   로그인 시 → sessionStorage('madi_sess') 저장
+//   페이지 로드 시 → sessionStorage 에서 복원 (탭/브라우저 앱 종료 시 자동 소멸)
+//   API 호출 시 → Authorization: Bearer 헤더로 함께 전송
 function getToken()   { return _madiToken || ''; }
 function setToken(t)  { _madiToken = t; }
-function clearToken() { _madiToken = null; }
+function clearToken() { _madiToken = null; try { sessionStorage.removeItem('madi_sess'); } catch (_e) {} }
+
+// iOS Safari 쿠키 차단 대응: sessionStorage 토큰 복원
+try { var _ssRestore = sessionStorage.getItem('madi_sess'); if (_ssRestore) _madiToken = _ssRestore; } catch (_e) {}
 
 function safeSetItem(key, value) {
   // 보안 보강 — cn3_* (아동·세션·일정·평가·IEP·활동) PII 캐시는 localStorage 에 저장하지 않음.
@@ -231,10 +237,14 @@ function supaFetch(path, method, body, opts) {
     var cached = _supaCacheGet(path);
     if (cached !== null) return Promise.resolve(cached);
   }
+  // iOS Safari ITP 대응: 쿠키가 차단된 경우 Bearer 헤더로 인증 폴백
+  var _sfHdrs = { 'Content-Type': 'application/json' };
+  var _sfTok = getToken();
+  if (_sfTok) _sfHdrs['Authorization'] = 'Bearer ' + _sfTok;
   return fetchWithRetry(EDGE_URL + '/api', {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: _sfHdrs,
     body: JSON.stringify({ path: path, method: m, body: body || null })
   }, {
     retries: 2,
