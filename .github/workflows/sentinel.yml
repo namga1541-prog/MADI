@@ -1,0 +1,37 @@
+name: Post-Deploy Sentinel
+
+# main push → GitHub Pages 배포(1~2분) 완료 후 라이브 URL 스모크 자동 실행.
+# "검증 없이 깨진 채 라이브로 나가는" 사고(스크롤·드래그 등) 자동 감지.
+# 로그인 불필요 공개 화면 3개(랜딩·로그인버튼·로그인폼) 검사. 로그인 후 전체 e2e 는 시크릿 필요 → 별도.
+on:
+  push:
+    branches: [main]
+
+# 동시 push 시 이전 실행 취소 (최신 배포만 검증)
+concurrency:
+  group: sentinel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sentinel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Playwright 브라우저 설치 (chromium)
+        run: npx playwright install --with-deps chromium
+      - name: GitHub Pages 배포 대기 (~90초)
+        run: sleep 90
+      - name: 라이브 sentinel 스모크
+        run: npx playwright test --project=sentinel
+      - name: 실패 시 리포트 업로드
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

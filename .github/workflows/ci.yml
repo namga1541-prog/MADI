@@ -1,0 +1,25 @@
+name: CI
+
+# push·PR 시 정적 검증 (lint + smoke + 재발버그 패턴). 브라우저 불필요 — 빠름(~30초).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: ESLint (XSS no-unsanitized)
+        run: npm run lint
+      - name: Smoke 유닛 테스트
+        run: node tests/smoke.js
+      - name: 재발 버그 패턴 검사 (권고)
+        run: node tools/check-patterns.js
