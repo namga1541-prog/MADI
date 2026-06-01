@@ -36,151 +36,148 @@ function toggleChat() {
   }
 }
 
-// ── 마로 버튼 드래그 이동 (Pointer Events API) ──
-// setPointerCapture 를 사용하므로 document 레벨 리스너 불필요
-// 마우스·터치·스타일러스를 단일 API 로 처리, iOS touchcancel 문제 원천 해결
+// ── 마로 버튼 드래그 이동 ──
+// 안드로이드: touchstart { passive:false } + preventDefault 로 스크롤 결정 자체를 차단
+// (Pointer Events 는 Touch Events 합성 이후 도착 → 스크롤 판정 이미 완료 → 신뢰 불가)
+// 마우스(desktop): Pointer Events + setPointerCapture
 function initFloatBtnDrag() {
   var btn = document.getElementById('floatBtn');
   if (!btn) return;
 
-  // 키보드 접근성: Space / Enter 로 채팅창 토글 (VoiceOver, TalkBack, 키보드 내비게이션)
   btn.addEventListener('keydown', function(e) {
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleChat(); }
   });
 
-  // 클릭 토글 — 데스크톱·모바일 공통 (드래그 중 클릭은 무시)
   btn.addEventListener('click', function() {
     if (btn.dataset.dragged) return;
     toggleChat();
   });
 
-  // 데스크톱(≥768px): CSS 사이드 패널 탭 모드 — 드래그 비활성화
-  // (CSS @media(min-width:768px) 가 버튼을 right:0 고정 탭으로 관리함)
   if (window.innerWidth >= 768) return;
 
   var _dragging = false;
   var _moved    = false;
   var _startX, _startY, _startTop, _startRight;
 
-  // touch-action:none — 브라우저가 이 요소의 터치를 스크롤/줌 제스처로 가로채지 않도록 설정
-  // Pointer Events 의 setPointerCapture 가 제대로 동작하려면 필수
-  btn.style.touchAction = 'none';
-
-  // ── 저장 위치 복원 (화면 회전·사이즈 변경 대비 클램핑) ──
+  // ── 저장 위치 복원 ──
   var saved = null;
-  try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch (e) { /* silent: private mode / 구브라우저 */ }
+  try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch (e) {}
   if (saved) {
     var bw = btn.offsetWidth  || 56;
     var bh = btn.offsetHeight || 56;
     var clampedTop   = Math.max(0, Math.min(saved.top,   window.innerHeight - bh));
     var clampedRight = Math.max(12, Math.min(saved.right, window.innerWidth  - bw - 12));
     btn.style.top   = clampedTop   + 'px';
-    btn.style.setProperty('bottom', 'auto', 'important'); // CSS !important 규칙 덮어쓰기
+    btn.style.setProperty('bottom', 'auto', 'important');
     btn.style.right = clampedRight + 'px';
     btn.style.left  = 'auto';
     btn.style.transform = 'none';
-    // 저장된 스냅 방향을 body 클래스에 반영 — 채팅창 위치 연동
     document.body.classList[clampedRight > window.innerWidth / 2 ? 'add' : 'remove']('maro-left');
   }
 
-  // ── 화면 회전 / 리사이즈 시 위치 재클램핑 ──
   window.addEventListener('resize', function() {
-    if (!btn.style.top) return; // 저장 위치 없음 — CSS 기본값 유지
+    if (!btn.style.top) return;
     var bw2 = btn.offsetWidth  || 56;
     var bh2 = btn.offsetHeight || 56;
     btn.style.top   = Math.max(0, Math.min(parseFloat(btn.style.top),   window.innerHeight - bh2)) + 'px';
     btn.style.right = Math.max(0, Math.min(parseFloat(btn.style.right), window.innerWidth  - bw2)) + 'px';
   });
 
-  function onStart(e) {
-    // btn 내부의 텍스트 입력 요소를 터치한 경우 드래그 시작 안 함
-    var t = e.target;
-    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return;
-
+  // ── 공용 드래그 로직 ──
+  function _dragStart(clientX, clientY) {
     _dragging = true;
     _moved    = false;
-    _startX   = e.clientX;
-    _startY   = e.clientY;
+    _startX   = clientX;
+    _startY   = clientY;
     var rect  = btn.getBoundingClientRect();
     _startTop   = rect.top;
     _startRight = window.innerWidth - rect.right;
     btn.classList.add('dragging');
-    btn.style.willChange = 'top, right'; // GPU 레이어 힌트 (안드로이드 버벅임 방지)
-
-    // setPointerCapture 시도 — 성공해도 일부 Android에서 실제 캡처 안 됨
-    try { btn.setPointerCapture(e.pointerId); } catch (err) { /* silent */ }
-    // document 폴백 항상 등록 (setPointerCapture 성공 여부 무관)
-    document.addEventListener('pointermove', onMove, { passive: false });
-    document.addEventListener('pointerup',     onEnd);
-    document.addEventListener('pointercancel', onEnd);
+    btn.style.willChange = 'top, right';
   }
 
-  function onMove(e) {
+  function _dragMove(clientX, clientY) {
     if (!_dragging) return;
-    e.preventDefault(); // 안드로이드 스크롤 간섭 이중 차단 (touch-action:none 보조)
-    var dx = e.clientX - _startX;
-    var dy = e.clientY - _startY;
+    var dx = clientX - _startX;
+    var dy = clientY - _startY;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _moved = true;
     if (!_moved) return;
-
-    var newTop   = Math.max(0, Math.min(_startTop + dy, window.innerHeight - btn.offsetHeight));
-    var newRight = Math.max(0, Math.min(_startRight - dx, window.innerWidth - btn.offsetWidth));
-
-    btn.style.top   = newTop   + 'px';
-    btn.style.setProperty('bottom', 'auto', 'important'); // CSS !important 규칙 덮어쓰기
-    btn.style.right = newRight + 'px';
+    btn.style.top = Math.max(0, Math.min(_startTop + dy, window.innerHeight - btn.offsetHeight)) + 'px';
+    btn.style.setProperty('bottom', 'auto', 'important');
+    btn.style.right = Math.max(0, Math.min(_startRight - dx, window.innerWidth - btn.offsetWidth)) + 'px';
     btn.style.left  = 'auto';
     btn.style.transform = 'none';
   }
 
-  function onEnd(e) {
+  function _dragEnd() {
     if (!_dragging) return;
     _dragging = false;
     btn.classList.remove('dragging');
-    btn.style.willChange = ''; // GPU 힌트 해제
-    // document 폴백 리스너 정리 (setPointerCapture 미지원 시 등록된 경우)
-    document.removeEventListener('pointermove', onMove);
-    document.removeEventListener('pointerup',   onEnd);
-    document.removeEventListener('pointercancel', onEnd);
-
+    btn.style.willChange = '';
     if (!_moved) return;
 
-    // ── 엣지 스냅: 버튼 중심 X 기준 가장 가까운 좌/우 엣지로 자동 흡착 ──
     var bw3      = btn.offsetWidth || 56;
     var curRight = parseFloat(btn.style.right) || 12;
     var centerX  = window.innerWidth - curRight - bw3 / 2;
     var isLeft   = centerX < window.innerWidth / 2;
-    var snapRight = isLeft
-      ? window.innerWidth - bw3 - 12   // 왼쪽 엣지 (12px 여백)
-      : 12;                             // 오른쪽 엣지 (12px 여백)
+    var snapRight = isLeft ? window.innerWidth - bw3 - 12 : 12;
 
-    // 스냅 방향을 body 클래스에 반영 — 채팅창 위치 연동 (CSS body.maro-left .chat-window)
     document.body.classList[isLeft ? 'add' : 'remove']('maro-left');
-
-    // CSS .float-btn.snapping 에 transition 정의 — 스냅 이동을 부드럽게
     btn.classList.add('snapping');
     btn.style.right = snapRight + 'px';
     setTimeout(function() { btn.classList.remove('snapping'); }, 230);
 
-    // 스냅된 최종 위치 저장
     try {
       localStorage.setItem('madi_maro_pos', JSON.stringify({
-        top:   parseInt(btn.style.top),
-        right: snapRight
+        top: parseInt(btn.style.top), right: snapRight
       }));
-    } catch (err) { /* silent: private mode / 구브라우저 */ }
+    } catch (err) {}
 
     btn.dataset.dragged = '1';
     setTimeout(function() { delete btn.dataset.dragged; }, 150);
   }
 
-  // Pointer Events 4종: 마우스·터치·스타일러스 통합
-  btn.addEventListener('pointerdown',   onStart);
-  btn.addEventListener('pointermove',   onMove, { passive: false }); // e.preventDefault() 허용 (안드로이드)
-  btn.addEventListener('pointerup',     onEnd);
-  btn.addEventListener('pointercancel', onEnd); // iOS 제스처 충돌·시스템 인터럽트 시 리셋
+  // ── Touch Events (안드로이드 모바일 전용) ──
+  // passive:false + preventDefault → Chrome 의 스크롤 제스처 판정 자체를 touchstart 시점에 차단
+  btn.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) return;
+    e.preventDefault(); // ← 이 줄이 핵심: Pointer Events 도착 전에 스크롤 결정을 막음
+    var t = e.touches[0];
+    _dragStart(t.clientX, t.clientY);
+  }, { passive: false });
 
-  btn.removeAttribute('onclick'); // 혹시 남아있을 inline onclick 제거
+  btn.addEventListener('touchmove', function(e) {
+    if (!_dragging) return;
+    e.preventDefault();
+    var t = e.touches[0];
+    _dragMove(t.clientX, t.clientY);
+  }, { passive: false });
+
+  btn.addEventListener('touchend',    function() { _dragEnd(); });
+  btn.addEventListener('touchcancel', function() {
+    _dragging = false; _moved = false;
+    btn.classList.remove('dragging'); btn.style.willChange = '';
+  });
+
+  // ── Pointer Events (마우스 전용 — 터치는 위 Touch Events 에서 처리) ──
+  btn.addEventListener('pointerdown', function(e) {
+    if (e.pointerType === 'touch') return; // 터치는 Touch Events 에서 처리
+    _dragStart(e.clientX, e.clientY);
+    try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+    document.addEventListener('pointermove', _ptrMove, { passive: false });
+    document.addEventListener('pointerup',     _ptrEnd);
+    document.addEventListener('pointercancel', _ptrEnd);
+  });
+
+  function _ptrMove(e) { _dragMove(e.clientX, e.clientY); }
+  function _ptrEnd()   {
+    document.removeEventListener('pointermove', _ptrMove);
+    document.removeEventListener('pointerup',   _ptrEnd);
+    document.removeEventListener('pointercancel', _ptrEnd);
+    _dragEnd();
+  }
+
+  btn.removeAttribute('onclick');
 }
 
 function getChatGreeting() {
