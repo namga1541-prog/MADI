@@ -181,7 +181,12 @@ function initFloatBtnDrag() {
       e.preventDefault();
       var t = e.touches[0];
       _dragMove(t.clientX, t.clientY);
-      _maroDbg('touchmove cancelable=' + e.cancelable + ' moved=' + _moved + ' top=' + btn.style.top + ' right=' + btn.style.right);
+      var _cs = getComputedStyle(btn);
+      var _r  = btn.getBoundingClientRect();
+      _maroDbg('move w=' + window.innerWidth +
+        ' | inline top=' + btn.style.top +
+        ' | COMPUTED top=' + _cs.top + ' bottom=' + _cs.bottom + ' transform=' + _cs.transform +
+        ' | RECT top=' + Math.round(_r.top) + ' left=' + Math.round(_r.left));
     }, { passive: false });
 
     btn.addEventListener('touchend', function() {
