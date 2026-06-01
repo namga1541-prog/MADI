@@ -358,26 +358,13 @@
     .tab-btn .tab-ico { font-size:18px; line-height:1.1; display:block; }
     .tab-btn .tab-lbl { font-size:11px; font-weight:700; line-height:1.1; display:block; white-space:nowrap; }
     .tab-btn.active { color:var(--mint); border-bottom-color:var(--mint); }
-    /* ─── 홈 버튼 전용 스타일 ─── */
-    #tabBtnHome {
-      flex: 0 0 50px;
-      border-bottom-color: transparent !important;
-    }
-    #tabBtnHome .tab-ico {
-      width: 32px; height: 32px;
-      background: rgba(14,165,160,0.10);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-      transition: background 0.2s, transform 0.15s;
-      line-height: 1;
-    }
-    #tabBtnHome .tab-lbl { font-size: 8px; color: var(--text2); margin-top: 1px; }
-    #tabBtnHome.active .tab-ico {
-      background: var(--mint);
-      transform: scale(1.08);
-    }
-    #tabBtnHome.active .tab-lbl { color: var(--mint); }
+    /* ─── 홈 버튼 전용 스타일 — 모바일에서는 다른 탭과 동일하게 ─── */
+    #tabBtnHome { flex: 1 1 0; border-bottom-color: transparent !important; }
+    #tabBtnHome .tab-ico { display:block; font-size:18px; line-height:1.1; }
+    #tabBtnHome .tab-lbl { font-size:11px; font-weight:700; color:var(--text2); }
+    #tabBtnHome.active { border-bottom:3px solid var(--mint); }
+    #tabBtnHome.active .tab-ico { color:var(--mint); }
+    #tabBtnHome.active .tab-lbl { color:var(--mint); }
     /* ─── 서브탭 시스템 ─── */
     .sub-panel { display: none; }
     .sub-panel.sub-active { display: block; }
@@ -1703,7 +1690,7 @@ button.dp-rev-tag:hover { background:rgba(252,211,77,0.32); color:#fef3c7; }
 .dp-tstat-num { font-size:13.5px; font-weight:800; color:#0f172a; letter-spacing:-0.2px; }
 .dp-tstat-num.warn { color:#a16207; }
 .dp-tstat-label { font-size:10px; color:#94a3b8; margin-top:1px; font-weight:600; }
-@media (max-width:640px) { .dp-trow { grid-template-columns:auto 1fr; row-gap:4px; } .dp-trow.head { display:none; } .dp-tstat { text-align:left; padding-left:44px; } }
+@media (max-width:640px) { .dp-trow { grid-template-columns:auto 1fr 42px 42px 42px; gap:6px 4px; } .dp-trow.head { display:none; } .dp-tstat { text-align:center; padding-left:0; } }
 
 /* 매출 추정 산식 표 — 4열 (바우처/세션/단가/소계) */
 .dp-trow[data-revcols="1"] { grid-template-columns:1fr 80px 100px 120px; }

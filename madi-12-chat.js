@@ -107,15 +107,12 @@ function initFloatBtnDrag() {
     btn.classList.add('dragging');
     btn.style.willChange = 'top, right'; // GPU 레이어 힌트 (안드로이드 버벅임 방지)
 
-    // setPointerCapture: 버튼 밖에서 발생하는 이벤트도 btn 으로 라우팅
-    var _captured = false;
-    try { btn.setPointerCapture(e.pointerId); _captured = true; } catch (err) { /* silent */ }
-    if (!_captured) {
-      // 안드로이드 구형/삼성 브라우저 폴백: document 레벨에서 이벤트 수신
-      document.addEventListener('pointermove', onMove, { passive: false });
-      document.addEventListener('pointerup',     onEnd);
-      document.addEventListener('pointercancel', onEnd);
-    }
+    // setPointerCapture 시도 — 성공해도 일부 Android에서 실제 캡처 안 됨
+    try { btn.setPointerCapture(e.pointerId); } catch (err) { /* silent */ }
+    // document 폴백 항상 등록 (setPointerCapture 성공 여부 무관)
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup',     onEnd);
+    document.addEventListener('pointercancel', onEnd);
   }
 
   function onMove(e) {
