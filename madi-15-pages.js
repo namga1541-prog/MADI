@@ -584,19 +584,25 @@ function _subscribePush(reg) {
         showToast('⚠️ 센터 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
         return;
       }
-      supaFetch('madi_push_subscriptions?on_conflict=user_id,endpoint', 'POST', {
-        user_id:   currentUser.id,
-        center_id: _cid,
-        endpoint:  j.endpoint,
-        p256dh:    j.keys.p256dh,
-        auth:      j.keys.auth
-      }).then(function() {
-        showToast('✅ 알림이 설정됐습니다');
-        loadParentPushToggle();
-      }).catch(function(e) {
-        showToast('⚠️ 알림 저장 실패: ' + (e.message || ''));
-        sub.unsubscribe();
-      });
+      // 동일 endpoint 기존 구독 제거 후 INSERT — push 테이블은 merge-duplicates 미부여라
+      //   on_conflict 만으로는 재구독/endpoint 갱신 시 409. DELETE(서버가 user_id=본인 소유권
+      //   강제)→INSERT 로 처리해 재구독 시 알림 재활성화가 깨지지 않게 한다.
+      supaFetch('madi_push_subscriptions?endpoint=eq.' + encodeURIComponent(j.endpoint), 'DELETE')
+        .then(function() {
+          return supaFetch('madi_push_subscriptions', 'POST', {
+            user_id:   currentUser.id,
+            center_id: _cid,
+            endpoint:  j.endpoint,
+            p256dh:    j.keys.p256dh,
+            auth:      j.keys.auth
+          });
+        }).then(function() {
+          showToast('✅ 알림이 설정됐습니다');
+          loadParentPushToggle();
+        }).catch(function(e) {
+          showToast('⚠️ 알림 저장 실패: ' + (e.message || ''));
+          sub.unsubscribe();
+        });
     }).catch(function() {
       showToast('⚠️ 알림 구독에 실패했습니다.');
     });

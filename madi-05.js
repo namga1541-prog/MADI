@@ -336,11 +336,13 @@ function getClosedDuration(startDate, closedAt) {
 }
 
 // 이번 달 사용 바우처 횟수 계산
-function getVoucherUsed(childId) {
+function getVoucherUsed(childId, sessions) {
   var now = new Date();
   var ym  = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  return sessionDB.filter(function(s) {
-    return s.childId === childId && s.date && s.date.slice(0, 7) === ym;
+  // sessions(해당 childId 로 이미 필터된 배열)가 주어지면 전역 sessionDB 재스캔 회피
+  var list = sessions || sessionDB.filter(function(s) { return s.childId === childId; });
+  return list.filter(function(s) {
+    return s.date && s.date.slice(0, 7) === ym;
   }).length;
 }
 
@@ -560,7 +562,7 @@ function renderChildGrid() {
         + (child.closedReason ? '<span style="font-size:11px;background:#fdf4ff;color:#7c3aed;padding:3px 8px;border-radius:8px;font-weight:600;">💬 ' + escHtml(child.closedReason) + '</span>' : '')
         + '</div>';
     }
-    var vUsed    = getVoucherUsed(child.id);
+    var vUsed    = getVoucherUsed(child.id, cgSessByChild[child.id] || []);
     var vLimit   = child.voucherLimit || 0;
     var vPct     = vLimit > 0 ? Math.min(100, Math.round(vUsed / vLimit * 100)) : 0;
     var vColor   = vPct >= 90 ? '#ef4444' : vPct >= 70 ? '#f59e0b' : '#10b981';

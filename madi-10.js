@@ -251,9 +251,14 @@ function renderMonthGrid() {
   renderTeacherFilter();
   var childById = {};
   childDB.forEach(function(c) { childById[c.id] = c; });
+  // date→일정배열 맵 1회 구축 — 셀당 scheduleDB 전체 스캔 O(42×N) 제거
+  var schedByDate = {};
+  scheduleDB.forEach(function(s) {
+    (schedByDate[s.date] || (schedByDate[s.date] = [])).push(s);
+  });
   var html = '';
   cells.forEach(function(cell) {
-    var allScheds = scheduleDB.filter(function(s) { return s.date === cell.date; })
+    var allScheds = (schedByDate[cell.date] || []).slice()
       .sort(function(a, b) { return (a.startTime||'') < (b.startTime||'') ? -1 : 1; });
     var dayScheds = _schedTeacherFilter === '전체' ? allScheds
       : allScheds.filter(function(s){ return s.teacher === _schedTeacherFilter; });

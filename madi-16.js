@@ -365,8 +365,8 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
     +       '<label class="form-label" style="margin:0;">📝 한 줄 요약</label>'
     +       '<div style="display:flex;gap:6px;">'
-    +         '<button type="button" id="quickMicBtn" onclick="quickToggleDictation()" class="btn" aria-label="음성 입력" style="padding:7px 12px;font-size:13px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;font-weight:700;">🎤 받아쓰기</button>'
-    +         '<button type="button" id="quickAiBtn" onclick="quickAiClean()" class="btn" style="padding:7px 12px;font-size:13px;background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6;font-weight:700;">✨ AI 정리</button>'
+    +         '<button type="button" id="quickMicBtn" onclick="quickToggleDictation()" class="btn" aria-label="음성 입력" style="min-height:44px;padding:7px 12px;font-size:13px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;font-weight:700;">🎤 받아쓰기</button>'
+    +         '<button type="button" id="quickAiBtn" onclick="quickAiClean()" class="btn" aria-label="AI 정리" style="min-height:44px;padding:7px 12px;font-size:13px;background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6;font-weight:700;">✨ AI 정리</button>'
     +       '</div>'
     +     '</div>'
     +     '<textarea id="quickSummary" class="form-input" rows="4" maxlength="' + _QUICK_SUMMARY_MAX_LEN + '" placeholder="예) /ㅅ/ 음소 단어 수준 산출 70% · 차례 기다리기 양호 · 다음 시간 문장 수준 진입">' + escHtml(summary) + '</textarea>'
@@ -397,7 +397,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +       '<div style="font-size:11px;color:var(--text2);margin-top:2px;">기본 비공개. 메모(이번 기록 자체)는 학부모에게 노출되지 않습니다.</div>'
     +     '</div>'
     +     '<label class="switch" style="position:relative;display:inline-block;width:50px;height:28px;">'
-    +       '<input type="checkbox" id="quickParentVisible" ' + (parentVisible ? 'checked' : '') + ' style="opacity:0;width:0;height:0;">'
+    +       '<input type="checkbox" id="quickParentVisible" aria-label="학부모에게 이 기록 공개" ' + (parentVisible ? 'checked' : '') + ' style="opacity:0;width:0;height:0;">'
     +       '<span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:14px;transition:.3s;"></span>'
     +     '</label>'
     +   '</div>'
@@ -425,7 +425,7 @@ function _quickPhotoHtml() {
     return ''
       + '<div style="position:relative;display:inline-block;border:1px solid var(--border);border-radius:10px;overflow:hidden;">'
       +   '<img src="' + escHtml(_quickPhotoDataUrl) + '" alt="첨부 사진" loading="lazy" style="max-width:200px;max-height:160px;display:block;">'
-      +   '<button type="button" onclick="quickRemovePhoto()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;width:24px;height:24px;border-radius:12px;cursor:pointer;font-size:13px;line-height:1;">✕</button>'
+      +   '<button type="button" onclick="quickRemovePhoto()" aria-label="사진 삭제" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;width:32px;height:32px;border-radius:16px;cursor:pointer;font-size:14px;line-height:1;">✕</button>'
       + '</div>';
   }
   return ''
@@ -447,7 +447,7 @@ function _quickRenderNextGoals() {
     html += '<label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-soft,#f1f5f9);">'
       + '<input type="checkbox" ' + (g.checked ? 'checked' : '') + ' onchange="_quickToggleGoal(' + i + ')" style="width:18px;height:18px;cursor:pointer;">'
       + '<span style="flex:1;font-size:14px;color:var(--text);">' + escHtml(g.name) + '</span>'
-      + '<button type="button" onclick="_quickRemoveGoal(' + i + ')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:13px;padding:4px 6px;">✕</button>'
+      + '<button type="button" onclick="_quickRemoveGoal(' + i + ')" aria-label="목표 삭제" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:8px 10px;min-width:40px;min-height:40px;">✕</button>'
       + '</label>';
   });
   // eslint-disable-next-line no-unsanitized/property

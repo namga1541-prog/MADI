@@ -305,12 +305,18 @@ function renderDailyService() {
     { v:'carried',   l:'취소(이월)' }
   ];
 
+  // 룩업맵 1회 구축 — 행마다 children.find / daySessions.find 전체 스캔 제거
+  var svcChildById = {};
+  children.forEach(function(c){ svcChildById[String(c.id)] = c; });
+  var svcSessChildSet = {};
+  daySessions.forEach(function(ss){ svcSessChildSet[String(ss.childId)] = true; });
+
   var html = rows.map(function(r){
     var childId  = r.type==='sched' ? r.sc.childId : r.s.childId;
     var teacher  = r.type==='sched' ? (r.sc.teacher||'미지정') : (r.s.teacher||'미지정');
     var timeStr  = r.type==='sched' ? (escHtml(r.sc.startTime||'')+(r.sc.endTime?' ~ '+escHtml(r.sc.endTime):'')) : '';
     var schedId  = r.type==='sched' ? r.sc.id : '';
-    var child    = children.find(function(c){ return String(c.id)===String(childId); });
+    var child    = svcChildById[String(childId)];
     var name     = child ? child.name : ('아동#'+childId);
     var fee      = child ? (child.feePerSession || 0) : 0;
     var feeStr   = (fee && r.status==='done') ? fee.toLocaleString()+'원' : '';
@@ -332,7 +338,7 @@ function renderDailyService() {
     // 세션 기록 버튼 (완료 상태일 때)
     var sessBtn = '';
     if (r.status === 'done') {
-      var hasSess = daySessions.find(function(ss){ return String(ss.childId)===String(childId); });
+      var hasSess = svcSessChildSet[String(childId)];
       var _cid = String(childId);
       sessBtn = hasSess
         ? '<button onclick="switchTab(2);setTimeout(function(){switchReportTab(\'session\');var el=document.getElementById(\'sessionChild\');if(el){el.value=\''+_cid+'\';if(typeof loadGoalRows===\'function\')loadGoalRows(\''+_cid+'\');}},200);" style="font-size:11px;padding:4px 8px;background:var(--mint2);color:var(--mint);border:none;border-radius:6px;cursor:pointer;">기록보기</button>'
