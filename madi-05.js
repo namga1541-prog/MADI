@@ -167,7 +167,7 @@ function makePhonemeCell(phoneme, pos) {
   return '<input class="phoneme-input' + getPhonemeClass(val) + '" '
     + 'type="number" min="0" max="100" placeholder="—" '
     + 'value="' + (val !== '' && val !== null && val !== undefined ? val : '') + '" '
-    + 'oninput="onPhonemeInput(this,\'' + phoneme + '\',\'' + pos + '\')">';
+    + 'oninput="onPhonemeInput(this,\'' + escHtml(phoneme) + '\',\'' + escHtml(pos) + '\')">';
 }
 
 function getPhonemeClass(val) {

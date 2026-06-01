@@ -39,6 +39,10 @@ function loadCenterApiKey(showFeedback) {
 }
 
 function saveCenterApiKey() {
+  // 역할 가드 — UI 는 admin 전용이나 함수 직접 호출(콘솔) 차단. 서버 RLS 가 1차 방어.
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+    showToast('⚠️ API 키 설정 권한이 없습니다'); return;
+  }
   var key = (document.getElementById('centerApiKeyInput') || {}).value || '';
   key = key.trim();
   if (!key.startsWith('sk-ant')) {
