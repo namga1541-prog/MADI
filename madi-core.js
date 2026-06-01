@@ -19,6 +19,11 @@ function isStaffRole(role) { return role === ROLES.ADMIN || role === ROLES.SUPER
    madi-02 ~ madi-16 어떤 파일에서도 안전하게 사용 가능.
    ' 까지 escape — inline onclick='...' 안에 사용자 문자열 들어가도 안전.
    admin.html 은 별도 페이지(madi-*.js 미로딩)라 인라인 사본 유지. */
+/**
+ * 사용자 입력을 HTML 에 안전하게 삽입하기 위해 이스케이프. innerHTML 조립 시 필수.
+ * @param {*} str 임의 값(문자열로 변환됨)
+ * @returns {string} `& < > " '` 가 엔티티로 치환된 문자열
+ */
 function escHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
@@ -45,6 +50,11 @@ function canDo(perm) {
   var p = currentUser.permissions || {};
   return p[perm] !== false;
 }
+/**
+ * 현재 사용자가 담당/연결된 아동인지. (id 는 문자열 — 숫자 비교 금지)
+ * @param {MadiId} childId 아동 id (문자열)
+ * @returns {boolean}
+ */
 function isMyChild(childId) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin' || currentUser.role === 'superadmin') return true;
@@ -224,6 +234,15 @@ function _oqFlush(){
 window.addEventListener('online', function(){ setTimeout(_oqFlush, 1000); });
 // ─────────────────────────────────────────────────────────────────────
 
+/**
+ * 모든 DB 접근의 단일 통로 (Edge Function `api` 프록시 경유). HTTP 오류 시 throw.
+ * 오프라인 쓰기는 큐잉 후 `{_queued:true}` 로 즉시 resolve.
+ * @param {string} path PostgREST 경로 (예: 'madi_children?id=eq.' + id)
+ * @param {'GET'|'POST'|'PATCH'|'DELETE'} [method] 기본 'GET'
+ * @param {any} [body] POST/PATCH 본문
+ * @param {{cache?:boolean}} [opts]
+ * @returns {Promise<any>} 응답 JSON (실패 시 reject)
+ */
 function supaFetch(path, method, body, opts) {
   var m = method || 'GET';
   opts = opts || {};

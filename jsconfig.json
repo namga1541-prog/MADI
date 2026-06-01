@@ -1,0 +1,15 @@
+{
+  "//": "VS Code 의 내장 TypeScript 가 .js 를 타입 검사하도록 설정. 별도 설치/빌드 불필요.",
+  "//checkJs": "false = 기본은 IntelliSense·hover 타입만(에러 표시 없음). 파일 맨 위에 `// @ts-check` 를 추가하면 그 파일만 타입 오류를 빨간 줄로 검사 → 점진 도입.",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "target": "ES2017",
+    "module": "none",
+    "lib": ["ES2017", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "strict": false
+  },
+  "include": ["*.js", "tools/*.js", "types/*.d.ts"],
+  "exclude": ["node_modules", "tests", "playwright-report", "supabase"]
+}

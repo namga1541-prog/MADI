@@ -131,7 +131,12 @@ function saveAssess() {
     .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '검사')); });
 }
 
-var childDB = [], sessionDB = [], scheduleDB = [], assessmentDB = [], activityDB = [], iepDB = [];
+/** @type {Child[]} */       var childDB = [];
+/** @type {Session[]} */     var sessionDB = [];
+/** @type {Schedule[]} */    var scheduleDB = [];
+/** @type {any[]} */         var assessmentDB = [];
+/** @type {any[]} */         var activityDB = [];
+/** @type {any[]} */         var iepDB = [];
 function loadDB() {
   // cn3_* localStorage 캐시 비활성 — PII 평문 저장 금지. 인메모리로 시작, loadDBFromSupabase 가 채움.
   childDB = []; sessionDB = []; scheduleDB = []; assessmentDB = []; activityDB = []; iepDB = [];
