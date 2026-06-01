@@ -798,7 +798,18 @@ function openPostEditModal(opts) {
   function _onKey(e) { if (e.key === 'Escape') _close(); }
 
   peCancel.addEventListener('click', _close);
-  overlay.addEventListener('click', function(e) { if (e.target === overlay) _close(); });
+
+  // 드래그·클릭 오닫힘 방지
+  // textarea에서 텍스트를 선택하다 overlay까지 끌면 mouseup이 overlay에서 발생해
+  // click 이벤트가 overlay에 올라와 창이 닫히는 문제를 차단한다.
+  // 방법: mousedown이 박스(inner dialog) 안에서 시작됐으면 overlay의 click을 무시.
+  var _mouseDownOnOverlay = false;
+  overlay.addEventListener('mousedown', function(e) {
+    _mouseDownOnOverlay = (e.target === overlay);
+  });
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay && _mouseDownOnOverlay) _close();
+  });
   document.addEventListener('keydown', _onKey);
 
   peSave.addEventListener('click', function() {
