@@ -69,6 +69,9 @@
 ### 배포
 - `main` 브랜치 push → GitHub Pages 자동 배포 (1~2분 소요)
 - `sw.js` 캐시 버전은 pre-commit 훅이 자동 갱신 (수동 변경 불필요)
+  · 훅 실체: 버전 관리되는 `.githooks/pre-commit` (sw.js CACHE_NAME 갱신 + ESLint + smoke)
+  · **PC마다 최초 1회 설치 필요**: `git config core.hooksPath .githooks`
+  · 정적 자산(JS/CSS/HTML)이 스테이징된 커밋에서만 CACHE_NAME 갱신
 - 변경 후 반드시 강제 새로고침 안내 (Ctrl+Shift+R)
 
 ### 자동 커밋·푸시 (필수)
