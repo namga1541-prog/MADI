@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
   // BASE_COLS: 원래부터 존재하는 컬럼만 (status 도 일부 DB 에는 없을 수 있음)
   // EXT_COLS:  status + SEC3/4/6 신규 컬럼 (마이그레이션 후만)
   const BASE_COLS = 'id,username,name,password,role,center_id,color,permissions'
-  const EXT_COLS  = BASE_COLS + ',status,failed_login_count,last_failed_at,locked_until,totp_secret,totp_enabled,session_revoked_at'
+  const EXT_COLS  = BASE_COLS + ',failed_login_count,last_failed_at,locked_until,totp_secret,totp_enabled,session_revoked_at'
   const userUrl = (cols: string) =>
     SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username) + '&select=' + cols
 

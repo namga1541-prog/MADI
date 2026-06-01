@@ -487,7 +487,7 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      // ── POST(회원가입) 시 role/permissions/status 서버 강제 ──
+      // ── POST(회원가입) 시 role/permissions 서버 강제 ──
       // 클라이언트가 보낸 role/permissions 값을 무시하고 서버에서 안전값으로 덮어씀.
       // 계정은 항상 teacher 로 시작 — admin/superadmin 승격은 별도 관리자 액션으로만 가능.
       if (method === 'POST') {
@@ -501,8 +501,9 @@ Deno.serve(async (req: Request) => {
           obj.role = (user.role === 'superadmin' && obj.role === 'admin') ? 'admin' : 'teacher'
           // permissions: 허용된 기본값으로 강제 (클라이언트 확장 시도 차단)
           obj.permissions = DEFAULT_PERMISSIONS
-          // status: 없으면 active 기본값
-          if (!obj.status) obj.status = 'active'
+          // ※ status 는 운영 DB(madi_users)에 존재하지 않는 컬럼 → 주입 시 PostgREST 42703(400)
+          //   으로 직원 추가가 전부 실패함. 계정 활성/비활성 상태가 필요해지면 status 컬럼을
+          //   추가(DEFAULT 'active')한 뒤 여기서 위임할 것. 현재는 주입하지 않는다.
         }
       }
     }
@@ -773,6 +774,10 @@ Deno.serve(async (req: Request) => {
     // PostgREST 에러 원문(hint/detail/message 등 내부 구조) 노출 방지
     // 2xx가 아닌 응답은 generic 메시지로 래핑해서 내려줌
     if (response.status >= 400) {
+      // 원문은 클라엔 노출하지 않되(내부 구조 보호), 서버 로그엔 남겨 원인 추적이 막히지 않게 한다.
+      //   (이 로깅 부재로 madi_users.status 42703 진단이 지연된 사례가 있어 추가)
+      console.error('[api] upstream error', response.status, method || 'GET', tableName,
+        (typeof data === 'string' ? data : JSON.stringify(data)).slice(0, 400))
       return new Response(
         JSON.stringify({ error: '요청을 처리할 수 없습니다', code: response.status }),
         { status: response.status, headers: { ...CORS, 'Content-Type': 'application/json' } }
