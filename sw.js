@@ -1,4 +1,4 @@
-var CACHE_NAME = "madi-v5-20260601-2120";
+var CACHE_NAME = "madi-v5-20260601-2131";
 // 외부 API · 인증 응답은 캐시하지 않는다 (민감 응답 보호)
 var SKIP_HOSTS = ["api.anthropic.com","googleapis.com"];
 // 경로 기반 차단 — Supabase Edge Function 및 REST/Storage/Auth 응답
@@ -96,8 +96,17 @@ self.addEventListener("fetch", function(e) {
     return;
   }
 
-  // 동일 출처 정적 자산 (JS, CSS, 이미지, 폰트, 매니페스트): SWR
-  // → 재방문 시 즉시 표시, 백그라운드에서 새 버전 받음
+  // 동일 출처 앱 코드 (JS/CSS): network-first
+  // → SWR 는 "옛 캐시 먼저 서빙 + 다음 로드에 갱신" 이라, 설치형 PWA 에서
+  //   배포한 코드 수정이 디바이스에서 영영 실행되지 않는 문제가 있었음.
+  //   코드 파일만큼은 온라인이면 항상 최신을 받고, 오프라인일 때만 캐시 폴백.
+  if (url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
+    e.respondWith(networkFirst(e.request, false, e));
+    return;
+  }
+
+  // 그 외 동일 출처 정적 자산 (이미지, 아이콘, 폰트, 매니페스트): SWR
+  // → 자주 안 바뀌고 용량이 크므로 캐시 우선 + 백그라운드 갱신
   e.respondWith(staleWhileRevalidate(e.request, e));
 });
 
