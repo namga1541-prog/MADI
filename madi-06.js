@@ -173,12 +173,13 @@ function addChildFromModal() {
   childDB.push({ id:String(Date.now() + Math.floor(Math.random() * 1000)), name:name, birth:birth, age:age, type:type,
     phone:phone, goals:[], memo:memo, status:status, startDate:'', voucherLimit:0,
     color:CHILD_COLORS[childDB.length % CHILD_COLORS.length] });
-  saveChildren();
+  var _saveP = saveChildren();
   renderChildGrid();
   populateChildSelects();
   var modal = document.getElementById('childRegModal');
   if (modal) modal.remove();
-  showToast('✅ ' + name + ' 등록 완료!');
+  // 성공 시에만 ✅ — 실패 시 ❌ 는 saveChildren 내부 표시(거짓 성공 방지, 데이터는 로컬 보존)
+  _saveP.then(function(ok) { if (ok) showToast('✅ ' + name + ' 등록 완료!'); });
 }
 
 function toggleChildCard(id) {
@@ -539,11 +540,12 @@ function saveEditModal(id) {
   }
   childDB[idx] = updatedChild;
 
-  saveChildren();
+  var _saveP = saveChildren();
   renderChildGrid();
   populateChildSelects();
   closeEditModal();
-  showToast('✅ ' + name + ' 정보가 수정되었습니다!');
+  // 성공 시에만 ✅ — 실패 시 ❌ 는 saveChildren 내부 표시(거짓 성공 방지, 데이터는 로컬 보존)
+  _saveP.then(function(ok) { if (ok) showToast('✅ ' + name + ' 정보가 수정되었습니다!'); });
 }
 
 function closeEditModal() {

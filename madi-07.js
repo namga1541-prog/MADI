@@ -31,9 +31,11 @@ function saveSession(aiNote) {
 
   var sessionId = generateClientId();
   sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', teacher_id: (currentUser && currentUser.id != null) ? String(currentUser.id) : '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
-  saveSessions();
+  // 서버 저장 결과를 받아 토스트를 정직하게 표시 (실패 시 거짓 "✅ 저장 완료" 방지)
+  var _savePromise = saveSessions();
   // 저장된 날짜를 기억 (소급 입력 시 다음 세션도 같은 날짜로 편의 제공)
   try { localStorage.setItem('madi_last_session_date', date); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+  // 화면 갱신·폼 초기화는 즉시(데이터는 메모리+localStorage 에 이미 보존 — 중복/유실 없음)
   renderSessionList();
   renderChildGrid();
   elMemo.value = '';
@@ -41,15 +43,21 @@ function saveSession(aiNote) {
   renderGoalRows();
   resetPhonemeMatrix();
   updateCloneBtnState(childId);
-  showToast('✅ 세션 저장 완료!');
-  vibrate(40);  // UX: 햅틱 피드백
-  // 학부모 알림 fanout (fire-and-forget — 실패해도 세션 저장에 영향 없음)
-  if (typeof fanoutSessionNotification === 'function') {
-    fanoutSessionNotification(sessionDB[sessionDB.length - 1]);
-  }
-  setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
-  setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
-  setTimeout(function() { checkAutoStagnation(childId); }, 1200);
+  // 성공/실패에 따라 안내 분기 — 성공 시에만 ✅·학부모 알림·후속 제안 실행
+  _savePromise.then(function(ok) {
+    // 실패 시: ❌ 원인별 토스트는 saveSessions 내부에서 표시됨. 거짓 "✅" 를 띄우지 않는 것이 핵심.
+    //   데이터는 메모리+localStorage 에 보존되어 연결 회복 시 재동기화되므로 폼은 그대로 비운다(중복 방지).
+    if (!ok) return;
+    showToast('✅ 세션 저장 완료!');
+    vibrate(40);  // UX: 햅틱 피드백
+    // 학부모 알림 fanout (fire-and-forget — 실패해도 세션 저장에 영향 없음)
+    if (typeof fanoutSessionNotification === 'function') {
+      fanoutSessionNotification(sessionDB[sessionDB.length - 1]);
+    }
+    setTimeout(function() { suggestHomeActivities(sessionId); }, 300);
+    setTimeout(function() { showPostSessionBriefing(sessionId); }, 800);
+    setTimeout(function() { checkAutoStagnation(childId); }, 1200);
+  });
 }
 
 function saveSessionAI() {

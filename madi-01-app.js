@@ -79,13 +79,15 @@ function _loadOlderHistory(d90, d30) {
   });
 }
 
+// 반환: Promise<boolean> — true=성공, false=실패(❌ 토스트는 내부 표시). saveSessions 와 동일 패턴.
 function saveChildren() {
   markMyChange(); _optionsCacheKey = null; safeSetItem('cn3_children', JSON.stringify(childDB));
-  if (childDB.length === 0) return;
+  if (childDB.length === 0) return Promise.resolve(true);
   var cid = getCenterId(), rows = childDB.map(function(c){ return { id: c.id, center_id: cid, data: c }; }), batches = [];
   for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
-  batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_children?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
-    .catch(function(e) { showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요'); });
+  return batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_children?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
+    .then(function() { return true; })
+    .catch(function(e) { showToast('❌ 서버 저장 실패 — 인터넷 연결 확인 후 다시 시도해주세요'); return false; });
 }
 function getSaveErrMsg(e, label) {
   var msg = e && e.message ? e.message : '';
@@ -104,12 +106,15 @@ function _userErrMsg(e, action) {
   if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1) return action + ' 실패 — 서버 응답이 없습니다. 잠시 후 다시 시도해주세요';
   return action + '에 실패했습니다. 잠시 후 다시 시도해주세요';
 }
+// 반환: Promise<boolean> — true=서버 저장 성공, false=실패(❌ 토스트는 내부에서 표시).
+// 호출부가 .then(ok) 으로 성공 시에만 ✅ 표시하도록(거짓 성공 방지). 미체이닝 호출부는 기존대로 동작.
 function saveSessions() {
-  markMyChange(); safeSetItem('cn3_sessions', JSON.stringify(sessionDB)); if (sessionDB.length === 0) return;
+  markMyChange(); safeSetItem('cn3_sessions', JSON.stringify(sessionDB)); if (sessionDB.length === 0) return Promise.resolve(true);
   var cid = getCenterId(), rows = sessionDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; }), batches = [];
   for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
-  batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_sessions?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
-    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '세션')); });
+  return batches.reduce(function(p, batch) { return p.then(function() { return supaFetch('madi_sessions?on_conflict=id', 'POST', batch); }); }, Promise.resolve())
+    .then(function() { return true; })
+    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, '세션')); return false; });
 }
 function saveSchedule() {
   markMyChange(); safeSetItem('cn3_schedule', JSON.stringify(scheduleDB)); if (scheduleDB.length === 0) return;

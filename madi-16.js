@@ -823,12 +823,9 @@ function quickSave() {
       } else {
         sessionDB.push(newRow);
       }
-      if (typeof saveSessions === 'function') saveSessions();
-      _quickClearDraft(_quickCurrentSchedId);
-      if (typeof showToast === 'function') showToast('✅ 저장됨');
-      if (typeof vibrate === 'function') vibrate(40);
+      var _qSaveP = (typeof saveSessions === 'function') ? saveSessions() : Promise.resolve(true);
 
-      // 다음 미기록 카드 찾기
+      // 다음 미기록 카드 찾기 (저장 결과와 무관하게 계산)
       var idx = -1;
       for (var k = 0; k < scheds.length; k++) {
         if (String(scheds[k].id) === _quickCurrentSchedId) { idx = k; break; }
@@ -842,10 +839,19 @@ function quickSave() {
           if (!_quickFindSession(scheds[n])) { next = scheds[n]; break; }
         }
       }
-      setTimeout(function() {
-        if (next) openQuickForm(String(next.id));
-        else { _showQuickCardList(); renderQuickCards(); }
-      }, 500);
+
+      _qSaveP.then(function(ok) {
+        if (ok) {
+          _quickClearDraft(_quickCurrentSchedId);  // 성공 시에만 임시저장 삭제
+          if (typeof showToast === 'function') showToast('✅ 저장됨');
+          if (typeof vibrate === 'function') vibrate(40);
+        }
+        // 실패 시: 드래프트 보존(복구용), ❌ 원인 토스트는 saveSessions 내부에서 표시
+        setTimeout(function() {
+          if (next) openQuickForm(String(next.id));
+          else { _showQuickCardList(); renderQuickCards(); }
+        }, ok ? 500 : 1200);
+      });
     });
 }
 
