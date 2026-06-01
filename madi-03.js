@@ -277,14 +277,16 @@ function applyRoleUI() {
 
 function resetMaroPos() {
   localStorage.removeItem('madi_maro_pos');
+  localStorage.removeItem('madi_maro_side');
   var el = document.getElementById('maroResetResult');
   if (el) {
     el.textContent = '✅ 초기화 완료! 적용됩니다.';
     setTimeout(function() { if (el) el.textContent = ''; }, 3000);
   }
   var btn = document.getElementById('floatBtn');
-  if (btn) { btn.style.inset = ''; btn.style.transform = ''; }
-  showToast('✅ 마로 위치 초기화됨');
+  if (btn) { btn.style.inset = ''; btn.style.transform = ''; btn.style.left = ''; btn.style.right = ''; }
+  document.body.classList.remove('maro-left');
+  showToast('✅ 마로 위치 초기화됨 (오른쪽 아래)');
 }
 
 function getApiKeyOrAlert() {

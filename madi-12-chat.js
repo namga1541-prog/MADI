@@ -36,10 +36,10 @@ function toggleChat() {
   }
 }
 
-// ── 마로 버튼 드래그 이동 ──
-// 안드로이드: touchstart { passive:false } + preventDefault 로 스크롤 결정 자체를 차단
-// (Pointer Events 는 Touch Events 합성 이후 도착 → 스크롤 판정 이미 완료 → 신뢰 불가)
-// 마우스(desktop): Pointer Events + setPointerCapture
+// ── 마로 버튼 위치 이동 ──
+// 자유 드래그는 모바일에서 (손가락이 버튼을 가림 + 스크롤 충돌) 신뢰성이 낮아,
+// "꾹 누르기(롱프레스) → 좌/우 하단 모서리 토글" 방식으로 변경.
+// 스크롤과 충돌하지 않고, 버튼이 항상 하단 모서리에 있어 사라질 수 없음.
 function initFloatBtnDrag() {
   var btn = document.getElementById('floatBtn');
   if (!btn) return;
@@ -49,160 +49,76 @@ function initFloatBtnDrag() {
   });
 
   btn.addEventListener('click', function() {
-    if (btn.dataset.dragged) return;
+    if (btn.dataset.moved) return; // 롱프레스로 막 옮긴 직후의 click 은 무시
     toggleChat();
   });
 
-  // 드래그 활성 조건 — 화면 폭이 아니라 "터치 입력 가능 여부" 기준.
-  //  기존: innerWidth>=768 이면 드래그 전체 비활성 → 태블릿·대화면·데스크톱모드
-  //  안드로이드에서 드래그 핸들러가 통째로 안 붙던 버그(클릭만 동작). 폭 게이트 제거.
-  var hasTouch       = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  var allowMouseDrag = window.innerWidth < 768; // 데스크톱(마우스)은 측면 탭 UX 유지
-  if (!hasTouch && !allowMouseDrag) return;
-
-  var _dragging = false;
-  var _moved    = false;
-  var _active   = false;
-  var _startX, _startY, _startTop, _startRight;
-
-  // ── 저장 위치 복원 ──
-  var saved = null;
-  try { saved = JSON.parse(localStorage.getItem('madi_maro_pos') || 'null'); } catch (e) {}
-  if (saved) {
-    var bw = btn.offsetWidth  || 56;
-    var bh = btn.offsetHeight || 56;
-    var clampedTop   = Math.max(0, Math.min(saved.top,   window.innerHeight - bh));
-    var clampedRight = Math.max(12, Math.min(saved.right, window.innerWidth  - bw - 12));
-    btn.style.top   = clampedTop   + 'px';
-    btn.style.setProperty('bottom', 'auto', 'important');
-    btn.style.right = clampedRight + 'px';
-    btn.style.left  = 'auto';
-    btn.style.transform = 'none';
-    document.body.classList[clampedRight > window.innerWidth / 2 ? 'add' : 'remove']('maro-left');
+  // ── 좌/우 위치 적용 + 저장 ──
+  function applySide(s) {
+    if (s === 'left') {
+      btn.style.left  = '20px';
+      btn.style.right = 'auto';
+      document.body.classList.add('maro-left');
+    } else {
+      btn.style.right = '20px';
+      btn.style.left  = 'auto';
+      document.body.classList.remove('maro-left');
+    }
+    // 상단/하단(top/bottom)은 건드리지 않음 → CSS 의 하단 고정 유지 (버튼이 항상 화면 안)
+    try { localStorage.setItem('madi_maro_side', s); } catch (e) {}
   }
 
-  window.addEventListener('resize', function() {
-    if (!btn.style.top) return;
-    var bw2 = btn.offsetWidth  || 56;
-    var bh2 = btn.offsetHeight || 56;
-    btn.style.top   = Math.max(0, Math.min(parseFloat(btn.style.top),   window.innerHeight - bh2)) + 'px';
-    btn.style.right = Math.max(0, Math.min(parseFloat(btn.style.right), window.innerWidth  - bw2)) + 'px';
-  });
+  var side = 'right';
+  try { if (localStorage.getItem('madi_maro_side') === 'left') side = 'left'; } catch (e) {}
+  applySide(side);
 
-  // ── 공용 드래그 로직 ──
-  function _dragStart(clientX, clientY) {
-    _dragging = true;
-    _moved    = false;
-    _startX   = clientX;
-    _startY   = clientY;
-    var rect  = btn.getBoundingClientRect();
-    _startTop   = rect.top;
-    _startRight = window.innerWidth - rect.right;
-    btn.classList.add('dragging');
-    btn.style.willChange = 'top, right';
-  }
+  // 데스크톱(마우스 전용 + 대화면)은 측면 탭 UX → 위치 이동 불필요
+  var hasTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (!hasTouch && window.innerWidth >= 768) { btn.removeAttribute('onclick'); return; }
 
-  function _dragMove(clientX, clientY) {
-    if (!_dragging) return;
-    var dx = clientX - _startX;
-    var dy = clientY - _startY;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _moved = true;
-    if (!_moved) return;
-    btn.style.top = Math.max(0, Math.min(_startTop + dy, window.innerHeight - btn.offsetHeight)) + 'px';
-    btn.style.setProperty('bottom', 'auto', 'important');
-    btn.style.right = Math.max(0, Math.min(_startRight - dx, window.innerWidth - btn.offsetWidth)) + 'px';
-    btn.style.left  = 'auto';
-    btn.style.transform = 'none';
-  }
+  // ── 롱프레스 감지 (꾹 누르면 반대편 모서리로 이동) ──
+  var LP_MS = 420, MOVE_CANCEL = 12;
+  var _timer = null, _sx = 0, _sy = 0;
 
-  function _dragEnd() {
-    if (!_dragging) return;
-    _dragging = false;
-    btn.classList.remove('dragging');
-    btn.style.willChange = '';
-    if (!_moved) return;
-
-    var bw3      = btn.offsetWidth || 56;
-    var bh3      = btn.offsetHeight || 56;
-    var curRight = parseFloat(btn.style.right) || 12;
-    var centerX  = window.innerWidth - curRight - bw3 / 2;
-    var isLeft   = centerX < window.innerWidth / 2;
-    var snapRight = isLeft ? window.innerWidth - bw3 - 12 : 12;
-
-    // 최종 위치를 반드시 화면 안으로 강제 (어떤 경우에도 버튼이 사라지지 않도록)
-    var safeTop = Math.max(8, Math.min(parseFloat(btn.style.top) || 0, window.innerHeight - bh3 - 8));
-    btn.style.top = safeTop + 'px';
-    btn.style.setProperty('bottom', 'auto', 'important');
-
-    document.body.classList[isLeft ? 'add' : 'remove']('maro-left');
+  function _flip() {
+    side = (side === 'left') ? 'right' : 'left';
+    applySide(side);
     btn.classList.add('snapping');
-    btn.style.right = snapRight + 'px';
-    setTimeout(function() { btn.classList.remove('snapping'); }, 230);
-
-    try {
-      localStorage.setItem('madi_maro_pos', JSON.stringify({
-        top: safeTop, right: snapRight
-      }));
-    } catch (err) {}
-
-    btn.dataset.dragged = '1';
-    setTimeout(function() { delete btn.dataset.dragged; }, 150);
+    setTimeout(function() { btn.classList.remove('snapping'); }, 240);
+    // 롱프레스 직후 발생하는 click 이 채팅을 열지 않도록 차단
+    btn.dataset.moved = '1';
+    setTimeout(function() { delete btn.dataset.moved; }, 600);
+    if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+    if (typeof showToast === 'function') {
+      showToast('👉 마로를 ' + (side === 'left' ? '왼쪽' : '오른쪽') + ' 아래로 옮겼어요 (꾹 누르면 반대편)');
+    }
   }
+  function _press(x, y) { _sx = x; _sy = y; clearTimeout(_timer); _timer = setTimeout(_flip, LP_MS); }
+  function _cancelIfMoved(x, y) {
+    if (Math.abs(x - _sx) > MOVE_CANCEL || Math.abs(y - _sy) > MOVE_CANCEL) clearTimeout(_timer);
+  }
+  function _release() { clearTimeout(_timer); }
 
-  // ── Touch Events (터치 기기 — 안드로이드/태블릿/터치노트북) ──
-  // passive:false + preventDefault → Chrome 의 스크롤 제스처 판정 자체를 touchstart 시점에 차단
+  // 롱프레스 시 안드로이드 콜아웃/컨텍스트 메뉴 억제
+  btn.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
   if (hasTouch) {
     btn.addEventListener('touchstart', function(e) {
       if (e.touches.length !== 1) return;
-      _active = true;
-      e.preventDefault(); // ← 스크롤·줌·합성 click 모두 차단 (탭은 touchend 에서 직접 처리)
-      var t = e.touches[0];
-      _dragStart(t.clientX, t.clientY);
-    }, { passive: false });
-
+      var t = e.touches[0]; _press(t.clientX, t.clientY);
+    }, { passive: true });
     btn.addEventListener('touchmove', function(e) {
-      if (!_dragging) return;
-      e.preventDefault();
-      var t = e.touches[0];
-      _dragMove(t.clientX, t.clientY);
-    }, { passive: false });
-
-    btn.addEventListener('touchend', function() {
-      if (!_active) return;
-      _active = false;
-      var didMove = _moved;
-      _dragEnd();
-      // touchstart 의 preventDefault 가 합성 click 을 막으므로, 이동 없는 "탭" 은 여기서 직접 토글.
-      // dragged 플래그로 뒤따라올 수 있는 합성 click 을 한 번 더 무시(이중 토글 방지).
-      btn.dataset.dragged = '1';
-      setTimeout(function() { delete btn.dataset.dragged; }, 400);
-      if (!didMove) toggleChat();
-    });
-    btn.addEventListener('touchcancel', function() {
-      _active = false; _dragging = false; _moved = false;
-      btn.classList.remove('dragging'); btn.style.willChange = '';
-    });
+      var t = e.touches[0]; if (t) _cancelIfMoved(t.clientX, t.clientY);
+    }, { passive: true });
+    btn.addEventListener('touchend',    _release);
+    btn.addEventListener('touchcancel', _release);
   }
 
-  // ── Pointer Events (마우스 전용 — 터치는 위 Touch Events 에서 처리) ──
-  if (allowMouseDrag) {
-    btn.addEventListener('pointerdown', function(e) {
-      if (e.pointerType === 'touch') return; // 터치는 Touch Events 에서 처리
-      _dragStart(e.clientX, e.clientY);
-      try { btn.setPointerCapture(e.pointerId); } catch (err) {}
-      document.addEventListener('pointermove', _ptrMove, { passive: false });
-      document.addEventListener('pointerup',     _ptrEnd);
-      document.addEventListener('pointercancel', _ptrEnd);
-    });
-  }
-
-  function _ptrMove(e) { _dragMove(e.clientX, e.clientY); }
-  function _ptrEnd()   {
-    document.removeEventListener('pointermove', _ptrMove);
-    document.removeEventListener('pointerup',   _ptrEnd);
-    document.removeEventListener('pointercancel', _ptrEnd);
-    _dragEnd();
-  }
+  // 마우스(좁은 데스크톱 창)에서도 롱프레스 지원
+  btn.addEventListener('mousedown',  function(e) { _press(e.clientX, e.clientY); });
+  btn.addEventListener('mousemove',  function(e) { _cancelIfMoved(e.clientX, e.clientY); });
+  btn.addEventListener('mouseup',    _release);
+  btn.addEventListener('mouseleave', _release);
 
   btn.removeAttribute('onclick');
 }
