@@ -52,9 +52,9 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <!-- 핵심 부트스트랩 스크립트 preload: HTML 파싱 중 병렬 다운로드 -->
   <link rel="preload" as="script" href="./madi-vocab.js">
-  <link rel="preload" as="script" href="./madi-01.js">
-  <link rel="preload" as="script" href="./madi-01-auth.js">
-  <link rel="preload" as="script" href="./madi-01-app.js">
+  <link rel="preload" as="script" href="./madi-core.js">
+  <link rel="preload" as="script" href="./madi-auth.js">
+  <link rel="preload" as="script" href="./madi-app.js">
   <link rel="preload" as="script" href="./madi-icons.js">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <!-- Chart.js (~200KB) 도 ensureChart() lazy 로 분리 — 첫 차트 렌더 시점에만 로드 -->
@@ -1302,7 +1302,7 @@
   </div>
 </div>
 <!-- ─── 홈 대시보드 (페르소나별 분기) ─── -->
-<!-- 라우터: madi-03.js renderDashboard() 가 role 별로 아래 컨테이너 중 하나만 보이게 채움 -->
+<!-- 라우터: madi-home.js renderDashboard() 가 role 별로 아래 컨테이너 중 하나만 보이게 채움 -->
 <div class="tab-panel active" id="panelHome" role="tabpanel" aria-labelledby="tabBtnHome" tabindex="0">
   <!-- 선생님 페르소나 (⑥) — renderDashboardTeacher() -->
   <div id="dashTeacher" class="dash-persona" style="display:none;"></div>
@@ -2045,8 +2045,8 @@
         <button class="btn" onclick="showDashboard()" style="padding:8px 14px;font-size:13px;background:var(--card-bg);border:1px solid var(--border);color:var(--text);">← 홈</button>
       </div>
     </div>
-    <div id="quickCardList"><!-- madi-16.js renderQuickCards() --></div>
-    <div id="quickFormPanel" style="display:none;"><!-- madi-16.js openQuickForm() --></div>
+    <div id="quickCardList"><!-- madi-quick.js renderQuickCards() --></div>
+    <div id="quickFormPanel" style="display:none;"><!-- madi-quick.js openQuickForm() --></div>
   </div>
 </div>
 
@@ -2256,28 +2256,28 @@
 <!-- defer: HTML 파싱과 병렬 다운로드, DOMContentLoaded 직전 순서대로 실행 -->
 <script defer src="madi-vocab.js"></script>
 <script defer src="madi-icons.js"></script>
-<script defer src="madi-01.js"></script>
-<script defer src="madi-01-auth.js"></script>
-<script defer src="madi-01-app.js"></script>
-<script defer src="madi-02.js"></script>
-<script defer src="madi-03.js"></script>
-<script defer src="madi-03-dashboard.js"></script>
-<script defer src="madi-04.js"></script>
-<script defer src="madi-05.js"></script>
-<script defer src="madi-06.js"></script>
-<script defer src="madi-07.js"></script>
-<script defer src="madi-08.js"></script>
-<script defer src="madi-09.js"></script>
-<script defer src="madi-10.js"></script>
-<script defer src="madi-11.js"></script>
-<script defer src="madi-12.js"></script>
-<script defer src="madi-12-chat.js"></script>
-<script defer src="madi-13.js"></script>
-<script defer src="madi-14.js"></script>
-<script defer src="madi-14-board.js"></script>
-<script defer src="madi-15.js"></script>
-<script defer src="madi-15-pages.js"></script>
-<script defer src="madi-16.js"></script>
+<script defer src="madi-core.js"></script>
+<script defer src="madi-auth.js"></script>
+<script defer src="madi-app.js"></script>
+<script defer src="madi-session.js"></script>
+<script defer src="madi-home.js"></script>
+<script defer src="madi-dashboard.js"></script>
+<script defer src="madi-children.js"></script>
+<script defer src="madi-child-detail.js"></script>
+<script defer src="madi-growth.js"></script>
+<script defer src="madi-iep.js"></script>
+<script defer src="madi-ai.js"></script>
+<script defer src="madi-parent.js"></script>
+<script defer src="madi-schedule.js"></script>
+<script defer src="madi-assessment.js"></script>
+<script defer src="madi-system.js"></script>
+<script defer src="madi-chat.js"></script>
+<script defer src="madi-report.js"></script>
+<script defer src="madi-board-notice.js"></script>
+<script defer src="madi-board.js"></script>
+<script defer src="madi-parent-home.js"></script>
+<script defer src="madi-parent-pages.js"></script>
+<script defer src="madi-quick.js"></script>
 
 <!-- ─── 플로팅 AI 비서 ─── -->
 <button class="float-btn" id="floatBtn" title="마로">

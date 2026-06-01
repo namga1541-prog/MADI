@@ -1,13 +1,13 @@
 /* ───────────────────────────────────────────────────────────
-   madi-01-auth.js — 로그인 / 회원가입 / 로그아웃 / 비밀번호
+   madi-auth.js — 로그인 / 회원가입 / 로그아웃 / 비밀번호
    - 랜딩·로그인·회원가입 화면 전환 및 사용자 목록
    - 초대코드 검증 (디바운스)
    - 로그아웃 메뉴 / 로그인 업데이트 팝업
    - 비밀번호 변경 모달
 
-   분리 사유: madi-01.js 가 1,062 라인으로 비대 → 공통 유틸·supaFetch
-   는 madi-01.js, 인증 UI 플로우는 본 파일, 데이터 로드·앱 UI 는
-   madi-01-app.js 로 3분할.
+   분리 사유: madi-core.js 가 1,062 라인으로 비대 → 공통 유틸·supaFetch
+   는 madi-core.js, 인증 UI 플로우는 본 파일, 데이터 로드·앱 UI 는
+   madi-app.js 로 3분할.
    ─────────────────────────────────────────────────────────── */
 
 function showLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'flex'; }

@@ -34,7 +34,7 @@
 
   <div class="key-box">
     <div class="key-label">① VAPID 공개키 (VAPID_PUBLIC_KEY)</div>
-    <div class="key-desc">Supabase 시크릿 + <code>madi-15.js</code> MADI_VAPID_PUBLIC_KEY 변수에 입력</div>
+    <div class="key-desc">Supabase 시크릿 + <code>madi-parent-home.js</code> MADI_VAPID_PUBLIC_KEY 변수에 입력</div>
     <div class="key-value" id="pubKey"></div>
     <button class="btn-copy" onclick="copy('pubKey')">📋 복사</button>
   </div>
@@ -57,7 +57,7 @@
     <div class="step-title">📋 다음 단계</div>
     <div class="step-body">
       1. 위 CLI 명령어를 터미널에서 실행 → Supabase 시크릿 등록<br>
-      2. <code>madi-15.js</code> 파일 상단의 <code>MADI_VAPID_PUBLIC_KEY</code> 변수에 공개키 붙여넣기<br>
+      2. <code>madi-parent-home.js</code> 파일 상단의 <code>MADI_VAPID_PUBLIC_KEY</code> 변수에 공개키 붙여넣기<br>
       3. <code>notify-tomorrow</code> Edge Function 배포<br>
       4. Supabase Dashboard > Edge Functions > notify-tomorrow > Schedule 에서<br>
          &nbsp;&nbsp;&nbsp;Cron 표현식 <code>*/10 * * * *</code> 으로 설정

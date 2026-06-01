@@ -1,5 +1,5 @@
 // ══════════════════════
-// madi-15.js — 학부모 포털 전용 로직
+// madi-parent-home.js — 학부모 포털 전용 로직
 // ══════════════════════
 
 var _parentCurrentTab = 'home';

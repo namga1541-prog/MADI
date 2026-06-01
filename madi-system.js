@@ -1122,7 +1122,7 @@ function init() {
   try { savedUser = localStorage.getItem('madi_user'); } catch(_e) { savedUser = null; }
 
   // iOS Safari ITP 대응: sessionStorage 토큰 유무로 세션 유효성 사전 확인
-  // madi-01.js 에서 이미 sessionStorage → _madiToken 복원이 완료된 상태
+  // madi-core.js 에서 이미 sessionStorage → _madiToken 복원이 완료된 상태
   // 토큰이 없으면 쿠키도 차단된 것으로 간주 → 대시보드 플래시 없이 즉시 로그인
   var _hasSessToken = (typeof _madiToken !== 'undefined' && !!_madiToken);
   if (!_hasSessToken) {
@@ -1341,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // ───────────────────────────────────────────────────────────────────────
-// 플로팅 AI 비서 (chat / macros / 음성) 는 분리됨: madi-12-chat.js
+// 플로팅 AI 비서 (chat / macros / 음성) 는 분리됨: madi-chat.js
 // ───────────────────────────────────────────────────────────────────────
 
 // ─── 모듈 초기화 ───

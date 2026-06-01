@@ -24,28 +24,28 @@
 |------|------|
 | `index.html` | 메인 앱 (선생님/관리자 UI) |
 | `admin.html` | 관리자 센터 |
-| `madi-01.js` | 공통 유틸, 상수, supaFetch, supaCache |
-| `madi-01-auth.js` | 랜딩·로그인·회원가입·로그아웃·비밀번호 변경 |
-| `madi-01-app.js` | DB 로드, 다크모드, 헤더 시계, 네트워크 모니터, 학부모 UI |
-| `madi-02.js` | 세션 기록 |
-| `madi-03.js` | 홈·네비게이션·공지·서비스 설정 |
-| `madi-03-dashboard.js` | 페르소나별 대시보드 렌더링 (Teacher/Admin) |
-| `madi-04.js` | 아동 관리 |
-| `madi-05.js` | 아동 상세 |
-| `madi-06.js` | 성장 기록 |
-| `madi-07.js` | IEP |
-| `madi-08.js` | AI 기능 (Anthropic API) |
-| `madi-09.js` | 학부모 포털 |
-| `madi-10.js` | 스케줄·캘린더 |
-| `madi-11.js` | 표준화검사 (AI 언어평가) |
-| `madi-12.js` | 감통 평가 + 권한·배포·PWA·IndexedDB·초기화 |
-| `madi-12-chat.js` | 플로팅 AI 비서 (chat / 매크로 / 음성) |
-| `madi-13.js` | 리포트·장단기계획 |
-| `madi-14.js` | 게시판 — 공지 (글로벌·센터) |
-| `madi-14-board.js` | 게시판 — 라운지(고객센터)·자료실·편집 모달 |
-| `madi-15.js` | 학부모 포털 — 홈 대시보드 및 렌더러 |
-| `madi-15-pages.js` | 학부모 포털 — 일정·포트폴리오·리포트·알림·가입·푸시 |
-| `madi-16.js` | ⚡ 빠른 기록 모드 (선생님 모바일 우선) |
+| `madi-core.js` | 공통 유틸, 상수, supaFetch, supaCache |
+| `madi-auth.js` | 랜딩·로그인·회원가입·로그아웃·비밀번호 변경 |
+| `madi-app.js` | DB 로드, 다크모드, 헤더 시계, 네트워크 모니터, 학부모 UI |
+| `madi-session.js` | 세션 기록 |
+| `madi-home.js` | 홈·네비게이션·공지·서비스 설정 |
+| `madi-dashboard.js` | 페르소나별 대시보드 렌더링 (Teacher/Admin) |
+| `madi-children.js` | 아동 관리 |
+| `madi-child-detail.js` | 아동 상세 |
+| `madi-growth.js` | 성장 기록 |
+| `madi-iep.js` | IEP |
+| `madi-ai.js` | AI 기능 (Anthropic API) |
+| `madi-parent.js` | 학부모 포털 |
+| `madi-schedule.js` | 스케줄·캘린더 |
+| `madi-assessment.js` | 표준화검사 (AI 언어평가) |
+| `madi-system.js` | 감통 평가 + 권한·배포·PWA·IndexedDB·초기화 |
+| `madi-chat.js` | 플로팅 AI 비서 (chat / 매크로 / 음성) |
+| `madi-report.js` | 리포트·장단기계획 |
+| `madi-board-notice.js` | 게시판 — 공지 (글로벌·센터) |
+| `madi-board.js` | 게시판 — 라운지(고객센터)·자료실·편집 모달 |
+| `madi-parent-home.js` | 학부모 포털 — 홈 대시보드 및 렌더러 |
+| `madi-parent-pages.js` | 학부모 포털 — 일정·포트폴리오·리포트·알림·가입·푸시 |
+| `madi-quick.js` | ⚡ 빠른 기록 모드 (선생님 모바일 우선) |
 | `madi-vocab.js` | 한국 임상 어휘 사전 + AI 후처리 검열기 (다른 madi-*.js 보다 먼저 로드) |
 | `madi.css` | 전역 스타일 |
 | `sw.js` | Service Worker (캐시 — 커밋 시 자동 갱신) |
@@ -216,7 +216,7 @@ pre-commit 훅이 스테이징된 `madi-*.js`에 대해 자동 실행됨.
 ```bash
 npm run lint          # 전체 검사
 npm run lint:fix      # 자동 수정 가능한 것만 수정
-npx eslint madi-08.js # 특정 파일만
+npx eslint madi-ai.js # 특정 파일만
 ```
 
 **핵심 규칙**: `no-unsanitized/property`, `no-unsanitized/method`

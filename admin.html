@@ -946,7 +946,7 @@ function supaFetch(path, method, body) {
 }
 
 // admin.html 은 madi-*.js 를 로드하지 않는 독립 페이지라 자체 escHtml 사본 유지.
-// 단 madi-01.js 의 정본과 동일하게 작은따옴표(')도 escape — 속성 우회 XSS 방어.
+// 단 madi-core.js 의 정본과 동일하게 작은따옴표(')도 escape — 속성 우회 XSS 방어.
 function escHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
@@ -1217,7 +1217,7 @@ function goToAppTab(n) {
   window.location.href = 'index.html';
 }
 
-// ── AI 모델 설정 (madi-01.js 와 동일 동작: localStorage 'madi_ai_model' 공유) ──
+// ── AI 모델 설정 (madi-core.js 와 동일 동작: localStorage 'madi_ai_model' 공유) ──
 function saveAIModelChoice(choice) {
   if (choice !== 'haiku' && choice !== 'sonnet') return;
   try { localStorage.setItem('madi_ai_model', choice); } catch (e) {}

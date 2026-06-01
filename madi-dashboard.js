@@ -1,5 +1,5 @@
-// ─────── 대시보드 렌더링 (madi-03.js 에서 분리, 2026-05-23) ───────
-// 진입점 renderDashboard() 는 madi-03.js 에 남아 있고, 여기엔 역할별 구현만.
+// ─────── 대시보드 렌더링 (madi-home.js 에서 분리, 2026-05-23) ───────
+// 진입점 renderDashboard() 는 madi-home.js 에 남아 있고, 여기엔 역할별 구현만.
 // 의존: childDB, sessionDB, scheduleDB, currentUser, escHtml, supaFetch, _dpFreshnessLabel 등
 
 // ═══════════════════════════════════════════════════════════════════════

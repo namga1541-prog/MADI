@@ -28,7 +28,7 @@ function calcAgeFromBirth(birthStr) {
   return months === 0 ? years + '세' : years + '세 ' + months + '개월';
 }
 
-// escHtml 정의는 madi-01.js 로 통합됨 (외부 리뷰 R1, 2026-05-23)
+// escHtml 정의는 madi-core.js 로 통합됨 (외부 리뷰 R1, 2026-05-23)
 
 // ─────── 미작성 세션 알림 ───────
 function getUnwrittenSessions() {

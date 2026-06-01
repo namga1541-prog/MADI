@@ -130,16 +130,16 @@
 
 | 도메인 | 담당 파일 | 비고 |
 |--------|----------|------|
-| **core** | `madi-01.js` `madi-01-auth.js` `madi-01-app.js` `madi-vocab.js` | 모든 도메인이 의존 — 단독 수정 시 다른 에이전트와 분리 |
-| **session** | `madi-02.js` `madi-07.js` | 세션 기록, IEP |
-| **home** | `madi-03.js` `madi-03-dashboard.js` | 홈·네비·대시보드 |
-| **child-mgmt** | `madi-04.js` `madi-05.js` `madi-06.js` | 아동 관리·상세·성장기록 |
-| **ai** | `madi-08.js` `madi-11.js` | AI 리포트·IEP, 표준화검사 |
-| **calendar** | `madi-10.js` `madi-16.js` | 스케줄·캘린더, 빠른 기록 |
-| **system** | `madi-12.js` `madi-12-chat.js` | PWA·권한·초기화, AI 비서 마로 |
-| **report** | `madi-13.js` | 리포트·장단기계획 |
-| **board** | `madi-14.js` `madi-14-board.js` | 공지·라운지·자료실 |
-| **parent** | `madi-09.js` `madi-15.js` `madi-15-pages.js` | 학부모 포털 전체 |
+| **core** | `madi-core.js` `madi-auth.js` `madi-app.js` `madi-vocab.js` | 모든 도메인이 의존 — 단독 수정 시 다른 에이전트와 분리 |
+| **session** | `madi-session.js` `madi-iep.js` | 세션 기록, IEP |
+| **home** | `madi-home.js` `madi-dashboard.js` | 홈·네비·대시보드 |
+| **child-mgmt** | `madi-children.js` `madi-child-detail.js` `madi-growth.js` | 아동 관리·상세·성장기록 |
+| **ai** | `madi-ai.js` `madi-assessment.js` | AI 리포트·IEP, 표준화검사 |
+| **calendar** | `madi-schedule.js` `madi-quick.js` | 스케줄·캘린더, 빠른 기록 |
+| **system** | `madi-system.js` `madi-chat.js` | PWA·권한·초기화, AI 비서 마로 |
+| **report** | `madi-report.js` | 리포트·장단기계획 |
+| **board** | `madi-board-notice.js` `madi-board.js` | 공지·라운지·자료실 |
+| **parent** | `madi-parent.js` `madi-parent-home.js` `madi-parent-pages.js` | 학부모 포털 전체 |
 | **edge** | `supabase/functions/ai-proxy/index.ts` `supabase/functions/api/index.ts` `supabase/functions/change-password/index.ts` `supabase/functions/login/index.ts` `supabase/functions/notify-test/index.ts` `supabase/functions/notify-tomorrow/index.ts` `supabase/functions/parent-auth/index.ts` `supabase/functions/totp/index.ts` `supabase/functions/upload-image/index.ts` `supabase/functions/_shared/auth.ts` | Edge Functions (클라이언트와 완전 격리) |
 | **static** | `sw.js` `index.html` `admin.html` `madi.css` | 정적 자산·PWA·공통 HTML |
 
@@ -267,7 +267,7 @@ Architect (opus) 완료
 
 보고 형식 (버그 1개당 1줄):
 [심각도] 파일명:줄번호 — 함수명() — 원인 한줄 설명
-예) [CRASH] madi-08.js:92 — downloadPDF() — window.open() null 체크 없음
+예) [CRASH] madi-ai.js:92 — downloadPDF() — window.open() null 체크 없음
 
 버그가 없으면 "✅ [도메인명] 이상 없음" 한 줄만 출력.
 ```
@@ -388,7 +388,7 @@ Architect (opus) 완료
 **기능 하네스 역할 분리 예시**:
 ```
 새 기능 X 추가 시:
-├── core 에이전트    → 공통 유틸 함수·상수 추가 (madi-01.js)
+├── core 에이전트    → 공통 유틸 함수·상수 추가 (madi-core.js)
 ├── UI 에이전트      → index.html 마크업 + madi.css 스타일
 ├── 로직 에이전트    → 비즈니스 로직 파일 수정
 └── edge 에이전트    → 필요 시 Edge Function 신규 또는 수정
@@ -437,30 +437,30 @@ Architect (opus) 완료
 
 수행할 것:
 1. `git diff HEAD~1 --name-only` 또는 관련 키워드로 최근 변경 파일 확인
-2. ⚠️ core 파일(madi-01.js, madi-01-auth.js, madi-01-app.js, madi-vocab.js) 변경 여부 먼저 확인:
+2. ⚠️ core 파일(madi-core.js, madi-auth.js, madi-app.js, madi-vocab.js) 변경 여부 먼저 확인:
    → core 변경 감지 시: 전역 스코프로 모든 도메인이 의존하므로 **전체 12개 도메인 모두 실행 필요**로 즉시 결론 내고 3번 스킵
 3. 변경 파일을 아래 파티션 테이블에 매핑 (core 변경 없을 때만):
-   core: madi-01.js, madi-01-auth.js, madi-01-app.js, madi-vocab.js
-   session: madi-02.js, madi-07.js
-   home: madi-03.js, madi-03-dashboard.js
-   child-mgmt: madi-04.js, madi-05.js, madi-06.js
-   ai: madi-08.js, madi-11.js
-   calendar: madi-10.js, madi-16.js
-   system: madi-12.js, madi-12-chat.js
-   report: madi-13.js
-   board: madi-14.js, madi-14-board.js
-   parent: madi-09.js, madi-15.js, madi-15-pages.js
+   core: madi-core.js, madi-auth.js, madi-app.js, madi-vocab.js
+   session: madi-session.js, madi-iep.js
+   home: madi-home.js, madi-dashboard.js
+   child-mgmt: madi-children.js, madi-child-detail.js, madi-growth.js
+   ai: madi-ai.js, madi-assessment.js
+   calendar: madi-schedule.js, madi-quick.js
+   system: madi-system.js, madi-chat.js
+   report: madi-report.js
+   board: madi-board-notice.js, madi-board.js
+   parent: madi-parent.js, madi-parent-home.js, madi-parent-pages.js
    edge: supabase/functions/ai-proxy, api, change-password, login, notify-test, notify-tomorrow, parent-auth, totp, upload-image, _shared/auth.ts
    static: sw.js, index.html, admin.html, madi.css
 4. 영향 도메인 목록과 이유를 한 줄씩 출력
 5. "실행 불필요" 도메인은 명시적으로 제외 이유 작성
 
 출력 형식:
-✅ 실행 필요: board (madi-14.js 변경), ai (madi-08.js 변경)
+✅ 실행 필요: board (madi-board-notice.js 변경), ai (madi-ai.js 변경)
 ⏭️ 스킵: core, session, home, child-mgmt, calendar, system, report, parent, edge, static — 변경 없음
 
 core 변경 시 출력 형식:
-⚠️ core 변경 감지 (madi-01.js) → 전체 12개 도메인 실행 필요
+⚠️ core 변경 감지 (madi-core.js) → 전체 12개 도메인 실행 필요
 ✅ 실행 필요: core, session, home, child-mgmt, ai, calendar, system, report, board, parent, edge, static
 ```
 
@@ -640,11 +640,11 @@ git branch -d wt/[도메인]
 
 ## 완료 에이전트 결과 요약
 ### board
-- madi-14.js:45 — [CRASH] null 체크 수정 완료
-- madi-14-board.js:120 — [XSS] escHtml 적용 완료
+- madi-board-notice.js:45 — [CRASH] null 체크 수정 완료
+- madi-board.js:120 — [XSS] escHtml 적용 완료
 
 ## 미처리 항목
-- ai: madi-08.js:92 — [CRASH] window.open null 체크 필요
+- ai: madi-ai.js:92 — [CRASH] window.open null 체크 필요
 
 ## 다음 웨이브
 ai, parent 에이전트 spawn 예정
@@ -796,16 +796,16 @@ static (index.html)
 ## 즉시 참조 — 도메인별 파일 목록 (복사용)
 
 ```
-core       : madi-01.js, madi-01-auth.js, madi-01-app.js, madi-vocab.js
-session    : madi-02.js, madi-07.js
-home       : madi-03.js, madi-03-dashboard.js
-child-mgmt : madi-04.js, madi-05.js, madi-06.js
-ai         : madi-08.js, madi-11.js
-calendar   : madi-10.js, madi-16.js
-system     : madi-12.js, madi-12-chat.js
-report     : madi-13.js
-board      : madi-14.js, madi-14-board.js
-parent     : madi-09.js, madi-15.js, madi-15-pages.js
+core       : madi-core.js, madi-auth.js, madi-app.js, madi-vocab.js
+session    : madi-session.js, madi-iep.js
+home       : madi-home.js, madi-dashboard.js
+child-mgmt : madi-children.js, madi-child-detail.js, madi-growth.js
+ai         : madi-ai.js, madi-assessment.js
+calendar   : madi-schedule.js, madi-quick.js
+system     : madi-system.js, madi-chat.js
+report     : madi-report.js
+board      : madi-board-notice.js, madi-board.js
+parent     : madi-parent.js, madi-parent-home.js, madi-parent-pages.js
 edge       : supabase/functions/ai-proxy/index.ts
              supabase/functions/api/index.ts
              supabase/functions/change-password/index.ts

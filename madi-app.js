@@ -1,11 +1,11 @@
 /* ───────────────────────────────────────────────────────────
-   madi-01-app.js — 데이터 로드 / 앱 UI / 네트워크
+   madi-app.js — 데이터 로드 / 앱 UI / 네트워크
    - loadDBFromSupabase 및 save / load 도메인 함수
    - showConfirm / debounce / showToast / vibrate
    - 다크모드 / 헤더 시계 / 네트워크 모니터
    - 학부모 UI / 권한 적용 / 더보기 메뉴
 
-   분리 사유: madi-01.js 가 1,062 라인으로 비대.
+   분리 사유: madi-core.js 가 1,062 라인으로 비대.
    ─────────────────────────────────────────────────────────── */
 
 // ─────── Supabase DB 로드 / 저장 ───────
@@ -21,7 +21,7 @@ function loadDBFromSupabase(silent) {
   // 학부모 계정은 이 함수로 데이터를 로드하지 않음.
   // madi_sessions 이 PARENT_BLOCKED_TABLES 에 포함되어 있어 Edge Function 이 403 을 반환하고
   // Promise.all 전체가 reject 되는 버그 방지.
-  // 학부모 포털 데이터(아동·일정·포트폴리오 등)는 madi-15.js 가 자체적으로 로드한다.
+  // 학부모 포털 데이터(아동·일정·포트폴리오 등)는 madi-parent-home.js 가 자체적으로 로드한다.
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'parent') return;
 
   if (!silent) showToast('📡 데이터 불러오는 중...');
@@ -140,7 +140,7 @@ function loadDB() {
 // ── 아동 연령 실시간 갱신 ────────────────────────────────────────────────
 // DB 에 저장된 age 는 '등록 시점' 기준 — 로드·복원·임포트 후 항상 호출해
 // 오늘 기준 연령으로 인메모리만 교체 (DB 는 saveChildren() 호출 시 반영)
-// calcAgeFromBirth 는 madi-10.js 에 정의 → typeof 가드 필수
+// calcAgeFromBirth 는 madi-schedule.js 에 정의 → typeof 가드 필수
 function refreshChildAges() {
   if (typeof calcAgeFromBirth !== 'function') return;
   childDB.forEach(function(c) {

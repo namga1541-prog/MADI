@@ -1044,6 +1044,6 @@ function changeMyPassword() {
 
 // ───────────────────────────────────────────────────────────────────────
 // 대시보드 렌더링 (_dp* 헬퍼, renderDashboardTeacher/Admin) 은 분리됨:
-//   → madi-03-dashboard.js
+//   → madi-dashboard.js
 // 진입점 renderDashboard() 는 위에 유지.
 // ───────────────────────────────────────────────────────────────────────

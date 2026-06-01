@@ -15,7 +15,7 @@ function isAdminRole(role) { return role === ROLES.ADMIN || role === ROLES.SUPER
 function isStaffRole(role) { return role === ROLES.ADMIN || role === ROLES.SUPERADMIN || role === ROLES.TEACHER; }
 
 /* ── XSS 방어: HTML escape 유틸 (공통 모듈) ──
-   madi-01.js 는 모든 페이지의 첫 madi-* 모듈이므로 여기 두면
+   madi-core.js 는 모든 페이지의 첫 madi-* 모듈이므로 여기 두면
    madi-02 ~ madi-16 어떤 파일에서도 안전하게 사용 가능.
    ' 까지 escape — inline onclick='...' 안에 사용자 문자열 들어가도 안전.
    admin.html 은 별도 페이지(madi-*.js 미로딩)라 인라인 사본 유지. */
