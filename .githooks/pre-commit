@@ -1,34 +1,64 @@
 #!/bin/sh
 # ─────────────────────────────────────────────────────────────
-# MADI pre-commit 훅 (버전 관리됨 — 두 PC 동기화)
-#   1) 정적 자산(JS/CSS/HTML) 변경 시 sw.js CACHE_NAME 자동 갱신
-#      → 캐시 버전이 바뀌어야 activate 의 구캐시 삭제 로직이 동작,
-#        SWR 경로로 캐시된 구버전 JS/CSS 잔존을 방지
-#   2) 스테이징된 madi-*.js ESLint (XSS no-unsanitized 차단)
-#   3) smoke 유닛 테스트
+# 아이마디아이 pre-commit 하네스 (버전 관리됨 — 두 PC 동기화 정본)
+#   1) 정적 자산 변경 시 sw.js CACHE_NAME 자동 갱신
+#   2) 함수 인덱스(FUNCTIONS.md) 자동 재생성  ← 탐색 비용 절감
+#   3) 스테이징된 madi-*.js ESLint (XSS no-unsanitized 차단)
+#   4) 정적 HTML 박제(.ss-* 런타임 DOM) 차단
+#   5) smoke 유닛 테스트
 #
-# 설치(각 PC에서 최초 1회):  git config core.hooksPath .githooks
+# 설치(각 PC 최초 1회):  git config core.hooksPath .githooks
 # ─────────────────────────────────────────────────────────────
 set -e
 
-staged=$(git diff --cached --name-only --diff-filter=ACM)
+TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null)
+SW_FILE="$TOPLEVEL/sw.js"
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 
-# 1) sw.js 캐시 버전 자동 갱신 — 정적 자산이 변경된 커밋에서만
-asset_changed=$(echo "$staged" | grep -E '\.(js|css|html)$' | grep -v '^sw\.js$' || true)
-if [ -n "$asset_changed" ] && [ -f sw.js ]; then
-  ts=$(date +%Y%m%d-%H%M)
-  sed -i -E "s/(CACHE_NAME = \"madi-v[0-9]+-)[0-9]{8}-[0-9]{4}(\")/\1${ts}\2/" sw.js
-  git add sw.js
-  echo "  [pre-commit] sw.js CACHE_NAME → madi-v5-${ts}"
+# ── 1. SW 캐시 버전 갱신 (정적 자산이 변경된 커밋에서만) ──────
+ASSET_CHANGED=$(echo "$STAGED" | grep -E '\.(js|css|html)$' | grep -v '^sw\.js$' || true)
+if [ -n "$ASSET_CHANGED" ] && [ -f "$SW_FILE" ]; then
+  TIMESTAMP=$(date +"%Y%m%d-%H%M")
+  NEW_NAME="madi-v5-${TIMESTAMP}"
+  sed -i.bak "s/var CACHE_NAME = \"madi-v[0-9]*-[0-9]*-[0-9]*\"/var CACHE_NAME = \"${NEW_NAME}\"/" "$SW_FILE"
+  rm -f "${SW_FILE}.bak"
+  git add "$SW_FILE"
+  echo "[pre-commit] SW 캐시 버전 갱신: ${NEW_NAME}"
 fi
 
-# 2) ESLint — 스테이징된 madi-*.js 만 (XSS 1차 방어선)
-js_files=$(echo "$staged" | grep -E '^madi-.*\.js$' || true)
-if [ -n "$js_files" ]; then
-  npx eslint $js_files --max-warnings=0
+# ── 2. 함수 인덱스 재생성 (js/html 변경 시) ────────────────────
+if [ -n "$ASSET_CHANGED" ] && [ -f "$TOPLEVEL/tools/gen-functions.js" ]; then
+  node "$TOPLEVEL/tools/gen-functions.js"
+  git add "$TOPLEVEL/FUNCTIONS.md"
 fi
 
-# 3) smoke 유닛 테스트
-if [ -f tests/smoke.js ]; then
-  node tests/smoke.js
+# ── 3. ESLint — 스테이징된 madi-*.js 만 (XSS 1차 방어선) ───────
+STAGED_JS=$(echo "$STAGED" | grep -E '^madi-.*\.js$' || true)
+if [ -n "$STAGED_JS" ] && command -v npx >/dev/null 2>&1; then
+  echo "[pre-commit] ESLint 검사 중..."
+  # shellcheck disable=SC2086
+  npx eslint $STAGED_JS --max-warnings=0 --format=compact
+  echo "[pre-commit] ESLint 통과 ✓"
 fi
+
+# ── 4. 정적 HTML 박제 차단 (.ss-wrap/.ss-input/.ss-drop) ──────
+STAGED_HTML=$(echo "$STAGED" | grep -E '\.html$' || true)
+if [ -n "$STAGED_HTML" ]; then
+  for f in $STAGED_HTML; do
+    [ -f "$TOPLEVEL/$f" ] || continue
+    if grep -qE 'ss-wrap|ss-input|ss-drop' "$TOPLEVEL/$f"; then
+      echo ""
+      echo "[BLOCKED] 정적 HTML 박제 감지 — 커밋 취소: $f 에 런타임 DOM(.ss-*) 포함."
+      echo "  → searchable select 는 <select> 골격만 두고 makeSearchable 가 런타임 래핑하도록 되돌리세요."
+      exit 1
+    fi
+  done
+  echo "[pre-commit] HTML 박제 검사 통과 ✓"
+fi
+
+# ── 5. smoke 유닛 테스트 ──────────────────────────────────────
+if [ -f "$TOPLEVEL/tests/smoke.js" ]; then
+  node "$TOPLEVEL/tests/smoke.js" >/dev/null && echo "[pre-commit] smoke 통과 ✓"
+fi
+
+exit 0
