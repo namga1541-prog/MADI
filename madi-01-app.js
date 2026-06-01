@@ -12,8 +12,9 @@
 // 최적화 (2026-05-21): 최근 90일 우선 로드 → 백그라운드에서 과거 데이터 머지
 // 운영 1년차 이후 첫 화면 fetch 1~3초 단축, 메모리·jsonb 페이로드 절감
 function _isoDaysAgo(n) {
-  var d = new Date(); d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
+  // KST 기준 — toISOString()(UTC)은 KST 새벽에 하루 어긋나므로 nowKST()+ymd() 사용
+  var d = nowKST(); d.setDate(d.getDate() - n);
+  return ymd(d);
 }
 
 function loadDBFromSupabase(silent) {

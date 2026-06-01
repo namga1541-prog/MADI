@@ -53,11 +53,12 @@ function getUnwrittenSessions() {
 function renderUnwrittenAlert() {
   var el = document.getElementById('unwrittenAlert');
   if (!el) return;
-  var selChildId = parseInt(document.getElementById('sessionChild') && document.getElementById('sessionChild').value) || 0;
+  var _selEl = document.getElementById('sessionChild');
+  var selChildId = (_selEl && _selEl.value) || ''; // childId 는 문자열 — parseInt 금지(매칭 깨짐)
   var unwritten = getUnwrittenSessions();
   if (selChildId) {
     unwritten = unwritten.filter(function(u) {
-      var ch = childDB.find(function(c){ return c.id === selChildId; });
+      var ch = childDB.find(function(c){ return String(c.id) === selChildId; });
       return ch && u.childName === ch.name;
     });
   }
@@ -111,8 +112,8 @@ function toggleUwTeacher(el) {
 }
 function quickFillSession(el) {
   var date    = el.dataset.date;
-  var schedId = Number(el.dataset.schedid);
-  var sched = scheduleDB.find(function(s) { return s.id === schedId; });
+  var schedId = String(el.dataset.schedid); // 스케줄 id 는 문자열 — Number 변환 시 매칭 항상 실패
+  var sched = scheduleDB.find(function(s) { return String(s.id) === schedId; });
   if (!sched) return;
   if (typeof switchTab === 'function') switchTab(2);
   if (typeof switchReportTab === 'function') switchReportTab('session');

@@ -6,6 +6,7 @@ function _isMySession(s) {
 }
 
 // ─────── 세션 저장 ───────
+var _sessionSaveBusy = false; // 더블탭 중복 저장 방지
 function saveSession(aiNote) {
   if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 세션 기록 권한이 없습니다'); return; }
   var elChild = document.getElementById('sessionChild');
@@ -19,6 +20,10 @@ function saveSession(aiNote) {
   var memo = elMemo.value.trim();
   if (!childId) { showToast('아동을 선택해주세요.'); return; }
   if (!date) { showToast('날짜를 선택해주세요.'); return; }
+  // 검증 통과 후에만 더블탭 가드 — 연타로 동일 세션이 중복 저장되는 것 차단
+  if (_sessionSaveBusy) return;
+  _sessionSaveBusy = true;
+  setTimeout(function() { _sessionSaveBusy = false; }, 1000);
 
   var goals = goalRows.filter(function(r) { return r.name; }).map(function(r) {
     return { name: r.name, score: r.score !== '' ? parseFloat(r.score) : null };
