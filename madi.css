@@ -2421,7 +2421,9 @@ body {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
   z-index: 300;
   min-width: 200px;
-  overflow: hidden;
+  /* 작은 화면(가로 모드 등)에서 항목이 많아도 잘리지 않도록 세로 스크롤 허용 */
+  max-height: calc(100dvh - 76px);
+  overflow-x: hidden; overflow-y: auto;
 }
 .more-menu .more-menu-item {
   width: 100%;
