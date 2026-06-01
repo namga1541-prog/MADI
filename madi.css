@@ -861,6 +861,8 @@
       border-radius: 50%; border: 2px solid white; display: none;
     }
     .float-btn .unread-dot.show { display: block; }
+    /* 자식 span이 터치를 가로채지 않도록 (touch-action은 CSS 비상속) — 안드로이드 드래그 핵심 수정 */
+    .float-btn * { touch-action: none; pointer-events: none; }
 
     /* 모바일: 기존 팝업 방식 유지 */
     .chat-window {

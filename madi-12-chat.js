@@ -105,13 +105,22 @@ function initFloatBtnDrag() {
     _startTop   = rect.top;
     _startRight = window.innerWidth - rect.right;
     btn.classList.add('dragging');
+    btn.style.willChange = 'top, right'; // GPU 레이어 힌트 (안드로이드 버벅임 방지)
 
-    // setPointerCapture: 버튼 밖에서 발생하는 이벤트도 btn 으로 라우팅 — document 리스너 불필요
-    try { btn.setPointerCapture(e.pointerId); } catch (err) { /* 구형 브라우저 폴백 */ }
+    // setPointerCapture: 버튼 밖에서 발생하는 이벤트도 btn 으로 라우팅
+    var _captured = false;
+    try { btn.setPointerCapture(e.pointerId); _captured = true; } catch (err) { /* silent */ }
+    if (!_captured) {
+      // 안드로이드 구형/삼성 브라우저 폴백: document 레벨에서 이벤트 수신
+      document.addEventListener('pointermove', onMove, { passive: false });
+      document.addEventListener('pointerup',     onEnd);
+      document.addEventListener('pointercancel', onEnd);
+    }
   }
 
   function onMove(e) {
     if (!_dragging) return;
+    e.preventDefault(); // 안드로이드 스크롤 간섭 이중 차단 (touch-action:none 보조)
     var dx = e.clientX - _startX;
     var dy = e.clientY - _startY;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _moved = true;
@@ -125,13 +134,17 @@ function initFloatBtnDrag() {
     btn.style.right = newRight + 'px';
     btn.style.left  = 'auto';
     btn.style.transform = 'none';
-    // preventDefault 불필요: touch-action:none + setPointerCapture 가 스크롤 간섭 원천 차단
   }
 
   function onEnd(e) {
     if (!_dragging) return;
     _dragging = false;
     btn.classList.remove('dragging');
+    btn.style.willChange = ''; // GPU 힌트 해제
+    // document 폴백 리스너 정리 (setPointerCapture 미지원 시 등록된 경우)
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup',   onEnd);
+    document.removeEventListener('pointercancel', onEnd);
 
     if (!_moved) return;
 
@@ -164,9 +177,9 @@ function initFloatBtnDrag() {
     setTimeout(function() { delete btn.dataset.dragged; }, 150);
   }
 
-  // Pointer Events 4종: 마우스·터치·스타일러스 통합 — document 리스너 전혀 없음
+  // Pointer Events 4종: 마우스·터치·스타일러스 통합
   btn.addEventListener('pointerdown',   onStart);
-  btn.addEventListener('pointermove',   onMove);
+  btn.addEventListener('pointermove',   onMove, { passive: false }); // e.preventDefault() 허용 (안드로이드)
   btn.addEventListener('pointerup',     onEnd);
   btn.addEventListener('pointercancel', onEnd); // iOS 제스처 충돌·시스템 인터럽트 시 리셋
 
