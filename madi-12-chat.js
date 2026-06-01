@@ -36,6 +36,23 @@ function toggleChat() {
   }
 }
 
+// ── 드래그 진단 오버레이 ── (?dbg=1 일 때만 화면에 표시, 평소엔 완전 무동작)
+//  디바이스에서 실제 터치 이벤트가 어디까지 도달하는지 눈으로 확인하기 위한 임시 도구.
+function _maroDbgOn() {
+  return typeof location !== 'undefined' && location.search.indexOf('dbg') !== -1;
+}
+function _maroDbg(msg) {
+  if (!_maroDbgOn()) return;
+  var box = document.getElementById('_maroDbgBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = '_maroDbgBox';
+    box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.88);color:#39ff14;font:11px/1.4 monospace;padding:6px 8px;max-height:45vh;overflow:auto;white-space:pre-wrap;pointer-events:none;';
+    if (document.body) document.body.appendChild(box);
+  }
+  box.textContent = ('▶ ' + msg + '\n' + box.textContent).slice(0, 1800);
+}
+
 // ── 마로 버튼 드래그 이동 ──
 // 안드로이드: touchstart { passive:false } + preventDefault 로 스크롤 결정 자체를 차단
 // (Pointer Events 는 Touch Events 합성 이후 도착 → 스크롤 판정 이미 완료 → 신뢰 불가)
@@ -58,7 +75,11 @@ function initFloatBtnDrag() {
   //  안드로이드에서 드래그 핸들러가 통째로 안 붙던 버그(클릭만 동작). 폭 게이트 제거.
   var hasTouch       = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   var allowMouseDrag = window.innerWidth < 768; // 데스크톱(마우스)은 측면 탭 UX 유지
-  if (!hasTouch && !allowMouseDrag) return;
+  _maroDbg('init: w=' + window.innerWidth + ' touchPts=' + navigator.maxTouchPoints +
+           ' onTouch=' + ('ontouchstart' in window) + ' hasTouch=' + hasTouch +
+           ' mouseDrag=' + allowMouseDrag + ' touchAction=' + getComputedStyle(btn).touchAction);
+  if (!hasTouch && !allowMouseDrag) { _maroDbg('GATE: 드래그 비활성화됨 (early return)'); return; }
+  _maroDbg('핸들러 부착 시작' + (hasTouch ? ' [Touch]' : '') + (allowMouseDrag ? ' [Pointer]' : ''));
 
   var _dragging = false;
   var _moved    = false;
@@ -147,6 +168,7 @@ function initFloatBtnDrag() {
   // passive:false + preventDefault → Chrome 의 스크롤 제스처 판정 자체를 touchstart 시점에 차단
   if (hasTouch) {
     btn.addEventListener('touchstart', function(e) {
+      _maroDbg('touchstart 발생! touches=' + e.touches.length + ' cancelable=' + e.cancelable);
       if (e.touches.length !== 1) return;
       _active = true;
       e.preventDefault(); // ← 스크롤·줌·합성 click 모두 차단 (탭은 touchend 에서 직접 처리)
@@ -159,9 +181,11 @@ function initFloatBtnDrag() {
       e.preventDefault();
       var t = e.touches[0];
       _dragMove(t.clientX, t.clientY);
+      _maroDbg('touchmove cancelable=' + e.cancelable + ' moved=' + _moved + ' top=' + btn.style.top + ' right=' + btn.style.right);
     }, { passive: false });
 
     btn.addEventListener('touchend', function() {
+      _maroDbg('touchend active=' + _active + ' moved=' + _moved);
       if (!_active) return;
       _active = false;
       var didMove = _moved;
