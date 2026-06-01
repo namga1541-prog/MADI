@@ -53,10 +53,16 @@ function initFloatBtnDrag() {
     toggleChat();
   });
 
-  if (window.innerWidth >= 768) return;
+  // 드래그 활성 조건 — 화면 폭이 아니라 "터치 입력 가능 여부" 기준.
+  //  기존: innerWidth>=768 이면 드래그 전체 비활성 → 태블릿·대화면·데스크톱모드
+  //  안드로이드에서 드래그 핸들러가 통째로 안 붙던 버그(클릭만 동작). 폭 게이트 제거.
+  var hasTouch       = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  var allowMouseDrag = window.innerWidth < 768; // 데스크톱(마우스)은 측면 탭 UX 유지
+  if (!hasTouch && !allowMouseDrag) return;
 
   var _dragging = false;
   var _moved    = false;
+  var _active   = false;
   var _startX, _startY, _startTop, _startRight;
 
   // ── 저장 위치 복원 ──
@@ -137,37 +143,52 @@ function initFloatBtnDrag() {
     setTimeout(function() { delete btn.dataset.dragged; }, 150);
   }
 
-  // ── Touch Events (안드로이드 모바일 전용) ──
+  // ── Touch Events (터치 기기 — 안드로이드/태블릿/터치노트북) ──
   // passive:false + preventDefault → Chrome 의 스크롤 제스처 판정 자체를 touchstart 시점에 차단
-  btn.addEventListener('touchstart', function(e) {
-    if (e.touches.length !== 1) return;
-    e.preventDefault(); // ← 이 줄이 핵심: Pointer Events 도착 전에 스크롤 결정을 막음
-    var t = e.touches[0];
-    _dragStart(t.clientX, t.clientY);
-  }, { passive: false });
+  if (hasTouch) {
+    btn.addEventListener('touchstart', function(e) {
+      if (e.touches.length !== 1) return;
+      _active = true;
+      e.preventDefault(); // ← 스크롤·줌·합성 click 모두 차단 (탭은 touchend 에서 직접 처리)
+      var t = e.touches[0];
+      _dragStart(t.clientX, t.clientY);
+    }, { passive: false });
 
-  btn.addEventListener('touchmove', function(e) {
-    if (!_dragging) return;
-    e.preventDefault();
-    var t = e.touches[0];
-    _dragMove(t.clientX, t.clientY);
-  }, { passive: false });
+    btn.addEventListener('touchmove', function(e) {
+      if (!_dragging) return;
+      e.preventDefault();
+      var t = e.touches[0];
+      _dragMove(t.clientX, t.clientY);
+    }, { passive: false });
 
-  btn.addEventListener('touchend',    function() { _dragEnd(); });
-  btn.addEventListener('touchcancel', function() {
-    _dragging = false; _moved = false;
-    btn.classList.remove('dragging'); btn.style.willChange = '';
-  });
+    btn.addEventListener('touchend', function() {
+      if (!_active) return;
+      _active = false;
+      var didMove = _moved;
+      _dragEnd();
+      // touchstart 의 preventDefault 가 합성 click 을 막으므로, 이동 없는 "탭" 은 여기서 직접 토글.
+      // dragged 플래그로 뒤따라올 수 있는 합성 click 을 한 번 더 무시(이중 토글 방지).
+      btn.dataset.dragged = '1';
+      setTimeout(function() { delete btn.dataset.dragged; }, 400);
+      if (!didMove) toggleChat();
+    });
+    btn.addEventListener('touchcancel', function() {
+      _active = false; _dragging = false; _moved = false;
+      btn.classList.remove('dragging'); btn.style.willChange = '';
+    });
+  }
 
   // ── Pointer Events (마우스 전용 — 터치는 위 Touch Events 에서 처리) ──
-  btn.addEventListener('pointerdown', function(e) {
-    if (e.pointerType === 'touch') return; // 터치는 Touch Events 에서 처리
-    _dragStart(e.clientX, e.clientY);
-    try { btn.setPointerCapture(e.pointerId); } catch (err) {}
-    document.addEventListener('pointermove', _ptrMove, { passive: false });
-    document.addEventListener('pointerup',     _ptrEnd);
-    document.addEventListener('pointercancel', _ptrEnd);
-  });
+  if (allowMouseDrag) {
+    btn.addEventListener('pointerdown', function(e) {
+      if (e.pointerType === 'touch') return; // 터치는 Touch Events 에서 처리
+      _dragStart(e.clientX, e.clientY);
+      try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+      document.addEventListener('pointermove', _ptrMove, { passive: false });
+      document.addEventListener('pointerup',     _ptrEnd);
+      document.addEventListener('pointercancel', _ptrEnd);
+    });
+  }
 
   function _ptrMove(e) { _dragMove(e.clientX, e.clientY); }
   function _ptrEnd()   {
