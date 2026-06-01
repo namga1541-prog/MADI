@@ -1181,11 +1181,35 @@ function initPWA() {
 
   // ── Service Worker 등록: ./sw.js 우선, 실패 시 Blob URL 폴백 ──
   if ('serviceWorker' in navigator) {
-    // SW 업데이트 감지 시 자동 새로고침
+    // ── SW 업데이트 시 자동 새로고침 (설치형 PWA 포함) ──
+    //  기존 confirm() 방식은 standalone PWA 에서 다이얼로그가 무시·차단되어
+    //  새 코드가 영영 적용되지 않던 문제 → 사용자 개입 없는 자동 reload 로 전환.
+    //  단 세션 기록 등 입력 유실 방지:
+    //    · 앱을 방금 연 직후(8초 이내) 또는 백그라운드 → 즉시 적용
+    //    · 사용 중(화면 보는 중) → 토스트 안내 후 다음 포그라운드 복귀 시 적용
+    var _swHadController = !!navigator.serviceWorker.controller;
+    var _swLoadedAt = Date.now();
+    var _swReloaded = false;
+    function _swApplyUpdate() {
+      if (_swReloaded) return;
+      _swReloaded = true;
+      window.location.reload();
+    }
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      if (confirm('새 버전이 준비됐습니다. 지금 새로고침하시겠습니까?')) {
-        window.location.reload();
+      // 최초 설치(이전 컨트롤러 없음)는 이미 최신 → reload 불필요(무한 새로고침 방지)
+      if (!_swHadController) { _swHadController = true; return; }
+      if (document.visibilityState !== 'visible' || (Date.now() - _swLoadedAt) < 8000) {
+        _swApplyUpdate();
+        return;
       }
+      try { if (typeof showToast === 'function') showToast('🔄 새 버전이 적용됩니다'); } catch (e) {}
+      var _onVis = function() {
+        if (document.visibilityState === 'visible') {
+          document.removeEventListener('visibilitychange', _onVis);
+          _swApplyUpdate();
+        }
+      };
+      document.addEventListener('visibilitychange', _onVis);
     });
     // 1차 시도: 배포된 ./sw.js (GitHub Pages 환경)
     // updateViaCache: 'none' — sw.js 자체가 HTTP 캐시에서 서빙되지 않도록 강제.
