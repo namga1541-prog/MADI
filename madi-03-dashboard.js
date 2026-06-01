@@ -224,11 +224,10 @@ function renderDashboardTeacher() {
     +     '<div class="dp-kpi-num">' + weekDone + '<em> / ' + weekSchedDue.length + (weekRatePct != null ? ' · ' + weekRatePct + '%' : '') + '</em></div>'
     +     '<div class="dp-kpi-delta ' + (weekPending ? 'warn' : 'flat') + '">' + (weekPending ? weekPending + '건 미작성' : (weekSchedDue.length ? '모두 작성 완료' : '도래한 일정 없음')) + (weekSchedFuture ? ' · 남은 일정 ' + weekSchedFuture + '건' : '') + '</div>'
     +   '</div></div>'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-rose">💬</div><div class="dp-kpi-info">'
-    +     '<div class="dp-kpi-label">답변 대기 메시지</div>'
-    +     '<div class="dp-kpi-num" id="dpTeacherMsgKpi">-<em> 건</em></div>'
-    +     '<div class="dp-kpi-delta flat" id="dpTeacherMsgKpiSub">불러오는 중...</div>'
-    +   '</div></div>'
+    // 선생님(teacher)에게는 '답변 대기 메시지' KPI 불표시.
+    // private_admin 글은 센터장 전용 1:1 메시지라 선생님이 열람 불가함에도
+    // 쿼리가 센터 전체를 끌어와 '받은 것처럼' 보이는 오표시였음.
+    // admin/superadmin 대시보드에 동일 KPI가 존재하므로 선생님 영역에서 제거.
     + '</div>';
 
   // 2열: 오늘 타임라인 + 받은 메시지
@@ -284,19 +283,11 @@ function renderDashboardTeacher() {
   }
   html += '</div></div>';
 
-  // 답변 대기 메시지 (async — placeholder 후 채움)
-  html += ''
-    + '<div class="dp-panel">'
-    +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">💬 답변 대기 메시지</div>'
-    +       '<div class="dp-panel-sub">받은 메시지 · 미응답</div></div>'
-    +     '<button class="dp-panel-link" onclick="switchTab(7)">전체 →</button>'
-    +   '</div>'
-    +   '<div class="dp-panel-body" id="dpTeacherMsgs">'
-    +     '<div class="dp-empty">불러오는 중...</div>'
-    +   '</div>'
-    + '</div>';
-  html += '</div>'; // grid-2 end
+  // 답변 대기 메시지 패널 — 선생님(teacher)에게는 표시하지 않음.
+  // private_admin(1:1 센터장 건의) 글은 센터장만 열람 가능. 선생님 대시보드에서
+  // 보이지만 클릭해도 열람 불가한 혼란을 방지하기 위해 패널 자체를 제거.
+  // (admin/superadmin 대시보드에서는 별도로 동일 패널이 정상 작동함)
+  html += '</div>'; // grid-2 end (2열 패널: 오늘 일정만)
 
   // 내 담당 아동 (가로 카드 4개)
   html += ''
