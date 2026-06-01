@@ -49,6 +49,8 @@ function loadParentSched() {
             + '</div>';
         }).join('');
       }).catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
+  }, function() {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
   });
 }
 
@@ -101,6 +103,11 @@ function loadParentPortfolio() {
         el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>'
           + '<p style="font-size:13px;color:var(--text2);">' + msg + '</p></div>';
       });
+  }, function() {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>'
+      + '<p style="font-size:14px;font-weight:600;margin-bottom:4px;">정보를 불러오지 못했습니다</p>'
+      + '<p style="font-size:12px;color:var(--text2);line-height:1.6;">담당 선생님에게 계정 연결을 요청하거나, 잠시 후 다시 시도해주세요.</p>'
+      + '</div>';
   });
 }
 
@@ -172,6 +179,8 @@ function loadParentNotice() {
             + '</div>';
         }).join('');
       }).catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
+  }, function() {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
   });
 }
 

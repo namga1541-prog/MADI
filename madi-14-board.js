@@ -979,13 +979,13 @@ function submitVocabFeedback() {
 
   var payload = {
     actor_id:     currentUser.id,
-    actor_name:   currentUser.name,
+    actor_role:   currentUser.role,
     action:       'vocab_feedback',
     table_name:   'vocab',
-    record_id:    null,
+    row_id:       null,
+    center_id:    currentUser.center_id,
     child_id:     null,
-    changed_cols: JSON.stringify({ type: type, wrong: wrong, correct: correct, context: context }),
-    occurred_at:  new Date().toISOString()
+    changed_cols: [JSON.stringify({ type: type, wrong: wrong, correct: correct, context: context })]
   };
 
   // madi_audit_log는 RLS로 직접 INSERT 차단됨 → 실패를 무시하고 UI만 처리

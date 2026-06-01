@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
   // BASE_COLS: 원래부터 존재하는 컬럼만 (status 도 일부 DB 에는 없을 수 있음)
   // EXT_COLS:  status + SEC3/4/6 신규 컬럼 (마이그레이션 후만)
   const BASE_COLS = 'id,username,name,password,role,center_id,color,permissions'
-  const EXT_COLS  = BASE_COLS + ',status,failed_login_count,last_failed_at,locked_until,totp_secret,totp_enabled'
+  const EXT_COLS  = BASE_COLS + ',status,failed_login_count,last_failed_at,locked_until,totp_secret,totp_enabled,session_revoked_at'
   const userUrl = (cols: string) =>
     SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username) + '&select=' + cols
 
@@ -217,13 +217,16 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // ── SEC4: 성공 시 카운터·잠금 리셋 ──
-  if (user.failed_login_count || user.locked_until) {
+  // ── SEC4: 성공 시 카운터·잠금 리셋 + 세션 무효화 플래그 해제 ──
+  // session_revoked_at 을 비우지 않으면, 로그아웃 직후 재로그인 시 발급되는 새 JWT 의
+  // iat 가 직전 session_revoked_at 보다 작아져 requireFreshSession(failClosed) 엔드포인트가
+  // 정상 토큰을 401 로 거부할 수 있음. 새 로그인이므로 이전 무효화는 의미 없어 함께 해제한다.
+  if (user.failed_login_count || user.locked_until || user.session_revoked_at) {
     try {
       await fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
-        body:    JSON.stringify({ failed_login_count: 0, locked_until: null, last_failed_at: null }),
+        body:    JSON.stringify({ failed_login_count: 0, locked_until: null, last_failed_at: null, session_revoked_at: null }),
       })
     } catch(_) {}
   }
