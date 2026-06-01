@@ -546,12 +546,14 @@ function _renderParentChartByScore(assessments) {
   // 요약 셀
   var current = months[months.length - 1].avg;
   var first = months[0].avg;
-  var delta = current - first;
-  var deltaTxt = delta >= 0 ? '↑ +' + delta.toFixed(0) + '점' : delta.toFixed(0) + '점';
+  // 최근 달에 평가가 없으면 current 가 null → "NaN점" 표시 방지
+  var hasDelta = current != null && first != null;
+  var delta = hasDelta ? current - first : 0;
+  var deltaTxt = !hasDelta ? '—' : (delta >= 0 ? '↑ +' + delta.toFixed(0) + '점' : delta.toFixed(0) + '점');
   html += ''
     + '<div class="dp-p-chart-sum">'
     +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num ' + (delta >= 0 ? 'good' : '') + '">' + deltaTxt + '</div><div class="dp-p-chart-label">5개월 누적</div></div>'
-    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + Math.round(current) + '<small style="font-size:11px;color:#94a3b8;font-weight:600;">점</small></div><div class="dp-p-chart-label">현재 평균</div></div>'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + (current != null ? Math.round(current) : '—') + '<small style="font-size:11px;color:#94a3b8;font-weight:600;">점</small></div><div class="dp-p-chart-label">현재 평균</div></div>'
     +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + assessments.length + '<small style="font-size:11px;color:#94a3b8;font-weight:600;"> 회</small></div><div class="dp-p-chart-label">평가 누적</div></div>'
     + '</div>';
 

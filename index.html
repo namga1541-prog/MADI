@@ -3,7 +3,9 @@
   <script>
   (function(){
     try {
-      if (localStorage.getItem('darkMode') === 'true') {
+      // FOUC 방지 — 저장 키는 'madi_dark'='1' (toggleDarkMode 와 동일). 'darkMode' 는 오타였음.
+      // body 는 아직 없으므로 html 에 클래스 부여 → madi.css 의 html.dark-mode 배경 규칙이 흰 깜빡임 차단.
+      if (localStorage.getItem('madi_dark') === '1') {
         document.documentElement.classList.add('dark-mode');
       }
     } catch(e) {}

@@ -3215,4 +3215,20 @@ function deleteClientError(id) {
 
 </script>
 
+<script>
+// 서비스워커 자동 갱신 (index.html initPWA 와 동일 패턴) — admin 도 배포 후 자동 최신화
+(function(){
+  if (!('serviceWorker' in navigator)) return;
+  var _had = !!navigator.serviceWorker.controller, _at = Date.now(), _done = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    if (!_had) { _had = true; return; }       // 최초 설치는 reload 불필요
+    if (_done) return; _done = true;
+    if (document.visibilityState !== 'visible' || (Date.now() - _at) < 8000) { window.location.reload(); return; }
+    var _v = function(){ if (document.visibilityState === 'visible') { document.removeEventListener('visibilitychange', _v); window.location.reload(); } };
+    document.addEventListener('visibilitychange', _v);
+  });
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(function(){});
+})();
+</script>
+
 </body></html>

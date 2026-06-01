@@ -107,6 +107,9 @@
         font-size: max(16px, 1em) !important;
       }
     }
+    /* FOUC 방지 — 로드 직후 head 인라인이 html.dark-mode 를 부여(body 아직 없음).
+       전체 다크 스타일은 body.dark-mode 가 처리하고, 이 규칙은 흰 화면 깜빡임만 차단. */
+    html.dark-mode { background:#0f172a; }
     body.dark-mode {
       --mint:#2dd4bf; --mint2:#134e4a; --navy:#020617; --navy2:#0f172a;
       --bg:#0f172a; --white:#1e293b; --red:#f87171; --amber:#fbbf24;
