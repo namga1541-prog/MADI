@@ -93,6 +93,16 @@ function getSaveErrMsg(e, label) {
   if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1) return label + ' 저장 실패 — 서버 응답 없음, 잠시 후 재시도해주세요';
   return label + ' 저장 실패 — 잠시 후 다시 시도해주세요';
 }
+// 범용 사용자 노출 에러 — supaFetch 원문(상태코드+PostgREST 본문, 테이블/컬럼명 포함)을
+//   숨기고 상태 기반 친화 문구만 반환. 원문은 호출부에서 console.warn 으로 별도 로깅 권장.
+function _userErrMsg(e, action) {
+  var msg = (e && e.message) ? String(e.message) : '';
+  if (!navigator.onLine) return action + ' 실패 — 인터넷 연결을 확인해주세요';
+  if (msg.indexOf('403') !== -1 || msg.indexOf('401') !== -1) return action + ' 권한이 없습니다';
+  if (msg.indexOf('409') !== -1) return action + ' 실패 — 이미 처리되었거나 중복된 요청입니다';
+  if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1) return action + ' 실패 — 서버 응답이 없습니다. 잠시 후 다시 시도해주세요';
+  return action + '에 실패했습니다. 잠시 후 다시 시도해주세요';
+}
 function saveSessions() {
   markMyChange(); safeSetItem('cn3_sessions', JSON.stringify(sessionDB)); if (sessionDB.length === 0) return;
   var cid = getCenterId(), rows = sessionDB.map(function(s){ return { id: s.id, center_id: cid, data: s }; }), batches = [];

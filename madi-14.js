@@ -405,7 +405,7 @@ function saveGlobalNotice() {
       showToast(asPopup ? '✅ 공지 등록 + 로그인 팝업 활성화' : '✅ 마디 공지가 등록됐습니다');
       loadGlobalNotices();
     })
-    .catch(function(e) { showToast('❌ 저장 실패: ' + (e.message || '')); });
+    .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '저장')); });
 }
 
 // 기존 공지의 로그인 팝업 ON/OFF 토글
@@ -421,7 +421,7 @@ function togglePopupNotice(id, current) {
         showToast('🔕 로그인 팝업 해제됨');
         loadGlobalNotices();
       })
-      .catch(function(e) { showToast('❌ 변경 실패: ' + (e.message || '')); });
+      .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '변경')); });
   } else {
     // 현재 OFF → 모든 글 OFF 후 해당 글만 ON
     supaFetch('madi_global_notices?show_as_login_popup=eq.true', 'PATCH', { show_as_login_popup: false })
@@ -432,7 +432,7 @@ function togglePopupNotice(id, current) {
         showToast('🔔 로그인 팝업으로 활성화됨');
         loadGlobalNotices();
       })
-      .catch(function(e) { showToast('❌ 변경 실패: ' + (e.message || '')); });
+      .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '변경')); });
   }
 }
 
@@ -445,7 +445,7 @@ function deleteGlobalNotice(id) {
         showToast('🗑️ 공지가 삭제됐습니다');
         loadGlobalNotices();
       })
-      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+      .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '삭제')); });
   });
 }
 
@@ -633,7 +633,7 @@ function saveCenterNotice() {
       showToast('✅ 센터 공지가 등록됐습니다');
       loadCenterNotices();
     })
-    .catch(function(e) { showToast('❌ 저장 실패: ' + (e.message || '')); });
+    .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '저장')); });
 }
 
 // 센터 공지 삭제
@@ -654,7 +654,7 @@ function deleteCenterNotice(id) {
         showToast('🗑️ 공지가 삭제됐습니다');
         loadCenterNotices();
       })
-      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+      .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '삭제')); });
   });
 }
 

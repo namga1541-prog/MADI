@@ -302,7 +302,7 @@ function saveLoungePost() {
       if (btn) { btn.disabled = false; btn.textContent = '📨 건의 보내기'; }
     })
     .catch(function(err) {
-      showToast('⚠️ 등록 실패: ' + (err.message || ''));
+      showToast('⚠️ ' + _userErrMsg(err, '등록'));
       if (btn) { btn.disabled = false; btn.textContent = '📨 건의 보내기'; }
     });
 }
@@ -322,7 +322,7 @@ function deleteLoungePost(id) {
         loadLoungePosts();
       })
       .catch(function(err) {
-        showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+        showToast('⚠️ ' + _userErrMsg(err, '삭제'));
       });
   });
 }
@@ -462,7 +462,7 @@ function saveComment(postId) {
       loadComments(postId);
     })
     .catch(function(err) {
-      showToast('⚠️ 댓글 등록 실패: ' + (err.message || ''));
+      showToast('⚠️ ' + _userErrMsg(err, '댓글 등록'));
     });
 }
 
@@ -482,7 +482,7 @@ function deleteComment(postId, commentId) {
         loadComments(postId);
       })
       .catch(function(err) {
-        showToast('⚠️ 삭제 실패: ' + (err.message || ''));
+        showToast('⚠️ ' + _userErrMsg(err, '삭제'));
       });
   });
 }
@@ -699,7 +699,7 @@ function saveLibraryPost() {
     showToast('✅ 자료가 등록됐습니다');
     renderLibrary();
   }).catch(function(err) {
-    showToast('⚠️ 등록 실패: ' + (err.message || ''));
+    showToast('⚠️ ' + _userErrMsg(err, '등록'));
   });
 }
 
@@ -844,7 +844,7 @@ function editGlobalNotice(id) {
         pinned:      pinned
       })
         .then(function() { close(); showToast('✅ 수정됐습니다'); loadGlobalNotices(); })
-        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+        .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '수정')); });
     }
   });
 }
@@ -870,7 +870,7 @@ function editCenterNotice(id) {
         pinned:      pinned
       })
         .then(function() { close(); showToast('✅ 수정됐습니다'); loadCenterNotices(); })
-        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+        .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '수정')); });
     }
   });
 }
@@ -893,7 +893,7 @@ function editLoungePost(id) {
         content: v.content
       })
         .then(function() { close(); showToast('✅ 수정됐습니다'); loadLoungePosts(); })
-        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+        .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '수정')); });
     }
   });
 }
@@ -919,7 +919,7 @@ function editLibraryPost(id) {
         note:    v.selectValue || (p.note || '')
       })
         .then(function() { close(); showToast('✅ 수정됐습니다'); renderLibrary(); })
-        .catch(function(e) { showToast('❌ 수정 실패: ' + (e.message || '')); });
+        .catch(function(e) { showToast('❌ ' + _userErrMsg(e, '수정')); });
     }
   });
 }

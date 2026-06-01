@@ -495,7 +495,13 @@ function autoCalcAssessScores() {
     callClaude(SYSTEM, USER, 500, getAIModel())
       .then(function(raw) {
         var parsed = parseJSON(raw);
-        if (!parsed) { _resetAutoCalcBtn(); return; }
+        // parseJSON 은 실패 시 {} 를 반환하므로 !parsed 만으로는 빈 응답을 못 잡음 →
+        //   results 유무까지 확인해 AI 가 빈/비정상 응답을 줄 때 사용자에게 피드백.
+        if (!parsed || !parsed.results || !parsed.results.length) {
+          _resetAutoCalcBtn();
+          showToast('⚠️ 자동 계산 결과가 없습니다. 직접 입력해주세요');
+          return;
+        }
         var aiCount = 0;
         (parsed.results||[]).forEach(function(r) { if(r.key&&r.val){var el=document.getElementById('af_'+r.key);if(el&&el.value===''){el.value=r.val;aiCount++;}} });
         if (aiCount > 0) showToast((filled > 0 ? '+ ' : '') + 'AI로 ' + aiCount + '개 추가 보완');

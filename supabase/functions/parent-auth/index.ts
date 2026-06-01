@@ -99,13 +99,6 @@ function validatePhone(phone: string): boolean {
   return cleaned.length === 11 && cleaned.startsWith('010')
 }
 
-// ── SHA-256 해싱 (클라이언트 hashPassword()와 동일 방식, /login 호환) ─────
-async function sha256Hex(password: string): Promise<string> {
-  const data       = new TextEncoder().encode(password)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
 // ── 메인 핸들러 ──────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get('origin')

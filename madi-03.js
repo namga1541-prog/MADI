@@ -159,7 +159,7 @@ function regenInviteCode() {
       }
       showToast('✅ 재발급 완료: ' + newCode + ' (' + expiryLabel + ')');
     }).catch(function(err) {
-      showToast('❌ 재발급 실패: ' + escHtml(err.message || '오류'));
+      showToast('❌ ' + _userErrMsg(err, '재발급'));
     });
   }, { danger: false, okLabel: '재발급' });
 }
@@ -244,7 +244,7 @@ function removeStaffAccount(id, name) {
         showToast('🗑️ ' + name + ' 계정 삭제됨');
         loadStaffMgmtList();
       }).catch(function(err) {
-        showToast('❌ 삭제 실패: ' + escHtml(err.message || '오류'));
+        showToast('❌ ' + _userErrMsg(err, '삭제'));
       });
   });
 }
@@ -961,7 +961,7 @@ function toggleWakeLock() {
       showToast('💡 화면이 꺼지지 않아요');
       updateSettingsUI();
     }).catch(function(e) {
-      showToast('❌ 설정 실패: ' + (e.message || '오류'));
+      showToast('❌ ' + _userErrMsg(e, '설정'));
     });
   }
 }

@@ -530,7 +530,7 @@ function togglePortfolioVisibility(portfolioId, makeVisible) {
       }
     })
     .catch(function(err) {
-      showToast('❌ 공개 설정 실패 — ' + (err && err.message || ''));
+      showToast('❌ ' + _userErrMsg(err, '공개 설정'));
     });
 }
 
