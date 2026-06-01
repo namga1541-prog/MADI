@@ -14,6 +14,11 @@
 - 백엔드: Supabase (REST API + Edge Functions)
 - 인증: 자체 JWT (Edge Function `/login`)
 
+### 📌 작업 전 필독 (탐색 비용·오탐 절감)
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** — 불변 사실 치트시트(ID 문자열·toKST·저장흐름·서버보안·전역변수 위치). 수정·감사 전에 읽으면 재조사·오탐 방지.
+- **[FUNCTIONS.md](./FUNCTIONS.md)** — 이름→파일:라인 인덱스(자동 생성). 위치는 여기서 찾아 **±15줄만 Read**.
+- 검증: `npm run check` (lint + smoke + 재발버그 패턴) 한 번에.
+
 ## 파일 구조
 | 파일 | 역할 |
 |------|------|

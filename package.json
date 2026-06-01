@@ -6,7 +6,9 @@
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "lint": "eslint \"madi-*.js\" --max-warnings=0",
-    "lint:fix": "eslint \"madi-*.js\" --fix"
+    "lint:fix": "eslint \"madi-*.js\" --fix",
+    "check": "eslint \"madi-*.js\" --max-warnings=0 && node tests/smoke.js && node tools/check-patterns.js",
+    "funcindex": "node tools/gen-functions.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",

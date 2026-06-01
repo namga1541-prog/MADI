@@ -2,6 +2,10 @@
 프로젝트: 언어치료 센터 관리 웹앱 / GitHub Pages 정적 배포
 경로: (현재 작업 디렉토리 — 에이전트 spawn 시 `pwd` 결과 삽입)
 
+[필독 — 먼저 읽기]
+- ARCHITECTURE.md : 불변 사실(ID 문자열·toKST·저장흐름·서버보안·전역변수). 보고 전 "흔한 오탐 주의" 대조.
+- FUNCTIONS.md    : 이름→파일:라인 인덱스. 통독 금지 — 줄번호 찾아 ±20줄만 Read.
+
 [코딩 규칙]
 - var / function / .then() 스타일 유지 — let/const/화살표함수/class 미사용
 - template literal(백틱) 사용 가능
@@ -14,7 +18,8 @@
 
 [DB 스키마 핵심 — 존재하지 않는 컬럼 select 시 PostgREST 400 반환]
 - madi_users       : id, username, name, password, role, center_id, color, permissions,
-                     status, prog_types(JSONB), totp_secret, totp_enabled, locked_until
+                     prog_types(JSONB), totp_secret, totp_enabled, locked_until, session_revoked_at
+                     ⚠️ status 컬럼 없음 — POST 시 주입하면 PostgREST 400
 - madi_centers     : id  (center_id로 사용)
 - madi_settings    : key, value  ⚠️ center_id 컬럼 없음 — 전역 테이블
 - madi_portfolios  : id, child_id, center_id, parent_visible, month, content, data, created_at
