@@ -1,0 +1,12 @@
+#!/bin/sh
+# 아이마디아이 post-commit 하네스 (버전 관리됨 — 두 PC 동기화 정본)
+# 커밋 직후 origin/main 으로 자동 push
+
+echo "[post-commit] 자동 push 시작..."
+if git push origin main 2>&1; then
+  echo "[post-commit] ✅ push 완료"
+else
+  echo "[post-commit] ⚠️  push 실패 — 수동으로 git push origin main 실행 필요"
+fi
+
+exit 0
