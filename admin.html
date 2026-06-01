@@ -503,7 +503,7 @@
           <input type="password" id="staffNewPassword" class="form-input" placeholder="비밀번호 (4자 이상)" style="font-size:13px;">
           <select id="staffNewRole" class="form-input" style="font-size:13px;">
             <option value="teacher" selected>선생님</option>
-            <option value="admin">관리자 (센터장)</option>
+            <option value="admin" id="staffRoleAdminOpt">관리자 (센터장)</option>
           </select>
           <button class="btn btn-primary" style="margin-top:0;background:#0ea5a0;border-color:#0ea5a0;font-size:13px;" onclick="addStaffAccount()">➕ 직원 추가</button>
           <div id="staffAddResult" style="font-size:12px;margin-top:4px;"></div>
@@ -872,6 +872,12 @@ function getMonthKST() { return getTodayKST().slice(0, 7); }
       // 서버 값으로 클라이언트 신뢰 원천 갱신
       currentUser.role      = srv.role;
       currentUser.center_id = srv.center_id || currentUser.center_id;
+      // 직원 추가 role 옵션 — 'admin(센터장)' 생성은 superadmin 전용(서버 api/index.ts 강제와 정합).
+      //   일반 센터장(admin)에게는 옵션 자체를 숨겨 'admin 만들었는데 teacher 생성' 불일치 제거.
+      if (srv.role !== 'superadmin') {
+        var _adminOpt = document.getElementById('staffRoleAdminOpt');
+        if (_adminOpt) _adminOpt.remove();
+      }
       document.documentElement.style.visibility = '';
     })
     .catch(function(){

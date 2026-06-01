@@ -10,7 +10,7 @@
  * 응답: { ok, sent, parents, subs, reason? }
  */
 import webpush from "npm:web-push@3.6.7";
-import { makeCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts';
+import { makeCORS, getAuthToken, verifyJwt, requireFreshSession } from '../_shared/auth.ts';
 
 // ── 메인 핸들러 ─────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
@@ -46,6 +46,12 @@ Deno.serve(async (req: Request) => {
   const role = String(user.role || '');
   if (role !== 'admin' && role !== 'superadmin') {
     return new Response(JSON.stringify({ error: '관리자 권한이 필요합니다' }), { status: 403, headers: { ...CORS, 'Content-Type': 'application/json' } });
+  }
+
+  // 세션 무효화 검증 — 로그아웃·비번변경·강제종료된 옛 토큰 거부.
+  //   센터 전체 학부모에게 푸시를 발송하는 쓰기성·비용성 작업이므로 fail-closed.
+  if (!(await requireFreshSession(user, SUPA_URL, SUPA_KEY, { failClosed: true }))) {
+    return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해 주세요.' }), { status: 401, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
 
   const centerId = String(user.center_id || '');

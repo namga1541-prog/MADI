@@ -160,6 +160,19 @@ Deno.serve(async (req: Request) => {
     const cleaned   = phone.replace(/[^0-9]/g, '')
     const formatted = `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`
 
+    // 전화번호 단위 전역 카운터 — IP 회전(프록시/봇넷, x-forwarded-for 스푸핑)으로
+    //   번호 enumeration(가입여부·아동명 oracle) 하는 것을 차단. IP 카운터와 병행하여
+    //   같은 번호 자체에 대한 조회 상한을 둔다(IP 를 바꿔도 동일 번호는 더 못 캠).
+    const phoneRate = await checkRateLimit(`lookup-phone:${cleaned}`, SUPABASE_URL, SERVICE_KEY)
+    if (!phoneRate.allowed) {
+      return new Response(JSON.stringify({
+        error: `요청이 너무 많습니다. ${phoneRate.retryAfter}초 후 다시 시도해주세요.`
+      }), {
+        status: 429,
+        headers: { ...cors, 'Content-Type': 'application/json', 'Retry-After': String(phoneRate.retryAfter ?? 60) }
+      })
+    }
+
     // 이미 가입된 계정인지 확인
     const existRes  = await fetch(
       `${SUPABASE_URL}/rest/v1/madi_users?username=eq.${cleaned}&role=eq.parent&select=id`,

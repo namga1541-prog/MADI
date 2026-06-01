@@ -2028,6 +2028,64 @@ body.dark-mode .dp-panel { background:#1e2124; color:#e0e0e0; border-color:#444;
 body.dark-mode .dp-panel-link { color:#7eb8f7; }
 body.dark-mode .dp-title { color:#a0a0a0; }
 
+/* === dp-* · dp-p-* 카드/텍스트 다크모드 보완 (감사 H-3) ===
+   라이트 규칙(background:white·#f8fafc, color:#0f172a)이 패널 위에 흰 카드로
+   박히던 부조화 해소. 라이트모드는 건드리지 않고 다크에서만 override. */
+/* 카드 배경(흰색) → 카드 변수 */
+body.dark-mode .dp-kpi,
+body.dark-mode .dp-change-cell,
+body.dark-mode .dp-tl-row.done .dp-tl-card,
+body.dark-mode .dp-p-hero-status,
+body.dark-mode .dp-p-hero-tag,
+body.dark-mode .dp-p-hero-next,
+body.dark-mode .dp-p-chart-cell,
+body.dark-mode .dp-p-next-row { background:var(--card-bg); border-color:var(--border); }
+/* 패널 내 보조 배경(연회색) → 패널보다 한 단계 어둡게 */
+body.dark-mode .dp-day-sum,
+body.dark-mode .dp-tl-card,
+body.dark-mode .dp-child,
+body.dark-mode .dp-week-item,
+body.dark-mode .dp-alert-big.dp-alert-ok,
+body.dark-mode .dp-p-voucher { background:#0f172a; border-color:var(--border); }
+body.dark-mode .dp-child:hover { background:var(--card-bg); border-color:var(--mint); }
+/* 구분선/태그/프로그레스 배경 */
+body.dark-mode .dp-change-sum,
+body.dark-mode .dp-p-chart-sum,
+body.dark-mode .dp-tl-tag.upcoming,
+body.dark-mode .dp-p-sess-tag,
+body.dark-mode .dp-p-voucher-prog { background:#0f172a; }
+/* 타임라인 점 */
+body.dark-mode .dp-tl-dot,
+body.dark-mode .dp-tl-row.upcoming .dp-tl-dot { background:var(--card-bg); }
+/* 진한 텍스트(#0f172a) → 본문색 변수 */
+body.dark-mode .dp-sub b,
+body.dark-mode .dp-kpi-num,
+body.dark-mode .dp-panel-title,
+body.dark-mode .dp-day-text b,
+body.dark-mode .dp-tl-time,
+body.dark-mode .dp-tl-name,
+body.dark-mode .dp-msg-from,
+body.dark-mode .dp-child-name,
+body.dark-mode .dp-child-last b,
+body.dark-mode .dp-week-num,
+body.dark-mode .dp-tname,
+body.dark-mode .dp-tstat-num,
+body.dark-mode .dp-change-title,
+body.dark-mode .dp-alert-title,
+body.dark-mode .dp-p-title,
+body.dark-mode .dp-p-hero-name,
+body.dark-mode .dp-p-hero-diag b,
+body.dark-mode .dp-p-hero-stat b,
+body.dark-mode .dp-p-hero-next-time,
+body.dark-mode .dp-p-sess-title,
+body.dark-mode .dp-p-msg-from,
+body.dark-mode .dp-p-msg-body b,
+body.dark-mode .dp-p-chart-num,
+body.dark-mode .dp-p-act-text b,
+body.dark-mode .dp-p-voucher-val,
+body.dark-mode .dp-p-next-day-num,
+body.dark-mode .dp-p-next-time { color:var(--text); }
+
 /* ═══════════════════════════════════════════════════════════
    보고서 페이지 PC 레이아웃 (panel1 세션 / panel3 평가 / panel5 리포트 / panelSI 감통)
    - .content-wide: 860 → 1280 최대폭 확장 (PC 가로 활용)

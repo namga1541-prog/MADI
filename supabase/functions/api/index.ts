@@ -217,6 +217,12 @@ Deno.serve(async (req: Request) => {
     //   board-images 내부 경로로 정규화 후 Supabase Storage 배치 sign API 로 1시간 서명 URL 발급.
     //   실패 시 빈 결과 → 클라이언트는 기존 public URL 로 폴백(버킷 비공개 전 무중단).
     if (tableName === '__sign_board_images__') {
+      // 학부모 차단 — 이 분기는 default-deny 게이트(아래)보다 먼저 처리되므로 여기서 명시 차단.
+      //   게시판 이미지 서명 URL 발급은 선생님/관리자 기능. 학부모는 경로 문자열만 알면
+      //   센터·권한 경계를 넘어 서명 URL 을 받을 수 있어 차단한다.
+      if (user.role === 'parent') {
+        return new Response(JSON.stringify({ error: '학부모는 해당 기능에 접근할 수 없습니다' }), { status: 403, headers: CORS })
+      }
       if (method !== 'POST') {
         return new Response(JSON.stringify({ error: 'POST 필요' }), { status: 405, headers: CORS })
       }
@@ -490,8 +496,9 @@ Deno.serve(async (req: Request) => {
         for (const row of rows) {
           if (!row || typeof row !== 'object') continue
           const obj = row as Record<string, unknown>
-          // role: 요청자 권한 무관하게 항상 teacher 로 강제
-          obj.role = 'teacher'
+          // role: 기본 teacher 강제. 단 superadmin 이 명시적으로 admin 계정을 생성하는
+          //   경우만 admin 허용(센터장 지정). admin/teacher 요청자는 무엇을 보내든 teacher 로 강등.
+          obj.role = (user.role === 'superadmin' && obj.role === 'admin') ? 'admin' : 'teacher'
           // permissions: 허용된 기본값으로 강제 (클라이언트 확장 시도 차단)
           obj.permissions = DEFAULT_PERMISSIONS
           // status: 없으면 active 기본값
