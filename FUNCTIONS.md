@@ -969,25 +969,25 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `openSchedModal` — madi-schedule.js:589
 - `autoCalcEndTime` — madi-schedule.js:635
 - `toggleRepeatOpt` — madi-schedule.js:649
-- `toggleDayChip` — madi-schedule.js:670
-- `closeSchedModal` — madi-schedule.js:671
-- `saveSchedFromModal` — madi-schedule.js:676
-- `openEditSchedModal` — madi-schedule.js:741
-- `goToSessionFromSched` — madi-schedule.js:780
-- `renderWeekGridByChild` — madi-schedule.js:801
-- `confirmSchedDelete` — madi-schedule.js:864
-- `execSchedDeleteChoice` — madi-schedule.js:897
-- `execSchedDelete` — madi-schedule.js:906
-- `saveEditSched` — madi-schedule.js:950
-  ▸ _일정 내보내기_ — L976
-- `openScheduleExportModal` — madi-schedule.js:977
-- `fmt` — madi-schedule.js:986
-- `closeScheduleExportModal` — madi-schedule.js:1009
-- `_getExportRows` — madi-schedule.js:1014
-- `exportSchedule` — madi-schedule.js:1044
-- `_printSchedule` — madi-schedule.js:1076
-- `_exportScheduleRtf` — madi-schedule.js:1111
-  ▸ _표준화 검사_ — L1131
+- `toggleDayChip` — madi-schedule.js:672
+- `closeSchedModal` — madi-schedule.js:673
+- `saveSchedFromModal` — madi-schedule.js:678
+- `openEditSchedModal` — madi-schedule.js:743
+- `goToSessionFromSched` — madi-schedule.js:782
+- `renderWeekGridByChild` — madi-schedule.js:803
+- `confirmSchedDelete` — madi-schedule.js:866
+- `execSchedDeleteChoice` — madi-schedule.js:899
+- `execSchedDelete` — madi-schedule.js:908
+- `saveEditSched` — madi-schedule.js:952
+  ▸ _일정 내보내기_ — L978
+- `openScheduleExportModal` — madi-schedule.js:979
+- `fmt` — madi-schedule.js:988
+- `closeScheduleExportModal` — madi-schedule.js:1011
+- `_getExportRows` — madi-schedule.js:1016
+- `exportSchedule` — madi-schedule.js:1046
+- `_printSchedule` — madi-schedule.js:1078
+- `_exportScheduleRtf` — madi-schedule.js:1113
+  ▸ _표준화 검사_ — L1133
 
 ## madi-session.js (37함수)
   ▸ _보안: API 키 마스킹 / 토글_ — L1

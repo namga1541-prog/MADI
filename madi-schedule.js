@@ -615,7 +615,7 @@ function openSchedModal(date, schedId) {
     + '<button type="button" class="day-chip" data-day="5" onclick="toggleDayChip(this)">금</button>'
     + '<button type="button" class="day-chip" data-day="6" onclick="toggleDayChip(this)">토</button>'
     + '</div></div>'
-    + '<div class="form-group"><label class="form-label">반복 종료일 <span style="color:var(--mint);font-size:11px;">기본 5년</span></label><input class="form-input" type="date" id="schedRepeatUntil"></div>'
+    + '<div class="form-group"><label class="form-label">반복 종료일 <span style="color:var(--mint);font-size:11px;">기본 1년 (최대 2년)</span></label><input class="form-input" type="date" id="schedRepeatUntil"></div>'
     + '</div>'
     + '<div class="form-group"><label class="form-label">담당 선생님</label><select class="form-input" id="schedTeacher"><option value="">불러오는 중...</option></select></div>'
     + '<div class="form-group"><label class="form-label">메모</label><input class="form-input" type="text" id="schedNote" placeholder="특이사항"></div>'
@@ -661,7 +661,9 @@ function toggleRepeatOpt() {
     var untilEl = document.getElementById('schedRepeatUntil');
     if (untilEl && !untilEl.value) {
       var base = dateVal ? new Date(dateVal + 'T00:00:00') : nowKST();
-      base.setFullYear(base.getFullYear() + 5);
+      // 기본 1년 — 저장 캡(2년, saveSchedFromModal)과 정합. 과거엔 5년이라 기본값 그대로면
+      //   저장이 거부됐고, 반복 1건이 2년치 행으로 전개돼 madi_schedules 행 폭증의 원인이었다.
+      base.setFullYear(base.getFullYear() + 1);
       untilEl.value = ymd(base);
     }
   }
