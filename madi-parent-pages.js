@@ -146,7 +146,7 @@ function _renderParentPortfolioCard(row) {
     bodyHtml = '<div style="font-size:12px;color:var(--text2);font-style:italic;">본문이 비어 있습니다.</div>';
   }
 
-  return '<div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+  return '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:10px;flex-wrap:wrap;">'
     +   '<div style="font-size:15px;font-weight:800;color:var(--text);">📁 ' + escHtml(month) + ' 월간 포트폴리오</div>'
     +   '<div style="font-size:11px;color:var(--text2);">공개 ' + escHtml(opened) + ' · ' + byTxt + '</div>'
@@ -522,14 +522,14 @@ function loadParentPushToggle() {
       // eslint-disable-next-line no-unsanitized/property
       container.innerHTML =
         '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;' +
-        'background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:12px;gap:12px;">' +
+        'background:var(--card-bg);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;gap:12px;">' +
         '<div>' +
-        '<div style="font-size:13px;font-weight:600;color:#111827;">🔔 내일 치료 예약 알림</div>' +
-        '<div style="font-size:11px;color:#6b7280;margin-top:2px;">치료 전날 저녁 이 기기로 알림을 보내드립니다</div>' +
+        '<div style="font-size:13px;font-weight:600;color:var(--text);">🔔 내일 치료 예약 알림</div>' +
+        '<div style="font-size:11px;color:var(--text2);margin-top:2px;">치료 전날 저녁 이 기기로 알림을 보내드립니다</div>' +
         '</div>' +
         '<button id="pushToggleBtn" onclick="onPushToggleTap()" style="' +
-        'background:' + (on ? 'var(--mint,#64d9c0)' : '#e5e7eb') + ';' +
-        'color:' + (on ? '#fff' : '#6b7280') + ';' +
+        'background:' + (on ? 'var(--mint,#64d9c0)' : 'var(--border)') + ';' +
+        'color:' + (on ? '#fff' : 'var(--text2)') + ';' +
         'border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">' +
         (on ? '알림 켜짐' : '알림 받기') +
         '</button>' +
@@ -652,7 +652,7 @@ function loadParentObservations() {
 function _renderParentObsForm(container, childId, centerId) {
   // eslint-disable-next-line no-unsanitized/property
   container.innerHTML =
-    '<div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+    '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
     + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">📝 관찰 기록 보내기</div>'
     + '<div style="margin-bottom:10px;">'
     +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">분류</label>'
@@ -764,7 +764,7 @@ function _renderParentObsCard(row) {
       '<div style="margin-top:8px;font-size:11px;color:var(--text2);font-style:italic;">답글 대기 중...</div>';
   }
 
-  return '<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+  return '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
     + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">'
     +   '<span style="font-size:11px;font-weight:700;background:var(--bg);color:var(--text2);padding:3px 9px;border-radius:10px;">' + escHtml(catLabel) + '</span>'
     +   '<span style="font-size:11px;color:var(--text2);">' + escHtml(dateStr) + '</span>'

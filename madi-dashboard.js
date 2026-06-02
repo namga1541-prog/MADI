@@ -493,7 +493,7 @@ function renderDashboardAdmin() {
   var _sessions = (typeof sessionDB !== 'undefined' && Array.isArray(sessionDB)) ? sessionDB : [];
   var _schedules = (typeof scheduleDB !== 'undefined' && Array.isArray(scheduleDB)) ? scheduleDB : [];
   var myName = (currentUser && currentUser.name) || '';
-  var role = (currentUser && currentUser.role) || 'admin';
+  var role = (currentUser && currentUser.role) || 'teacher';  // 불명 role 은 최저권한 뷰로 fail-safe(M-14)
   var todayDate = nowKST(); todayDate.setHours(0,0,0,0);
   var todayStr = ymd(todayDate);
   var mon = _dpMonday(todayDate), sun = _dpSunday(todayDate);

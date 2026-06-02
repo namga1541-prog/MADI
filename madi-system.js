@@ -85,8 +85,9 @@ function savePermissions() {
   if (String(_permUserId) === String(currentUser.id)) {
     showToast('⚠️ 자신의 권한은 변경할 수 없습니다'); return;
   }
-  // admin이 superadmin 계정의 권한을 변경하려는 경우 차단
-  // 서버 RLS에서도 강제 필요 (TODO: Edge Function 검증)
+  // admin이 superadmin 계정의 권한을 변경하려는 경우 차단(UX 가드).
+  //   _targetRole 은 openPermModal 의 서버 GET 응답(rows[0].role) 기반이라 클라 위조 불가.
+  //   실제 방어는 서버 api/index.ts PATCH escalation 가드(role/permissions 변경은 superadmin 강제)가 담당(M-12).
   if (currentUser.role === 'admin' && _permData._targetRole === 'superadmin') {
     showToast('⚠️ 슈퍼관리자 계정의 권한은 변경할 수 없습니다'); return;
   }

@@ -136,8 +136,8 @@ function renderParentChildSwitcher() {
   arr.forEach(function(c, i){
     var active = (i === (window._parentActiveIdx || 0));
     html += '<button data-idx="' + i + '" onclick="setActiveParentChild(this.getAttribute(\'data-idx\'))" '
-      + 'style="padding:5px 12px;border-radius:16px;border:1.5px solid ' + (active ? 'var(--mint)' : 'var(--border)') + ';'
-      + 'background:' + (active ? 'var(--mint)' : 'white') + ';color:' + (active ? 'white' : 'var(--text)') + ';'
+      + 'style="padding:8px 14px;min-height:40px;border-radius:16px;border:1.5px solid ' + (active ? 'var(--mint)' : 'var(--border)') + ';'
+      + 'background:' + (active ? 'var(--mint)' : 'var(--card-bg)') + ';color:' + (active ? 'white' : 'var(--text)') + ';'
       + 'font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">'
       + escHtml(c.name || ('자녀 ' + (i + 1))) + '</button>';
   });
@@ -298,6 +298,8 @@ function _renderParentRecentPortfolios(childId) {
   }
 
   var _portfolioCenterId = window._parentCenterId || (currentUser && currentUser.center_id) || '';
+  // 재조회 직전 로딩 표시 — 자녀 전환 시 이전 자녀 카드가 잔존하는 현상 방지(M-19)
+  el.innerHTML = '<div class="dp-empty">불러오는 중...</div>';
   supaFetch('madi_portfolios?select=id,month,content,opened_at,created_by_name'
     + '&child_id=eq.' + encodeURIComponent(childId)
     + '&parent_visible=eq.true'

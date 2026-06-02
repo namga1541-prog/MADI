@@ -2163,6 +2163,7 @@ body.dark-mode .dp-p-next-time { color:var(--text); }
 .quick-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06); }
 .quick-card:active { transform: scale(0.99); }
 .quick-card.qc-todo { border-color: #fca5a5; background: linear-gradient(180deg, #fff, #fef2f2); }
+body.dark-mode .quick-card.qc-todo { border-color: #7f1d1d; background: linear-gradient(180deg, #2a1416, #3a1f24); }  /* 다크모드 눈부심 방지(M-15) */
 .quick-card.qc-done { border-color: var(--success-soft-border); background: var(--success-soft-bg); opacity: 0.85; }
 .quick-card .qc-row1 {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
