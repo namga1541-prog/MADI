@@ -162,10 +162,12 @@ function renderStaffCard() {
 function saveNewStaff(btn) {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
   var modal    = btn.closest('.sched-modal-overlay');
-  var name     = modal.querySelector('#newStaffName').value.trim();
-  var username = modal.querySelector('#newStaffId').value.trim();
-  var password = modal.querySelector('#newStaffPw').value.trim();
-  var role     = modal.querySelector('#newStaffRole').value;
+  if (!modal) { showToast('⚠️ 입력 폼을 찾을 수 없습니다'); return; }
+  // querySelector null-safe (모달 마크업 변경·조건부 렌더 대비, M-6)
+  var name     = ((modal.querySelector('#newStaffName') || {}).value || '').trim();
+  var username = ((modal.querySelector('#newStaffId')   || {}).value || '').trim();
+  var password = ((modal.querySelector('#newStaffPw')   || {}).value || '').trim();
+  var role     = (modal.querySelector('#newStaffRole')  || {}).value || '';
   var errEl    = modal.querySelector('#addStaffError');
   if (!name || !username || !password) { if(errEl) errEl.textContent = '모든 항목을 입력해주세요.'; return; }
   var color = TEACHER_COLORS[Math.floor(Math.random() * TEACHER_COLORS.length)];

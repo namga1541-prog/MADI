@@ -55,8 +55,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _bulkMode = false;` — madi-child-detail.js:732
 - `var _bulkSelected = {}; // { childId: true }` — madi-child-detail.js:733
 - `var _currentVisibleIds = []; // renderChildGrid에서 채워짐` — madi-child-detail.js:734
-- `var _VOUCHER_BADGE_MAP = {` — madi-children.js:69
-- `var _staffTrendChart = null;` — madi-children.js:580
+- `var _VOUCHER_BADGE_MAP = {` — madi-children.js:72
+- `var _staffTrendChart = null;` — madi-children.js:545
 - `var MODEL_HAIKU = 'claude-haiku-4-5-20251001';` — madi-core.js:2
 - `var MODEL_SONNET = 'claude-sonnet-4-6';` — madi-core.js:3
 - `var ROLES = {` — madi-core.js:7
@@ -83,12 +83,12 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','p` — madi-home.js:422
 - `var TAB_PANEL_MAP = ['panel2','panel0','panelReport','panelPortfolio','panelService','pane` — madi-home.js:424
 - `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':` — madi-home.js:451
-- `var currentReportTab = 'session';` — madi-home.js:590
-- `var currentPortfolioTab = 'trend';` — madi-home.js:620
-- `var _bannerNotices = [];` — madi-home.js:647
-- `var _bannerIdx = 0;` — madi-home.js:648
-- `var _bannerTimer = null;` — madi-home.js:649
-- `var _bannerClosed = false;` — madi-home.js:650
+- `var currentReportTab = 'session';` — madi-home.js:584
+- `var currentPortfolioTab = 'trend';` — madi-home.js:614
+- `var _bannerNotices = [];` — madi-home.js:641
+- `var _bannerIdx = 0;` — madi-home.js:642
+- `var _bannerTimer = null;` — madi-home.js:643
+- `var _bannerClosed = false;` — madi-home.js:644
 - `var noticeDB = [];` — madi-home.js:717
 - `var _wakeLock = null;` — madi-home.js:882
 - `var _pwaInstallPrompt = null;` — madi-home.js:883
@@ -144,20 +144,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _permUserId = null;` — madi-system.js:2
 - `var _permData = {};` — madi-system.js:3
 - `var PERM_LIST = [` — madi-system.js:5
-- `var _pollTimer = null;` — madi-system.js:220
-- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:221
-- `var _myChangeTs = 0;` — madi-system.js:222
-- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:223
-- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:224
-- `var GITHUB_OWNER = 'namga1541-prog';` — madi-system.js:324
-- `var GITHUB_REPO = 'MADI';` — madi-system.js:325
-- `var GITHUB_FILE = 'index.html';` — madi-system.js:326
-- `var GITHUB_SW = 'sw.js';` — madi-system.js:327
-- `var _swNow = new Date();` — madi-system.js:332
-- `var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')` — madi-system.js:333
-- `var SW_LINES = [` — madi-system.js:336
-- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:438
-- `var _pwaPrompt = null;` — madi-system.js:1178
+- `var _pollTimer = null;` — madi-system.js:222
+- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:223
+- `var _myChangeTs = 0;` — madi-system.js:224
+- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:225
+- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:226
+- `var GITHUB_OWNER = 'namga1541-prog';` — madi-system.js:326
+- `var GITHUB_REPO = 'MADI';` — madi-system.js:327
+- `var GITHUB_FILE = 'index.html';` — madi-system.js:328
+- `var GITHUB_SW = 'sw.js';` — madi-system.js:329
+- `var _swNow = new Date();` — madi-system.js:334
+- `var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')` — madi-system.js:335
+- `var SW_LINES = [` — madi-system.js:338
+- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:440
+- `var _pwaPrompt = null;` — madi-system.js:1180
 - `var SLP_VOCAB_BLOCKED_PARENT = {` — madi-vocab.js:17
 - `var SLP_VOCAB_BLOCKED_ALL = {` — madi-vocab.js:71
 - `var SLP_VOCAB_ENCOURAGED = {` — madi-vocab.js:96
@@ -174,36 +174,36 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 ## madi-ai.js (25함수)
 - `generateReport` — madi-ai.js:1
 - `resetBtn` — madi-ai.js:37
-- `renderReport` — madi-ai.js:59
-- `copyKakao` — madi-ai.js:75
-- `downloadPDF` — madi-ai.js:90
-  ▸ _마크다운 → HTML 변환 (보고서 표 렌더링용)_ — L113
-- `markdownToHtml` — madi-ai.js:114
-- `flushTable` — madi-ai.js:120
-- `inlineBold` — madi-ai.js:141
-  ▸ _전문 평가 보고서 PDF 출력_ — L170
-- `downloadAssessPDF` — madi-ai.js:171
-  ▸ _보고서 인라인 편집 토글_ — L214
-- `toggleReportEdit` — madi-ai.js:215
-  ▸ _장단기계획(IEP) 자동 생성_ — L232
-- `generateIEP` — madi-ai.js:233
-- `resetIEPBtn` — madi-ai.js:319
-- `renderIEP` — madi-ai.js:352
-- `monthBlock` — madi-ai.js:355
-- `renderIEPHistory` — madi-ai.js:465
-- `loadIEPRecord` — madi-ai.js:498
-- `renderIEPView` — madi-ai.js:508
-- `monthBlock` — madi-ai.js:511
-- `downloadIEPPDFById` — madi-ai.js:556
-- `deleteIEPRecord` — madi-ai.js:563
-- `downloadIEPPDF` — madi-ai.js:588
-- `monthSection` — madi-ai.js:596
-  ▸ _W5: 활동 자료 카탈로그_ — L636
-  ▸ _W8: 효과 통계 대시보드_ — L637
-- `renderEffectStats` — madi-ai.js:638
-- `avgGoalScore` — madi-ai.js:670
-- `statCard` — madi-ai.js:690
-  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L745
+- `renderReport` — madi-ai.js:60
+- `copyKakao` — madi-ai.js:76
+- `downloadPDF` — madi-ai.js:91
+  ▸ _마크다운 → HTML 변환 (보고서 표 렌더링용)_ — L114
+- `markdownToHtml` — madi-ai.js:115
+- `flushTable` — madi-ai.js:121
+- `inlineBold` — madi-ai.js:142
+  ▸ _전문 평가 보고서 PDF 출력_ — L171
+- `downloadAssessPDF` — madi-ai.js:172
+  ▸ _보고서 인라인 편집 토글_ — L215
+- `toggleReportEdit` — madi-ai.js:216
+  ▸ _장단기계획(IEP) 자동 생성_ — L233
+- `generateIEP` — madi-ai.js:234
+- `resetIEPBtn` — madi-ai.js:320
+- `renderIEP` — madi-ai.js:354
+- `monthBlock` — madi-ai.js:357
+- `renderIEPHistory` — madi-ai.js:467
+- `loadIEPRecord` — madi-ai.js:500
+- `renderIEPView` — madi-ai.js:510
+- `monthBlock` — madi-ai.js:513
+- `downloadIEPPDFById` — madi-ai.js:558
+- `deleteIEPRecord` — madi-ai.js:565
+- `downloadIEPPDF` — madi-ai.js:590
+- `monthSection` — madi-ai.js:598
+  ▸ _W5: 활동 자료 카탈로그_ — L638
+  ▸ _W8: 효과 통계 대시보드_ — L639
+- `renderEffectStats` — madi-ai.js:640
+- `avgGoalScore` — madi-ai.js:672
+- `statCard` — madi-ai.js:692
+  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L747
 
 ## madi-app.js (51함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
@@ -308,10 +308,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `generateAssessReport` — madi-assessment.js:863
   ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L871
   ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L915
-  ▸ _부모 교육 자료_ — L1034
-- `generateParentEdu` — madi-assessment.js:1035
-- `printParentEdu` — madi-assessment.js:1083
-  ▸ _데이터 이전_ — L1110
+  ▸ _부모 교육 자료_ — L1035
+- `generateParentEdu` — madi-assessment.js:1036
+- `printParentEdu` — madi-assessment.js:1085
+  ▸ _데이터 이전_ — L1112
 
 ## madi-auth.js (22함수)
 - `showLanding` — madi-auth.js:13
@@ -501,24 +501,25 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `applyBulkStatus` — madi-child-detail.js:806
   ▸ _일괄 종결일 입력 모달_ — L832
 
-## madi-children.js (14함수)
+## madi-children.js (15함수)
 - `renderServiceStats` — madi-children.js:1
 - `_populateSvcFilters` — madi-children.js:37
-- `_voucherBadge` — madi-children.js:75
-- `_svcStatusInfo` — madi-children.js:83
-- `_schedStatus` — madi-children.js:94
-- `changeSchedStatus` — madi-children.js:100
-- `renderMonthlyService` — madi-children.js:112
-- `renderDailyService` — madi-children.js:241
-  ▸ _정산 요약_ — L362
-- `renderSettlement` — madi-children.js:363
-- `exportSettlementExcel` — madi-children.js:492
-  ▸ _선생님별 통계_ — L579
-- `initSvcStaffMonth` — madi-children.js:582
-- `renderStaffStats` — madi-children.js:597
-- `showStaffTrendFromCard` — madi-children.js:708
-- `showStaffTrend` — madi-children.js:713
-  ▸ _입력 모드_ — L796
+- `_voucherBadge` — madi-children.js:78
+- `_svcStatusInfo` — madi-children.js:86
+- `_schedStatus` — madi-children.js:97
+- `changeSchedStatus` — madi-children.js:103
+- `_buildMonthlyAggregates` — madi-children.js:117
+- `renderMonthlyService` — madi-children.js:132
+- `renderDailyService` — madi-children.js:242
+  ▸ _정산 요약_ — L363
+- `renderSettlement` — madi-children.js:364
+- `exportSettlementExcel` — madi-children.js:475
+  ▸ _선생님별 통계_ — L544
+- `initSvcStaffMonth` — madi-children.js:547
+- `renderStaffStats` — madi-children.js:562
+- `showStaffTrendFromCard` — madi-children.js:673
+- `showStaffTrend` — madi-children.js:678
+  ▸ _입력 모드_ — L761
 
 ## madi-core.js (43함수)
   ▸ _상수_ — L1
@@ -642,7 +643,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `runSpeechAnalysis` — madi-growth.js:829
 - `appendSpeechResultToMemo` — madi-growth.js:859
 
-## madi-home.js (45함수)
+## madi-home.js (46함수)
 - `loadCenterApiKey` — madi-home.js:4
 - `saveCenterApiKey` — madi-home.js:29
 - `toggleCenterKeyVisibility` — madi-home.js:57
@@ -677,12 +678,13 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `updateBreadcrumb` — madi-home.js:452
 - `updateSidebarAdminVisibility` — madi-home.js:461
 - `switchTab` — madi-home.js:472
-  ▸ _보고서 서브탭_ — L589
-- `switchReportTab` — madi-home.js:591
-  ▸ _포트폴리오 서브탭_ — L619
-- `switchPortfolioTab` — madi-home.js:621
-  ▸ _공지 배너_ — L646
-- `startNoticeBanner` — madi-home.js:652
+  ▸ _보고서 서브탭_ — L583
+- `switchReportTab` — madi-home.js:585
+  ▸ _포트폴리오 서브탭_ — L613
+- `switchPortfolioTab` — madi-home.js:615
+  ▸ _공지 배너_ — L640
+- `_startBannerTimer` — madi-home.js:647
+- `startNoticeBanner` — madi-home.js:657
 - `_renderBannerSlide` — madi-home.js:685
 - `closeNoticeBanner` — madi-home.js:709
   ▸ _공지사항_ — L716
@@ -971,19 +973,19 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `openEditSchedModal` — madi-schedule.js:741
 - `goToSessionFromSched` — madi-schedule.js:780
 - `renderWeekGridByChild` — madi-schedule.js:801
-- `confirmSchedDelete` — madi-schedule.js:861
-- `execSchedDeleteChoice` — madi-schedule.js:894
-- `execSchedDelete` — madi-schedule.js:903
-- `saveEditSched` — madi-schedule.js:947
-  ▸ _일정 내보내기_ — L973
-- `openScheduleExportModal` — madi-schedule.js:974
-- `fmt` — madi-schedule.js:983
-- `closeScheduleExportModal` — madi-schedule.js:1006
-- `_getExportRows` — madi-schedule.js:1011
-- `exportSchedule` — madi-schedule.js:1041
-- `_printSchedule` — madi-schedule.js:1073
-- `_exportScheduleRtf` — madi-schedule.js:1108
-  ▸ _표준화 검사_ — L1128
+- `confirmSchedDelete` — madi-schedule.js:864
+- `execSchedDeleteChoice` — madi-schedule.js:897
+- `execSchedDelete` — madi-schedule.js:906
+- `saveEditSched` — madi-schedule.js:950
+  ▸ _일정 내보내기_ — L976
+- `openScheduleExportModal` — madi-schedule.js:977
+- `fmt` — madi-schedule.js:986
+- `closeScheduleExportModal` — madi-schedule.js:1009
+- `_getExportRows` — madi-schedule.js:1014
+- `exportSchedule` — madi-schedule.js:1044
+- `_printSchedule` — madi-schedule.js:1076
+- `_exportScheduleRtf` — madi-schedule.js:1111
+  ▸ _표준화 검사_ — L1131
 
 ## madi-session.js (37함수)
   ▸ _보안: API 키 마스킹 / 토글_ — L1
@@ -1037,53 +1039,53 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _선생님 계정 관리 (관리자 전용)_ — L117
 - `renderStaffCard` — madi-system.js:118
 - `saveNewStaff` — madi-system.js:162
-- `deleteStaff` — madi-system.js:191
-  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L219
-- `initRealtime` — madi-system.js:234
-- `markMyChange` — madi-system.js:248
-- `stopRealtime` — madi-system.js:250
-  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L273
-- `_openMadiDB` — madi-system.js:274
-- `_saveFolderHandle` — madi-system.js:282
-- `_loadFolderHandle` — madi-system.js:293
-- `getMadiFolderHandle` — madi-system.js:304
-  ▸ _GitHub 자동 배포_ — L323
-  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L440
-- `_cleanupLegacyGithubToken` — madi-system.js:445
-- `deployFileViaProxy` — madi-system.js:454
-  ▸ _배포 대상 파일 자동 스캔_ — L478
-- `scanMadiFiles` — madi-system.js:481
-- `next` — madi-system.js:485
-  ▸ _파일 내용 → Git blob SHA-1 계산_ — L508
-- `gitBlobSha` — madi-system.js:511
-- `pollGithubPagesBuild` — madi-system.js:526
-- `poll` — madi-system.js:530
-- `deployToGitHub` — madi-system.js:565
-- `processImportFile` — madi-system.js:744
-- `_processImportFileInner` — madi-system.js:761
-- `normalizeDisorderType` — madi-system.js:801
-- `parseRowsToChildren` — madi-system.js:813
-- `findCol` — madi-system.js:817
-- `analyzeImportData` — madi-system.js:882
-- `renderImportPreview` — madi-system.js:926
-- `confirmImport` — madi-system.js:983
-- `_batchPost` — madi-system.js:1067
-- `cancelImport` — madi-system.js:1087
-  ▸ _초기화_ — L1095
-- `init` — madi-system.js:1096
-  ▸ _PWA 지원_ — L1177
-- `initPWA` — madi-system.js:1180
-  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1186
-- `_swApplyUpdate` — madi-system.js:1195
-- `_onVis` — madi-system.js:1208
-- `_pwaShouldShowBanner` — madi-system.js:1266
-- `showPWABanner` — madi-system.js:1277
-- `hidePWABanner` — madi-system.js:1308
-- `triggerPWAInstall` — madi-system.js:1322
-  ▸ _뒤로가기 버튼 탭 연동_ — L1336
-  ▸ _─_ — L1345
+- `deleteStaff` — madi-system.js:193
+  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L221
+- `initRealtime` — madi-system.js:236
+- `markMyChange` — madi-system.js:250
+- `stopRealtime` — madi-system.js:252
+  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L275
+- `_openMadiDB` — madi-system.js:276
+- `_saveFolderHandle` — madi-system.js:284
+- `_loadFolderHandle` — madi-system.js:295
+- `getMadiFolderHandle` — madi-system.js:306
+  ▸ _GitHub 자동 배포_ — L325
+  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L442
+- `_cleanupLegacyGithubToken` — madi-system.js:447
+- `deployFileViaProxy` — madi-system.js:456
+  ▸ _배포 대상 파일 자동 스캔_ — L480
+- `scanMadiFiles` — madi-system.js:483
+- `next` — madi-system.js:487
+  ▸ _파일 내용 → Git blob SHA-1 계산_ — L510
+- `gitBlobSha` — madi-system.js:513
+- `pollGithubPagesBuild` — madi-system.js:528
+- `poll` — madi-system.js:532
+- `deployToGitHub` — madi-system.js:567
+- `processImportFile` — madi-system.js:746
+- `_processImportFileInner` — madi-system.js:763
+- `normalizeDisorderType` — madi-system.js:803
+- `parseRowsToChildren` — madi-system.js:815
+- `findCol` — madi-system.js:819
+- `analyzeImportData` — madi-system.js:884
+- `renderImportPreview` — madi-system.js:928
+- `confirmImport` — madi-system.js:985
+- `_batchPost` — madi-system.js:1069
+- `cancelImport` — madi-system.js:1089
+  ▸ _초기화_ — L1097
+- `init` — madi-system.js:1098
+  ▸ _PWA 지원_ — L1179
+- `initPWA` — madi-system.js:1182
+  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1188
+- `_swApplyUpdate` — madi-system.js:1197
+- `_onVis` — madi-system.js:1210
+- `_pwaShouldShowBanner` — madi-system.js:1268
+- `showPWABanner` — madi-system.js:1279
+- `hidePWABanner` — madi-system.js:1310
+- `triggerPWAInstall` — madi-system.js:1324
+  ▸ _뒤로가기 버튼 탭 연동_ — L1338
   ▸ _─_ — L1347
-  ▸ _모듈 초기화_ — L1349
+  ▸ _─_ — L1349
+  ▸ _모듈 초기화_ — L1351
 
 ## madi-vocab.js (4함수)
   ▸ _한자어 → 일상어 (학부모 대상 문서에서만 적용)_ — L16

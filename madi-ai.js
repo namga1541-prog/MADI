@@ -51,7 +51,8 @@ function generateReport() {
       resetBtn();
     })
     .catch(function(err) {
-      resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+      if (window.console && console.warn) console.warn('[AI 보고서]', err && err.message);
+      resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_userErrMsg(err, 'AI 보고서 생성')) + '</p></div>';
       resetBtn();
     });
 }
@@ -344,7 +345,8 @@ function generateIEP() {
       resetIEPBtn();
     })
     .catch(function(err) {
-      document.getElementById('iepResult').innerHTML = '<div style="padding:12px;color:var(--red);font-size:13px;">❌ ' + escHtml(err.message) + '</div>';
+      if (window.console && console.warn) console.warn('[IEP 생성]', err && err.message);
+      document.getElementById('iepResult').innerHTML = '<div style="padding:12px;color:var(--red);font-size:13px;">❌ ' + escHtml(_userErrMsg(err, 'IEP 생성')) + '</div>';
       resetIEPBtn();
     });
 }

@@ -84,7 +84,7 @@ function formatInviteExpiry(expiresAt) {
 
 function loadCenterInfo() {
   var cid = getCenterId();
-  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid) + '&select=*', 'GET')
+  supaFetch('madi_centers?id=eq.' + encodeURIComponent(cid) + '&select=name,invite_code,invite_expires_at', 'GET')
     .then(function(rows) {
       if (!rows || rows.length === 0) return;
       var center = rows[0];
@@ -540,13 +540,7 @@ function switchTab(idx) {
     if (idx === 0 && _bannerNotices.length > 0) {
       banner.style.display = 'block';
       _renderBannerSlide();
-      if (_bannerTimer) clearInterval(_bannerTimer);
-      if (_bannerNotices.length > 1) {
-        _bannerTimer = setInterval(function() {
-          _bannerIdx = (_bannerIdx + 1) % _bannerNotices.length;
-          _renderBannerSlide();
-        }, 5000);
-      }
+      _startBannerTimer();
     } else {
       banner.style.display = 'none';
       if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = null; }
@@ -649,6 +643,17 @@ var _bannerIdx = 0;
 var _bannerTimer = null;
 var _bannerClosed = false;
 
+// 배너 슬라이드 타이머 단일 진입점 — 항상 기존 타이머 정리 후 1개만 생성(중복 등록·경쟁 조건 방지, M-10)
+function _startBannerTimer() {
+  if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = null; }
+  if (_bannerNotices.length > 1) {
+    _bannerTimer = setInterval(function() {
+      _bannerIdx = (_bannerIdx + 1) % _bannerNotices.length;
+      _renderBannerSlide();
+    }, 5000);
+  }
+}
+
 function startNoticeBanner(notices) {
   _bannerNotices = (notices || []).filter(function(n){ return n.title; });
   if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = null; }
@@ -671,12 +676,7 @@ function startNoticeBanner(notices) {
     banner.style.display = 'block';
     _bannerIdx = 0;
     _renderBannerSlide();
-    if (_bannerNotices.length > 1) {
-      _bannerTimer = setInterval(function() {
-        _bannerIdx = (_bannerIdx + 1) % _bannerNotices.length;
-        _renderBannerSlide();
-      }, 5000);
-    }
+    _startBannerTimer();
   } else {
     banner.style.display = 'none';
   }

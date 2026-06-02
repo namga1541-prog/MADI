@@ -30,11 +30,11 @@ function renderServiceStats() {
     svcDateEl.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   }
 
-  // 필터 셀렉트 옵션 채우기
-  _populateSvcFilters();
+  // 필터 셀렉트 옵션 채우기 — 이미 계산한 teacherSet 을 넘겨 중복 풀스캔 제거(M-11)
+  _populateSvcFilters(teacherSet);
 }
 
-function _populateSvcFilters() {
+function _populateSvcFilters(teacherSet) {
   var children  = typeof childDB    !== 'undefined' ? childDB    : [];
   var sessions  = typeof sessionDB  !== 'undefined' ? sessionDB  : [];
   var schedules = typeof scheduleDB !== 'undefined' ? scheduleDB : [];
@@ -45,10 +45,13 @@ function _populateSvcFilters() {
       .sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); })
       .map(function(c){ return '<option value="' + c.id + '">' + escHtml(c.name) + '</option>'; }).join('');
 
-  // 선생님 목록
-  var tSet = {};
-  sessions.forEach(function(s){ if(s.teacher) tSet[s.teacher]=true; });
-  schedules.forEach(function(s){ if(s.teacher) tSet[s.teacher]=true; });
+  // 선생님 목록 — 호출부가 teacherSet 을 넘기면 재계산 생략(중복 풀스캔 방지)
+  var tSet = teacherSet;
+  if (!tSet) {
+    tSet = {};
+    sessions.forEach(function(s){ if(s.teacher) tSet[s.teacher]=true; });
+    schedules.forEach(function(s){ if(s.teacher) tSet[s.teacher]=true; });
+  }
   var teacherOpts = '<option value="">선생님 전체</option>'
     + Object.keys(tSet).sort().map(function(t){ return '<option value="' + t.replace(/"/g,'&quot;') + '">' + escHtml(t) + '</option>'; }).join('');
 
@@ -109,6 +112,23 @@ function changeSchedStatus(schedId, newStatus) {
   showToast('상태가 변경됐습니다.');
 }
 
+// 월별 정산/서비스 공통 전처리 — renderMonthlyService/renderSettlement/exportSettlementExcel 가
+//   동일하게 쓰던 monthScheds·monthSess·룩업맵 3종을 1회 구성(M-9, 중복 제거). 집계는 각 함수가 자체 수행.
+function _buildMonthlyAggregates(ym) {
+  var sessions  = typeof sessionDB  !== 'undefined' ? sessionDB  : [];
+  var schedules = typeof scheduleDB !== 'undefined' ? scheduleDB : [];
+  var children  = typeof childDB    !== 'undefined' ? childDB    : [];
+  var monthScheds = schedules.filter(function(sc){ return (sc.date||'').startsWith(ym); });
+  var monthSess   = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
+  var sessByDate = {};
+  monthSess.forEach(function(s){ var d = s.date || ''; if (!sessByDate[d]) sessByDate[d] = []; sessByDate[d].push(s); });
+  var schedKeySet = {};
+  monthScheds.forEach(function(sc){ schedKeySet[String(sc.childId) + '_' + sc.date] = true; });
+  var childById = {};
+  children.forEach(function(c){ childById[String(c.id)] = c; });
+  return { monthScheds:monthScheds, monthSess:monthSess, sessByDate:sessByDate, schedKeySet:schedKeySet, childById:childById };
+}
+
 function renderMonthlyService() {
   var listEl   = document.getElementById('monthlyServiceList');
   var summaryEl= document.getElementById('monthlySvcSummary');
@@ -117,33 +137,14 @@ function renderMonthlyService() {
   var ym = (document.getElementById('svcMonth') || {}).value || '';
   if (!ym) { listEl.innerHTML = '<div class="empty"><p>월을 선택해 주세요.</p></div>'; return; }
 
-  var sessions  = typeof sessionDB  !== 'undefined' ? sessionDB  : [];
-  var schedules = typeof scheduleDB !== 'undefined' ? scheduleDB : [];
-  var children  = typeof childDB    !== 'undefined' ? childDB    : [];
-
   var filterChild   = (document.getElementById('mSvcChild')   || {}).value || '';
   var filterTeacher = (document.getElementById('mSvcTeacher') || {}).value || '';
   var filterStatus  = (document.getElementById('mSvcStatus')  || {}).value || '';
 
-  // 해당 월 스케줄 기준으로 전체 행 생성
-  var monthScheds = schedules.filter(function(sc){ return (sc.date||'').startsWith(ym); });
-  var monthSess   = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
-
-  // O(n) 룩업 테이블: 날짜별 세션 목록
-  var mseSessByDate = {};
-  monthSess.forEach(function(s){
-    var d = s.date || '';
-    if (!mseSessByDate[d]) mseSessByDate[d] = [];
-    mseSessByDate[d].push(s);
-  });
-  // O(n) 룩업 테이블: "childId_date" 복합키로 스케줄 존재 여부
-  var mseSchedKeySet = {};
-  monthScheds.forEach(function(sc){
-    mseSchedKeySet[String(sc.childId) + '_' + sc.date] = true;
-  });
-  // O(n) 룩업 테이블: childId → child 객체
-  var mseChildById = {};
-  children.forEach(function(c){ mseChildById[String(c.id)] = c; });
+  // 공통 전처리 (M-9) — monthScheds·monthSess·룩업맵 3종
+  var _agg = _buildMonthlyAggregates(ym);
+  var monthScheds = _agg.monthScheds, monthSess = _agg.monthSess;
+  var mseSessByDate = _agg.sessByDate, mseSchedKeySet = _agg.schedKeySet, mseChildById = _agg.childById;
 
   // 이용자별 집계 (스케줄 + 세션 통합)
   var childMap = {};
@@ -371,28 +372,10 @@ function renderSettlement() {
     return;
   }
 
-  var sessions  = typeof sessionDB  !== 'undefined' ? sessionDB  : [];
-  var schedules = typeof scheduleDB !== 'undefined' ? scheduleDB : [];
-  var children  = typeof childDB    !== 'undefined' ? childDB    : [];
-
-  var monthScheds = schedules.filter(function(sc){ return (sc.date||'').startsWith(ym); });
-  var monthSess   = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
-
-  // O(n) 룩업 테이블: 날짜별 세션 목록
-  var stlSessByDate = {};
-  monthSess.forEach(function(s){
-    var d = s.date || '';
-    if (!stlSessByDate[d]) stlSessByDate[d] = [];
-    stlSessByDate[d].push(s);
-  });
-  // O(n) 룩업 테이블: "childId_date" 복합키로 스케줄 존재 여부
-  var stlSchedKeySet = {};
-  monthScheds.forEach(function(sc){
-    stlSchedKeySet[String(sc.childId) + '_' + sc.date] = true;
-  });
-  // O(n) 룩업 테이블: childId → child 객체
-  var stlChildById = {};
-  children.forEach(function(c){ stlChildById[String(c.id)] = c; });
+  // 공통 전처리 (M-9) — monthScheds·monthSess·룩업맵 3종
+  var _agg = _buildMonthlyAggregates(ym);
+  var monthScheds = _agg.monthScheds, monthSess = _agg.monthSess;
+  var stlSessByDate = _agg.sessByDate, stlSchedKeySet = _agg.schedKeySet, stlChildById = _agg.childById;
 
   // 선생님별 집계
   var teacherMap = {};
@@ -493,28 +476,10 @@ function exportSettlementExcel() {
   var ym = (document.getElementById('settlMonth') || {}).value || '';
   if (!ym) { showToast('⚠️ 월을 먼저 선택해 주세요'); return; }
 
-  var sessions  = typeof sessionDB  !== 'undefined' ? sessionDB  : [];
-  var schedules = typeof scheduleDB !== 'undefined' ? scheduleDB : [];
-  var children  = typeof childDB    !== 'undefined' ? childDB    : [];
-
-  var monthScheds = schedules.filter(function(sc){ return (sc.date||'').startsWith(ym); });
-  var monthSess   = sessions.filter(function(s){ return (s.date||'').startsWith(ym); });
-
-  // O(n) 룩업 테이블: 날짜별 세션 목록
-  var xlsSessByDate = {};
-  monthSess.forEach(function(s){
-    var d = s.date || '';
-    if (!xlsSessByDate[d]) xlsSessByDate[d] = [];
-    xlsSessByDate[d].push(s);
-  });
-  // O(n) 룩업 테이블: "childId_date" 복합키로 스케줄 존재 여부
-  var xlsSchedKeySet = {};
-  monthScheds.forEach(function(sc){
-    xlsSchedKeySet[String(sc.childId) + '_' + sc.date] = true;
-  });
-  // O(n) 룩업 테이블: childId → child 객체
-  var xlsChildById = {};
-  children.forEach(function(c){ xlsChildById[String(c.id)] = c; });
+  // 공통 전처리 (M-9) — monthScheds·monthSess·룩업맵 3종
+  var _agg = _buildMonthlyAggregates(ym);
+  var monthScheds = _agg.monthScheds, monthSess = _agg.monthSess;
+  var xlsSessByDate = _agg.sessByDate, xlsSchedKeySet = _agg.schedKeySet, xlsChildById = _agg.childById;
 
   // 전체 행 생성
   var excelRows = [];

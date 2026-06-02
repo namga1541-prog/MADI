@@ -804,14 +804,17 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   wgEl.style.display = 'block'; wgEl.style.width = '100%';
   var childIds = [];
   weekScheds.forEach(function(s){ if (s.childId && childIds.indexOf(s.childId) < 0) childIds.push(s.childId); });
+  // 아동 룩업 맵 1회 구축 — sort 비교자·행 루프의 childDB.find() O(n) 스캔 제거(M-8)
+  var _wbChildById = {};
+  childDB.forEach(function(c){ _wbChildById[c.id] = c; });
   if (_weekDupOnly) {
     childIds = childIds.filter(function(cid){
       return weekDates.some(function(w){ return weekScheds.filter(function(s){ return s.date===w.str&&s.childId===cid; }).length >= 2; });
     });
   }
   childIds.sort(function(a, b){
-    var ca = childDB.find(function(c){ return c.id===a; });
-    var cb = childDB.find(function(c){ return c.id===b; });
+    var ca = _wbChildById[a];
+    var cb = _wbChildById[b];
     return (ca ? ca.name : '') < (cb ? cb.name : '') ? -1 : 1;
   });
   if (childIds.length === 0) {
@@ -829,7 +832,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   });
   html += '</tr></thead><tbody>';
   childIds.forEach(function(childId) {
-    var child = childDB.find(function(c){ return c.id === childId; });
+    var child = _wbChildById[childId];
     var cname = child ? escHtml(child.name) : '?';
     var cage  = child ? escHtml(child.age || '') : '';
     var ccolor = (child && child.color) ? child.color : '#0ea5a0';

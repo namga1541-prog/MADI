@@ -1025,8 +1025,9 @@ function generateAssessReport() {
     })
     .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; })
     .catch(function(err) {
+      if(window.console&&console.warn)console.warn('[AI 평가보고서]',err&&err.message);
       // eslint-disable-next-line no-unsanitized/property
-      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_userErrMsg(err, 'AI 평가 보고서 생성')) + '</p></div>';
       btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성';
     });
 }
@@ -1075,7 +1076,8 @@ function generateParentEdu() {
     })
     .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성'; })
     .catch(function(err) {
-      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+      if(window.console&&console.warn)console.warn('[부모 교육자료]',err&&err.message);
+      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_userErrMsg(err, '부모 교육 자료 생성')) + '</p></div>';
       btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성';
     });
 }
