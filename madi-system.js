@@ -280,6 +280,8 @@ function _openMadiDB() {
     req.onupgradeneeded = function(e) { e.target.result.createObjectStore('handles'); };
     req.onsuccess = function(e) { resolve(e.target.result); };
     req.onerror = function() { reject(req.error); };
+    // 다른 탭이 이전 버전 연결을 잡고 있으면 업그레이드가 blocked — 사용자 안내(M-26)
+    req.onblocked = function() { if (typeof showToast === 'function') showToast('⚠️ 다른 탭에서 마디가 열려 있어 저장소 접근이 지연됩니다. 다른 탭을 닫아주세요.'); };
   });
 }
 function _saveFolderHandle(handle) {
@@ -287,9 +289,10 @@ function _saveFolderHandle(handle) {
     return new Promise(function(resolve, reject) {
       var tx = db.transaction('handles', 'readwrite');
       tx.objectStore('handles').put(handle, 'madiFolder');
-      tx.oncomplete = resolve;
-      tx.onerror = function() { reject(tx.error); };
-      tx.onabort = function() { reject(tx.error || new Error('IDB 트랜잭션이 중단되었습니다')); };
+      // 작업 완료/실패 시 연결을 닫아 향후 스키마 업그레이드 blocked 방지(M-26)
+      tx.oncomplete = function() { db.close(); resolve(); };
+      tx.onerror = function() { db.close(); reject(tx.error); };
+      tx.onabort = function() { db.close(); reject(tx.error || new Error('IDB 트랜잭션이 중단되었습니다')); };
     });
   });
 }
@@ -300,7 +303,8 @@ function _loadFolderHandle() {
       var req = tx.objectStore('handles').get('madiFolder');
       req.onsuccess = function() { resolve(req.result || null); };
       req.onerror = function() { resolve(null); };
-      tx.onabort = function() { resolve(null); };
+      tx.oncomplete = function() { db.close(); };
+      tx.onabort = function() { db.close(); resolve(null); };
     });
   });
 }
@@ -451,6 +455,10 @@ function _cleanupLegacyGithubToken() {
   _openMadiDB().then(function(db) {
     var tx = db.transaction('handles', 'readwrite');
     tx.objectStore('handles').delete('gh_token');
+    // 트랜잭션 종료 핸들러 + 연결 닫기 (M-25 — 중단/실패 무시 방지, 연결 누수 방지)
+    tx.oncomplete = function() { db.close(); };
+    tx.onerror    = function() { db.close(); };
+    tx.onabort    = function() { db.close(); };
   }).catch(function() {});
 }
 
