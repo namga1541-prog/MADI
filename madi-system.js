@@ -1208,6 +1208,26 @@ function initPWA() {
       _swReloaded = true;
       window.location.reload();
     }
+    // 사용 중(작업 화면)일 때 띄우는 '지속' 업데이트 배너. 탭하면 즉시 최신화.
+    //   기존엔 사라지는 토스트만 띄우고 '포그라운드 복귀' 때만 reload 했는데,
+    //   한 탭에서 계속 작업하는 사용자는 복귀 이벤트가 없어 옛 코드를 영영 못 받았다
+    //   (2026-06-02 step/반복기본값 수정이 디바이스에 안 닿던 정황). 명시적 배너로 해소.
+    function _swShowUpdateBanner(onClick) {
+      if (document.getElementById('swUpdateBanner')) return;
+      var b = document.createElement('div');
+      b.id = 'swUpdateBanner';
+      b.setAttribute('role', 'button');
+      b.setAttribute('tabindex', '0');
+      b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);'
+        + 'z-index:2147483646;background:var(--mint,#0ea5a0);color:#fff;font-weight:700;'
+        + 'font-size:14px;line-height:1.3;padding:13px 22px;border-radius:999px;cursor:pointer;'
+        + 'box-shadow:0 6px 22px rgba(0,0,0,0.28);max-width:92vw;text-align:center;'
+        + '-webkit-tap-highlight-color:transparent;';
+      b.textContent = '🔄 새 버전이 있습니다 — 탭하여 업데이트';
+      b.onclick = onClick;
+      b.onkeydown = function(ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onClick(); } };
+      document.body.appendChild(b);
+    }
     navigator.serviceWorker.addEventListener('controllerchange', function() {
       // 최초 설치(이전 컨트롤러 없음)는 이미 최신 → reload 불필요(무한 새로고침 방지)
       if (!_swHadController) { _swHadController = true; return; }
@@ -1215,7 +1235,8 @@ function initPWA() {
         _swApplyUpdate();
         return;
       }
-      try { if (typeof showToast === 'function') showToast('🔄 새 버전이 적용됩니다'); } catch (e) {}
+      // 사용 중 → 지속 배너(탭 시 즉시 적용) + 포그라운드 복귀 시 자동 적용(백업 경로)
+      _swShowUpdateBanner(_swApplyUpdate);
       var _onVis = function() {
         if (document.visibilityState === 'visible') {
           document.removeEventListener('visibilitychange', _onVis);
