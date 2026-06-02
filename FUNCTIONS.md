@@ -5,9 +5,9 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 
 ## 전역 변수 (165)
 
-- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:317
-- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:319
-- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:374
+- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:337
+- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:339
+- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:394
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -205,62 +205,64 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `statCard` — madi-ai.js:692
   ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L747
 
-## madi-app.js (51함수)
+## madi-app.js (53함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
 - `_isoDaysAgo` — madi-app.js:14
-- `loadDBFromSupabase` — madi-app.js:20
-- `safeMap` — madi-app.js:38
-- `_loadOlderHistory` — madi-app.js:59
-- `safeMap` — madi-app.js:67
-  ▸ _컬렉션 저장 공통 헬퍼_ — L83
-- `_saveCollection` — madi-app.js:90
-- `saveChildren` — madi-app.js:106
-- `getSaveErrMsg` — madi-app.js:110
-- `_userErrMsg` — madi-app.js:119
-- `saveSessions` — madi-app.js:128
-- `saveSchedule` — madi-app.js:132
-- `saveAssess` — madi-app.js:136
-- `loadDB` — madi-app.js:147
-  ▸ _아동 연령 실시간 갱신_ — L152
-- `refreshChildAges` — madi-app.js:156
-- `saveIEP` — madi-app.js:165
-- `loadIEPFromSupa` — madi-app.js:175
-- `saveActivities` — madi-app.js:183
-- `loadActivitiesFromSupa` — madi-app.js:188
-  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L194
-- `attachModalA11y` — madi-app.js:202
-- `focusables` — madi-app.js:205
-- `onKey` — madi-app.js:211
-- `showInputPrompt` — madi-app.js:238
-- `close` — madi-app.js:270
-- `doCancel` — madi-app.js:274
-- `doOk` — madi-app.js:275
-- `showConfirm` — madi-app.js:292
-- `close` — madi-app.js:308
-- `doCancel` — madi-app.js:309
-- `debounce` — madi-app.js:318
-- `showToast` — madi-app.js:321
-- `vibrate` — madi-app.js:348
-- `toggleDarkMode` — madi-app.js:349
-- `loadDarkMode` — madi-app.js:355
-- `updateHeaderClock` — madi-app.js:359
-- `startHeaderClock` — madi-app.js:375
-- `fetchWithRetry` — madi-app.js:386
-- `doFetch` — madi-app.js:390
-- `setupNetworkMonitor` — madi-app.js:403
-- `showOfflineBanner` — madi-app.js:404
-- `hideOfflineBanner` — madi-app.js:410
-- `applyParentUI` — madi-app.js:416
-- `_initParentSidebar` — madi-app.js:441
-- `resetParentUI` — madi-app.js:481
-- `loadParentDashboard` — madi-app.js:504
-- `toggleMoreMenu` — madi-app.js:511
-- `closeMoreMenu` — madi-app.js:512
-- `getRoleFlags` — madi-app.js:519
-- `validatePasswordStrength` — madi-app.js:525
-- `generateClientId` — madi-app.js:533
-- `applyUserUI` — madi-app.js:543
-- `updateKbOffset` — madi-app.js:574
+- `_supaFetchAll` — madi-app.js:25
+- `_page` — madi-app.js:28
+- `loadDBFromSupabase` — madi-app.js:40
+- `safeMap` — madi-app.js:58
+- `_loadOlderHistory` — madi-app.js:79
+- `safeMap` — madi-app.js:87
+  ▸ _컬렉션 저장 공통 헬퍼_ — L103
+- `_saveCollection` — madi-app.js:110
+- `saveChildren` — madi-app.js:126
+- `getSaveErrMsg` — madi-app.js:130
+- `_userErrMsg` — madi-app.js:139
+- `saveSessions` — madi-app.js:148
+- `saveSchedule` — madi-app.js:152
+- `saveAssess` — madi-app.js:156
+- `loadDB` — madi-app.js:167
+  ▸ _아동 연령 실시간 갱신_ — L172
+- `refreshChildAges` — madi-app.js:176
+- `saveIEP` — madi-app.js:185
+- `loadIEPFromSupa` — madi-app.js:195
+- `saveActivities` — madi-app.js:203
+- `loadActivitiesFromSupa` — madi-app.js:208
+  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L214
+- `attachModalA11y` — madi-app.js:222
+- `focusables` — madi-app.js:225
+- `onKey` — madi-app.js:231
+- `showInputPrompt` — madi-app.js:258
+- `close` — madi-app.js:290
+- `doCancel` — madi-app.js:294
+- `doOk` — madi-app.js:295
+- `showConfirm` — madi-app.js:312
+- `close` — madi-app.js:328
+- `doCancel` — madi-app.js:329
+- `debounce` — madi-app.js:338
+- `showToast` — madi-app.js:341
+- `vibrate` — madi-app.js:368
+- `toggleDarkMode` — madi-app.js:369
+- `loadDarkMode` — madi-app.js:375
+- `updateHeaderClock` — madi-app.js:379
+- `startHeaderClock` — madi-app.js:395
+- `fetchWithRetry` — madi-app.js:406
+- `doFetch` — madi-app.js:410
+- `setupNetworkMonitor` — madi-app.js:423
+- `showOfflineBanner` — madi-app.js:424
+- `hideOfflineBanner` — madi-app.js:430
+- `applyParentUI` — madi-app.js:436
+- `_initParentSidebar` — madi-app.js:461
+- `resetParentUI` — madi-app.js:501
+- `loadParentDashboard` — madi-app.js:524
+- `toggleMoreMenu` — madi-app.js:531
+- `closeMoreMenu` — madi-app.js:532
+- `getRoleFlags` — madi-app.js:539
+- `validatePasswordStrength` — madi-app.js:545
+- `generateClientId` — madi-app.js:553
+- `applyUserUI` — madi-app.js:563
+- `updateKbOffset` — madi-app.js:594
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3

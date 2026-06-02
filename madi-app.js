@@ -17,6 +17,26 @@ function _isoDaysAgo(n) {
   return ymd(d);
 }
 
+// Supabase 기본 max-rows(1000) 초과 컬렉션 전량 로드 — offset 페이지네이션.
+//   limit=1000 한 페이지씩 받아 합치고, 반환 < 1000 이면 마지막 페이지로 종료(소규모 테이블은 요청 1회).
+//   ⚠️ basePath 에 order=... 가 반드시 포함돼야 페이지 경계가 안정적(중복·누락 방지).
+//   재발 버그(2026-06-02): 2년 반복 일정 누적으로 madi_schedules 1700+행 → order=id.asc 1000행 컷에
+//   가장 최근(큰 id) 일정이 잘려 "새 일정이 새로고침하면 사라짐" 증상 발생. 페이지네이션으로 해소.
+function _supaFetchAll(basePath) {
+  var PAGE = 1000;
+  var acc = [];
+  function _page(offset) {
+    var sep = basePath.indexOf('?') > -1 ? '&' : '?';
+    return supaFetch(basePath + sep + 'limit=' + PAGE + '&offset=' + offset, 'GET').then(function(rows) {
+      if (!Array.isArray(rows)) return acc;
+      acc = acc.concat(rows);
+      if (rows.length < PAGE) return acc;
+      return _page(offset + PAGE);
+    });
+  }
+  return _page(0);
+}
+
 function loadDBFromSupabase(silent) {
   // 학부모 계정은 이 함수로 데이터를 로드하지 않음.
   // madi_sessions 이 PARENT_BLOCKED_TABLES 에 포함되어 있어 Edge Function 이 403 을 반환하고
@@ -30,10 +50,10 @@ function loadDBFromSupabase(silent) {
   var d90 = _isoDaysAgo(90);
   var d30 = _isoDaysAgo(30);
   Promise.all([
-    supaFetch('madi_children?'    + centerFilter() + '&select=id,data&order=id.asc'),
-    supaFetch('madi_sessions?'    + centerFilter() + '&data->>date=gte.' + d90 + '&select=id,data&order=id.asc'),
-    supaFetch('madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc'),
-    supaFetch('madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc')
+    _supaFetchAll('madi_children?'    + centerFilter() + '&select=id,data&order=id.asc'),
+    _supaFetchAll('madi_sessions?'    + centerFilter() + '&data->>date=gte.' + d90 + '&select=id,data&order=id.asc'),
+    _supaFetchAll('madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc'),
+    _supaFetchAll('madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc')
   ]).then(function(results) {
     function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
     var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
@@ -61,8 +81,8 @@ function _loadOlderHistory(d90, d30) {
   if (window._olderHistoryLoaded) return;
   window._olderHistoryLoaded = true;
   Promise.all([
-    supaFetch('madi_sessions?'  + centerFilter() + '&data->>date=lt.' + d90 + '&select=id,data&order=id.desc'),
-    supaFetch('madi_schedules?' + centerFilter() + '&data->>date=lt.' + d30 + '&select=id,data&order=id.desc')
+    _supaFetchAll('madi_sessions?'  + centerFilter() + '&data->>date=lt.' + d90 + '&select=id,data&order=id.desc'),
+    _supaFetchAll('madi_schedules?' + centerFilter() + '&data->>date=lt.' + d30 + '&select=id,data&order=id.desc')
   ]).then(function(results) {
     function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
     var oldSe  = safeMap(results[0]);
