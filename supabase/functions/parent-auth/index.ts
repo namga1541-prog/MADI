@@ -171,6 +171,13 @@ Deno.serve(async (req: Request) => {
       `${SUPABASE_URL}/rest/v1/madi_users?username=eq.${cleaned}&role=eq.parent&select=id`,
       { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } }
     )
+    // DB 조회 실패(4xx/5xx)를 '미가입'으로 오인하지 않도록 명시 차단(M-20)
+    if (!existRes.ok) {
+      console.error('parent-auth lookup existRes:', existRes.status, await existRes.text())
+      return new Response(JSON.stringify({ error: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }), {
+        status: 503, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
     const existData = await existRes.json()
     if (Array.isArray(existData) && existData.length > 0) {
       // alreadyJoined: true — 클라이언트가 로그인 화면으로 안내
@@ -193,6 +200,13 @@ Deno.serve(async (req: Request) => {
       `${SUPABASE_URL}/rest/v1/madi_children?or=(${orFilter})&select=id,data`,
       { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } }
     )
+    // 조회 실패를 '아동 없음'으로 오인하면 정상 사용자에게 가입 불가 오탐 → 명시 차단(M-20)
+    if (!childRes.ok) {
+      console.error('parent-auth lookup childRes:', childRes.status, await childRes.text())
+      return new Response(JSON.stringify({ error: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }), {
+        status: 503, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
     const children = await childRes.json()
 
     // 최소 정보만 반환 — center_id 미노출
@@ -257,6 +271,13 @@ Deno.serve(async (req: Request) => {
       `${SUPABASE_URL}/rest/v1/madi_users?username=eq.${cleanedPhone}&select=id`,
       { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } }
     )
+    // 중복 체크 조회 실패를 '중복 아님'으로 오인하면 중복 가입이 통과 → 계정 생성 전 명시 차단(M-20)
+    if (!dupRes.ok) {
+      console.error('parent-auth signup dupRes:', dupRes.status, await dupRes.text())
+      return new Response(JSON.stringify({ error: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }), {
+        status: 503, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
     const dupData = await dupRes.json()
     if (Array.isArray(dupData) && dupData.length > 0) {
       return new Response(JSON.stringify({ error: '이미 가입된 전화번호입니다. 로그인 화면에서 로그인해주세요.' }), {

@@ -82,6 +82,13 @@ Deno.serve(async (req: Request) => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
+  // 빈 시크릿으로 verifyJwt 호출 금지 — env 누락 시 빈 키로 위조 JWT 가 통과할 수 있어 fail-closed(M-22)
+  if (!JWT_SECRET || !SUPABASE_URL || !SERVICE_KEY) {
+    return new Response(JSON.stringify({ error: '서버 설정 오류' }), {
+      status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
   // httpOnly Cookie 우선, fallback으로 Authorization 헤더
   // (참고: 과거 코드는 madi_token 쿠키였으나 _shared/auth 의 getAuthToken 은 madi_session 사용 — 통일)
   const token = getAuthToken(req)

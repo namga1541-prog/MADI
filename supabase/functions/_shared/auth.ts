@@ -28,6 +28,9 @@ export function makeCORS(
   if (allowNull) allowed.add('null')
 
   const o    = origin ?? (allowNull ? 'null' : '')
+  // 미허용 Origin 은 ACAO 가 요청 Origin 과 불일치 → 브라우저가 응답 읽기를 차단(자격증명 유출 방지).
+  // ⚠️ 단 CORS 는 응답 읽기만 막을 뿐 요청 실행(쓰기·푸시·AI 비용)은 막지 못한다.
+  //    실제 접근통제는 전적으로 각 함수의 JWT 검증이 담당한다 — CORS 를 보안 경계로 오인 금지(M-23).
   const acao = allowed.has(o) ? o : 'https://namga1541-prog.github.io'
 
   return {

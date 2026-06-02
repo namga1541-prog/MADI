@@ -47,7 +47,8 @@ async function sp(url: string, key: string, table: string, filter: string, data:
   if (!res.ok) console.error(`sp ${table}:`, await res.text());
 }
 
-const CORS_HEADERS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+// cron 전용 함수 — 브라우저에서 호출되지 않으므로 CORS preflight 불필요. ACAO 와일드카드 제거(M-21).
+const CORS_HEADERS = { 'Content-Type': 'application/json' };
 
 // ── 메인 ─────────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
