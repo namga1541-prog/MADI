@@ -11,7 +11,7 @@ const ALLOWED_TABLES = [
   'madi_iep_history', 'madi_notices', 'madi_settings', 'madi_programs',
   'madi_global_notices', 'madi_lounge_posts', 'madi_lounge_comments', 'madi_parent_invites',
   'madi_parent_children', 'madi_push_subscriptions', 'madi_push_settings', 'madi_licenses', 'madi_error_logs', 'madi_notifications',
-  'madi_portfolios'
+  'madi_portfolios', 'madi_parent_observations'
 ]
 
 // 관리자 이상만 모든 조작 가능
@@ -70,8 +70,8 @@ const PARENT_ALLOWED_TABLES = [
   'madi_children', 'madi_schedules', 'madi_assessments',
   'madi_activities', 'madi_iep_history', 'madi_programs',
   'madi_notices', 'madi_portfolios',
-  // user_id 스코프 (알림·아동 연결)
-  'madi_parent_children', 'madi_notifications',
+  // user_id 스코프 (알림·아동 연결·학부모 관찰기록)
+  'madi_parent_children', 'madi_notifications', 'madi_parent_observations',
   // 본인 푸시 구독 (GET 은 아래에서 user_id 소유 스코프)
   'madi_push_subscriptions',
   // 전역 공지 (읽기 전용 안내)
@@ -80,8 +80,10 @@ const PARENT_ALLOWED_TABLES = [
 
 // 학부모 user_id 스코프 테이블
 const PARENT_USER_SCOPED: Record<string, string> = {
-  'madi_parent_children': 'parent_user_id',
-  'madi_notifications':   'user_id',
+  'madi_parent_children':      'parent_user_id',
+  'madi_notifications':        'user_id',
+  // 학부모 관찰기록 — GET 은 parent_user_id=eq.본인, POST 는 parent_user_id 를 JWT sub 로 강제(위장 방지, M-3)
+  'madi_parent_observations':  'parent_user_id',
 }
 
 // ── 민감 설정 SELECT 감사 ──────────────────────────────────────────────
