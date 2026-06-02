@@ -1,4 +1,4 @@
-import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts'
+import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt, requireFreshSession } from '../_shared/auth.ts'
 
 // api 함수는 x-client-info, apikey 헤더도 허용 (Supabase 클라이언트 SDK 호환)
 function makeCORS(origin: string | null): Record<string, string> {
@@ -158,58 +158,33 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: '인증이 필요합니다. 다시 로그인해주세요.' }), { status: 401, headers: CORS })
   }
 
-  // ── 세션 무효화 검증 ──
+  // 요청 본문 파싱 — 세션 무효화 검증의 fail-closed 판단(쓰기 여부)에 method 가 필요하므로 먼저 읽는다.
+  let reqBody: { path: string; method?: string; body?: unknown }
+  try {
+    reqBody = await req.json() as { path: string; method?: string; body?: unknown }
+  } catch {
+    return new Response(JSON.stringify({ error: '잘못된 요청 형식입니다.' }), { status: 400, headers: CORS })
+  }
+  const method  = reqBody.method
+  const body    = reqBody.body
+  let   path    = reqBody.path   // 정제·재작성 가능하도록 let
+  const isWrite = method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE'
+
+  // ── 세션 무효화 검증 (H-3: 쓰기 요청은 fail-closed) ──
   // ① 비밀번호 변경 시 (password_changed_at) → 옛 토큰 거부
   // ② 강제 로그아웃 시 (session_revoked_at, SEC3) → admin 이 즉시 강등 가능
-  try {
-    const tokenIat = Number(user.iat || 0)
-    if (tokenIat > 0) {
-      // Defensive: session_revoked_at 컬럼 미존재(마이그레이션 전)면 base 컬럼만으로 retry
-      let pwdRes = await fetch(
-        SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub))
-          + '&select=password_changed_at,session_revoked_at',
-        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
-      )
-      if (!pwdRes.ok) {
-        pwdRes = await fetch(
-          SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub))
-            + '&select=password_changed_at',
-          { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
-        )
-      }
-      if (pwdRes.ok) {
-        const r = await pwdRes.json() as Array<{ password_changed_at?: string; session_revoked_at?: string }>
-        const pwAtStr = r && r[0] ? r[0].password_changed_at : null
-        const rvAtStr = r && r[0] ? r[0].session_revoked_at : null
-        if (pwAtStr) {
-          const pwAt = Math.floor(new Date(pwAtStr).getTime() / 1000)
-          // 1초 여유 — 동일 초 발급된 토큰은 유효 (clock skew 보정)
-          if (tokenIat + 1 < pwAt) {
-            return new Response(
-              JSON.stringify({ error: '비밀번호가 변경되어 세션이 만료되었습니다. 다시 로그인해주세요.' }),
-              { status: 401, headers: CORS }
-            )
-          }
-        }
-        if (rvAtStr) {
-          const rvAt = Math.floor(new Date(rvAtStr).getTime() / 1000)
-          if (tokenIat + 1 < rvAt) {
-            return new Response(
-              JSON.stringify({ error: '관리자에 의해 세션이 종료되었습니다. 다시 로그인해주세요.' }),
-              { status: 401, headers: CORS }
-            )
-          }
-        }
-      }
-    }
-  } catch (_) {
-    // 검증 실패는 무시 (DB 일시 오류 시 사용자 차단 X — 다른 보안 계층이 막음)
+  // 쓰기(POST/PATCH/PUT/DELETE)는 DB 검증 불가(5xx·네트워크·예외) 시에도 거부(failClosed)하여
+  //   무효화된 세션의 데이터 변조를 차단한다. 읽기는 가용성 우선 fail-open 유지.
+  //   (컬럼 미존재 400 retry 등은 _shared/requireFreshSession 이 일관 처리)
+  const sessionFresh = await requireFreshSession(user, SUPA_URL, SUPA_KEY, { failClosed: isWrite })
+  if (!sessionFresh) {
+    return new Response(
+      JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' }),
+      { status: 401, headers: CORS }
+    )
   }
 
   try {
-    const reqBody = await req.json() as { path: string; method?: string; body?: unknown }
-    const { method, body } = reqBody
-    let   path             = reqBody.path   // 정제·재작성 가능하도록 let
     const tableName = path.split('?')[0].split('&')[0]
 
     // ★ Storage 서명 URL 발급 — board-images 비공개 전환 대비.
@@ -491,7 +466,8 @@ Deno.serve(async (req: Request) => {
       // 클라이언트가 보낸 role/permissions 값을 무시하고 서버에서 안전값으로 덮어씀.
       // 계정은 항상 teacher 로 시작 — admin/superadmin 승격은 별도 관리자 액션으로만 가능.
       if (method === 'POST') {
-        const DEFAULT_PERMISSIONS = { viewOtherChildren: true, deleteSession: true, useAI: true }
+        // 클라이언트 DEFAULT_PERMS(madi-core.js)와 키 일치 유지 — 신규 계정 기본 권한(H-2)
+        const DEFAULT_PERMISSIONS = { viewOtherChildren: true, editChild: true, deleteSession: true, useAI: true, deleteAssessment: true }
         const rows = Array.isArray(body) ? body : (body ? [body] : [])
         for (const row of rows) {
           if (!row || typeof row !== 'object') continue

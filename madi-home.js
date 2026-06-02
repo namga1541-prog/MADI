@@ -1,40 +1,28 @@
-// API 키 메모리 저장소 — DOM #apiKey input에 평문 노출 방지
-var _madiApiKey = '';
-
+// 센터 AI 키 보유 여부 플래그 — 평문 키는 클라이언트에 저장하지 않음.
+// 실제 AI 호출은 서버 ai-proxy Edge Function 이 키를 보유하므로 클라이언트엔 키 값이 불필요.
+// (cowork High #4 / 전수점검 H-1: window._madiApiKey 평문 노출 제거)
 function loadCenterApiKey(showFeedback) {
-  // Supabase에서 센터 공용 API 키 로드
-  // cowork High #4: 클라이언트 localStorage 캐싱 제거 (DevTools 추출 방지)
-  // TODO: add_center_api_keys.sql 실행 후 아래 주석 해제
-  // supaFetch('madi_center_settings?center_id=eq.'+currentUser.center_id,'GET')
-  //   .then(function(r){ if(r&&r[0]&&r[0].anthropic_api_key) window._madiApiKey=r[0].anthropic_api_key; });
+  // madi_settings 는 서버 ADMIN_ONLY — teacher 는 GET 403. admin/superadmin 만 조회한다.
+  //   teacher 가 호출하면 매 로그인마다 403 토스트가 떠 UX 를 해치므로 역할 게이트로 조기 반환.
+  //   teacher 의 AI 사용 가부는 useAI 권한으로 판정(서버 ai-proxy 가 키 유무 최종 판정).
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+    return Promise.resolve();
+  }
   return supaFetch('madi_settings?key=eq.api_key&select=value', 'GET')
     .then(function(rows) {
-      if (!rows || rows.length === 0 || !rows[0].value) {
+      var hasKey = !!(rows && rows.length > 0 && rows[0].value);
+      if (!hasKey) {
         if (showFeedback) showToast('ℹ️ Supabase에 저장된 키 없음');
         return;
       }
-      var key = rows[0].value;
-      // 메모리에 저장 (window 전역으로 다른 파일에서도 접근 가능)
-      _madiApiKey = key;
-      window._madiApiKey = key;
-      // #apiKey input은 type="password" 강제 — DevTools Elements 탭에서 평문 노출 차단
-      // input.value는 showMaskedApiKey() 마스킹 UI 동작에 필요하므로 유지
-      var _akLoadEl = document.getElementById('apiKey');
-      if (_akLoadEl) { _akLoadEl.type = 'password'; _akLoadEl.value = key; }
-      showMaskedApiKey();
-      if (showFeedback) showToast('✅ 센터 AI 키 불러옴');
-
-      // 관리자 설정 탭 입력란에도 채우기
-      var adminInput = document.getElementById('centerApiKeyInput');
-      if (adminInput) {
-        adminInput.value = key;
-        var statusEl = document.getElementById('centerKeyStatus');
-        if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 현재 저장된 키: ' + escHtml(maskApiKey(key)) + '</span>';
-      }
+      if (showFeedback) showToast('✅ 센터 AI 키 확인됨');
+      // 관리자 설정 탭: 평문 입력란은 채우지 않고(새 키 입력 시에만 사용) 마스킹 상태만 표시.
+      var statusEl = document.getElementById('centerKeyStatus');
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 센터 AI 키가 설정되어 있습니다</span>';
     })
     .catch(function(err) {
-      if (window.console && console.error) console.error('센터 키 로드 실패:', err && err.message);
-      showToast('⚠️ API 키 로드 실패');
+      // admin 도 일시 오류 가능 — 평문 키 미보유 상태이므로 조용히 무시(토스트 없음).
+      if (window.console && console.warn) console.warn('[센터 키 확인]', err && err.message);
     });
 }
 
@@ -54,12 +42,9 @@ function saveCenterApiKey() {
 
   supaFetch('madi_settings?on_conflict=key', 'POST', [{ key: 'api_key', value: key }])
     .then(function() {
-      // 현재 세션에도 즉시 적용 — 메모리에 저장, DOM은 password 타입 강제
-      _madiApiKey = key;
-      window._madiApiKey = key;
-      var _akEl = document.getElementById('apiKey');
-      if (_akEl) { _akEl.type = 'password'; _akEl.value = key; }
-      showMaskedApiKey();
+      // 보안(H-1): 평문 키를 window/DOM 에 저장하지 않음. 입력란을 비워 잔여 노출 제거.
+      var _inEl = document.getElementById('centerApiKeyInput');
+      if (_inEl) _inEl.value = '';
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 저장 완료: ' + escHtml(maskApiKey(key)) + '</span>';
       showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
     })
@@ -203,6 +188,8 @@ function addStaffAccount() {
     var _nameEl = document.getElementById('staffNewName');     if (_nameEl) _nameEl.value = '';
     var _unEl   = document.getElementById('staffNewUsername'); if (_unEl)   _unEl.value = '';
     var _pwEl   = document.getElementById('staffNewPassword'); if (_pwEl)   _pwEl.value = '';
+    // 일정 모달 담당 선생님 드롭다운 캐시 무효화 — 신규 선생님 즉시 반영(H-6)
+    if (typeof _teacherList !== 'undefined') _teacherList = [];
     loadStaffMgmtList();
   }).catch(function(err) {
     if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
@@ -246,6 +233,8 @@ function removeStaffAccount(id, name) {
     supaFetch('madi_users?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE')
       .then(function() {
         showToast('🗑️ ' + name + ' 계정 삭제됨');
+        // 일정 모달 담당 선생님 드롭다운 캐시 무효화 — 삭제된 선생님 즉시 제거(H-6)
+        if (typeof _teacherList !== 'undefined') _teacherList = [];
         loadStaffMgmtList();
       }).catch(function(err) {
         showToast('❌ ' + _userErrMsg(err, '삭제'));

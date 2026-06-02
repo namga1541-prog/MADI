@@ -4,6 +4,7 @@ var _permData = {};
 
 var PERM_LIST = [
   { key:'viewOtherChildren', icon:'👀', label:'다른 선생님 아동 조회',   desc:'같은 센터 내 다른 선생님이 담당하는 아동 목록을 볼 수 있어요.', active:true },
+  { key:'editChild',         icon:'✏️', label:'아동 정보 수정',           desc:'아동 종결·재등록 등 아동 정보를 수정할 수 있어요.', active:true },
   { key:'deleteSession',     icon:'📋', label:'세션 기록 삭제',           desc:'작성한 세션 기록을 삭제할 수 있어요.', active:true },
   { key:'useAI',             icon:'🤖', label:'AI 기능 사용',             desc:'장단기계획(IEP) 생성, 포트폴리오, 부모 리포트 등 AI 분석 기능을 사용할 수 있어요.', active:true },
   { key:'deleteAssessment',  icon:'🗑️', label:'검사 결과 삭제',           desc:'표준화 검사 결과를 삭제할 수 있어요.', active:true }

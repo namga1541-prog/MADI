@@ -548,10 +548,8 @@ function sendChat() {
     return;
   }
 
-  var _key = window._madiApiKey || (document.getElementById('apiKey') && document.getElementById('apiKey').value) || '';
-  _key = _key.trim ? _key.trim() : _key;
-  if (!_key) { showToast('⚠️ AI 설정이 필요합니다.'); return; }
-
+  // AI 게이트는 useAI 권한(위 535행)으로 판정 — 평문 키 게이트 제거(H-1).
+  //   실제 키 유무는 서버 ai-proxy 가 최종 판정하며, 미설정 센터면 호출 시 서버 오류로 안내된다.
   input.value = '';
   input.style.height = 'auto';
   addUserMsg(text);

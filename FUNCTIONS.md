@@ -3,11 +3,11 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (166)
+## 전역 변수 (165)
 
-- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:316
-- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:318
-- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:373
+- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:317
+- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:319
+- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:374
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -60,39 +60,38 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var MODEL_HAIKU = 'claude-haiku-4-5-20251001';` — madi-core.js:2
 - `var MODEL_SONNET = 'claude-sonnet-4-6';` — madi-core.js:3
 - `var ROLES = {` — madi-core.js:7
-- `var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };` — madi-core.js:46
-- `var DISORDER_EMOJI = { '언어발달장애':'🗣️','조음음운장애':'👄','유창성장애':'💬','자폐스펙트럼':'🌈','지적장애':'🧩'` — madi-core.js:101
-- `var CHILD_COLORS = ['#0ea5a0','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];` — madi-core.js:102
-- `var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316` — madi-core.js:103
-- `var _teacherColorMap = {};` — madi-core.js:104
-- `var SUPA_URL = 'https://ujxdhafzjyrglaclarwe.supabase.co';` — madi-core.js:111
-- `var CENTER_SESSION_INTERVAL = 40;` — madi-core.js:112
-- `var EDGE_URL = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';` — madi-core.js:119
-- `var _madiToken = null;` — madi-core.js:120
-- `var _supaCache = {};` — madi-core.js:187
-- `var SUPA_CACHE_TTL = 5 * 60 * 1000;` — madi-core.js:188
-- `var _offlineQueue = [];` — madi-core.js:212
-- `var _offlineQueueBusy = false;` — madi-core.js:213
-- `var currentUser = null;` — madi-core.js:293
-- `var _errReportCount = 0;` — madi-core.js:347
-- `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:348
+- `var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, deleteAssess` — madi-core.js:47
+- `var DISORDER_EMOJI = { '언어발달장애':'🗣️','조음음운장애':'👄','유창성장애':'💬','자폐스펙트럼':'🌈','지적장애':'🧩'` — madi-core.js:105
+- `var CHILD_COLORS = ['#0ea5a0','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];` — madi-core.js:106
+- `var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316` — madi-core.js:107
+- `var _teacherColorMap = {};` — madi-core.js:108
+- `var SUPA_URL = 'https://ujxdhafzjyrglaclarwe.supabase.co';` — madi-core.js:115
+- `var CENTER_SESSION_INTERVAL = 40;` — madi-core.js:116
+- `var EDGE_URL = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';` — madi-core.js:123
+- `var _madiToken = null;` — madi-core.js:124
+- `var _supaCache = {};` — madi-core.js:191
+- `var SUPA_CACHE_TTL = 5 * 60 * 1000;` — madi-core.js:192
+- `var _offlineQueue = [];` — madi-core.js:216
+- `var _offlineQueueBusy = false;` — madi-core.js:217
+- `var currentUser = null;` — madi-core.js:297
+- `var _errReportCount = 0;` — madi-core.js:351
+- `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:352
 - `var _DP_VOUCHER_PRICE = {` — madi-dashboard.js:458
 - `var _bcEscHandler = null;` — madi-growth.js:1
 - `var VOUCHER_KINDS = ['발달재활바우처','우리아이심리지원서비스바우처','꿈E든카드바우처','나래사랑카드바우처'];` — madi-growth.js:401
 - `var _showDischargedInSession = false;` — madi-growth.js:679
-- `var _madiApiKey = '';` — madi-home.js:2
-- `var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','p` — madi-home.js:433
-- `var TAB_PANEL_MAP = ['panel2','panel0','panelReport','panelPortfolio','panelService','pane` — madi-home.js:435
-- `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':` — madi-home.js:462
-- `var currentReportTab = 'session';` — madi-home.js:601
-- `var currentPortfolioTab = 'trend';` — madi-home.js:631
-- `var _bannerNotices = [];` — madi-home.js:658
-- `var _bannerIdx = 0;` — madi-home.js:659
-- `var _bannerTimer = null;` — madi-home.js:660
-- `var _bannerClosed = false;` — madi-home.js:661
-- `var noticeDB = [];` — madi-home.js:728
-- `var _wakeLock = null;` — madi-home.js:893
-- `var _pwaInstallPrompt = null;` — madi-home.js:894
+- `var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','p` — madi-home.js:422
+- `var TAB_PANEL_MAP = ['panel2','panel0','panelReport','panelPortfolio','panelService','pane` — madi-home.js:424
+- `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':` — madi-home.js:451
+- `var currentReportTab = 'session';` — madi-home.js:590
+- `var currentPortfolioTab = 'trend';` — madi-home.js:620
+- `var _bannerNotices = [];` — madi-home.js:647
+- `var _bannerIdx = 0;` — madi-home.js:648
+- `var _bannerTimer = null;` — madi-home.js:649
+- `var _bannerClosed = false;` — madi-home.js:650
+- `var noticeDB = [];` — madi-home.js:717
+- `var _wakeLock = null;` — madi-home.js:882
+- `var _pwaInstallPrompt = null;` — madi-home.js:883
 - `var _sessionSaveBusy = false; // 더블탭 중복 저장 방지` — madi-iep.js:9
 - `var sessionListExpanded = false;` — madi-iep.js:244
 - `var _dcmCallback = null;` — madi-iep.js:386
@@ -145,20 +144,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _permUserId = null;` — madi-system.js:2
 - `var _permData = {};` — madi-system.js:3
 - `var PERM_LIST = [` — madi-system.js:5
-- `var _pollTimer = null;` — madi-system.js:218
-- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:219
-- `var _myChangeTs = 0;` — madi-system.js:220
-- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:221
-- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:222
-- `var GITHUB_OWNER = 'namga1541-prog';` — madi-system.js:322
-- `var GITHUB_REPO = 'MADI';` — madi-system.js:323
-- `var GITHUB_FILE = 'index.html';` — madi-system.js:324
-- `var GITHUB_SW = 'sw.js';` — madi-system.js:325
-- `var _swNow = new Date();` — madi-system.js:330
-- `var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')` — madi-system.js:331
-- `var SW_LINES = [` — madi-system.js:334
-- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:436
-- `var _pwaPrompt = null;` — madi-system.js:1176
+- `var _pollTimer = null;` — madi-system.js:219
+- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:220
+- `var _myChangeTs = 0;` — madi-system.js:221
+- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:222
+- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:223
+- `var GITHUB_OWNER = 'namga1541-prog';` — madi-system.js:323
+- `var GITHUB_REPO = 'MADI';` — madi-system.js:324
+- `var GITHUB_FILE = 'index.html';` — madi-system.js:325
+- `var GITHUB_SW = 'sw.js';` — madi-system.js:326
+- `var _swNow = new Date();` — madi-system.js:331
+- `var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')` — madi-system.js:332
+- `var SW_LINES = [` — madi-system.js:335
+- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:437
+- `var _pwaPrompt = null;` — madi-system.js:1177
 - `var SLP_VOCAB_BLOCKED_PARENT = {` — madi-vocab.js:17
 - `var SLP_VOCAB_BLOCKED_ALL = {` — madi-vocab.js:71
 - `var SLP_VOCAB_ENCOURAGED = {` — madi-vocab.js:96
@@ -213,55 +212,55 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `safeMap` — madi-app.js:38
 - `_loadOlderHistory` — madi-app.js:59
 - `safeMap` — madi-app.js:67
-  ▸ _컬렉션 저장 공통 헬퍼_ — L82
-- `_saveCollection` — madi-app.js:89
-- `saveChildren` — madi-app.js:105
-- `getSaveErrMsg` — madi-app.js:109
-- `_userErrMsg` — madi-app.js:118
-- `saveSessions` — madi-app.js:127
-- `saveSchedule` — madi-app.js:131
-- `saveAssess` — madi-app.js:135
-- `loadDB` — madi-app.js:146
-  ▸ _아동 연령 실시간 갱신_ — L151
-- `refreshChildAges` — madi-app.js:155
-- `saveIEP` — madi-app.js:164
-- `loadIEPFromSupa` — madi-app.js:174
-- `saveActivities` — madi-app.js:182
-- `loadActivitiesFromSupa` — madi-app.js:187
-  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L193
-- `attachModalA11y` — madi-app.js:201
-- `focusables` — madi-app.js:204
-- `onKey` — madi-app.js:210
-- `showInputPrompt` — madi-app.js:237
-- `close` — madi-app.js:269
-- `doCancel` — madi-app.js:273
-- `doOk` — madi-app.js:274
-- `showConfirm` — madi-app.js:291
-- `close` — madi-app.js:307
-- `doCancel` — madi-app.js:308
-- `debounce` — madi-app.js:317
-- `showToast` — madi-app.js:320
-- `vibrate` — madi-app.js:347
-- `toggleDarkMode` — madi-app.js:348
-- `loadDarkMode` — madi-app.js:354
-- `updateHeaderClock` — madi-app.js:358
-- `startHeaderClock` — madi-app.js:374
-- `fetchWithRetry` — madi-app.js:385
-- `doFetch` — madi-app.js:389
-- `setupNetworkMonitor` — madi-app.js:402
-- `showOfflineBanner` — madi-app.js:403
-- `hideOfflineBanner` — madi-app.js:409
-- `applyParentUI` — madi-app.js:415
-- `_initParentSidebar` — madi-app.js:440
-- `resetParentUI` — madi-app.js:480
-- `loadParentDashboard` — madi-app.js:503
-- `toggleMoreMenu` — madi-app.js:510
-- `closeMoreMenu` — madi-app.js:511
-- `getRoleFlags` — madi-app.js:518
-- `validatePasswordStrength` — madi-app.js:524
-- `generateClientId` — madi-app.js:532
-- `applyUserUI` — madi-app.js:542
-- `updateKbOffset` — madi-app.js:573
+  ▸ _컬렉션 저장 공통 헬퍼_ — L83
+- `_saveCollection` — madi-app.js:90
+- `saveChildren` — madi-app.js:106
+- `getSaveErrMsg` — madi-app.js:110
+- `_userErrMsg` — madi-app.js:119
+- `saveSessions` — madi-app.js:128
+- `saveSchedule` — madi-app.js:132
+- `saveAssess` — madi-app.js:136
+- `loadDB` — madi-app.js:147
+  ▸ _아동 연령 실시간 갱신_ — L152
+- `refreshChildAges` — madi-app.js:156
+- `saveIEP` — madi-app.js:165
+- `loadIEPFromSupa` — madi-app.js:175
+- `saveActivities` — madi-app.js:183
+- `loadActivitiesFromSupa` — madi-app.js:188
+  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L194
+- `attachModalA11y` — madi-app.js:202
+- `focusables` — madi-app.js:205
+- `onKey` — madi-app.js:211
+- `showInputPrompt` — madi-app.js:238
+- `close` — madi-app.js:270
+- `doCancel` — madi-app.js:274
+- `doOk` — madi-app.js:275
+- `showConfirm` — madi-app.js:292
+- `close` — madi-app.js:308
+- `doCancel` — madi-app.js:309
+- `debounce` — madi-app.js:318
+- `showToast` — madi-app.js:321
+- `vibrate` — madi-app.js:348
+- `toggleDarkMode` — madi-app.js:349
+- `loadDarkMode` — madi-app.js:355
+- `updateHeaderClock` — madi-app.js:359
+- `startHeaderClock` — madi-app.js:375
+- `fetchWithRetry` — madi-app.js:386
+- `doFetch` — madi-app.js:390
+- `setupNetworkMonitor` — madi-app.js:403
+- `showOfflineBanner` — madi-app.js:404
+- `hideOfflineBanner` — madi-app.js:410
+- `applyParentUI` — madi-app.js:416
+- `_initParentSidebar` — madi-app.js:441
+- `resetParentUI` — madi-app.js:481
+- `loadParentDashboard` — madi-app.js:504
+- `toggleMoreMenu` — madi-app.js:511
+- `closeMoreMenu` — madi-app.js:512
+- `getRoleFlags` — madi-app.js:519
+- `validatePasswordStrength` — madi-app.js:525
+- `generateClientId` — madi-app.js:533
+- `applyUserUI` — madi-app.js:543
+- `updateKbOffset` — madi-app.js:574
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3
@@ -457,7 +456,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `toggleChatVoiceInput` — madi-chat.js:476
 - `resetChatMicBtn` — madi-chat.js:519
 - `sendChat` — madi-chat.js:529
-- `buildChatContext` — madi-chat.js:646
+- `buildChatContext` — madi-chat.js:644
 
 ## madi-child-detail.js (35함수)
 - `setInputMode` — madi-child-detail.js:2
@@ -532,47 +531,47 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `getTodayKST` — madi-core.js:41
 - `getMonthKST` — madi-core.js:42
 - `fmtDateKR` — madi-core.js:44
-- `canDo` — madi-core.js:47
-- `isMyChild` — madi-core.js:58
-- `applyPermissions` — madi-core.js:66
-- `getAIModel` — madi-core.js:76
-- `saveAIModelChoice` — madi-core.js:80
-- `updateAIModelUI` — madi-core.js:87
-- `getTeacherColor` — madi-core.js:105
-- `loadCenterSessionInterval` — madi-core.js:113
-- `getToken` — madi-core.js:126
-- `setToken` — madi-core.js:127
-- `clearToken` — madi-core.js:128
-- `safeSetItem` — madi-core.js:133
-- `_purgeLegacyCnCache` — madi-core.js:142
-  ▸ _방어 유틸 함수 (Direction A — 반복 크래시 패턴 원천 차단)_ — L151
-- `safeGetItem` — madi-core.js:153
-- `safeGetSessionItem` — madi-core.js:158
-- `safeSetSessionItem` — madi-core.js:163
-- `safeJsonParse` — madi-core.js:168
-- `safeCmp` — madi-core.js:176
-  ▸ _─_ — L182
-  ▸ _supaFetch GET 캐시 (2026-05-21 최적화)_ — L184
-- `_supaCacheClone` — madi-core.js:189
-- `_supaCacheGet` — madi-core.js:193
-- `_supaCacheSet` — madi-core.js:199
-- `supaCacheInvalidate` — madi-core.js:202
-- `supaCacheClearAll` — madi-core.js:209
-  ▸ _오프라인 쓰기 큐_ — L211
-- `_oqSave` — madi-core.js:217
-- `_oqEnqueue` — madi-core.js:218
-- `_oqFlush` — madi-core.js:223
-  ▸ _─_ — L235
-- `supaFetch` — madi-core.js:246
-- `hashPassword` — madi-core.js:294
-- `getCenterId` — madi-core.js:299
-- `_loadScriptOnce` — madi-core.js:303
-- `ensureXLSX` — madi-core.js:320
-- `ensureChart` — madi-core.js:330
-- `centerFilter` — madi-core.js:338
-  ▸ _글로벌 에러 모니터링_ — L344
-- `_reportClientError` — madi-core.js:350
-  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L404
+- `canDo` — madi-core.js:48
+- `isMyChild` — madi-core.js:62
+- `applyPermissions` — madi-core.js:70
+- `getAIModel` — madi-core.js:80
+- `saveAIModelChoice` — madi-core.js:84
+- `updateAIModelUI` — madi-core.js:91
+- `getTeacherColor` — madi-core.js:109
+- `loadCenterSessionInterval` — madi-core.js:117
+- `getToken` — madi-core.js:130
+- `setToken` — madi-core.js:131
+- `clearToken` — madi-core.js:132
+- `safeSetItem` — madi-core.js:137
+- `_purgeLegacyCnCache` — madi-core.js:146
+  ▸ _방어 유틸 함수 (Direction A — 반복 크래시 패턴 원천 차단)_ — L155
+- `safeGetItem` — madi-core.js:157
+- `safeGetSessionItem` — madi-core.js:162
+- `safeSetSessionItem` — madi-core.js:167
+- `safeJsonParse` — madi-core.js:172
+- `safeCmp` — madi-core.js:180
+  ▸ _─_ — L186
+  ▸ _supaFetch GET 캐시 (2026-05-21 최적화)_ — L188
+- `_supaCacheClone` — madi-core.js:193
+- `_supaCacheGet` — madi-core.js:197
+- `_supaCacheSet` — madi-core.js:203
+- `supaCacheInvalidate` — madi-core.js:206
+- `supaCacheClearAll` — madi-core.js:213
+  ▸ _오프라인 쓰기 큐_ — L215
+- `_oqSave` — madi-core.js:221
+- `_oqEnqueue` — madi-core.js:222
+- `_oqFlush` — madi-core.js:227
+  ▸ _─_ — L239
+- `supaFetch` — madi-core.js:250
+- `hashPassword` — madi-core.js:298
+- `getCenterId` — madi-core.js:303
+- `_loadScriptOnce` — madi-core.js:307
+- `ensureXLSX` — madi-core.js:324
+- `ensureChart` — madi-core.js:334
+- `centerFilter` — madi-core.js:342
+  ▸ _글로벌 에러 모니터링_ — L348
+- `_reportClientError` — madi-core.js:354
+  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L408
 
 ## madi-dashboard.js (24함수)
 - `_dpInitial` — madi-dashboard.js:13
@@ -645,73 +644,73 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 
 ## madi-home.js (45함수)
 - `loadCenterApiKey` — madi-home.js:4
-- `saveCenterApiKey` — madi-home.js:41
-- `toggleCenterKeyVisibility` — madi-home.js:72
-  ▸ _센터 관리_ — L85
-- `formatInviteExpiry` — madi-home.js:87
-- `loadCenterInfo` — madi-home.js:100
-- `copyInviteCode` — madi-home.js:123
-- `regenInviteCode` — madi-home.js:133
-- `addStaffAccount` — madi-home.js:171
-- `loadStaffMgmtList` — madi-home.js:212
-- `removeStaffAccountFromBtn` — madi-home.js:239
-- `removeStaffAccount` — madi-home.js:244
-  ▸ _관리자 페이지 이동 (TASK-008: admin.html 분리)_ — L256
-- `goToAdmin` — madi-home.js:257
-- `applyRoleUI` — madi-home.js:265
-- `resetMaroPos` — madi-home.js:282
-- `getApiKeyOrAlert` — madi-home.js:296
-  ▸ _탭 전환_ — L300
-  ▸ _새 탭 구조 (7개)_ — L301
-  ▸ _홈 대시보드_ — L304
-- `showDashboard` — madi-home.js:305
-  ▸ _대시보드 라우터_ — L328
-- `renderDashboard` — madi-home.js:331
-  ▸ _레거시 (이전 단일 디자인) — fallback 보존_ — L363
-- `renderDashboardLegacy` — madi-home.js:364
-  ▸ _사이드바 active 동기화_ — L437
-- `syncSidebarActive` — madi-home.js:438
-  ▸ _사이드바 토글 (상태 localStorage 저장)_ — L444
-- `toggleSidebar` — madi-home.js:445
-- `restoreSidebarState` — madi-home.js:452
-  ▸ _Breadcrumb 업데이트_ — L461
-- `updateBreadcrumb` — madi-home.js:463
-- `updateSidebarAdminVisibility` — madi-home.js:472
-- `switchTab` — madi-home.js:483
-  ▸ _보고서 서브탭_ — L600
-- `switchReportTab` — madi-home.js:602
-  ▸ _포트폴리오 서브탭_ — L630
-- `switchPortfolioTab` — madi-home.js:632
-  ▸ _공지 배너_ — L657
-- `startNoticeBanner` — madi-home.js:663
-- `_renderBannerSlide` — madi-home.js:696
-- `closeNoticeBanner` — madi-home.js:720
-  ▸ _공지사항_ — L727
-- `loadNotices` — madi-home.js:729
-- `renderNoticeList` — madi-home.js:747
-- `saveNotice` — madi-home.js:779
-- `fanoutNoticeNotifications` — madi-home.js:807
-- `fanoutSessionNotification` — madi-home.js:833
-- `deleteNotice` — madi-home.js:872
-  ▸ _서비스관리_ — L889
-- `initUserSettings` — madi-home.js:897
-- `updateSettingsUI` — madi-home.js:902
-  ▸ _글자 크기_ — L941
-- `setFontSize` — madi-home.js:942
-  ▸ _화면 항상 켜짐_ — L952
-- `toggleWakeLock` — madi-home.js:953
-  ▸ _진동 피드백_ — L975
-- `toggleHaptic` — madi-home.js:976
-  ▸ _시작 탭_ — L985
-- `setStartTab` — madi-home.js:986
-  ▸ _PWA 홈 화면 추가_ — L992
-- `showPWAInstall` — madi-home.js:993
-- `closePWAGuide` — madi-home.js:1004
-  ▸ _비밀번호 변경_ — L1009
-- `changeMyPassword` — madi-home.js:1010
-- `setResult` — madi-home.js:1016
-  ▸ _─_ — L1045
-  ▸ _─_ — L1049
+- `saveCenterApiKey` — madi-home.js:29
+- `toggleCenterKeyVisibility` — madi-home.js:57
+  ▸ _센터 관리_ — L70
+- `formatInviteExpiry` — madi-home.js:72
+- `loadCenterInfo` — madi-home.js:85
+- `copyInviteCode` — madi-home.js:108
+- `regenInviteCode` — madi-home.js:118
+- `addStaffAccount` — madi-home.js:156
+- `loadStaffMgmtList` — madi-home.js:199
+- `removeStaffAccountFromBtn` — madi-home.js:226
+- `removeStaffAccount` — madi-home.js:231
+  ▸ _관리자 페이지 이동 (TASK-008: admin.html 분리)_ — L245
+- `goToAdmin` — madi-home.js:246
+- `applyRoleUI` — madi-home.js:254
+- `resetMaroPos` — madi-home.js:271
+- `getApiKeyOrAlert` — madi-home.js:285
+  ▸ _탭 전환_ — L289
+  ▸ _새 탭 구조 (7개)_ — L290
+  ▸ _홈 대시보드_ — L293
+- `showDashboard` — madi-home.js:294
+  ▸ _대시보드 라우터_ — L317
+- `renderDashboard` — madi-home.js:320
+  ▸ _레거시 (이전 단일 디자인) — fallback 보존_ — L352
+- `renderDashboardLegacy` — madi-home.js:353
+  ▸ _사이드바 active 동기화_ — L426
+- `syncSidebarActive` — madi-home.js:427
+  ▸ _사이드바 토글 (상태 localStorage 저장)_ — L433
+- `toggleSidebar` — madi-home.js:434
+- `restoreSidebarState` — madi-home.js:441
+  ▸ _Breadcrumb 업데이트_ — L450
+- `updateBreadcrumb` — madi-home.js:452
+- `updateSidebarAdminVisibility` — madi-home.js:461
+- `switchTab` — madi-home.js:472
+  ▸ _보고서 서브탭_ — L589
+- `switchReportTab` — madi-home.js:591
+  ▸ _포트폴리오 서브탭_ — L619
+- `switchPortfolioTab` — madi-home.js:621
+  ▸ _공지 배너_ — L646
+- `startNoticeBanner` — madi-home.js:652
+- `_renderBannerSlide` — madi-home.js:685
+- `closeNoticeBanner` — madi-home.js:709
+  ▸ _공지사항_ — L716
+- `loadNotices` — madi-home.js:718
+- `renderNoticeList` — madi-home.js:736
+- `saveNotice` — madi-home.js:768
+- `fanoutNoticeNotifications` — madi-home.js:796
+- `fanoutSessionNotification` — madi-home.js:822
+- `deleteNotice` — madi-home.js:861
+  ▸ _서비스관리_ — L878
+- `initUserSettings` — madi-home.js:886
+- `updateSettingsUI` — madi-home.js:891
+  ▸ _글자 크기_ — L930
+- `setFontSize` — madi-home.js:931
+  ▸ _화면 항상 켜짐_ — L941
+- `toggleWakeLock` — madi-home.js:942
+  ▸ _진동 피드백_ — L964
+- `toggleHaptic` — madi-home.js:965
+  ▸ _시작 탭_ — L974
+- `setStartTab` — madi-home.js:975
+  ▸ _PWA 홈 화면 추가_ — L981
+- `showPWAInstall` — madi-home.js:982
+- `closePWAGuide` — madi-home.js:993
+  ▸ _비밀번호 변경_ — L998
+- `changeMyPassword` — madi-home.js:999
+- `setResult` — madi-home.js:1005
+  ▸ _─_ — L1034
+  ▸ _─_ — L1038
 
 ## madi-icons.js (6함수)
 - `mdIcon` — madi-icons.js:60
@@ -1032,59 +1031,59 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 
 ## madi-system.js (39함수)
   ▸ _권한 설정 모달_ — L1
-- `openPermModal` — madi-system.js:12
-- `updatePermToggle` — madi-system.js:67
-- `savePermissions` — madi-system.js:77
-  ▸ _선생님 계정 관리 (관리자 전용)_ — L115
-- `renderStaffCard` — madi-system.js:116
-- `saveNewStaff` — madi-system.js:160
-- `deleteStaff` — madi-system.js:189
-  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L217
-- `initRealtime` — madi-system.js:232
-- `markMyChange` — madi-system.js:246
-- `stopRealtime` — madi-system.js:248
-  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L271
-- `_openMadiDB` — madi-system.js:272
-- `_saveFolderHandle` — madi-system.js:280
-- `_loadFolderHandle` — madi-system.js:291
-- `getMadiFolderHandle` — madi-system.js:302
-  ▸ _GitHub 자동 배포_ — L321
-  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L438
-- `_cleanupLegacyGithubToken` — madi-system.js:443
-- `deployFileViaProxy` — madi-system.js:452
-  ▸ _배포 대상 파일 자동 스캔_ — L476
-- `scanMadiFiles` — madi-system.js:479
-- `next` — madi-system.js:483
-  ▸ _파일 내용 → Git blob SHA-1 계산_ — L506
-- `gitBlobSha` — madi-system.js:509
-- `pollGithubPagesBuild` — madi-system.js:524
-- `poll` — madi-system.js:528
-- `deployToGitHub` — madi-system.js:563
-- `processImportFile` — madi-system.js:742
-- `_processImportFileInner` — madi-system.js:759
-- `normalizeDisorderType` — madi-system.js:799
-- `parseRowsToChildren` — madi-system.js:811
-- `findCol` — madi-system.js:815
-- `analyzeImportData` — madi-system.js:880
-- `renderImportPreview` — madi-system.js:924
-- `confirmImport` — madi-system.js:981
-- `_batchPost` — madi-system.js:1065
-- `cancelImport` — madi-system.js:1085
-  ▸ _초기화_ — L1093
-- `init` — madi-system.js:1094
-  ▸ _PWA 지원_ — L1175
-- `initPWA` — madi-system.js:1178
-  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1184
-- `_swApplyUpdate` — madi-system.js:1193
-- `_onVis` — madi-system.js:1206
-- `_pwaShouldShowBanner` — madi-system.js:1264
-- `showPWABanner` — madi-system.js:1275
-- `hidePWABanner` — madi-system.js:1306
-- `triggerPWAInstall` — madi-system.js:1320
-  ▸ _뒤로가기 버튼 탭 연동_ — L1334
-  ▸ _─_ — L1343
-  ▸ _─_ — L1345
-  ▸ _모듈 초기화_ — L1347
+- `openPermModal` — madi-system.js:13
+- `updatePermToggle` — madi-system.js:68
+- `savePermissions` — madi-system.js:78
+  ▸ _선생님 계정 관리 (관리자 전용)_ — L116
+- `renderStaffCard` — madi-system.js:117
+- `saveNewStaff` — madi-system.js:161
+- `deleteStaff` — madi-system.js:190
+  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L218
+- `initRealtime` — madi-system.js:233
+- `markMyChange` — madi-system.js:247
+- `stopRealtime` — madi-system.js:249
+  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L272
+- `_openMadiDB` — madi-system.js:273
+- `_saveFolderHandle` — madi-system.js:281
+- `_loadFolderHandle` — madi-system.js:292
+- `getMadiFolderHandle` — madi-system.js:303
+  ▸ _GitHub 자동 배포_ — L322
+  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L439
+- `_cleanupLegacyGithubToken` — madi-system.js:444
+- `deployFileViaProxy` — madi-system.js:453
+  ▸ _배포 대상 파일 자동 스캔_ — L477
+- `scanMadiFiles` — madi-system.js:480
+- `next` — madi-system.js:484
+  ▸ _파일 내용 → Git blob SHA-1 계산_ — L507
+- `gitBlobSha` — madi-system.js:510
+- `pollGithubPagesBuild` — madi-system.js:525
+- `poll` — madi-system.js:529
+- `deployToGitHub` — madi-system.js:564
+- `processImportFile` — madi-system.js:743
+- `_processImportFileInner` — madi-system.js:760
+- `normalizeDisorderType` — madi-system.js:800
+- `parseRowsToChildren` — madi-system.js:812
+- `findCol` — madi-system.js:816
+- `analyzeImportData` — madi-system.js:881
+- `renderImportPreview` — madi-system.js:925
+- `confirmImport` — madi-system.js:982
+- `_batchPost` — madi-system.js:1066
+- `cancelImport` — madi-system.js:1086
+  ▸ _초기화_ — L1094
+- `init` — madi-system.js:1095
+  ▸ _PWA 지원_ — L1176
+- `initPWA` — madi-system.js:1179
+  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1185
+- `_swApplyUpdate` — madi-system.js:1194
+- `_onVis` — madi-system.js:1207
+- `_pwaShouldShowBanner` — madi-system.js:1265
+- `showPWABanner` — madi-system.js:1276
+- `hidePWABanner` — madi-system.js:1307
+- `triggerPWAInstall` — madi-system.js:1321
+  ▸ _뒤로가기 버튼 탭 연동_ — L1335
+  ▸ _─_ — L1344
+  ▸ _─_ — L1346
+  ▸ _모듈 초기화_ — L1348
 
 ## madi-vocab.js (4함수)
   ▸ _한자어 → 일상어 (학부모 대상 문서에서만 적용)_ — L16
@@ -1099,127 +1098,127 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `getReportStyleGuide` — madi-vocab.js:663
 
 ## admin.html (114함수)
-- `toKST` — admin.html:826
-- `nowKST` — admin.html:827
-- `ymd` — admin.html:828
-- `getTodayKST` — admin.html:829
-- `getMonthKST` — admin.html:830
-- `getToken` — admin.html:899
-- `getCenterId` — admin.html:900
-- `centerFilter` — admin.html:901
-- `fetchWithRetry` — admin.html:907
-- `doFetch` — admin.html:914
-- `supaFetch` — admin.html:931
-- `escHtml` — admin.html:950
-- `showConfirm` — admin.html:960
-- `close` — admin.html:974
-- `_onKey` — admin.html:975
-- `hashPassword` — admin.html:985
-- `maskApiKey` — admin.html:993
-- `validatePasswordStrength` — admin.html:998
-- `showToast` — admin.html:1004
-- `showSvcSubTab` — admin.html:1021
-- `showAdminTab` — admin.html:1033
-- `loadPushSettings` — admin.html:1069
-- `savePushSettings` — admin.html:1087
-- `sendPushTest` — admin.html:1122
-- `sendInAppNotifTest` — admin.html:1168
-- `goBack` — admin.html:1210
-- `goToAppTab` — admin.html:1215
-- `saveAIModelChoice` — admin.html:1221
-- `updateAIModelUI` — admin.html:1228
-- `loadAdminData` — admin.html:1250
-- `safeMap` — admin.html:1256
-- `saveSchedulePatch` — admin.html:1277
-- `_voucherBadge` — admin.html:1293
-- `_svcStatusInfo` — admin.html:1300
-- `_schedStatus` — admin.html:1310
-- `changeSchedStatus` — admin.html:1315
-- `renderServiceStats` — admin.html:1323
-- `_populateSvcFilters` — admin.html:1346
-- `setSvcMode` — admin.html:1368
-- `populateIntSvcFilters` — admin.html:1388
-- `renderIntegratedSvc` — admin.html:1418
-- `statCard` — admin.html:1486
-- `renderMonthlyService` — admin.html:1530
-- `renderDailyService` — admin.html:1604
-- `renderSettlement` — admin.html:1656
-- `exportSettlementExcel` — admin.html:1713
-- `initSvcStaffMonth` — admin.html:1745
-- `renderStaffStats` — admin.html:1758
-- `showStaffTrend` — admin.html:1822
-- `loadPrograms` — admin.html:1875
-- `renderProgramList` — admin.html:1887
-- `loadTeacherList` — admin.html:1914
-- `loadTeacherPrograms` — admin.html:1927
-- `renderProgCheckList` — admin.html:1938
-- `onProgCheck` — admin.html:1954
-- `bulkAssign` — admin.html:1963
-- `saveTeacherPrograms` — admin.html:1975
-  ▸ _공지사항_ — L1992
-- `renderNoticeList` — admin.html:2007
-- `deleteNotice` — admin.html:2039
-  ▸ _센터 관리_ — L2047
-- `formatInviteExpiry` — admin.html:2048
-  ▸ _선생님 계정 관리_ — L2059
-- `loadStaffMgmtList` — admin.html:2060
-- `showStaffTrendFromCard` — admin.html:2084
-- `removeStaffAccountFromBtn` — admin.html:2085
-- `resetStaffPasswordFromBtn` — admin.html:2086
-- `removeStaffAccount` — admin.html:2088
-- `resetStaffPassword` — admin.html:2096
-  ▸ _2FA (TOTP) 관리 (SEC6, 2026-05-24)_ — L2126
-- `totpApi` — admin.html:2127
-- `totpRefreshStatus` — admin.html:2136
-- `totpStartSetup` — admin.html:2157
-- `totpConfirmEnroll` — admin.html:2172
-- `totpStartDisable` — admin.html:2189
-  ▸ _API 키 관리_ — L2216
-- `loadCenterApiKey` — admin.html:2217
-- `saveCenterApiKey` — admin.html:2232
-- `toggleCenterKeyVisibility` — admin.html:2247
-  ▸ _센터 초대 코드 관리_ — L2255
-- `loadCenterInfo` — admin.html:2256
-- `copyInviteCode` — admin.html:2281
-- `regenInviteCode` — admin.html:2296
-  ▸ _직원 추가_ — L2328
-- `addStaffAccount` — admin.html:2329
-  ▸ _다크모드_ — L2374
-- `toggleDarkMode` — admin.html:2375
-- `resetMaroPosition` — admin.html:2383
-- `toggleTeacherRow` — admin.html:2452
-- `getTeacherColor` — admin.html:2456
-- `renderOpsDashboard` — admin.html:2462
-- `set` — admin.html:2469
-- `renderTeacherChildMap` — admin.html:2511
-- `loadPermUserList` — admin.html:2562
-- `loadUserPerms` — admin.html:2578
-- `renderPermList` — admin.html:2587
-- `saveUserPerms` — admin.html:2602
-  ▸ _학부모_ — L2611
-- `populateParentChildSelect` — admin.html:2613
-- `filterParentChildList` — admin.html:2624
-- `showParentChildDrop` — admin.html:2645
-- `selectParentChild` — admin.html:2650
-- `createParentAccount` — admin.html:2659
-- `copyParentNewInfo` — admin.html:2713
-- `loadParentList` — admin.html:2733
-- `deleteParentAccount` — admin.html:2761
-  ▸ _오류 모니터링_ — L2778
-- `loadErrorLogs` — admin.html:2779
-- `clearOldErrorLogs` — admin.html:2834
-- `generateLicenseKey` — admin.html:2850
-- `refreshLicenseKey` — admin.html:2860
-- `calcExpiresAt` — admin.html:2865
-- `copyLicenseKey` — admin.html:2875
-- `issueLicense` — admin.html:2884
-- `loadLicenseList` — admin.html:2925
-- `loadMyLicense` — admin.html:2980
-- `activateLicense` — admin.html:3039
-- `loadVocabFeedback` — admin.html:3067
-- `deleteVocabFeedback` — admin.html:3122
-- `loadClientErrors` — admin.html:3136
-- `checkRlsStatus` — admin.html:3187
-- `dismissRlsBanner` — admin.html:3198
-- `deleteClientError` — admin.html:3205
-- `_v` — admin.html:3227
+- `toKST` — admin.html:833
+- `nowKST` — admin.html:834
+- `ymd` — admin.html:835
+- `getTodayKST` — admin.html:836
+- `getMonthKST` — admin.html:837
+- `getToken` — admin.html:906
+- `getCenterId` — admin.html:907
+- `centerFilter` — admin.html:908
+- `fetchWithRetry` — admin.html:914
+- `doFetch` — admin.html:921
+- `supaFetch` — admin.html:938
+- `escHtml` — admin.html:957
+- `showConfirm` — admin.html:967
+- `close` — admin.html:981
+- `_onKey` — admin.html:982
+- `hashPassword` — admin.html:992
+- `maskApiKey` — admin.html:1000
+- `validatePasswordStrength` — admin.html:1005
+- `showToast` — admin.html:1011
+- `showSvcSubTab` — admin.html:1028
+- `showAdminTab` — admin.html:1040
+- `loadPushSettings` — admin.html:1076
+- `savePushSettings` — admin.html:1094
+- `sendPushTest` — admin.html:1129
+- `sendInAppNotifTest` — admin.html:1175
+- `goBack` — admin.html:1217
+- `goToAppTab` — admin.html:1222
+- `saveAIModelChoice` — admin.html:1228
+- `updateAIModelUI` — admin.html:1235
+- `loadAdminData` — admin.html:1257
+- `safeMap` — admin.html:1263
+- `saveSchedulePatch` — admin.html:1284
+- `_voucherBadge` — admin.html:1300
+- `_svcStatusInfo` — admin.html:1307
+- `_schedStatus` — admin.html:1317
+- `changeSchedStatus` — admin.html:1322
+- `renderServiceStats` — admin.html:1330
+- `_populateSvcFilters` — admin.html:1353
+- `setSvcMode` — admin.html:1375
+- `populateIntSvcFilters` — admin.html:1395
+- `renderIntegratedSvc` — admin.html:1425
+- `statCard` — admin.html:1493
+- `renderMonthlyService` — admin.html:1537
+- `renderDailyService` — admin.html:1611
+- `renderSettlement` — admin.html:1663
+- `exportSettlementExcel` — admin.html:1720
+- `initSvcStaffMonth` — admin.html:1752
+- `renderStaffStats` — admin.html:1765
+- `showStaffTrend` — admin.html:1829
+- `loadPrograms` — admin.html:1882
+- `renderProgramList` — admin.html:1894
+- `loadTeacherList` — admin.html:1921
+- `loadTeacherPrograms` — admin.html:1934
+- `renderProgCheckList` — admin.html:1945
+- `onProgCheck` — admin.html:1961
+- `bulkAssign` — admin.html:1970
+- `saveTeacherPrograms` — admin.html:1982
+  ▸ _공지사항_ — L1999
+- `renderNoticeList` — admin.html:2014
+- `deleteNotice` — admin.html:2046
+  ▸ _센터 관리_ — L2054
+- `formatInviteExpiry` — admin.html:2055
+  ▸ _선생님 계정 관리_ — L2066
+- `loadStaffMgmtList` — admin.html:2067
+- `showStaffTrendFromCard` — admin.html:2091
+- `removeStaffAccountFromBtn` — admin.html:2092
+- `resetStaffPasswordFromBtn` — admin.html:2093
+- `removeStaffAccount` — admin.html:2095
+- `resetStaffPassword` — admin.html:2103
+  ▸ _2FA (TOTP) 관리 (SEC6, 2026-05-24)_ — L2133
+- `totpApi` — admin.html:2134
+- `totpRefreshStatus` — admin.html:2143
+- `totpStartSetup` — admin.html:2164
+- `totpConfirmEnroll` — admin.html:2179
+- `totpStartDisable` — admin.html:2196
+  ▸ _API 키 관리_ — L2223
+- `loadCenterApiKey` — admin.html:2224
+- `saveCenterApiKey` — admin.html:2239
+- `toggleCenterKeyVisibility` — admin.html:2254
+  ▸ _센터 초대 코드 관리_ — L2262
+- `loadCenterInfo` — admin.html:2263
+- `copyInviteCode` — admin.html:2288
+- `regenInviteCode` — admin.html:2303
+  ▸ _직원 추가_ — L2335
+- `addStaffAccount` — admin.html:2336
+  ▸ _다크모드_ — L2381
+- `toggleDarkMode` — admin.html:2382
+- `resetMaroPosition` — admin.html:2390
+- `toggleTeacherRow` — admin.html:2459
+- `getTeacherColor` — admin.html:2463
+- `renderOpsDashboard` — admin.html:2469
+- `set` — admin.html:2476
+- `renderTeacherChildMap` — admin.html:2518
+- `loadPermUserList` — admin.html:2569
+- `loadUserPerms` — admin.html:2585
+- `renderPermList` — admin.html:2594
+- `saveUserPerms` — admin.html:2609
+  ▸ _학부모_ — L2618
+- `populateParentChildSelect` — admin.html:2620
+- `filterParentChildList` — admin.html:2631
+- `showParentChildDrop` — admin.html:2652
+- `selectParentChild` — admin.html:2657
+- `createParentAccount` — admin.html:2666
+- `copyParentNewInfo` — admin.html:2720
+- `loadParentList` — admin.html:2740
+- `deleteParentAccount` — admin.html:2768
+  ▸ _오류 모니터링_ — L2785
+- `loadErrorLogs` — admin.html:2786
+- `clearOldErrorLogs` — admin.html:2841
+- `generateLicenseKey` — admin.html:2857
+- `refreshLicenseKey` — admin.html:2867
+- `calcExpiresAt` — admin.html:2872
+- `copyLicenseKey` — admin.html:2882
+- `issueLicense` — admin.html:2891
+- `loadLicenseList` — admin.html:2932
+- `loadMyLicense` — admin.html:2987
+- `activateLicense` — admin.html:3046
+- `loadVocabFeedback` — admin.html:3074
+- `deleteVocabFeedback` — admin.html:3129
+- `loadClientErrors` — admin.html:3143
+- `checkRlsStatus` — admin.html:3194
+- `dismissRlsBanner` — admin.html:3205
+- `deleteClientError` — admin.html:3212
+- `_v` — admin.html:3234

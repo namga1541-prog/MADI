@@ -67,13 +67,14 @@ function _loadOlderHistory(d90, d30) {
     function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
     var oldSe  = safeMap(results[0]);
     var oldSch = safeMap(results[1]);
+    var addedSe = 0, addedSch = 0;
     var seenSe = {}; sessionDB.forEach(function(s){ seenSe[s.id] = true; });
-    oldSe.forEach(function(s){ if (!seenSe[s.id]) sessionDB.push(s); });
+    oldSe.forEach(function(s){ if (!seenSe[s.id]) { sessionDB.push(s); addedSe++; } });
     var seenSch = {}; scheduleDB.forEach(function(s){ seenSch[s.id] = true; });
-    oldSch.forEach(function(s){ if (!seenSch[s.id]) scheduleDB.push(s); });
-    // idle 머지 후 영향 가능 영역만 부분 리렌더
-    if (typeof renderSessionList === 'function') try { renderSessionList(); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
-    if (typeof renderSchedView   === 'function') try { renderSchedView();   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+    oldSch.forEach(function(s){ if (!seenSch[s.id]) { scheduleDB.push(s); addedSch++; } });
+    // 머지된 신규 항목이 0건이면 동일 화면 재렌더(innerHTML 전체 교체) 생략 — 초기 2회 풀렌더 제거(H-7)
+    if (addedSe   > 0 && typeof renderSessionList === 'function') try { renderSessionList(); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+    if (addedSch  > 0 && typeof renderSchedView   === 'function') try { renderSchedView();   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   }).catch(function(e) {
     if (window.console && console.warn) console.warn('[older history] silent:', e && e.message);
   });

@@ -43,12 +43,16 @@ function getMonthKST() { return getTodayKST().slice(0, 7); }
 /** 'YYYY-MM-DD' → 'YYYY년 M월 D일' (한국 표기) */
 function fmtDateKR(s) { if (!s) return ''; var p = s.split('-'); if (!p || p.length < 3) return s; return p[0] + '년 ' + parseInt(p[1]) + '월 ' + parseInt(p[2]) + '일'; }
 
-var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true };
+// 코드에서 canDo() 로 검사하는 모든 권한 키의 기본값. 여기에 없는 키는 fail-closed(차단).
+var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, deleteAssessment:true, editChild:true };
 function canDo(perm) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin' || currentUser.role === 'superadmin') return true;
   var p = currentUser.permissions || {};
-  return p[perm] !== false;
+  // 사용자 permissions 에 명시되면 그 값(false 면 차단), 아니면 기본값을 따른다.
+  // DEFAULT_PERMS 에 정의되지 않은 키(오타 등)는 fail-closed — 미정의 키가 무방비 허용되지 않도록(H-2).
+  if (Object.prototype.hasOwnProperty.call(p, perm)) return p[perm] !== false;
+  return DEFAULT_PERMS[perm] === true;
 }
 /**
  * 현재 사용자가 담당/연결된 아동인지. (id 는 문자열 — 숫자 비교 금지)
