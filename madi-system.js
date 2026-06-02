@@ -90,11 +90,12 @@ function savePermissions() {
   if (currentUser.role === 'admin' && _permData._targetRole === 'superadmin') {
     showToast('⚠️ 슈퍼관리자 계정의 권한은 변경할 수 없습니다'); return;
   }
-  // _targetRole은 메타 정보이므로 실제 저장 payload에서 제외
+  // 정본 권한 키(PERM_LIST)만 저장 — 옛/미사용 키와 _targetRole 메타를 자동 정리.
+  //   PERM_LIST 는 madi-core.js DEFAULT_PERMS / canDo() 와 키가 일치(이중 체계 방지).
   var payload = {};
-  for (var k in _permData) {
-    if (k !== '_targetRole') payload[k] = _permData[k];
-  }
+  PERM_LIST.forEach(function(p) {
+    payload[p.key] = (_permData[p.key] !== false);
+  });
   var _savedPermUserId = _permUserId;
   supaFetch('madi_users?id=eq.' + _permUserId, 'PATCH', { permissions: payload })
     .then(function() {

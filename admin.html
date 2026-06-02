@@ -2557,13 +2557,14 @@ function renderTeacherChildMap() {
   } catch(e) { console.error('renderTeacherChildMap error:', e); }
 }
 
+// ⚠️ 권한 키 정본(single source of truth) — madi-core.js DEFAULT_PERMS / canDo() 와 반드시 일치.
+//    여기 키와 코드 canDo() 검사 키가 어긋나면 설정한 권한이 동작하지 않는다(이중 체계 방지).
 var PERM_ITEMS=[
-  {key:'viewOtherSessions', label:'다른 선생님 세션기록 조회', def:true},
-  {key:'viewOtherSchedules',label:'다른 선생님 일정 조회',    def:true},
-  {key:'editChild',         label:'아동 정보 수정',           def:true},
-  {key:'deleteChild',       label:'아동 삭제',                def:false},
-  {key:'useAI',             label:'AI 기능 사용',             def:true},
-  {key:'exportData',        label:'데이터 다운로드',           def:true}
+  {key:'viewOtherChildren', label:'다른 선생님 아동 조회', def:true},
+  {key:'editChild',         label:'아동 정보 수정',       def:true},
+  {key:'deleteSession',     label:'세션 기록 삭제',       def:true},
+  {key:'useAI',             label:'AI 기능 사용',         def:true},
+  {key:'deleteAssessment',  label:'검사 결과 삭제',       def:true}
 ];
 var _pcu=null, _pd={};
 function loadPermUserList(){
@@ -2610,7 +2611,12 @@ function saveUserPerms(){
   if(!_pcu) return;
   var st=document.getElementById('permSaveStatus');
   if(st) st.innerHTML='<span style="color:var(--text2);">저장 중...</span>';
-  supaFetch('madi_users?id=eq.'+encodeURIComponent(_pcu),'PATCH',{permissions:_pd})
+  // 정본 키(PERM_ITEMS)만 추출해 저장 — 옛/미사용 키(viewOtherSessions 등) 자동 정리
+  var clean={};
+  PERM_ITEMS.forEach(function(item){
+    clean[item.key]=(_pd[item.key]!==undefined)?!!_pd[item.key]:item.def;
+  });
+  supaFetch('madi_users?id=eq.'+encodeURIComponent(_pcu),'PATCH',{permissions:clean})
     .then(function(){ if(st) st.innerHTML='<span style="color:var(--green);">✅ 저장 완료</span>'; showToast('✅ 권한 저장 완료'); })
     .catch(function(e){ if(st) st.innerHTML='<span style="color:var(--red);">❌ '+escHtml((e&&e.message)||'오류')+'</span>'; });
 }

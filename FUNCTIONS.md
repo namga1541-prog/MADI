@@ -144,20 +144,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _permUserId = null;` — madi-system.js:2
 - `var _permData = {};` — madi-system.js:3
 - `var PERM_LIST = [` — madi-system.js:5
-- `var _pollTimer = null;` — madi-system.js:219
-- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:220
-- `var _myChangeTs = 0;` — madi-system.js:221
-- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:222
-- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:223
-- `var GITHUB_OWNER = 'namga1541-prog';` — madi-system.js:323
-- `var GITHUB_REPO = 'MADI';` — madi-system.js:324
-- `var GITHUB_FILE = 'index.html';` — madi-system.js:325
-- `var GITHUB_SW = 'sw.js';` — madi-system.js:326
-- `var _swNow = new Date();` — madi-system.js:331
-- `var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')` — madi-system.js:332
-- `var SW_LINES = [` — madi-system.js:335
-- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:437
-- `var _pwaPrompt = null;` — madi-system.js:1177
+- `var _pollTimer = null;` — madi-system.js:220
+- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:221
+- `var _myChangeTs = 0;` — madi-system.js:222
+- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:223
+- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:224
+- `var GITHUB_OWNER = 'namga1541-prog';` — madi-system.js:324
+- `var GITHUB_REPO = 'MADI';` — madi-system.js:325
+- `var GITHUB_FILE = 'index.html';` — madi-system.js:326
+- `var GITHUB_SW = 'sw.js';` — madi-system.js:327
+- `var _swNow = new Date();` — madi-system.js:332
+- `var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')` — madi-system.js:333
+- `var SW_LINES = [` — madi-system.js:336
+- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:438
+- `var _pwaPrompt = null;` — madi-system.js:1178
 - `var SLP_VOCAB_BLOCKED_PARENT = {` — madi-vocab.js:17
 - `var SLP_VOCAB_BLOCKED_ALL = {` — madi-vocab.js:71
 - `var SLP_VOCAB_ENCOURAGED = {` — madi-vocab.js:96
@@ -1034,56 +1034,56 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `openPermModal` — madi-system.js:13
 - `updatePermToggle` — madi-system.js:68
 - `savePermissions` — madi-system.js:78
-  ▸ _선생님 계정 관리 (관리자 전용)_ — L116
-- `renderStaffCard` — madi-system.js:117
-- `saveNewStaff` — madi-system.js:161
-- `deleteStaff` — madi-system.js:190
-  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L218
-- `initRealtime` — madi-system.js:233
-- `markMyChange` — madi-system.js:247
-- `stopRealtime` — madi-system.js:249
-  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L272
-- `_openMadiDB` — madi-system.js:273
-- `_saveFolderHandle` — madi-system.js:281
-- `_loadFolderHandle` — madi-system.js:292
-- `getMadiFolderHandle` — madi-system.js:303
-  ▸ _GitHub 자동 배포_ — L322
-  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L439
-- `_cleanupLegacyGithubToken` — madi-system.js:444
-- `deployFileViaProxy` — madi-system.js:453
-  ▸ _배포 대상 파일 자동 스캔_ — L477
-- `scanMadiFiles` — madi-system.js:480
-- `next` — madi-system.js:484
-  ▸ _파일 내용 → Git blob SHA-1 계산_ — L507
-- `gitBlobSha` — madi-system.js:510
-- `pollGithubPagesBuild` — madi-system.js:525
-- `poll` — madi-system.js:529
-- `deployToGitHub` — madi-system.js:564
-- `processImportFile` — madi-system.js:743
-- `_processImportFileInner` — madi-system.js:760
-- `normalizeDisorderType` — madi-system.js:800
-- `parseRowsToChildren` — madi-system.js:812
-- `findCol` — madi-system.js:816
-- `analyzeImportData` — madi-system.js:881
-- `renderImportPreview` — madi-system.js:925
-- `confirmImport` — madi-system.js:982
-- `_batchPost` — madi-system.js:1066
-- `cancelImport` — madi-system.js:1086
-  ▸ _초기화_ — L1094
-- `init` — madi-system.js:1095
-  ▸ _PWA 지원_ — L1176
-- `initPWA` — madi-system.js:1179
-  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1185
-- `_swApplyUpdate` — madi-system.js:1194
-- `_onVis` — madi-system.js:1207
-- `_pwaShouldShowBanner` — madi-system.js:1265
-- `showPWABanner` — madi-system.js:1276
-- `hidePWABanner` — madi-system.js:1307
-- `triggerPWAInstall` — madi-system.js:1321
-  ▸ _뒤로가기 버튼 탭 연동_ — L1335
-  ▸ _─_ — L1344
-  ▸ _─_ — L1346
-  ▸ _모듈 초기화_ — L1348
+  ▸ _선생님 계정 관리 (관리자 전용)_ — L117
+- `renderStaffCard` — madi-system.js:118
+- `saveNewStaff` — madi-system.js:162
+- `deleteStaff` — madi-system.js:191
+  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L219
+- `initRealtime` — madi-system.js:234
+- `markMyChange` — madi-system.js:248
+- `stopRealtime` — madi-system.js:250
+  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L273
+- `_openMadiDB` — madi-system.js:274
+- `_saveFolderHandle` — madi-system.js:282
+- `_loadFolderHandle` — madi-system.js:293
+- `getMadiFolderHandle` — madi-system.js:304
+  ▸ _GitHub 자동 배포_ — L323
+  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L440
+- `_cleanupLegacyGithubToken` — madi-system.js:445
+- `deployFileViaProxy` — madi-system.js:454
+  ▸ _배포 대상 파일 자동 스캔_ — L478
+- `scanMadiFiles` — madi-system.js:481
+- `next` — madi-system.js:485
+  ▸ _파일 내용 → Git blob SHA-1 계산_ — L508
+- `gitBlobSha` — madi-system.js:511
+- `pollGithubPagesBuild` — madi-system.js:526
+- `poll` — madi-system.js:530
+- `deployToGitHub` — madi-system.js:565
+- `processImportFile` — madi-system.js:744
+- `_processImportFileInner` — madi-system.js:761
+- `normalizeDisorderType` — madi-system.js:801
+- `parseRowsToChildren` — madi-system.js:813
+- `findCol` — madi-system.js:817
+- `analyzeImportData` — madi-system.js:882
+- `renderImportPreview` — madi-system.js:926
+- `confirmImport` — madi-system.js:983
+- `_batchPost` — madi-system.js:1067
+- `cancelImport` — madi-system.js:1087
+  ▸ _초기화_ — L1095
+- `init` — madi-system.js:1096
+  ▸ _PWA 지원_ — L1177
+- `initPWA` — madi-system.js:1180
+  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1186
+- `_swApplyUpdate` — madi-system.js:1195
+- `_onVis` — madi-system.js:1208
+- `_pwaShouldShowBanner` — madi-system.js:1266
+- `showPWABanner` — madi-system.js:1277
+- `hidePWABanner` — madi-system.js:1308
+- `triggerPWAInstall` — madi-system.js:1322
+  ▸ _뒤로가기 버튼 탭 연동_ — L1336
+  ▸ _─_ — L1345
+  ▸ _─_ — L1347
+  ▸ _모듈 초기화_ — L1349
 
 ## madi-vocab.js (4함수)
   ▸ _한자어 → 일상어 (학부모 대상 문서에서만 적용)_ — L16
@@ -1191,34 +1191,34 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `renderOpsDashboard` — admin.html:2469
 - `set` — admin.html:2476
 - `renderTeacherChildMap` — admin.html:2518
-- `loadPermUserList` — admin.html:2569
-- `loadUserPerms` — admin.html:2585
-- `renderPermList` — admin.html:2594
-- `saveUserPerms` — admin.html:2609
-  ▸ _학부모_ — L2618
-- `populateParentChildSelect` — admin.html:2620
-- `filterParentChildList` — admin.html:2631
-- `showParentChildDrop` — admin.html:2652
-- `selectParentChild` — admin.html:2657
-- `createParentAccount` — admin.html:2666
-- `copyParentNewInfo` — admin.html:2720
-- `loadParentList` — admin.html:2740
-- `deleteParentAccount` — admin.html:2768
-  ▸ _오류 모니터링_ — L2785
-- `loadErrorLogs` — admin.html:2786
-- `clearOldErrorLogs` — admin.html:2841
-- `generateLicenseKey` — admin.html:2857
-- `refreshLicenseKey` — admin.html:2867
-- `calcExpiresAt` — admin.html:2872
-- `copyLicenseKey` — admin.html:2882
-- `issueLicense` — admin.html:2891
-- `loadLicenseList` — admin.html:2932
-- `loadMyLicense` — admin.html:2987
-- `activateLicense` — admin.html:3046
-- `loadVocabFeedback` — admin.html:3074
-- `deleteVocabFeedback` — admin.html:3129
-- `loadClientErrors` — admin.html:3143
-- `checkRlsStatus` — admin.html:3194
-- `dismissRlsBanner` — admin.html:3205
-- `deleteClientError` — admin.html:3212
-- `_v` — admin.html:3234
+- `loadPermUserList` — admin.html:2570
+- `loadUserPerms` — admin.html:2586
+- `renderPermList` — admin.html:2595
+- `saveUserPerms` — admin.html:2610
+  ▸ _학부모_ — L2624
+- `populateParentChildSelect` — admin.html:2626
+- `filterParentChildList` — admin.html:2637
+- `showParentChildDrop` — admin.html:2658
+- `selectParentChild` — admin.html:2663
+- `createParentAccount` — admin.html:2672
+- `copyParentNewInfo` — admin.html:2726
+- `loadParentList` — admin.html:2746
+- `deleteParentAccount` — admin.html:2774
+  ▸ _오류 모니터링_ — L2791
+- `loadErrorLogs` — admin.html:2792
+- `clearOldErrorLogs` — admin.html:2847
+- `generateLicenseKey` — admin.html:2863
+- `refreshLicenseKey` — admin.html:2873
+- `calcExpiresAt` — admin.html:2878
+- `copyLicenseKey` — admin.html:2888
+- `issueLicense` — admin.html:2897
+- `loadLicenseList` — admin.html:2938
+- `loadMyLicense` — admin.html:2993
+- `activateLicense` — admin.html:3052
+- `loadVocabFeedback` — admin.html:3080
+- `deleteVocabFeedback` — admin.html:3135
+- `loadClientErrors` — admin.html:3149
+- `checkRlsStatus` — admin.html:3200
+- `dismissRlsBanner` — admin.html:3211
+- `deleteClientError` — admin.html:3218
+- `_v` — admin.html:3240
