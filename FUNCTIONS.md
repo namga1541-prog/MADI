@@ -307,13 +307,13 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `formatAssessScores` — madi-assessment.js:799
 - `renderAssessmentList` — madi-assessment.js:812
 - `deleteAssessment` — madi-assessment.js:833
-- `generateAssessReport` — madi-assessment.js:863
-  ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L871
-  ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L915
-  ▸ _부모 교육 자료_ — L1035
-- `generateParentEdu` — madi-assessment.js:1036
-- `printParentEdu` — madi-assessment.js:1085
-  ▸ _데이터 이전_ — L1112
+- `generateAssessReport` — madi-assessment.js:865
+  ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L873
+  ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L917
+  ▸ _부모 교육 자료_ — L1037
+- `generateParentEdu` — madi-assessment.js:1038
+- `printParentEdu` — madi-assessment.js:1087
+  ▸ _데이터 이전_ — L1114
 
 ## madi-auth.js (22함수)
 - `showLanding` — madi-auth.js:13

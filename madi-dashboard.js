@@ -955,10 +955,16 @@ function _dpLoadAdminTeacherTable(teacherStats, monStr, sunStr) {
 function _dpRenderTeacherTable(rows, teacherStats, tableEl, subEl) {
   if (!Array.isArray(rows)) rows = [];
   // 머지: madi_users 의 모든 선생님 + 활동 통계
+  // ⚠️ teacherStats 키는 _tsKey() 규칙('id:'+id / 'nm:'+name)이므로 bare name 으로 조회하면
+  //   영영 불일치 → 활동 선생님이 전부 inactive 로 표시됐던 버그. 동일 규칙으로 id 우선·이름 폴백 조회.
+  var usedKeys = {};
   var merged = rows.map(function(u){
     var name = u.name || u.username || '?';
-    var s = teacherStats[name];
+    var key = (u.id != null && teacherStats['id:' + u.id]) ? ('id:' + u.id)
+            : (teacherStats['nm:' + name] ? ('nm:' + name) : null);
+    var s = key ? teacherStats[key] : null;
     if (s) {
+      usedKeys[key] = true;
       return {
         name: name,
         count: Object.keys(s.children).length,
@@ -970,21 +976,19 @@ function _dpRenderTeacherTable(rows, teacherStats, tableEl, subEl) {
     }
     return { name: name, count: 0, weekSched: 0, weekSession: 0, unwritten: 0, inactive: true };
   });
-  // madi_users 에 없는 활동 이름 (외부 자료 import 등) — orphan 으로 같이 표시
-  var knownNames = {};
-  rows.forEach(function(u){ knownNames[u.name || u.username || ''] = true; });
-  Object.keys(teacherStats).forEach(function(name){
-    if (!knownNames[name]) {
-      var s = teacherStats[name];
-      merged.push({
-        name: name,
-        count: Object.keys(s.children).length,
-        weekSched: s.weekSched,
-        weekSession: s.weekSession,
-        unwritten: s.unwritten,
-        inactive: false
-      });
-    }
+  // madi_users 에 매칭되지 않은 활동 버킷(외부 자료 import 등) — orphan 으로 같이 표시.
+  //   usedKeys 로 이미 머지된 버킷을 제외해 중복 추가를 방지(표시 이름은 버킷의 s.name).
+  Object.keys(teacherStats).forEach(function(key){
+    if (usedKeys[key]) return;
+    var s = teacherStats[key];
+    merged.push({
+      name: s.name || key,
+      count: Object.keys(s.children).length,
+      weekSched: s.weekSched,
+      weekSession: s.weekSession,
+      unwritten: s.unwritten,
+      inactive: false
+    });
   });
   // 정렬: 활동 있는 순 → 담당 아동 수 내림차순
   merged.sort(function(a, b){

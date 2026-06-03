@@ -849,12 +849,14 @@ function deleteAssessment(id) {
     showToast('🗑️ 검사결과 삭제됨', {
       undo: function() {
         if (!backup) return;
-        var payload = Object.assign({}, backup);
-        delete payload.id;
-        payload.center_id = currentUser && currentUser.center_id ? currentUser.center_id : payload.center_id;
-        supaFetch('madi_assessments', 'POST', [payload])
-          .then(function() { if (typeof loadAssess === 'function') loadAssess(); renderAssessmentList(); showToast('↩️ 복원됨'); })
-          .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });
+        // undo 전용 POST 가 검사객체를 data(JSONB)로 래핑하지 않아 최상위 컬럼으로 전송돼
+        //   PostgREST 400(조용한 복원 실패·데이터 유실)나던 문제 → 삭제 전 backup 을 메모리에
+        //   되돌리고 표준 저장 경로(saveAssess, mapRow 로 data 래핑)로 통째 재저장해 회귀 차단.
+        if (!assessmentDB.some(function(a){ return String(a.id) === String(backup.id); })) {
+          assessmentDB.push(backup);
+        }
+        renderAssessmentList();
+        saveAssess().then(function(ok) { if (ok !== false) showToast('↩️ 복원됨'); });
       }
     });
   });
