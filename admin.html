@@ -182,7 +182,7 @@
     .svc-row-name { font-size:13px; font-weight:700; flex:1.2; min-width:60px; }
     .svc-row-sub { font-size:11px; color:var(--text2); margin-top:2px; }
     .svc-row-cnt { flex:0.5; font-size:14px; font-weight:900; color:var(--mint); text-align:center; }
-    .svc-status-sel { font-size:12px; padding:7px 8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); cursor:pointer; min-height:36px; }
+    .svc-status-sel { font-size:12px; padding:7px 8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); cursor:pointer; min-height:44px; }
     .svc-status-sel.done { background:var(--mint2); color:var(--mint); border-color:var(--mint); }
     .svc-status-sel.pending { background:#fef3c7; color:#92400e; border-color:var(--amber); }
     .svc-status-sel.cancelled { background:#fee2e2; color:var(--red); border-color:var(--red); }
@@ -437,7 +437,7 @@
         <select id="intSvcProgram" class="form-input svc-filter-sel" onchange="renderIntegratedSvc()"><option value="">프로그램 전체</option></select>
       </div>
       <div id="intSvcStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;"></div>
-      <div id="intSvcList"><div class="empty"><div class="empty-icon">🔍</div><p>기간을 선택하면 현황이 표시됩니다.</p></div></div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><div id="intSvcList"><div class="empty"><div class="empty-icon">🔍</div><p>기간을 선택하면 현황이 표시됩니다.</p></div></div></div>
     </div>
 
     <!-- 일간 서비스 현황 -->

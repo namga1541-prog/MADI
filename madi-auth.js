@@ -166,6 +166,7 @@ function doLogin(_totpCode) {
     try { localStorage.setItem('madi_user', JSON.stringify(_toStore)); localStorage.setItem('madi_last_id', un); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     _purgeLegacyCnCache(); // 이전 사용자의 cn3_* PII 잔존 데이터 일소
     hideLoginScreen(); if (typeof applyUserUI === 'function') applyUserUI(); if (typeof applyRoleUI === 'function') applyRoleUI(); if (typeof loadCenterApiKey === 'function') loadCenterApiKey(); if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(); if (typeof initRealtime === 'function') initRealtime(); if (typeof loadCenterSessionInterval === 'function') loadCenterSessionInterval();
+    try { document.dispatchEvent(new Event('madiLoggedIn')); } catch(e) {}
     // 로그인 직후 마디 업데이트 팝업 표시 (대시보드 렌더 후 약간의 딜레이)
     setTimeout(function(){ if (typeof showLoginUpdatePopup === 'function') showLoginUpdatePopup(); }, 500);
     // 2FA 미설정 경고 모달 (admin/superadmin 대상)

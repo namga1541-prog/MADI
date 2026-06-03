@@ -385,7 +385,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +     '<label class="form-label">✅ 다음 목표</label>'
     +     '<div id="quickGoalsBox" aria-live="polite"></div>'
     +     '<div style="display:flex;gap:6px;margin-top:8px;">'
-    +       '<input type="text" id="quickGoalInput" class="form-input" maxlength="' + _QUICK_GOAL_MAX_LEN + '" placeholder="새 목표 추가" style="flex:1;">'
+    +       '<input type="text" id="quickGoalInput" class="form-input" maxlength="' + _QUICK_GOAL_MAX_LEN + '" placeholder="새 목표 추가" enterkeyhint="done" style="flex:1;" onkeydown="if(event.key===\'Enter\'){event.preventDefault();quickAddGoal();}">'
     +       '<button type="button" onclick="quickAddGoal()" class="btn btn-secondary" style="padding:9px 14px;font-size:13px;">+ 추가</button>'
     +     '</div>'
     +   '</div>'

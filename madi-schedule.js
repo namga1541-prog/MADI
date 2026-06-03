@@ -366,7 +366,7 @@ function renderWeekGrid() {
           var items = cells.map(function(s) {
             var child = childById[s.childId];
             var time  = (s.startTime||s.time||'').slice(0,5);
-            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:1px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">'
+            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
               + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span></div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
@@ -511,7 +511,7 @@ function renderDayGrid() {
           var items = cell.map(function(s) {
             var child = childById[s.childId];
             var type = escHtml(s.type || '');
-            return '<div style="cursor:pointer;padding:2px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')"><span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
+            return '<div style="cursor:pointer;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')"><span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:5px 8px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
         }
@@ -848,7 +848,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
           var t = s.therapist || s.teacher || '';
           var tcolor = getTeacherColor(t);
           var time = (s.startTime||s.time||'').slice(0,5);
-          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:2px 0;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">' + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '') + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">' + escHtml(t) + '</span></div>';
+          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">' + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '') + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">' + escHtml(t) + '</span></div>';
         }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
         var bgStyle = daySched.length >= 2 ? 'background:#fff7ed;border:1px solid #fed7aa;' : 'border:1px solid #e2e8f0;';
         html += '<td style="padding:4px 5px;' + bgStyle + 'vertical-align:top;">' + items + '</td>';

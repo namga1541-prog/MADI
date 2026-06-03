@@ -1228,10 +1228,12 @@ function initPWA() {
       b.id = 'swUpdateBanner';
       b.setAttribute('role', 'button');
       b.setAttribute('tabindex', '0');
-      b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);'
+      // safe-area-inset-bottom: 홈인디케이터 아이폰에서 배너가 인디케이터와 겹치지 않게.
+      // right:84px: 우하단 .float-btn(width 56px + right 20px + 간격)과 겹치지 않게 우측 여백 확보.
+      b.style.cssText = 'position:fixed;left:16px;right:84px;bottom:calc(22px + env(safe-area-inset-bottom,0px));'
         + 'z-index:2147483646;background:var(--mint,#0ea5a0);color:#fff;font-weight:700;'
-        + 'font-size:14px;line-height:1.3;padding:13px 22px;border-radius:999px;cursor:pointer;'
-        + 'box-shadow:0 6px 22px rgba(0,0,0,0.28);max-width:92vw;text-align:center;'
+        + 'font-size:14px;line-height:1.3;padding:13px 16px;border-radius:16px;cursor:pointer;'
+        + 'box-shadow:0 6px 22px rgba(0,0,0,0.28);text-align:center;'
         + '-webkit-tap-highlight-color:transparent;';
       b.textContent = '🔄 새 버전이 있습니다 — 탭하여 업데이트';
       b.onclick = onClick;
@@ -1294,7 +1296,17 @@ function initPWA() {
   var isStandalone = window.navigator.standalone === true
     || window.matchMedia('(display-mode: standalone)').matches;
   if (isIOS && !isStandalone && _pwaShouldShowBanner()) {
-    setTimeout(function() { showPWABanner('ios'); }, 2500);
+    // 배너를 랜딩/로그인 화면(z-index 9998/9999) 위에 표시 — 로그인 후 표시로 지연해 가림 방지.
+    //   2500ms 고정 대신 로그인 완료 후 500ms 딜레이로 변경(비로그인 상태에서는 미표시).
+    //   initPWA 는 로그인 전에도 호출되므로 타이머만으로는 가려짐 → 이벤트 방식으로 전환.
+    if (!currentUser) {
+      document.addEventListener('madiLoggedIn', function _pwaIosOnce() {
+        document.removeEventListener('madiLoggedIn', _pwaIosOnce);
+        setTimeout(function() { showPWABanner('ios'); }, 800);
+      });
+    } else {
+      setTimeout(function() { showPWABanner('ios'); }, 800);
+    }
   }
 
   // dismiss 이후의 방문 카운트 증가 (재안내 조건: 30일 + 5회 방문)
@@ -1377,8 +1389,21 @@ document.addEventListener('DOMContentLoaded', function() {
   init();
   initFloatBtnDrag();
 
-  // ─── 뒤로가기 버튼 탭 연동 ───
+  // ─── 뒤로가기 버튼 탭 연동 + 모달 닫힘 ───
+  // Android Chrome/PWA standalone: 모달이 열려 있으면 뒤로가기가 모달을 닫도록 처리.
+  //   history.pushState({tab}) 는 switchTab 만 쌓고 동적 모달은 미참여해,
+  //   Back 시 모달은 안 닫히고 탭이 전환되거나 앱이 종료되던 문제 해소.
   window.addEventListener('popstate', function(e) {
+    // 오버레이 모달이 열려 있으면 닫고 스택을 다시 push 해 탭 이동을 막는다.
+    var overlay = document.querySelector('.sched-modal-overlay, .modal-overlay, .confirm-ov, .pwa-modal-bg');
+    if (overlay) {
+      overlay.remove();
+      if (e.state && typeof e.state.tab !== 'undefined') {
+        // 닫힌 모달의 뒤 상태를 다시 쌓아 탭이 돌아가지 않게 함
+        history.pushState(e.state, '');
+      }
+      return;
+    }
     if (e.state && typeof e.state.tab !== 'undefined') {
       if (typeof switchTab === 'function') switchTab(e.state.tab);
     }

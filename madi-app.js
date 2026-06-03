@@ -69,7 +69,23 @@ function loadDBFromSupabase(silent) {
     refreshChildAges();   // 등록 시점 age → 오늘 기준으로 인메모리 갱신
     window._dataLoadedAt = Date.now();
     if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
+    // 폴링(silent) 재렌더 전 .open 카드 id 목록 보존 → 재렌더 후 복원.
+    //   renderChildGrid 가 innerHTML 통째 교체라, toggleChildCard 가 DOM-only 로 .open 을 관리해
+    //   30초 폴링마다 펼친 카드가 결정적으로 닫히던 문제 해소.
+    var _openIds = [];
+    if (silent) {
+      document.querySelectorAll('.child-card.open').forEach(function(el) {
+        if (el.id) _openIds.push(el.id);  // id="cc_<childId>" 패턴
+      });
+    }
     if (typeof renderChildGrid === 'function') renderChildGrid(); if (typeof populateChildSelects === 'function') populateChildSelects(); if (typeof renderGoalRows === 'function') renderGoalRows(); if (typeof renderSessionList === 'function') renderSessionList(); if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert(); if (typeof renderStaffCard === 'function') renderStaffCard();
+    // .open 카드 복원
+    if (_openIds.length) {
+      _openIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('open');
+      });
+    }
     if (typeof renderSchedView === 'function') renderSchedView();
     if (typeof renderDashboard === 'function') renderDashboard();
     loadActivitiesFromSupa(); loadIEPFromSupa();
@@ -431,7 +447,7 @@ function setupNetworkMonitor() {
   function showOfflineBanner() {
     if (document.getElementById('offlineBanner')) return;
     var b = document.createElement('div'); b.id = 'offlineBanner';
-    b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:8px 14px;font-size:12px;font-weight:700;text-align:center;z-index:10001;box-shadow:0 2px 8px rgba(0,0,0,0.2);'; /* 10001: 모달(10000) 위에 표시 */
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;font-size:12px;font-weight:700;text-align:center;z-index:10001;box-shadow:0 2px 8px rgba(0,0,0,0.2);'; /* 10001: 모달(10000) 위에 표시 */
     b.innerHTML = '🔌 인터넷 연결 끊김 — 변경사항은 연결 복구 시 자동 동기화됩니다'; document.body.appendChild(b);
   }
   function hideOfflineBanner() { var b = document.getElementById('offlineBanner'); if (b) { b.style.background = '#10b981'; b.innerHTML = '✅ 인터넷 연결 복구'; setTimeout(function() { b.remove(); }, 2500); } }
