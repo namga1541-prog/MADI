@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
 
   // ── Rate Limit: 사용자별 분당 10회 / 시간당 60회 ──
   // Anthropic 토큰 비용 폭주 방지 (한 사용자가 분당 수백 콜 호출 차단)
-  const rl = await checkRateLimit(`aiproxy:${String(user.sub)}`, SUPA_URL, SUPA_KEY, 10, 60)
+  const rl = await checkRateLimit(`aiproxy:${String(user.sub)}`, SUPA_URL, SUPA_KEY, 10, 60, { failClosed: true })
   if (!rl.allowed) {
     return new Response(
       JSON.stringify({ error: `AI 요청이 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),
@@ -57,7 +57,7 @@ Deno.serve(async (req: Request) => {
   // ── 센터 단위 Rate Limit: 분당 30회 / 시간당 500회 ──
   // 한 센터의 다수 계정이 동시에 호출해 토큰 비용을 폭주시키는 것을 차단.
   // 사용자별·센터별 둘 중 하나라도 초과 시 429.
-  const rlCenter = await checkRateLimit(`aiproxy:center:${String(centerId)}`, SUPA_URL, SUPA_KEY, 30, 500)
+  const rlCenter = await checkRateLimit(`aiproxy:center:${String(centerId)}`, SUPA_URL, SUPA_KEY, 30, 500, { failClosed: true })
   if (!rlCenter.allowed) {
     return new Response(
       JSON.stringify({ error: `센터 AI 요청이 너무 많습니다. ${rlCenter.retryAfter}초 후 다시 시도해주세요.` }),

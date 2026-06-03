@@ -580,12 +580,35 @@ Deno.serve(async (req: Request) => {
       if (!method || method === 'GET') {
         finalPath = path + (path.includes('?') ? '&' : '?') + col + '=eq.' + userId
       } else if (method === 'POST') {
-        if (Array.isArray(body)) {
-          for (const row of body) {
+        const _pRows = Array.isArray(body) ? body : (body ? [body] : [])
+        if (tableName === 'madi_parent_observations') {
+          // 관찰기록 위변조 차단: parent_user_id 강제 외에 child_id 가 '이 학부모와 연결된'
+          //   아동인지 권위 조회로 검증하고, center_id 를 연결 행 기준으로 서버 치환.
+          //   (기존엔 child_id·center_id 를 클라 값 그대로 신뢰 → 미연결 아동/타 센터 주입 가능)
+          const _linkRes = await fetch(
+            SUPA_URL + '/rest/v1/madi_parent_children?parent_user_id=eq.' + encodeURIComponent(userId) + '&select=child_id,center_id',
+            { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+          )
+          if (!_linkRes.ok) {
+            return new Response(JSON.stringify({ error: '아동 연결 확인에 실패했습니다' }), { status: 403, headers: CORS })
+          }
+          const _links = await _linkRes.json() as Array<{ child_id: unknown; center_id: unknown }>
+          const _childCenter: Record<string, string> = {}
+          for (const l of _links) _childCenter[String(l.child_id)] = String(l.center_id)
+          for (const row of _pRows) {
+            if (!row || typeof row !== 'object') continue
+            const r = row as Record<string, unknown>
+            r[col] = userId
+            const _cid = String(r.child_id ?? '')
+            if (!_childCenter[_cid]) {
+              return new Response(JSON.stringify({ error: '연결되지 않은 아동입니다' }), { status: 403, headers: CORS })
+            }
+            r.center_id = _childCenter[_cid]
+          }
+        } else {
+          for (const row of _pRows) {
             if (row && typeof row === 'object') (row as Record<string, unknown>)[col] = userId
           }
-        } else if (body && typeof body === 'object') {
-          (body as Record<string, unknown>)[col] = userId
         }
       } else if (method === 'PATCH' || method === 'DELETE') {
         finalPath = path + (path.includes('?') ? '&' : '?') + col + '=eq.' + userId
@@ -646,6 +669,28 @@ Deno.serve(async (req: Request) => {
       } else if (method === 'PATCH' || method === 'DELETE') {
         finalPath = path + (path.includes('?') ? '&' : '?') + 'center_id=eq.' + centerId
       }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // ★ madi_lounge_posts 가시성(visibility) 서버 강제 — 클라 filterLoungePosts(madi-board.js) 복제.
+    //   service_role 프록시는 RLS 를 우회하므로 가시성 필터가 없으면, 같은 센터의 타 직원 1:1
+    //   비공개 글(private_admin/private_super)을 콘솔 직접 호출로 평문 열람할 수 있다.
+    //   teacher/admin 은 위 스코프에서 center_id 필터가 이미 적용됨 → 여기선 visibility 만 AND 로 좁힌다.
+    // ══════════════════════════════════════════════════════════
+    if (tableName === 'madi_lounge_posts' && (!method || method === 'GET')) {
+      const _luid = String(user.sub)
+      let _visFilter: string
+      if (user.role === 'superadmin') {
+        // 전 센터 공개글 + 모든 private_super 1:1
+        _visFilter = 'or=(visibility.eq.center,visibility.eq.private_super)'
+      } else if (user.role === 'admin') {
+        // 자기 센터 공개글 + private_admin + 본인 발신 private_super
+        _visFilter = 'or=(visibility.eq.center,visibility.eq.private_admin,and(visibility.eq.private_super,author_id.eq.' + _luid + '))'
+      } else {
+        // teacher: 공개글 + 본인 발신 비공개
+        _visFilter = 'or=(visibility.eq.center,author_id.eq.' + _luid + ')'
+      }
+      finalPath = finalPath + (finalPath.includes('?') ? '&' : '?') + _visFilter
     }
 
     // ══════════════════════════════════════════════════════════

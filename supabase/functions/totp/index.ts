@@ -144,7 +144,7 @@ Deno.serve(async (req: Request) => {
   // ── confirm: secret + code 검증 후 DB 저장 ──
   if (body.action === 'confirm') {
     // Rate Limit: 사용자별 분당 5·시간당 20 (TOTP 코드 브루트포스 차단)
-    const rl = await checkRateLimit('totp:confirm:' + userId, SUPA_URL, SUPA_KEY, 5, 20)
+    const rl = await checkRateLimit('totp:confirm:' + userId, SUPA_URL, SUPA_KEY, 5, 20, { failClosed: true })
     if (!rl.allowed) {
       return new Response(
         JSON.stringify({ error: `인증 시도가 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),
@@ -198,7 +198,7 @@ Deno.serve(async (req: Request) => {
   // ── disable: 현재 코드 검증 후 비활성화 ──
   if (body.action === 'disable') {
     // Rate Limit: 사용자별 분당 5·시간당 20 (TOTP 코드 브루트포스 차단)
-    const rl = await checkRateLimit('totp:disable:' + userId, SUPA_URL, SUPA_KEY, 5, 20)
+    const rl = await checkRateLimit('totp:disable:' + userId, SUPA_URL, SUPA_KEY, 5, 20, { failClosed: true })
     if (!rl.allowed) {
       return new Response(
         JSON.stringify({ error: `인증 시도가 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),

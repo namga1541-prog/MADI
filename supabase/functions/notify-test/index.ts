@@ -10,7 +10,7 @@
  * 응답: { ok, sent, parents, subs, reason? }
  */
 import webpush from "npm:web-push@3.6.7";
-import { makeCORS, getAuthToken, verifyJwt, requireFreshSession } from '../_shared/auth.ts';
+import { makeCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit } from '../_shared/auth.ts';
 
 // ── 메인 핸들러 ─────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
@@ -52,6 +52,13 @@ Deno.serve(async (req: Request) => {
   //   센터 전체 학부모에게 푸시를 발송하는 쓰기성·비용성 작업이므로 fail-closed.
   if (!(await requireFreshSession(user, SUPA_URL, SUPA_KEY, { failClosed: true }))) {
     return new Response(JSON.stringify({ error: '세션이 만료되었습니다. 다시 로그인해 주세요.' }), { status: 401, headers: { ...CORS, 'Content-Type': 'application/json' } });
+  }
+
+  // rate limit — 센터 전체 학부모에게 푸시를 발송하는 비용성·외부망(FCM/APNs) 작업.
+  //   관리자당 분 3회/시 10회 보수적 상한으로 푸시 폭주·게이트웨이 차단을 방지(탈취 세션 포함).
+  const _rl = await checkRateLimit('notifytest:' + String(user.sub), SUPA_URL, SUPA_KEY, 3, 10);
+  if (!_rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, reason: '너무 자주 요청했습니다. 잠시 후 다시 시도해 주세요.', retryAfter: _rl.retryAfter }), { status: 429, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
 
   const centerId = String(user.center_id || '');

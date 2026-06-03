@@ -266,8 +266,12 @@ export async function checkRateLimit(
   supaUrl: string,
   supaKey: string,
   perMin: number,
-  perHour: number
+  perHour: number,
+  opts: { failClosed?: boolean } = {}
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
+  // RPC 실패(5xx·네트워크·예외) 시 기본은 fail-open(가용성 우선). failClosed=true 면 차단해
+  //   비용(ai-proxy)·브루트포스(totp) 방어가 RPC 장애 시 단일 실패점이 되지 않도록 한다.
+  const _onErr = opts.failClosed === true ? false : true
   try {
     const r = await fetch(`${supaUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
       method:  'POST',
@@ -278,7 +282,7 @@ export async function checkRateLimit(
       },
       body: JSON.stringify({ p_key: key, p_min_window_ms: 60_000, p_hour_window_ms: 3_600_000 }),
     })
-    if (!r.ok) return { allowed: true }
+    if (!r.ok) return { allowed: _onErr }
     const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
     if (d.count >= perMin) {
       const wait = Math.max(1, Math.ceil((new Date(d.window_start).getTime() + 60_000 - Date.now()) / 1000))
@@ -290,6 +294,6 @@ export async function checkRateLimit(
     }
     return { allowed: true }
   } catch (_) {
-    return { allowed: true }
+    return { allowed: _onErr }
   }
 }
