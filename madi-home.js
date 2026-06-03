@@ -173,7 +173,7 @@ function addStaffAccount() {
   }
   if (name.length > 20) { showToast('⚠️ 이름은 20자 이내로 입력해 주세요.'); return; }
   if (username.length < 2 || username.length > 20) { showToast('⚠️ 아이디는 2~20자로 입력해 주세요.'); return; }
-  if (pw.length < 8 || pw.length > 50) { showToast('⚠️ 비밀번호는 8~50자로 입력해 주세요.'); return; }
+  if (pw.length < 4 || pw.length > 50) { showToast('⚠️ 비밀번호는 4~50자로 입력해 주세요.'); return; }
   if (resultEl) resultEl.innerHTML = '<span style="color:var(--text2);">추가 중...</span>';
 
   hashPassword(pw).then(function(hashed) {

@@ -433,8 +433,8 @@ function parentSignup() {
   var pw = pwInput.value;
   var pw2 = pw2Input.value;
 
-  if (!pw || pw.length < 8) {
-    errEl.textContent = '⚠️ 비밀번호는 8자 이상 입력해주세요';
+  if (!pw || pw.length < 4) {
+    errEl.textContent = '⚠️ 비밀번호는 4자 이상 입력해주세요';
     return;
   }
   if (pw !== pw2) {

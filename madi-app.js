@@ -566,9 +566,8 @@ function getRoleFlags(user) {
   return { isAuth:true, isSuper:r==='superadmin', isAdmin:r==='admin', isTeacher:r==='teacher', isParent:r==='parent', isAdminOrSuper:r==='admin'||r==='superadmin' };
 }
 function validatePasswordStrength(pw) {
-  // 최소 8자 — 전화번호/아이디 enumeration 대비 약한 비번 방지. 서버(change-password·
-  //   parent-auth)도 8자 강제하므로 클라/서버 일관. 영숫자 혼합 강제는 베타 후 검토.
-  if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+  // 베타 기간: 최소 4자 유지 (정식 배포 시 8자+영숫자 혼합으로 강화 예정)
+  if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
   return null;
 }
 

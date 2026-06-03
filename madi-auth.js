@@ -469,7 +469,7 @@ function showChangePasswordModal() {
     + '</div>'
     + '<div style="margin-bottom:12px;">'
     + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호</label>'
-    + '<input type="password" id="cpNew" class="form-input" placeholder="8자 이상" style="width:100%;box-sizing:border-box;">'
+    + '<input type="password" id="cpNew" class="form-input" placeholder="4자 이상" style="width:100%;box-sizing:border-box;">'
     + '</div>'
     + '<div style="margin-bottom:16px;">'
     + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호 확인</label>'

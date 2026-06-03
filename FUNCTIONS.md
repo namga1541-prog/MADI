@@ -8,7 +8,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:360
 - `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:362
 - `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:417
-- `var _clientIdCounter = 0;` — madi-app.js:581
+- `var _clientIdCounter = 0;` — madi-app.js:580
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -260,10 +260,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `closeMoreMenu` — madi-app.js:555
 - `getRoleFlags` — madi-app.js:562
 - `validatePasswordStrength` — madi-app.js:568
-  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L575
-- `generateClientId` — madi-app.js:582
-- `applyUserUI` — madi-app.js:587
-- `updateKbOffset` — madi-app.js:618
+  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L574
+- `generateClientId` — madi-app.js:581
+- `applyUserUI` — madi-app.js:586
+- `updateKbOffset` — madi-app.js:617
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3
