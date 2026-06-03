@@ -15,8 +15,10 @@ var ROOT = process.cwd();
 var RULES = [
   { name: 'console.log',  files: /^madi-.*\.js$/, re: /\bconsole\.log\s*\(/,
     why: '운영 코드 console.log 금지', fix: 'console.warn/디버그 제거 또는 _reportClientError 사용' },
-  { name: 'overscroll',   files: /\.css$/,        re: /overscroll-behavior/,
-    why: '안드로이드 스크롤 차단 유발(과거 버그)', fix: 'body 에 overscroll-behavior 금지' },
+  // 과거 버그: body/html 에 overscroll-behavior:none 을 걸면 Android 전체 스크롤이 차단됨.
+  // 모달 컨테이너(.sched-modal 등)에 overscroll-behavior:contain 은 올바른 패턴이라 허용.
+  { name: 'overscroll',   files: /\.css$/,        re: /(?:^|\s)(?:html|body)\s*\{[^}]*overscroll-behavior/,
+    why: 'body/html 에 overscroll-behavior → 안드로이드 전체 스크롤 차단', fix: '모달 컨테이너에 contain 사용(body 적용 금지)' },
   { name: 'date-UTC',     files: /^madi-.*\.js$/, re: /toISOString\(\)\s*\.\s*(slice|substring)\s*\(\s*0/,
     why: 'toISOString()(UTC)을 날짜로 사용 → KST 새벽 하루 어긋남', fix: 'ymd(nowKST()) 사용' },
 ];
