@@ -170,7 +170,7 @@ function addChildFromModal() {
   _addChildLock = true;
   setTimeout(function(){ _addChildLock = false; }, 1500);
 
-  childDB.push({ id:String(Date.now() + Math.floor(Math.random() * 1000)), name:name, birth:birth, age:age, type:type,
+  childDB.push({ id: generateClientId(), name:name, birth:birth, age:age, type:type,
     phone:phone, goals:[], memo:memo, status:status, startDate:'', voucherLimit:0,
     color:CHILD_COLORS[childDB.length % CHILD_COLORS.length] });
   var _saveP = saveChildren();

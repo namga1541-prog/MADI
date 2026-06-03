@@ -9,6 +9,7 @@
 - 공통 컬럼: **`id`(text PK), `center_id`(text), `data`(JSONB — 실제 필드 전체)**
 - 추가 실컬럼(테이블별): `madi_schedules.child_id`, `madi_portfolios.child_id`/`parent_visible`, `madi_assessments.user_id`
 - 학부모 격리는 `data->>childId` 또는 `child_id` 컬럼으로 (RLS/프록시가 강제 — [ARCHITECTURE.md](./ARCHITECTURE.md) 참조)
+- ⚠️ `madi_activities` 정합 미확인: 클라(`saveActivities`)는 활동 필드를 **최상위 컬럼으로 평탄 전송**하고 load 도 raw 행을 그대로 사용 → 실제 스키마가 제네릭(`data` JSONB)이 아닌 **flat 컬럼**일 가능성. Supabase 실컬럼 확인 후 위 제네릭 목록에서 분리할지 결정(코드 변경 아님, 문서 정합용).
 
 ## 메타·운영 테이블 (명시 컬럼)
 | 테이블 | 컬럼 |
@@ -26,5 +27,7 @@
 | `madi_lounge_posts` | `id`, `center_id`, `author_id`, `author_name`, `author_role`, `title`, `content`, `images`, `image_urls`, `note`, `visibility`, `created_at` |
 | `madi_lounge_comments` | `id`, `post_id`, `center_id`, `author_id`, `author_name`, `author_role`, `content`, `created_at` |
 | `madi_error_logs` | `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` |
-| `madi_parent_observations` | `id`, `parent_user_id`, `child_id`, `center_id`, `content`, `teacher_reply`, `created_at` |
+| `madi_parent_observations` | `id`, `parent_user_id`, `child_id`, `center_id`, `content`, `teacher_reply`, `category`(기본 'general'), `replied_at`, `replied_by`, `created_at` |
 | `madi_center_api_keys` | (마이그레이션 `migrations/add_center_api_keys.sql` 참조 — 센터별 API 키) |
+| `madi_global_notices` | `id`, `notice_type`, `pinned`, `title`, `content`, `author_id`, `author_name`, `show_as_login_popup`, `created_at` — **전역(center_id 컬럼 없음)** |
+| `madi_notices` | `id`, `center_id`, `notice_type`, `pinned`, `title`, `content`, `author_id`, `author_name`, `created_at` |

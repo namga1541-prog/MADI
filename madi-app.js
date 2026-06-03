@@ -17,6 +17,10 @@ function _isoDaysAgo(n) {
   return ymd(d);
 }
 
+// Supabase 응답 행 정규화 — data 추출 + id/childId String 화. childId String 컨벤션(회귀버그
+//   방지)을 한 곳에서만 관리하도록 loadDBFromSupabase·_loadOlderHistory 의 중복 nested 함수를 통합.
+function _normalizeRows(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
+
 // Supabase 기본 max-rows(1000) 초과 컬렉션 전량 로드 — offset 페이지네이션.
 //   limit=1000 한 페이지씩 받아 합치고, 반환 < 1000 이면 마지막 페이지로 종료(소규모 테이블은 요청 1회).
 //   ⚠️ basePath 에 order=... 가 반드시 포함돼야 페이지 경계가 안정적(중복·누락 방지).
@@ -55,8 +59,7 @@ function loadDBFromSupabase(silent) {
     _supaFetchAll('madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc'),
     _supaFetchAll('madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc')
   ]).then(function(results) {
-    function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
-    var supaCh = safeMap(results[0]), supaSe = safeMap(results[1]), supaSch = safeMap(results[2]), supaAs = safeMap(results[3]);
+    var supaCh = _normalizeRows(results[0]), supaSe = _normalizeRows(results[1]), supaSch = _normalizeRows(results[2]), supaAs = _normalizeRows(results[3]);
     childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
     refreshChildAges();   // 등록 시점 age → 오늘 기준으로 인메모리 갱신
     window._dataLoadedAt = Date.now();
@@ -84,9 +87,8 @@ function _loadOlderHistory(d90, d30) {
     _supaFetchAll('madi_sessions?'  + centerFilter() + '&data->>date=lt.' + d90 + '&select=id,data&order=id.desc'),
     _supaFetchAll('madi_schedules?' + centerFilter() + '&data->>date=lt.' + d30 + '&select=id,data&order=id.desc')
   ]).then(function(results) {
-    function safeMap(arr) { if (!Array.isArray(arr)) return []; return arr.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); if (d.childId !== undefined) d.childId=String(d.childId); return d; }); }
-    var oldSe  = safeMap(results[0]);
-    var oldSch = safeMap(results[1]);
+    var oldSe  = _normalizeRows(results[0]);
+    var oldSch = _normalizeRows(results[1]);
     var addedSe = 0, addedSch = 0;
     var seenSe = {}; sessionDB.forEach(function(s){ seenSe[s.id] = true; });
     oldSe.forEach(function(s){ if (!seenSe[s.id]) { sessionDB.push(s); addedSe++; } });
@@ -549,15 +551,16 @@ function validatePasswordStrength(pw) {
   return null;
 }
 
-// ─────── ID 생성 유틸 (cowork #5 개선: 충돌 확률 1/10,000 → 1/1,000,000) ───────
+// ─────── ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가) ───────
+//   과거 '초*1e6 + 난수' 방식은 같은 초에 수백 건 생성 시 생일역설로 충돌 위험이 있어,
+//   반복 일정 id 가 별도 방식으로 분리돼 있었다(드리프트·이번 일정 버그의 한 축).
+//   밀리초*1000 + 프로세스 내 단조 카운터(하위 3자리)로 통일 → 같은 ms 1000건까지 충돌
+//   불가(반복 일정 최대 ~730건 안전). id 는 불투명 PK(서버가 center_id 로 격리)라
+//   난수 예측가능성과 무관. 항상 문자열 반환(safeMap 의 String 정규화와 타입 일관).
+var _clientIdCounter = 0;
 function generateClientId() {
-  // 항상 문자열 반환 — safeMap 이 DB id 를 String() 으로 정규화하므로 타입 일관성 유지
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    var arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    return String(Math.floor(Date.now() / 1000) * 1000000 + (arr[0] % 1000000));
-  }
-  return String(Date.now() + Math.floor(Math.random() * 10000));
+  _clientIdCounter = (_clientIdCounter + 1) % 1000;
+  return String(Date.now() * 1000 + _clientIdCounter);
 }
 
 function applyUserUI() {

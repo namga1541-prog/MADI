@@ -720,21 +720,16 @@ function saveSchedFromModal() {
     if (selDays.length === 0) selDays.push(new Date(date + 'T00:00:00').getDay());
     var cur = new Date(date + 'T00:00:00');
     var end = new Date(until + 'T00:00:00');
-    var idx = 0;
     while (cur <= end) {
       if (selDays.indexOf(cur.getDay()) > -1) {
-        // id = base + idx*1000 + rand(0~999): rand<1000 이라 같은 생성분 내 인접 idx 간
-        //   간격이 항상 양수 → 자체 충돌 불가. 산술수열 정렬도 깨져 다른 생성분과의
-        //   교차 충돌(on_conflict 배치 실패/덮어쓰기)을 1/1e6 로 낮춤.
-        entries.push({ id: Date.now() + idx * 1000 + Math.floor(Math.random() * 1000), groupId: groupId, childId: childId,
+        entries.push({ id: generateClientId(), groupId: groupId, childId: childId,
           date: ymd(cur), startTime: startTime, duration: duration,
           endTime: endTime, note: note, teacher: teacher.trim() });
-        idx++;
       }
       cur.setDate(cur.getDate() + 1);
     }
   } else {
-    entries.push({ id: Date.now() + Math.floor(Math.random() * 1000), childId: childId, date: date,
+    entries.push({ id: generateClientId(), childId: childId, date: date,
       startTime: startTime, duration: duration, endTime: endTime, note: note, teacher: teacher.trim() });
   }
   entries.forEach(function(e){ scheduleDB.push(e); });

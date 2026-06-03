@@ -3,11 +3,12 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (165)
+## 전역 변수 (166)
 
-- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:337
-- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:339
-- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:394
+- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:339
+- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:341
+- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:396
+- `var _clientIdCounter = 0;` — madi-app.js:560
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -205,64 +206,64 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `statCard` — madi-ai.js:692
   ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L747
 
-## madi-app.js (53함수)
+## madi-app.js (52함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
 - `_isoDaysAgo` — madi-app.js:14
-- `_supaFetchAll` — madi-app.js:25
-- `_page` — madi-app.js:28
-- `loadDBFromSupabase` — madi-app.js:40
-- `safeMap` — madi-app.js:58
-- `_loadOlderHistory` — madi-app.js:79
-- `safeMap` — madi-app.js:87
-  ▸ _컬렉션 저장 공통 헬퍼_ — L103
-- `_saveCollection` — madi-app.js:110
-- `saveChildren` — madi-app.js:126
-- `getSaveErrMsg` — madi-app.js:130
-- `_userErrMsg` — madi-app.js:139
-- `saveSessions` — madi-app.js:148
-- `saveSchedule` — madi-app.js:152
-- `saveAssess` — madi-app.js:156
-- `loadDB` — madi-app.js:167
-  ▸ _아동 연령 실시간 갱신_ — L172
-- `refreshChildAges` — madi-app.js:176
-- `saveIEP` — madi-app.js:185
-- `loadIEPFromSupa` — madi-app.js:195
-- `saveActivities` — madi-app.js:203
-- `loadActivitiesFromSupa` — madi-app.js:208
-  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L214
-- `attachModalA11y` — madi-app.js:222
-- `focusables` — madi-app.js:225
-- `onKey` — madi-app.js:231
-- `showInputPrompt` — madi-app.js:258
-- `close` — madi-app.js:290
-- `doCancel` — madi-app.js:294
-- `doOk` — madi-app.js:295
-- `showConfirm` — madi-app.js:312
-- `close` — madi-app.js:328
-- `doCancel` — madi-app.js:329
-- `debounce` — madi-app.js:338
-- `showToast` — madi-app.js:341
-- `vibrate` — madi-app.js:368
-- `toggleDarkMode` — madi-app.js:369
-- `loadDarkMode` — madi-app.js:375
-- `updateHeaderClock` — madi-app.js:379
-- `startHeaderClock` — madi-app.js:395
-- `fetchWithRetry` — madi-app.js:406
-- `doFetch` — madi-app.js:410
-- `setupNetworkMonitor` — madi-app.js:423
-- `showOfflineBanner` — madi-app.js:424
-- `hideOfflineBanner` — madi-app.js:430
-- `applyParentUI` — madi-app.js:436
-- `_initParentSidebar` — madi-app.js:461
-- `resetParentUI` — madi-app.js:501
-- `loadParentDashboard` — madi-app.js:524
-- `toggleMoreMenu` — madi-app.js:531
-- `closeMoreMenu` — madi-app.js:532
-- `getRoleFlags` — madi-app.js:539
-- `validatePasswordStrength` — madi-app.js:545
-- `generateClientId` — madi-app.js:553
-- `applyUserUI` — madi-app.js:563
-- `updateKbOffset` — madi-app.js:594
+- `_normalizeRows` — madi-app.js:22
+- `_supaFetchAll` — madi-app.js:29
+- `_page` — madi-app.js:32
+- `loadDBFromSupabase` — madi-app.js:44
+- `_loadOlderHistory` — madi-app.js:82
+  ▸ _컬렉션 저장 공통 헬퍼_ — L105
+- `_saveCollection` — madi-app.js:112
+- `saveChildren` — madi-app.js:128
+- `getSaveErrMsg` — madi-app.js:132
+- `_userErrMsg` — madi-app.js:141
+- `saveSessions` — madi-app.js:150
+- `saveSchedule` — madi-app.js:154
+- `saveAssess` — madi-app.js:158
+- `loadDB` — madi-app.js:169
+  ▸ _아동 연령 실시간 갱신_ — L174
+- `refreshChildAges` — madi-app.js:178
+- `saveIEP` — madi-app.js:187
+- `loadIEPFromSupa` — madi-app.js:197
+- `saveActivities` — madi-app.js:205
+- `loadActivitiesFromSupa` — madi-app.js:210
+  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L216
+- `attachModalA11y` — madi-app.js:224
+- `focusables` — madi-app.js:227
+- `onKey` — madi-app.js:233
+- `showInputPrompt` — madi-app.js:260
+- `close` — madi-app.js:292
+- `doCancel` — madi-app.js:296
+- `doOk` — madi-app.js:297
+- `showConfirm` — madi-app.js:314
+- `close` — madi-app.js:330
+- `doCancel` — madi-app.js:331
+- `debounce` — madi-app.js:340
+- `showToast` — madi-app.js:343
+- `vibrate` — madi-app.js:370
+- `toggleDarkMode` — madi-app.js:371
+- `loadDarkMode` — madi-app.js:377
+- `updateHeaderClock` — madi-app.js:381
+- `startHeaderClock` — madi-app.js:397
+- `fetchWithRetry` — madi-app.js:408
+- `doFetch` — madi-app.js:412
+- `setupNetworkMonitor` — madi-app.js:425
+- `showOfflineBanner` — madi-app.js:426
+- `hideOfflineBanner` — madi-app.js:432
+- `applyParentUI` — madi-app.js:438
+- `_initParentSidebar` — madi-app.js:463
+- `resetParentUI` — madi-app.js:503
+- `loadParentDashboard` — madi-app.js:526
+- `toggleMoreMenu` — madi-app.js:533
+- `closeMoreMenu` — madi-app.js:534
+- `getRoleFlags` — madi-app.js:541
+- `validatePasswordStrength` — madi-app.js:547
+  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L554
+- `generateClientId` — madi-app.js:561
+- `applyUserUI` — madi-app.js:566
+- `updateKbOffset` — madi-app.js:597
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3
@@ -972,22 +973,22 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `toggleDayChip` — madi-schedule.js:672
 - `closeSchedModal` — madi-schedule.js:673
 - `saveSchedFromModal` — madi-schedule.js:678
-- `openEditSchedModal` — madi-schedule.js:746
-- `goToSessionFromSched` — madi-schedule.js:785
-- `renderWeekGridByChild` — madi-schedule.js:806
-- `confirmSchedDelete` — madi-schedule.js:869
-- `execSchedDeleteChoice` — madi-schedule.js:902
-- `execSchedDelete` — madi-schedule.js:911
-- `saveEditSched` — madi-schedule.js:955
-  ▸ _일정 내보내기_ — L981
-- `openScheduleExportModal` — madi-schedule.js:982
-- `fmt` — madi-schedule.js:991
-- `closeScheduleExportModal` — madi-schedule.js:1014
-- `_getExportRows` — madi-schedule.js:1019
-- `exportSchedule` — madi-schedule.js:1049
-- `_printSchedule` — madi-schedule.js:1081
-- `_exportScheduleRtf` — madi-schedule.js:1116
-  ▸ _표준화 검사_ — L1136
+- `openEditSchedModal` — madi-schedule.js:741
+- `goToSessionFromSched` — madi-schedule.js:780
+- `renderWeekGridByChild` — madi-schedule.js:801
+- `confirmSchedDelete` — madi-schedule.js:864
+- `execSchedDeleteChoice` — madi-schedule.js:897
+- `execSchedDelete` — madi-schedule.js:906
+- `saveEditSched` — madi-schedule.js:950
+  ▸ _일정 내보내기_ — L976
+- `openScheduleExportModal` — madi-schedule.js:977
+- `fmt` — madi-schedule.js:986
+- `closeScheduleExportModal` — madi-schedule.js:1009
+- `_getExportRows` — madi-schedule.js:1014
+- `exportSchedule` — madi-schedule.js:1044
+- `_printSchedule` — madi-schedule.js:1076
+- `_exportScheduleRtf` — madi-schedule.js:1111
+  ▸ _표준화 검사_ — L1131
 
 ## madi-session.js (37함수)
   ▸ _보안: API 키 마스킹 / 토글_ — L1
