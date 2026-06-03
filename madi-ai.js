@@ -553,12 +553,18 @@ function renderIEPView(p, childName) {
   if (!iepViewEl) return;
   // eslint-disable-next-line no-unsanitized/property
   iepViewEl.innerHTML = html;
+  // 히스토리 뷰는 _iepDataMap 키가 없어, 직전 신규생성의 stale dataset.iepChildId 로 타 아동
+  //   IEP 가 교차 출력되던 버그를 막는다 → 키를 비워 downloadIEPPDF 가 불러온 window._iepData 사용.
+  iepViewEl.dataset.iepChildId = '';
 }
 
 function downloadIEPPDFById(id) {
   var r = iepDB.find(function(x){ return x.id === id; });
   if (!r) return;
   window._iepData = r.data;
+  // 히스토리 출력 — stale dataset.iepChildId 로 인한 타 아동 교차 출력 방지(불러온 _iepData 사용).
+  var _re = document.getElementById('iepResult');
+  if (_re) _re.dataset.iepChildId = '';
   downloadIEPPDF(r.childName);
 }
 
@@ -627,7 +633,7 @@ function downloadIEPPDF(childName) {
     + monthSection('3개월', (p.shortTermGoals || {})['3개월'])
     + '<h3>🎮 권장 치료 활동</h3>'
     + '<div>' + (p.activities || []).map(function(a) { return '<span class="chip">' + escHtml(a) + '</span>'; }).join('') + '</div>'
-    + (p.notes ? '<div class="note">📝 <strong>치료사 참고:</strong> ' + escHtml(p.notes) + '</div>' : '')
+    + ((p.therapistNote || p.notes) ? '<div class="note">📝 <strong>치료사 참고:</strong> ' + escHtml(p.therapistNote || p.notes) + '</div>' : '')
     + '<p style="margin-top:32px;text-align:right;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:10px;">마디아이(MadiAI) AI 보조 작성 | 출력일: ' + today + '</p>'
     + '</body></html>');
   win.document.close();

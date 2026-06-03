@@ -134,7 +134,7 @@ function onLoungeImagesChange(input) {
     showToast('\u26a0\ufe0f \uc774\ubbf8\uc9c0(JPG/PNG/GIF/WEBP)\ub9cc \ucca8\ubd80 \uac00\ub2a5\ud569\ub2c8\ub2e4: ' + badType.join(', '));
   }
   if (oversized.length > 0) {
-    showToast('\u26a0\ufe0f 5MB \ucd08\uacfc \uc774\ubbf8\uc9c0\ub294 \uccca\ubd80\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4: ' + oversized.join(', '));
+    showToast('\u26a0\ufe0f 5MB \ucd08\uacfc \uc774\ubbf8\uc9c0\ub294 \ucca8\ubd80\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4: ' + oversized.join(', '));
   }
   if (badType.length > 0 || oversized.length > 0) {
     input.value = '';

@@ -226,6 +226,8 @@ function _oqEnqueue(path, method, body){
 }
 function _oqFlush(){
   if (_offlineQueueBusy || !_offlineQueue.length) return;
+  // 오프라인이면 대기 — supaFetch 가 오프라인 쓰기를 다시 큐잉({_queued})하여 항목이 무한 회전하는 것 방지.
+  if (!navigator.onLine) return;
   _offlineQueueBusy = true;
   var item = _offlineQueue[0];
   supaFetch(item.path, item.method, item.body)
@@ -233,9 +235,17 @@ function _oqFlush(){
       _offlineQueue.shift(); _oqSave(); _offlineQueueBusy = false;
       if (_offlineQueue.length) setTimeout(_oqFlush, 500);
       else if (typeof showToast === 'function') showToast('✅ 오프라인 기록이 저장되었습니다.');
-    }).catch(function(){ _offlineQueueBusy = false; });
+    }).catch(function(){
+      _offlineQueueBusy = false;
+      // 일시 실패(네트워크·미인증 등): 'online' 이벤트만 기다리지 않고 일정 시간 후 재시도해
+      //   이미 온라인 상태로 앱을 재시작한 경우(전환 이벤트 없음)에도 결국 전송되게 한다.
+      if (_offlineQueue.length) setTimeout(_oqFlush, 30000);
+    });
 }
 window.addEventListener('online', function(){ setTimeout(_oqFlush, 1000); });
+// 시작 시 이미 온라인이면(오프라인→온라인 전환 이벤트가 발생하지 않는 재시작 시나리오) 복원된
+//   큐를 1회 배수 시도. 초기화·로그인 전이라 실패할 수 있으나 catch 의 30초 재시도가 이어받는다.
+if (navigator.onLine) setTimeout(_oqFlush, 4000);
 // ─────────────────────────────────────────────────────────────────────
 
 /**

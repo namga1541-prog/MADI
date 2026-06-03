@@ -574,7 +574,7 @@ function sendChat() {
     + '- 데이터 기반으로 정확하게, 치료 전문 조언 가능\n'
     + '- 이모지 적절히 활용\n\n'
     + '【액션 사용 규칙 — 매우 중요】\n'
-    + '- "마지막 세션 어때?", "~알려줘", "~있어?", "~벇 명?", "~요약해줘" 등 정보 조회 질문은\n'
+    + '- "마지막 세션 어때?", "~알려줘", "~있어?", "~몇 명?", "~요약해줘" 등 정보 조회 질문은\n'
     + '  절대로 액션 블록을 추가하지 말고 텍스트 답변만 하세요.\n'
     + '- 액션은 오직 "~해줘(실제 작업)", "~추가해줘", "~열어줘" 처럼 명시적 작업 요청일 때만 사용\n\n'
     + '【행동 명령 (Action) — 작업 요청 시만 사용】\n'
@@ -594,7 +594,11 @@ function sendChat() {
     + '치료사별 일정 질문 시 위 [치료사 목록]과 [오늘 스케줄]의 (담당: ___) 정보를 활용하세요. '
     + '액션 블록은 사용자에게 보이지 않고 자동 처리됩니다. 자연스러운 답변 + 필요시 액션블록 형식으로 응답하세요.';
 
-  var messages = chatHistory.slice(0, -1).slice(-8).concat([{ role: 'user', content: text }]);
+  var messages = chatHistory.slice(0, -1).slice(-8);
+  // Anthropic Messages API 는 첫 메시지가 user 여야 함 — 채팅 인사말(assistant)이 선두면 400 오류로
+  //   첫 질문이 항상 실패하던 버그. 선두의 비-user 메시지를 제거해 user 로 시작하도록 보정.
+  while (messages.length && messages[0].role !== 'user') messages.shift();
+  messages = messages.concat([{ role: 'user', content: text }]);
 
   fetchWithRetry(EDGE_URL + '/ai-proxy', {
     method:      'POST',
@@ -618,7 +622,7 @@ function sendChat() {
     var reply = (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
     hideTypingIndicator();
     var parsed = parseAction(reply);
-    addAiMsg(parsed.displayText || '죄송해요, 다시 한번 물어보줘주세요.');
+    addAiMsg(parsed.displayText || '죄송해요, 다시 한번 물어봐주세요.');
     if (parsed.action) {
       setTimeout(function() { executeAction(parsed.action); }, 600);
     }

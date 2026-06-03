@@ -455,19 +455,15 @@ function deleteSession(id) {
           renderChildGrid();
           showToast('🗑️ 세션 삭제됨', {
             undo: function() {
-              var row = Object.assign({}, backup);
-              supaFetch('madi_sessions', 'POST', [row])
-                .then(function() {
-                  sessionDB.push(backup);
-                  saveSessions();
-                  renderSessionList();
-                  renderChildGrid();
-                  showToast('↩️ 세션 복원됨');
-                })
-                .catch(function(e) {
-                  if(window.console&&console.warn)console.warn('[madi-07 undoSession]',e&&e.message);
-                  showToast('❌ 복원 실패 — 다시 시도해주세요');
-                });
+              // undo 전용 raw POST 는 세션 필드를 data(JSONB)로 래핑하지 않아 최상위 컬럼 전송 →
+              //   PostgREST 400 → 복원 실패(검사 undo 와 동일 회귀). 표준 저장 경로(saveSessions)로
+              //   backup 을 메모리에 되돌린 뒤 통째 재저장해 회귀를 차단한다.
+              if (!sessionDB.some(function(s){ return String(s.id) === String(backup.id); })) {
+                sessionDB.push(backup);
+              }
+              renderSessionList();
+              renderChildGrid();
+              saveSessions().then(function(ok) { if (ok !== false) showToast('↩️ 세션 복원됨'); });
             }
           });
         })

@@ -61,6 +61,11 @@ function loadDBFromSupabase(silent) {
   ]).then(function(results) {
     var supaCh = _normalizeRows(results[0]), supaSe = _normalizeRows(results[1]), supaSch = _normalizeRows(results[2]), supaAs = _normalizeRows(results[3]);
     childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
+    // ⚠️ 매 로드마다 과거 데이터 재머지 허용 — 위에서 sessionDB/scheduleDB 를 최근치로 덮어썼으므로,
+    //   _olderHistoryLoaded 를 리셋하지 않으면 폴링·탭복귀 두 번째 호출부터 _loadOlderHistory 가
+    //   조기 return 해 과거 세션(>90일)·일정(>30일)이 인메모리에서 영구 소실된다. 과거 쿼리는
+    //   supaFetch 5분 캐시로 흡수돼 부하는 작다.
+    window._olderHistoryLoaded = false;
     refreshChildAges();   // 등록 시점 age → 오늘 기준으로 인메모리 갱신
     window._dataLoadedAt = Date.now();
     if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
@@ -199,7 +204,7 @@ function loadIEPFromSupa() {
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
       var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); return d; });
-      if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); var _iepEl = document.getElementById('iepChild'); if (_iepEl && typeof renderIEPHistory === 'function') renderIEPHistory(parseInt(_iepEl.value) || 0); }
+      if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); var _iepEl = document.getElementById('iepChild'); if (_iepEl && typeof renderIEPHistory === 'function') renderIEPHistory(String(_iepEl.value || '')); }
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 function saveActivities() {

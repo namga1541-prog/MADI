@@ -438,6 +438,9 @@ function _loadParentAssessments(childId, centerId, sessionsFallback) {
     + '&data->>childId=eq.' + encodeURIComponent(childId)
     + '&order=id.desc&limit=30', 'GET')
     .then(function(rows) {
+      // stale 응답 차단 — 자녀를 빠르게 전환하면 이전 자녀 평가 응답이 늦게 도착해 현재 자녀
+      //   차트(공유 parentChartBody)를 덮어쓸 수 있다(타 아동 데이터 노출). 활성 자녀와 다르면 무시.
+      if (String(window._parentChildId) !== String(childId)) return;
       if (!Array.isArray(rows)) rows = [];
       // 2차 필터 (server 우회 방어선)
       var mine = rows.filter(function(a){

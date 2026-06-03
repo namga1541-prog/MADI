@@ -108,6 +108,9 @@ function loadCenterInfo() {
 function copyInviteCode() {
   var code = (document.getElementById('inviteCodeDisplay') || {}).textContent || '';
   if (!code || code === '------') { showToast('초대 코드가 없습니다.'); return; }
+  // navigator.clipboard 는 비보안 컨텍스트(file://·http)에서 undefined → .writeText 접근 시 동기
+  //   TypeError(.catch 미도달). superadmin 로컬 file:// 실행 대비 가드 후 코드 직접 표시 폴백.
+  if (!navigator.clipboard || !navigator.clipboard.writeText) { showToast('코드: ' + code); return; }
   navigator.clipboard.writeText(code).then(function() {
     showToast('📋 초대 코드 복사됨: ' + code);
   }).catch(function() {
@@ -311,6 +314,12 @@ function showDashboard() {
       localStorage.removeItem('madi_pending_tab');
       var _ptIdx = parseInt(_pendingTab, 10);
       if (!isNaN(_ptIdx) && typeof switchTab === 'function') switchTab(_ptIdx);
+    } else if (!window._startTabApplied) {
+      // 시작 탭 설정 적용 — 세션 최초 1회만(이후 홈 진입마다 튕기는 것 방지). 크로스 네비(pending) 우선.
+      //   과거엔 setStartTab 이 localStorage 에 쓰기만 하고 읽는 곳이 없어 무효 설정이었음(dead feature).
+      window._startTabApplied = true;
+      var _startTab = parseInt(localStorage.getItem('madi_start_tab') || '0', 10);
+      if (!isNaN(_startTab) && _startTab > 0 && typeof switchTab === 'function') switchTab(_startTab);
     }
   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }

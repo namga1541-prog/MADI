@@ -246,8 +246,8 @@ function openChildDetail(id) {
 
     // 버튼
     + '<div style="display:flex;gap:8px;margin-top:14px;">'
-    + '<button class="btn btn-primary" style="flex:1;" onclick="this.closest(\'.sched-modal-overlay\').remove();goToSession(' + id + ')">📝 세션 기록</button>'
-    + '<button class="btn-ghost" style="flex:1;" onclick="this.closest(\'.sched-modal-overlay\').remove();openEditModal(' + id + ')">✏️ 편집</button>'
+    + '<button class="btn btn-primary" style="flex:1;" onclick="this.closest(\'.sched-modal-overlay\').remove();goToSession(\'' + id + '\')">📝 세션 기록</button>'
+    + '<button class="btn-ghost" style="flex:1;" onclick="this.closest(\'.sched-modal-overlay\').remove();openEditModal(\'' + id + '\')">✏️ 편집</button>'
     + '</div></div>';
 
   document.body.appendChild(overlay);
