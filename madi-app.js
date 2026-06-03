@@ -193,7 +193,7 @@ function saveIEP() {
   });
 }
 function loadIEPFromSupa() {
-  supaFetch('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc', 'GET')
+  _supaFetchAll('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
       var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); return d; });
@@ -206,7 +206,7 @@ function saveActivities() {
   supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message); showToast('⚠️ 활동 저장 실패: ' + (e&&e.message||'알 수 없는 오류'));});
 }
 function loadActivitiesFromSupa() {
-  supaFetch('madi_activities?' + centerFilter() + '&order=id.asc', 'GET')
+  _supaFetchAll('madi_activities?' + centerFilter() + '&order=id.asc')
     .then(function(rows) { if (Array.isArray(rows) && rows.length > 0) { activityDB = rows; safeSetItem('cn3_activities', JSON.stringify(activityDB)); if (typeof renderActivityCatalog === 'function') renderActivityCatalog(); } })
     .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }

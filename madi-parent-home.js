@@ -195,8 +195,12 @@ function loadParentHome() {
       .catch(function(e){ if(window.console&&console.warn) console.warn('[silent madi-15 child]', e && e.message); });
 
     // 2) 다음 일정 + 이번 주 일정 (히어로 다음 세션 + 바우처 패널 다가오는 예약)
+    // ⚠️ date>=오늘 필터 필수 — 없으면 id.asc&limit=50 이 '먼저 생성된 50개'(2년 반복 시
+    //   대부분 과거)만 가져와 미래 일정이 누락됨. 미래 일정만 50개로 좁혀 '다음 일정' 보장.
     supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId)
-      + '&data->>childId=eq.' + encodeURIComponent(childId) + '&order=id.asc&limit=50', 'GET')
+      + '&data->>childId=eq.' + encodeURIComponent(childId)
+      + '&data->>date=gte.' + encodeURIComponent(today)
+      + '&order=id.asc&limit=50', 'GET')
       .then(function(rows) {
         if (window._parentChildId !== _capturedChildId) return;
         if (!Array.isArray(rows)) rows = [];
@@ -384,7 +388,7 @@ function _renderParentWeekSessions(sessions) {
   var today = new Date(getTodayKST());
   var weekAgo = new Date(today);
   weekAgo.setDate(weekAgo.getDate() - 7);
-  var weekAgoStr = weekAgo.toISOString().slice(0,10);
+  var weekAgoStr = ymd(weekAgo);   // toISOString(UTC) 금지 — KST 새벽 하루 어긋남 방지
   var weekSessions = sessions.filter(function(s){ return s.date >= weekAgoStr; })
     .sort(function(a,b){ return a.date < b.date ? 1 : -1; });
 
@@ -711,9 +715,12 @@ function _redrawParentVoucherPanel() {
     var centerId = window._parentCenterId;
     if (!centerId) return;
     var todayStr = getTodayKST();
+    // 과거 일정만 서버에서 필터(date<오늘) — order 없는 limit=300 은 임의 300개라
+    //   일정이 많은 아동의 과거 회차 카운트가 부정확했음. date 필터+상한 2000 으로 정확도 확보.
     supaFetch('madi_schedules?center_id=eq.' + encodeURIComponent(centerId)
       + '&data->>childId=eq.' + encodeURIComponent(window._parentChildId)
-      + '&select=id,data&limit=300', 'GET')
+      + '&data->>date=lt.' + encodeURIComponent(todayStr)
+      + '&select=id,data&order=id.asc&limit=2000', 'GET')
       .then(function(rows) {
         if (!Array.isArray(rows)) rows = [];
         var past = rows.filter(function(r){
