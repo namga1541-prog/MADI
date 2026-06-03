@@ -536,9 +536,9 @@ function exportSettlementExcel() {
       XLSX.writeFile(wb, '마디_정산_' + ym + '.xlsx');
       showToast('✅ 엑셀 파일이 다운로드됐습니다!');
     } catch(e) {
-      showToast('❌ 엑셀 생성 실패: ' + (e.message||''));
+      showToast('❌ 엑셀 파일 생성에 실패했습니다. 잠시 후 다시 시도해주세요');
     }
-  }).catch(function(e) { showToast('⚠️ ' + (e && e.message ? e.message : e)); });
+  }).catch(function(e) { showToast('⚠️ ' + _userErrMsg(e, '정산 데이터 로드')); });
 }
 
 // ─────── 선생님별 통계 ───────

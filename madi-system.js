@@ -567,7 +567,7 @@ function pollGithubPagesBuild(deployStartTs) {
       }
     })
     .catch(function(e) {
-      showToast('⚠️ 빌드 상태 확인 불가: ' + (e.message || '네트워크 오류'), { duration: 5000 });
+      showToast('⚠️ ' + _userErrMsg(e, '빌드 상태 확인'), { duration: 5000 });
     });
   }
   setTimeout(poll, 5000);
@@ -747,7 +747,7 @@ function deployToGitHub() {
       if (e.message === 'USER_CANCEL') {
         showToast('배포 취소됨');
       } else {
-        showToast('❌ 배포 실패: ' + (e.message || '오류'));
+        showToast('❌ ' + _userErrMsg(e, '배포'));
       }
     });
 }
@@ -1208,6 +1208,16 @@ function initPWA() {
       _swReloaded = true;
       window.location.reload();
     }
+    // 작성 중(값이 있는 textarea)인지 — 자동 reload 로 인한 세션기록·평가 입력 유실 방지용.
+    //   검색창 등은 대부분 input 이라 textarea 만 보면 오판이 적다.
+    function _swDirty() {
+      var tas = document.querySelectorAll('textarea');
+      for (var i = 0; i < tas.length; i++) {
+        var t = tas[i];
+        if (t.offsetParent !== null && t.value && t.value.trim()) return true;
+      }
+      return false;
+    }
     // 사용 중(작업 화면)일 때 띄우는 '지속' 업데이트 배너. 탭하면 즉시 최신화.
     //   기존엔 사라지는 토스트만 띄우고 '포그라운드 복귀' 때만 reload 했는데,
     //   한 탭에서 계속 작업하는 사용자는 복귀 이벤트가 없어 옛 코드를 영영 못 받았다
@@ -1231,14 +1241,16 @@ function initPWA() {
     navigator.serviceWorker.addEventListener('controllerchange', function() {
       // 최초 설치(이전 컨트롤러 없음)는 이미 최신 → reload 불필요(무한 새로고침 방지)
       if (!_swHadController) { _swHadController = true; return; }
-      if (document.visibilityState !== 'visible' || (Date.now() - _swLoadedAt) < 8000) {
+      // 작성 중이 아니고(입력 유실 위험 없음) + 백그라운드이거나 방금 연 직후면 즉시 적용.
+      if (!_swDirty() && (document.visibilityState !== 'visible' || (Date.now() - _swLoadedAt) < 8000)) {
         _swApplyUpdate();
         return;
       }
-      // 사용 중 → 지속 배너(탭 시 즉시 적용) + 포그라운드 복귀 시 자동 적용(백업 경로)
+      // 사용 중이거나 작성 중 → 지속 배너(탭 시 즉시 적용). dirty 인 동안에는 포그라운드 복귀
+      //   자동 reload 를 보류해 미저장 입력(세션기록·평가) 유실을 막는다(배너 탭은 사용자 의사).
       _swShowUpdateBanner(_swApplyUpdate);
       var _onVis = function() {
-        if (document.visibilityState === 'visible') {
+        if (document.visibilityState === 'visible' && !_swDirty()) {
           document.removeEventListener('visibilitychange', _onVis);
           _swApplyUpdate();
         }

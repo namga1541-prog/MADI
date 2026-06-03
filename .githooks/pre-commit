@@ -15,10 +15,14 @@ TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null)
 SW_FILE="$TOPLEVEL/sw.js"
 STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 
-# ── 1. SW 캐시 버전 갱신 (정적 자산이 변경된 커밋에서만) ──────
+# ── 1. SW 캐시 버전 갱신 ──────
+#   ASSET_CHANGED: 함수인덱스·패턴검사용(sw.js 제외). SW_BUMP: 캐시버전 갱신용(sw.js 포함).
+#   sw.js 단독 수정(SKIP_HOSTS·푸시핸들러 등)도 version bump 하여 디바이스 반영 누락을 막고,
+#   타임스탬프에 초(%S)를 더해 동일 분 내 2회 커밋 시 버전 충돌(bump 무효)을 방지한다.
 ASSET_CHANGED=$(echo "$STAGED" | grep -E '\.(js|css|html)$' | grep -v '^sw\.js$' || true)
-if [ -n "$ASSET_CHANGED" ] && [ -f "$SW_FILE" ]; then
-  TIMESTAMP=$(date +"%Y%m%d-%H%M")
+SW_BUMP=$(echo "$STAGED" | grep -E '\.(js|css|html)$' || true)
+if [ -n "$SW_BUMP" ] && [ -f "$SW_FILE" ]; then
+  TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
   NEW_NAME="madi-v5-${TIMESTAMP}"
   sed -i.bak "s/var CACHE_NAME = \"madi-v[0-9]*-[0-9]*-[0-9]*\"/var CACHE_NAME = \"${NEW_NAME}\"/" "$SW_FILE"
   rm -f "${SW_FILE}.bak"

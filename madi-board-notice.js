@@ -265,7 +265,7 @@ function loadGlobalNotices() {
       if (c) {
         c.innerHTML = '<div class="empty">'
           + '<div class="empty-icon">❌</div>'
-          + '<p>불러오기 실패: ' + escHtml(e.message || '오류') + '</p>'
+          + '<p>' + escHtml(_userErrMsg(e, '공지 로드')) + '</p>'
           + '<button class="btn btn-sm" onclick="loadGlobalNotices()" style="margin-top:8px;">🔄 다시 시도</button>'
           + '</div>';
       }
@@ -506,7 +506,7 @@ function loadCenterNotices() {
       if (c) {
         c.innerHTML = '<div class="empty">'
           + '<div class="empty-icon">❌</div>'
-          + '<p>불러오기 실패: ' + escHtml(e.message || '오류') + '</p>'
+          + '<p>' + escHtml(_userErrMsg(e, '공지 로드')) + '</p>'
           + '<button class="btn btn-sm" onclick="loadCenterNotices()" style="margin-top:8px;">🔄 다시 시도</button>'
           + '</div>';
       }

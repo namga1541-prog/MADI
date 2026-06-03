@@ -273,7 +273,7 @@ function markAllNotifRead() {
       loadParentNotifications();
       showToast('✅ 모든 알림을 읽음 처리했습니다');
     })
-    .catch(function(e){ showToast('❌ 처리 실패: ' + (e.message||'')); });
+    .catch(function(e){ showToast('❌ ' + _userErrMsg(e, '처리')); });
 }
 
 function formatTimeAgo(isoTs) {
@@ -433,8 +433,8 @@ function parentSignup() {
   var pw = pwInput.value;
   var pw2 = pw2Input.value;
 
-  if (!pw || pw.length < 4) {
-    errEl.textContent = '⚠️ 비밀번호는 4자 이상 입력해주세요';
+  if (!pw || pw.length < 8) {
+    errEl.textContent = '⚠️ 비밀번호는 8자 이상 입력해주세요';
     return;
   }
   if (pw !== pw2) {
@@ -625,7 +625,7 @@ function _unsubscribePush(sub) {
     }).catch(function() {
       showToast('⚠️ 알림 해제 중 오류가 발생했습니다');
     });
-  }).catch(function(e){ showToast('⚠️ 알림 해제 실패: ' + (e.message || '오류가 발생했습니다')); });
+  }).catch(function(e){ showToast('⚠️ ' + _userErrMsg(e, '알림 해제')); });
 }
 
 // ══════════════════════════════════════════════════════════════════════

@@ -477,7 +477,7 @@ function _execRestoreFromBackup(id) {
       applyBackup();
     }
   }).catch(function(err) {
-    showToast('❌ 복원 실패: ' + err.message);
+    showToast('❌ ' + _userErrMsg(err, '백업 복원'));
   });
 }
 
@@ -524,7 +524,7 @@ function deleteBackupConfirm(id) {
       showToast('🗑️ 백업 삭제됨');
       renderBackupList();
     }).catch(function(e) {
-      showToast('⚠️ 백업 삭제 실패: ' + e.message);
+      showToast('⚠️ ' + _userErrMsg(e, '백업 삭제'));
     });
   });
 }

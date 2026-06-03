@@ -1033,7 +1033,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `parseJSON` — madi-session.js:566
   ▸ _센터 API 키 관리 (선택지 2)_ — L625
 
-## madi-system.js (40함수)
+## madi-system.js (41함수)
   ▸ _권한 설정 모달_ — L1
 - `openPermModal` — madi-system.js:13
 - `updatePermToggle` — madi-system.js:68
@@ -1079,16 +1079,17 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `initPWA` — madi-system.js:1191
   ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1197
 - `_swApplyUpdate` — madi-system.js:1206
-- `_swShowUpdateBanner` — madi-system.js:1215
-- `_onVis` — madi-system.js:1240
-- `_pwaShouldShowBanner` — madi-system.js:1298
-- `showPWABanner` — madi-system.js:1309
-- `hidePWABanner` — madi-system.js:1340
-- `triggerPWAInstall` — madi-system.js:1354
-  ▸ _뒤로가기 버튼 탭 연동_ — L1368
-  ▸ _─_ — L1377
-  ▸ _─_ — L1379
-  ▸ _모듈 초기화_ — L1381
+- `_swDirty` — madi-system.js:1213
+- `_swShowUpdateBanner` — madi-system.js:1225
+- `_onVis` — madi-system.js:1252
+- `_pwaShouldShowBanner` — madi-system.js:1310
+- `showPWABanner` — madi-system.js:1321
+- `hidePWABanner` — madi-system.js:1352
+- `triggerPWAInstall` — madi-system.js:1366
+  ▸ _뒤로가기 버튼 탭 연동_ — L1380
+  ▸ _─_ — L1389
+  ▸ _─_ — L1391
+  ▸ _모듈 초기화_ — L1393
 
 ## madi-vocab.js (4함수)
   ▸ _한자어 → 일상어 (학부모 대상 문서에서만 적용)_ — L16

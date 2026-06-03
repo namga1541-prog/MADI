@@ -203,7 +203,7 @@ function loadIEPFromSupa() {
 function saveActivities() {
   safeSetItem('cn3_activities', JSON.stringify(activityDB));
   var cid = getCenterId(), rows = activityDB.map(function(a){ return Object.assign({}, a, { center_id: cid }); });
-  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message); showToast('⚠️ 활동 저장 실패: ' + (e&&e.message||'알 수 없는 오류'));});
+  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message); showToast('⚠️ ' + _userErrMsg(e, '활동 저장'));});
 }
 function loadActivitiesFromSupa() {
   _supaFetchAll('madi_activities?' + centerFilter() + '&order=id.asc')
@@ -543,9 +543,9 @@ function getRoleFlags(user) {
   return { isAuth:true, isSuper:r==='superadmin', isAdmin:r==='admin', isTeacher:r==='teacher', isParent:r==='parent', isAdminOrSuper:r==='admin'||r==='superadmin' };
 }
 function validatePasswordStrength(pw) {
-  // 테스트 기간 — 정책 단순 유지 (4자 최소)
-  // 운영 전환 시 8자+영숫자 권장. 강화 패치는 git 이력 fc9febe 참고.
-  if (!pw || pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
+  // 최소 8자 — 전화번호/아이디 enumeration 대비 약한 비번 방지. 서버(change-password·
+  //   parent-auth)도 8자 강제하므로 클라/서버 일관. 영숫자 혼합 강제는 베타 후 검토.
+  if (!pw || pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
   return null;
 }
 
