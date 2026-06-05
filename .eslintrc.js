@@ -86,6 +86,19 @@ module.exports = {
         varsIgnorePattern: '^_',       // _NL, _unused 등 underscore prefix 무시
       },
     ],
+
+    // ── [ERROR] ES 타겟·컨벤션 강제 — 구형 iOS Safari 화이트스크린/컨벤션 이탈 차단 ──
+    //   var/function/.then 일관 사용 원칙(CLAUDE.md). ?./??/async 는 es2015 파서가 파싱에러로
+    //   이미 차단하므로, 여기서는 ES6 로 합법이라 새어들 수 있는 arrow/let/const/class/.finally 를 막는다.
+    'no-restricted-syntax': [
+      'error',
+      { selector: 'ArrowFunctionExpression', message: '컨벤션: arrow function(=>) 금지 — function 사용' },
+      { selector: "VariableDeclaration[kind='let']", message: '컨벤션: let 금지 — var 사용' },
+      { selector: "VariableDeclaration[kind='const']", message: '컨벤션: const 금지 — var 사용' },
+      { selector: 'ClassDeclaration', message: '컨벤션: class 금지 — function/prototype 사용' },
+      { selector: 'ClassExpression', message: '컨벤션: class 금지 — function/prototype 사용' },
+      { selector: "CallExpression[callee.property.name='finally']", message: '구형 iOS Safari 미지원: Promise.finally 금지 — then/catch 양쪽에서 리셋' },
+    ],
   },
 
   // 검사 제외 경로

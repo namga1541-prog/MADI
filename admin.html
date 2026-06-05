@@ -1998,18 +1998,19 @@ function saveTeacherPrograms() {
 
 // ── 공지사항 ──
 var noticeDB = [];
-async function loadNotices() {
+function loadNotices() {
   var listEl = document.getElementById('noticeList');
   if (!listEl) return;
   listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div>';
-  try {
-    var centerId = encodeURIComponent(currentUser.center_id||'');
-    var data = await supaFetch('madi_notices?center_id=eq.'+centerId+'&order=pinned.desc,created_at.desc&limit=50','GET');
-    noticeDB = Array.isArray(data) ? data : [];
-    renderNoticeList();
-  } catch(e) {
-    listEl.innerHTML = '<div class="empty"><p>오류가 발생했습니다.<br><small>'+(e.message||'')+'</small></p></div>';
-  }
+  var centerId = encodeURIComponent(currentUser.center_id||'');
+  supaFetch('madi_notices?center_id=eq.'+centerId+'&order=pinned.desc,created_at.desc&limit=50','GET')
+    .then(function(data) {
+      noticeDB = Array.isArray(data) ? data : [];
+      renderNoticeList();
+    })
+    .catch(function(e) {
+      listEl.innerHTML = '<div class="empty"><p>오류가 발생했습니다.<br><small>'+escHtml(e.message||'')+'</small></p></div>';
+    });
 }
 function renderNoticeList() {
   var listEl = document.getElementById('noticeList');
@@ -2030,18 +2031,19 @@ function renderNoticeList() {
       +'</div>';
   }).join('');
 }
-async function saveNotice() {
+function saveNotice() {
   var title   = (document.getElementById('noticeTitle')  ||{value:''}).value.trim();
   var content = (document.getElementById('noticeContent')||{value:''}).value.trim();
   var ntype   = (document.getElementById('noticeType')   ||{value:'info'}).value;
   if (!title||!content) { showToast('⚠️ 제목과 내용을 모두 입력해 주세요'); return; }
-  try {
-    await supaFetch('madi_notices','POST',[{ center_id:currentUser.center_id, notice_type:ntype, pinned:ntype!=='info', title:title, content:content, author_id:currentUser.id, author_name:currentUser.name }]);
-    document.getElementById('noticeTitle').value = '';
-    document.getElementById('noticeContent').value = '';
-    showToast('✅ 공지가 등록됐습니다');
-    loadNotices();
-  } catch(e) { showToast('❌ 저장 실패: '+(e.message||'')); }
+  supaFetch('madi_notices','POST',[{ center_id:currentUser.center_id, notice_type:ntype, pinned:ntype!=='info', title:title, content:content, author_id:currentUser.id, author_name:currentUser.name }])
+    .then(function() {
+      document.getElementById('noticeTitle').value = '';
+      document.getElementById('noticeContent').value = '';
+      showToast('✅ 공지가 등록됐습니다');
+      loadNotices();
+    })
+    .catch(function(e) { showToast('❌ 저장 실패: '+(e.message||'')); });
 }
 function deleteNotice(id) {
   showConfirm('이 공지를 삭제할까요?', function() {
