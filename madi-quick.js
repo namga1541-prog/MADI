@@ -695,7 +695,8 @@ function _quickBackfillOnePhoto() {
     .then(function(url) {
       if (!url || url.indexOf('http') !== 0) return;
       target.photoUrl = url;
-      if (typeof saveSessions === 'function') saveSessions();
+      if (typeof saveOneSession === 'function') saveOneSession(target);  // 단건 upsert (H2)
+      else if (typeof saveSessions === 'function') saveSessions();
     })
     .catch(function() { /* 실패 — 다음에 재시도 */ })
     .then(function() {
@@ -823,7 +824,7 @@ function quickSave() {
       } else {
         sessionDB.push(newRow);
       }
-      var _qSaveP = (typeof saveSessions === 'function') ? saveSessions() : Promise.resolve(true);
+      var _qSaveP = (typeof saveOneSession === 'function') ? saveOneSession(newRow) : Promise.resolve(true);  // 단건 upsert (H2)
 
       // 다음 미기록 카드 찾기 (저장 결과와 무관하게 계산)
       var idx = -1;

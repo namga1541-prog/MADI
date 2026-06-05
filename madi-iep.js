@@ -30,9 +30,11 @@ function saveSession(aiNote) {
   });
 
   var sessionId = generateClientId();
-  sessionDB.push({ id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', teacher_id: (currentUser && currentUser.id != null) ? String(currentUser.id) : '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() });
+  var _newSession = { id: sessionId, childId: childId, date: date, teacher: (currentUser && currentUser.name) || '', teacher_id: (currentUser && currentUser.id != null) ? String(currentUser.id) : '', goals: goals, memo: memo, aiNote: aiNote || '', phonemes: getPhonemeSnapshot() };
+  sessionDB.push(_newSession);
   // 서버 저장 결과를 받아 토스트를 정직하게 표시 (실패 시 거짓 "✅ 저장 완료" 방지)
-  var _savePromise = saveSessions();
+  // 단건 upsert — 동시 편집 lost-update 방지(H2)
+  var _savePromise = saveOneSession(_newSession);
   // 저장된 날짜를 기억 (소급 입력 시 다음 세션도 같은 날짜로 편의 제공)
   try { localStorage.setItem('madi_last_session_date', date); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
   // 화면 갱신·폼 초기화는 즉시(데이터는 메모리+localStorage 에 이미 보존 — 중복/유실 없음)
@@ -120,7 +122,7 @@ function saveSessionAI() {
       // 후처리: 비표준 용어 자동 치환 (치료사용 → 'clinical')
       var _san = (typeof sanitizeSLPOutput === 'function') ? sanitizeSLPOutput : function(t){ return t; };
       var sessionId = generateClientId();
-      sessionDB.push({
+      var _newSession = {
         id: sessionId, childId: childId, date: date,
         teacher: (currentUser && currentUser.name) || '',
         teacher_id: (currentUser && currentUser.id != null) ? String(currentUser.id) : '',
@@ -128,8 +130,9 @@ function saveSessionAI() {
         memo: _san(p.memo || aiText, 'clinical'),
         aiNote: _san(p.aiNote || '', 'clinical'),
         phonemes: getPhonemeSnapshot()
-      });
-      saveSessions();
+      };
+      sessionDB.push(_newSession);
+      saveOneSession(_newSession);  // 단건 upsert (H2)
       // 저장된 날짜를 기억
       try { localStorage.setItem('madi_last_session_date', date); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
       renderSessionList();
@@ -375,7 +378,7 @@ function editSessionDate(id) {
     },
     onOk: function(newDate) {
       s.date = newDate;
-      saveSessions();
+      saveOneSession(s);  // 단건 upsert (H2)
       renderSessionList();
       showToast('✅ 날짜 수정 완료!');
     }

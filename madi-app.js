@@ -166,6 +166,25 @@ function saveChildren() {
   return _saveCollection({ db: childDB, lsKey: 'cn3_children', table: 'madi_children', label: '아동',
     before: function() { _optionsCacheKey = null; } });
 }
+// ── 단건 행 저장 헬퍼 (H2 lost-update 완화) ──
+// 변경된 row 하나만 서버에 upsert + localStorage 미러 갱신. 컬렉션 통째 upsert(_saveCollection)가
+// 다중 사용자 환경에서 무관한 타 row 의 stale 사본으로 동시 편집을 덮어쓰던 lost-update 를,
+// 단건 add/edit 경로에서 제거한다. _saveCollection 과 동일한 Promise<boolean> 계약.
+/**
+ * @param {{db:any[], row:any, lsKey:string, table:string, label:string, mapRow?:Function, before?:Function}} o
+ * @returns {Promise<boolean>}
+ */
+function _saveOneRow(o) {
+  markMyChange();
+  if (o.before) o.before();
+  safeSetItem(o.lsKey, JSON.stringify(o.db)); // 로컬 미러는 전체(로컬 전용·동시성 무관)
+  if (!o.row) return Promise.resolve(true);
+  var cid = getCenterId();
+  var mapRow = o.mapRow || function(x) { return { id: x.id, center_id: cid, data: x }; };
+  return supaFetch(o.table + '?on_conflict=id', 'POST', [mapRow(o.row)])
+    .then(function() { return true; })
+    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, o.label)); return false; });
+}
 function getSaveErrMsg(e, label) {
   var msg = e && e.message ? e.message : '';
   if (!navigator.onLine) return label + ' 저장 실패 — 인터넷 연결을 확인해주세요';
@@ -186,6 +205,10 @@ function _userErrMsg(e, action) {
 /** @returns {Promise<boolean>} */
 function saveSessions() {
   return _saveCollection({ db: sessionDB, lsKey: 'cn3_sessions', table: 'madi_sessions', label: '세션' });
+}
+/** 세션 단건 저장 (변경 row 만 upsert) — saveSessions 의 lost-update 안전 버전. @returns {Promise<boolean>} */
+function saveOneSession(row) {
+  return _saveOneRow({ db: sessionDB, row: row, lsKey: 'cn3_sessions', table: 'madi_sessions', label: '세션' });
 }
 /** @returns {Promise<boolean>} */
 function saveSchedule() {
