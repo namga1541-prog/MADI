@@ -994,7 +994,7 @@ function generateAssessReport() {
     + '\n\n'
     // 현업 임상 보고서 스타일 가이드 — madi-vocab.js 의 익명화된 예시 부착
     + ((typeof getReportStyleGuide === 'function') ? getReportStyleGuide('language') : '')
-    + AI_NAME_RULE;
+    + AI_NAME_RULE + AI_UNTRUSTED_NOTE;
 
   var USER = '【아동 정보】\n'
     + '이름: ' + aliasName() + '\n'
@@ -1002,9 +1002,9 @@ function generateAssessReport() {
     + '장애유형: ' + child.type + '\n'
     + (institution  ? '기관명: ' + institution + '\n' : '')
     + (evaluator    ? '평가자: ' + evaluator + '\n' : '')
-    + '\n【의뢰 사유】\n' + (referral || '현행 수준 파악을 위해 내원')
-    + '\n\n【배경정보】\n' + (background || '(배경정보 미입력 — 일반적 임상 문체로 작성)')
-    + '\n\n【검사태도 및 행동 관찰】\n' + (testBehavior || '(검사태도 미입력 — 일반적 협조적 수준으로 작성)')
+    + '\n【의뢰 사유】\n' + wrapUntrusted(referral || '현행 수준 파악을 위해 내원')
+    + '\n\n【배경정보】\n' + wrapUntrusted(background || '(배경정보 미입력 — 일반적 임상 문체로 작성)')
+    + '\n\n【검사태도 및 행동 관찰】\n' + wrapUntrusted(testBehavior || '(검사태도 미입력 — 일반적 협조적 수준으로 작성)')
     + '\n\n【검사 결과】\n' + testLog;
 
   callClaude(SYSTEM, USER, 3000, getAIModel())

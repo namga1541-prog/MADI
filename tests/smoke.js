@@ -34,6 +34,12 @@ var getTodayKST = _utils ? _utils.getTodayKST : function() {
     + '-' + String(d.getDate()).padStart(2, '0');
 };
 
+var restoreName = _utils ? _utils.restoreName : function(text, realName) {
+  if (!realName || text == null) return text;
+  if (String(realName).indexOf('"') !== -1 || String(realName).indexOf('\\') !== -1) return text;
+  return String(text).split('○○').join(realName);
+};
+
 var passed = 0, failed = 0;
 
 function assert(label, condition) {
@@ -85,6 +91,21 @@ function buildExportRow(sched, child) {
     바우처:      child ? (child.voucherType || '일반') : '',
     메모:        sched.note || ''
   };
+}
+
+// 저장 흐름 순수 로직 (madi-app.js _saveCollection/_saveOneRow 추출)
+function defaultMapRow(x, cid) { return { id: x.id, center_id: cid, data: x }; }
+function chunkRows(rows, size) {
+  var batches = [];
+  for (var i = 0; i < rows.length; i += size) batches.push(rows.slice(i, i + size));
+  return batches;
+}
+// 오프라인 큐 FIFO 계약 모델 (madi-core.js _oqFlush 불변식: 성공→shift, 실패→보존)
+function oqStep(queue, ok) {
+  var q = queue.slice();
+  if (!q.length) return q;
+  if (ok) q.shift();          // 성공: head 제거 (FIFO 전진)
+  return q;                   // 실패: 큐 그대로 보존 (재시도 대상)
 }
 
 // ──────────────────────────────────
@@ -155,6 +176,32 @@ assert('toISOString().slice 는 UTC라 날짜용 부적합(버그 클래스 박�
 section('회귀: escHtml 작은따옴표');
 // 음소 oninput 등 inline 핸들러 인자 안전성 (madi-05 저장형 XSS 수정)
 assert("작은따옴표(')를 이스케이프", escHtml("a'b").indexOf("'") === -1);
+
+section('AI 가명화 복원 (restoreName, PII)');
+// 실명을 외부 LLM 으로 보내지 않는 M2/H1 정책의 복원 로직 박제
+assertEq('가명 ○○ → 실명 복원', restoreName('○○이는 잘해요. ○○ 화이팅', '김민준'), '김민준이는 잘해요. 김민준 화이팅');
+assertEq('따옴표 포함 이름은 원문 유지(JSON 안전)', restoreName('○○ 잘함', '김"민준'), '○○ 잘함');
+assertEq('역슬래시 포함 이름도 원문 유지', restoreName('○○', 'a\\b'), '○○');
+assertEq('null 입력 안전', restoreName(null, '김민준'), null);
+assertEq('실명 없으면 원문 유지', restoreName('○○ 보고서', ''), '○○ 보고서');
+
+section('저장 흐름: mapRow + 배치 분할 (lost-update 리팩토링 박제)');
+var _mr = defaultMapRow({ id: 'x1', date: '2026-06-05' }, 'ctr1');
+assertEq('mapRow id', _mr.id, 'x1');
+assertEq('mapRow center_id', _mr.center_id, 'ctr1');
+assert('mapRow data 원본 보존', _mr.data && _mr.data.date === '2026-06-05');
+function _mkRows(n) { var a = []; for (var i = 0; i < n; i++) a.push({ id: i }); return a; }
+assertEq('50개 → 배치 1개', chunkRows(_mkRows(50), 50).length, 1);
+assertEq('51개 → 배치 2개(경계)', chunkRows(_mkRows(51), 50).length, 2);
+assertEq('51개 둘째 배치 1개', chunkRows(_mkRows(51), 50)[1].length, 1);
+assertEq('100개 → 배치 2개', chunkRows(_mkRows(100), 50).length, 2);
+assertEq('0개 → 배치 0개', chunkRows(_mkRows(0), 50).length, 0);
+
+section('오프라인 큐 FIFO 계약 (_oqFlush 불변식)');
+assertEq('성공 시 head 제거(FIFO 전진)', oqStep([{p:'a'},{p:'b'}], true).length, 1);
+assertEq('성공 후 다음 head 는 b', oqStep([{p:'a'},{p:'b'}], true)[0].p, 'b');
+assertEq('실패 시 큐 보존(재시도 대상)', oqStep([{p:'a'},{p:'b'}], false).length, 2);
+assertEq('빈 큐는 그대로', oqStep([], true).length, 0);
 
 // ──────────────────────────────────
 // 결과 출력

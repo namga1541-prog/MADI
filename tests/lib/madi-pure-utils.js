@@ -62,6 +62,15 @@
     return p[0] + '년 ' + parseInt(p[1]) + '월 ' + parseInt(p[2]) + '일';
   }
 
+  // ── restoreName (madi-core.js 실제 구현 복사) ────────────────────
+  // AI 가명(○○) → 실명 복원. 실명에 따옴표/역슬래시 있으면 원문 유지(JSON 안전).
+  // madi-core.js 수정 시 함께 갱신.
+  function restoreName(text, realName) {
+    if (!realName || text == null) return text;
+    if (String(realName).indexOf('"') !== -1 || String(realName).indexOf('\\') !== -1) return text;
+    return String(text).split('○○').join(realName);
+  }
+
   // ── formatAge (madi-01.js 에 없는 함수 — 이 파일에서 정의) ──────────
   // 개월 수(정수)를 'N세 M개월' 형식의 한국어 문자열로 변환한다.
   // 예: formatAge(26) → '2세 2개월'
@@ -84,6 +93,7 @@
     getTodayKST: getTodayKST,
     getMonthKST: getMonthKST,
     fmtDateKR:   fmtDateKR,
-    formatAge:   formatAge
+    formatAge:   formatAge,
+    restoreName: restoreName
   };
 });
