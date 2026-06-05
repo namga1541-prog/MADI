@@ -174,37 +174,37 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 
 ## madi-ai.js (25함수)
 - `generateReport` — madi-ai.js:1
-- `resetBtn` — madi-ai.js:37
-- `renderReport` — madi-ai.js:60
-- `copyKakao` — madi-ai.js:76
-- `downloadPDF` — madi-ai.js:91
-  ▸ _마크다운 → HTML 변환 (보고서 표 렌더링용)_ — L114
-- `markdownToHtml` — madi-ai.js:115
-- `flushTable` — madi-ai.js:121
-- `inlineBold` — madi-ai.js:142
-  ▸ _전문 평가 보고서 PDF 출력_ — L171
-- `downloadAssessPDF` — madi-ai.js:172
-  ▸ _보고서 인라인 편집 토글_ — L215
-- `toggleReportEdit` — madi-ai.js:216
-  ▸ _장단기계획(IEP) 자동 생성_ — L233
-- `generateIEP` — madi-ai.js:234
-- `resetIEPBtn` — madi-ai.js:320
-- `renderIEP` — madi-ai.js:354
-- `monthBlock` — madi-ai.js:357
-- `renderIEPHistory` — madi-ai.js:467
-- `loadIEPRecord` — madi-ai.js:500
-- `renderIEPView` — madi-ai.js:510
-- `monthBlock` — madi-ai.js:513
-- `downloadIEPPDFById` — madi-ai.js:561
-- `deleteIEPRecord` — madi-ai.js:571
-- `downloadIEPPDF` — madi-ai.js:596
-- `monthSection` — madi-ai.js:604
-  ▸ _W5: 활동 자료 카탈로그_ — L644
-  ▸ _W8: 효과 통계 대시보드_ — L645
-- `renderEffectStats` — madi-ai.js:646
-- `avgGoalScore` — madi-ai.js:678
-- `statCard` — madi-ai.js:698
-  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L753
+- `resetBtn` — madi-ai.js:39
+- `renderReport` — madi-ai.js:67
+- `copyKakao` — madi-ai.js:83
+- `downloadPDF` — madi-ai.js:98
+  ▸ _마크다운 → HTML 변환 (보고서 표 렌더링용)_ — L121
+- `markdownToHtml` — madi-ai.js:122
+- `flushTable` — madi-ai.js:128
+- `inlineBold` — madi-ai.js:149
+  ▸ _전문 평가 보고서 PDF 출력_ — L178
+- `downloadAssessPDF` — madi-ai.js:179
+  ▸ _보고서 인라인 편집 토글_ — L222
+- `toggleReportEdit` — madi-ai.js:223
+  ▸ _장단기계획(IEP) 자동 생성_ — L240
+- `generateIEP` — madi-ai.js:241
+- `resetIEPBtn` — madi-ai.js:329
+- `renderIEP` — madi-ai.js:365
+- `monthBlock` — madi-ai.js:368
+- `renderIEPHistory` — madi-ai.js:478
+- `loadIEPRecord` — madi-ai.js:511
+- `renderIEPView` — madi-ai.js:521
+- `monthBlock` — madi-ai.js:524
+- `downloadIEPPDFById` — madi-ai.js:572
+- `deleteIEPRecord` — madi-ai.js:582
+- `downloadIEPPDF` — madi-ai.js:607
+- `monthSection` — madi-ai.js:615
+  ▸ _W5: 활동 자료 카탈로그_ — L655
+  ▸ _W8: 효과 통계 대시보드_ — L656
+- `renderEffectStats` — madi-ai.js:657
+- `avgGoalScore` — madi-ai.js:689
+- `statCard` — madi-ai.js:709
+  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L764
 
 ## madi-app.js (56함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
