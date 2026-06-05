@@ -152,6 +152,19 @@ function _purgeLegacyCnCache() {
   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }
 
+// ─── AI 개인정보 최소화(M2/H1): 아동 실명을 외부 LLM(Anthropic)으로 전송하지 않기 위한 가명/복원 ───
+//   프롬프트에는 aliasName() 가명을 넣고 SYSTEM 에 AI_NAME_RULE 지침을 붙인 뒤,
+//   응답에서 restoreName()으로 실명을 클라이언트에서만 복원한다. 모든 AI 호출부 단일 사용 → 누락 방지.
+var AI_NAME_ALIAS = '○○';
+var AI_NAME_RULE = '\n[개인정보 보호] 아동의 이름은 반드시 "○○" 로만 표기하세요. 실명을 만들거나 추측하지 마세요.';
+function aliasName() { return AI_NAME_ALIAS; }
+function restoreName(text, realName) {
+  // 가명 ○○ → 실명. 실명에 JSON 깨뜨릴 문자(따옴표/역슬래시) 있으면 안전상 원문 유지.
+  if (!realName || text == null) return text;
+  if (String(realName).indexOf('"') !== -1 || String(realName).indexOf('\\') !== -1) return text;
+  return String(text).split(AI_NAME_ALIAS).join(realName);
+}
+
 // ─── 방어 유틸 함수 (Direction A — 반복 크래시 패턴 원천 차단) ───
 // localStorage 안전 읽기 — private mode / 차단 환경에서 SecurityError 방지
 function safeGetItem(key, fallback) {

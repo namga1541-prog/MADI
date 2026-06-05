@@ -3,7 +3,7 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (166)
+## 전역 변수 (168)
 
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:403
 - `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:405
@@ -70,13 +70,15 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var CENTER_SESSION_INTERVAL = 40;` — madi-core.js:116
 - `var EDGE_URL = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';` — madi-core.js:123
 - `var _madiToken = null;` — madi-core.js:124
-- `var _supaCache = {};` — madi-core.js:191
-- `var SUPA_CACHE_TTL = 5 * 60 * 1000;` — madi-core.js:192
-- `var _offlineQueue = [];` — madi-core.js:216
-- `var _offlineQueueBusy = false;` — madi-core.js:217
-- `var currentUser = null;` — madi-core.js:307
-- `var _errReportCount = 0;` — madi-core.js:361
-- `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:362
+- `var AI_NAME_ALIAS = '○○';` — madi-core.js:158
+- `var AI_NAME_RULE = '\n[개인정보 보호] 아동의 이름은 반드시 "○○" 로만 표기하세요. 실명을 만들거나 추측하지 마세요.';` — madi-core.js:159
+- `var _supaCache = {};` — madi-core.js:204
+- `var SUPA_CACHE_TTL = 5 * 60 * 1000;` — madi-core.js:205
+- `var _offlineQueue = [];` — madi-core.js:229
+- `var _offlineQueueBusy = false;` — madi-core.js:230
+- `var currentUser = null;` — madi-core.js:320
+- `var _errReportCount = 0;` — madi-core.js:374
+- `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:375
 - `var _DP_VOUCHER_PRICE = {` — madi-dashboard.js:458
 - `var _bcEscHandler = null;` — madi-growth.js:1
 - `var VOUCHER_KINDS = ['발달재활바우처','우리아이심리지원서비스바우처','꿈E든카드바우처','나래사랑카드바우처'];` — madi-growth.js:401
@@ -174,37 +176,37 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 
 ## madi-ai.js (25함수)
 - `generateReport` — madi-ai.js:1
-- `resetBtn` — madi-ai.js:39
-- `renderReport` — madi-ai.js:67
-- `copyKakao` — madi-ai.js:83
-- `downloadPDF` — madi-ai.js:98
-  ▸ _마크다운 → HTML 변환 (보고서 표 렌더링용)_ — L121
-- `markdownToHtml` — madi-ai.js:122
-- `flushTable` — madi-ai.js:128
-- `inlineBold` — madi-ai.js:149
-  ▸ _전문 평가 보고서 PDF 출력_ — L178
-- `downloadAssessPDF` — madi-ai.js:179
-  ▸ _보고서 인라인 편집 토글_ — L222
-- `toggleReportEdit` — madi-ai.js:223
-  ▸ _장단기계획(IEP) 자동 생성_ — L240
-- `generateIEP` — madi-ai.js:241
-- `resetIEPBtn` — madi-ai.js:329
-- `renderIEP` — madi-ai.js:365
-- `monthBlock` — madi-ai.js:368
-- `renderIEPHistory` — madi-ai.js:478
-- `loadIEPRecord` — madi-ai.js:511
-- `renderIEPView` — madi-ai.js:521
-- `monthBlock` — madi-ai.js:524
-- `downloadIEPPDFById` — madi-ai.js:572
-- `deleteIEPRecord` — madi-ai.js:582
-- `downloadIEPPDF` — madi-ai.js:607
-- `monthSection` — madi-ai.js:615
-  ▸ _W5: 활동 자료 카탈로그_ — L655
-  ▸ _W8: 효과 통계 대시보드_ — L656
-- `renderEffectStats` — madi-ai.js:657
-- `avgGoalScore` — madi-ai.js:689
-- `statCard` — madi-ai.js:709
-  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L764
+- `resetBtn` — madi-ai.js:38
+- `renderReport` — madi-ai.js:64
+- `copyKakao` — madi-ai.js:80
+- `downloadPDF` — madi-ai.js:95
+  ▸ _마크다운 → HTML 변환 (보고서 표 렌더링용)_ — L118
+- `markdownToHtml` — madi-ai.js:119
+- `flushTable` — madi-ai.js:125
+- `inlineBold` — madi-ai.js:146
+  ▸ _전문 평가 보고서 PDF 출력_ — L175
+- `downloadAssessPDF` — madi-ai.js:176
+  ▸ _보고서 인라인 편집 토글_ — L219
+- `toggleReportEdit` — madi-ai.js:220
+  ▸ _장단기계획(IEP) 자동 생성_ — L237
+- `generateIEP` — madi-ai.js:238
+- `resetIEPBtn` — madi-ai.js:326
+- `renderIEP` — madi-ai.js:362
+- `monthBlock` — madi-ai.js:365
+- `renderIEPHistory` — madi-ai.js:475
+- `loadIEPRecord` — madi-ai.js:508
+- `renderIEPView` — madi-ai.js:518
+- `monthBlock` — madi-ai.js:521
+- `downloadIEPPDFById` — madi-ai.js:569
+- `deleteIEPRecord` — madi-ai.js:579
+- `downloadIEPPDF` — madi-ai.js:604
+- `monthSection` — madi-ai.js:612
+  ▸ _W5: 활동 자료 카탈로그_ — L652
+  ▸ _W8: 효과 통계 대시보드_ — L653
+- `renderEffectStats` — madi-ai.js:654
+- `avgGoalScore` — madi-ai.js:686
+- `statCard` — madi-ai.js:706
+  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L761
 
 ## madi-app.js (56함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
@@ -316,10 +318,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `generateAssessReport` — madi-assessment.js:865
   ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L873
   ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L917
-  ▸ _부모 교육 자료_ — L1037
-- `generateParentEdu` — madi-assessment.js:1038
-- `printParentEdu` — madi-assessment.js:1087
-  ▸ _데이터 이전_ — L1114
+  ▸ _부모 교육 자료_ — L1039
+- `generateParentEdu` — madi-assessment.js:1040
+- `printParentEdu` — madi-assessment.js:1090
+  ▸ _데이터 이전_ — L1117
 
 ## madi-auth.js (22함수)
 - `showLanding` — madi-auth.js:13
@@ -529,7 +531,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `showStaffTrend` — madi-children.js:678
   ▸ _입력 모드_ — L761
 
-## madi-core.js (43함수)
+## madi-core.js (45함수)
   ▸ _상수_ — L1
 - `isAdminRole` — madi-core.js:14
 - `isStaffRole` — madi-core.js:15
@@ -553,34 +555,36 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `clearToken` — madi-core.js:132
 - `safeSetItem` — madi-core.js:137
 - `_purgeLegacyCnCache` — madi-core.js:146
-  ▸ _방어 유틸 함수 (Direction A — 반복 크래시 패턴 원천 차단)_ — L155
-- `safeGetItem` — madi-core.js:157
-- `safeGetSessionItem` — madi-core.js:162
-- `safeSetSessionItem` — madi-core.js:167
-- `safeJsonParse` — madi-core.js:172
-- `safeCmp` — madi-core.js:180
-  ▸ _─_ — L186
-  ▸ _supaFetch GET 캐시 (2026-05-21 최적화)_ — L188
-- `_supaCacheClone` — madi-core.js:193
-- `_supaCacheGet` — madi-core.js:197
-- `_supaCacheSet` — madi-core.js:203
-- `supaCacheInvalidate` — madi-core.js:206
-- `supaCacheClearAll` — madi-core.js:213
-  ▸ _오프라인 쓰기 큐_ — L215
-- `_oqSave` — madi-core.js:221
-- `_oqEnqueue` — madi-core.js:222
-- `_oqFlush` — madi-core.js:227
-  ▸ _─_ — L249
-- `supaFetch` — madi-core.js:260
-- `hashPassword` — madi-core.js:308
-- `getCenterId` — madi-core.js:313
-- `_loadScriptOnce` — madi-core.js:317
-- `ensureXLSX` — madi-core.js:334
-- `ensureChart` — madi-core.js:344
-- `centerFilter` — madi-core.js:352
-  ▸ _글로벌 에러 모니터링_ — L358
-- `_reportClientError` — madi-core.js:364
-  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L418
+- `aliasName` — madi-core.js:160
+- `restoreName` — madi-core.js:161
+  ▸ _방어 유틸 함수 (Direction A — 반복 크래시 패턴 원천 차단)_ — L168
+- `safeGetItem` — madi-core.js:170
+- `safeGetSessionItem` — madi-core.js:175
+- `safeSetSessionItem` — madi-core.js:180
+- `safeJsonParse` — madi-core.js:185
+- `safeCmp` — madi-core.js:193
+  ▸ _─_ — L199
+  ▸ _supaFetch GET 캐시 (2026-05-21 최적화)_ — L201
+- `_supaCacheClone` — madi-core.js:206
+- `_supaCacheGet` — madi-core.js:210
+- `_supaCacheSet` — madi-core.js:216
+- `supaCacheInvalidate` — madi-core.js:219
+- `supaCacheClearAll` — madi-core.js:226
+  ▸ _오프라인 쓰기 큐_ — L228
+- `_oqSave` — madi-core.js:234
+- `_oqEnqueue` — madi-core.js:235
+- `_oqFlush` — madi-core.js:240
+  ▸ _─_ — L262
+- `supaFetch` — madi-core.js:273
+- `hashPassword` — madi-core.js:321
+- `getCenterId` — madi-core.js:326
+- `_loadScriptOnce` — madi-core.js:330
+- `ensureXLSX` — madi-core.js:347
+- `ensureChart` — madi-core.js:357
+- `centerFilter` — madi-core.js:365
+  ▸ _글로벌 에러 모니터링_ — L371
+- `_reportClientError` — madi-core.js:377
+  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L431
 
 ## madi-dashboard.js (24함수)
 - `_dpInitial` — madi-dashboard.js:13
@@ -845,26 +849,26 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `downloadWordDoc` — madi-parent.js:308
   ▸ _기능 5: 월간 포트폴리오_ — L360
 - `generatePortfolio` — madi-parent.js:361
-- `_resetPortfolioBtn` — madi-parent.js:429
-  ▸ _포트폴리오 DB 저장 (UPSERT)_ — L459
-- `_savePortfolioToDB` — madi-parent.js:461
-  ▸ _포트폴리오 가시성 토글 (선생님 OPEN/CLOSE)_ — L508
-- `togglePortfolioVisibility` — madi-parent.js:509
-  ▸ _포트폴리오 히스토리 로드·렌더_ — L537
-- `renderPortfolioHistory` — madi-parent.js:538
-  ▸ _포트폴리오 삭제_ — L586
-- `deletePortfolio` — madi-parent.js:587
-  ▸ _아동 선택 변경 시 히스토리 자동 로드_ — L601
-- `onPortfolioChildChange` — madi-parent.js:602
-- `renderPortfolio` — madi-parent.js:608
-  ▸ _기능 6: 자연어 검색_ — L714
-- `naturalSearch` — madi-parent.js:715
-- `_resetAskBtn` — madi-parent.js:749
-  ▸ _기능 7: 부모 FAQ 답변_ — L767
-- `generateFAQ` — madi-parent.js:768
-- `_resetFAQBtn` — madi-parent.js:808
-- `copyFAQText` — madi-parent.js:830
-  ▸ _유틸_ — L845
+- `_resetPortfolioBtn` — madi-parent.js:430
+  ▸ _포트폴리오 DB 저장 (UPSERT)_ — L461
+- `_savePortfolioToDB` — madi-parent.js:463
+  ▸ _포트폴리오 가시성 토글 (선생님 OPEN/CLOSE)_ — L510
+- `togglePortfolioVisibility` — madi-parent.js:511
+  ▸ _포트폴리오 히스토리 로드·렌더_ — L539
+- `renderPortfolioHistory` — madi-parent.js:540
+  ▸ _포트폴리오 삭제_ — L588
+- `deletePortfolio` — madi-parent.js:589
+  ▸ _아동 선택 변경 시 히스토리 자동 로드_ — L603
+- `onPortfolioChildChange` — madi-parent.js:604
+- `renderPortfolio` — madi-parent.js:610
+  ▸ _기능 6: 자연어 검색_ — L716
+- `naturalSearch` — madi-parent.js:717
+- `_resetAskBtn` — madi-parent.js:751
+  ▸ _기능 7: 부모 FAQ 답변_ — L769
+- `generateFAQ` — madi-parent.js:770
+- `_resetFAQBtn` — madi-parent.js:810
+- `copyFAQText` — madi-parent.js:833
+  ▸ _유틸_ — L848
 
 ## madi-quick.js (33함수)
   ▸ _─_ — L4

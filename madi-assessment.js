@@ -993,10 +993,11 @@ function generateAssessReport() {
     + '  | 자동차→타동타 (ㅈ→ㅌ) | 파열음화 + 전방화 | 만 4세 이후이므로 비발달적 |'
     + '\n\n'
     // 현업 임상 보고서 스타일 가이드 — madi-vocab.js 의 익명화된 예시 부착
-    + ((typeof getReportStyleGuide === 'function') ? getReportStyleGuide('language') : '');
+    + ((typeof getReportStyleGuide === 'function') ? getReportStyleGuide('language') : '')
+    + AI_NAME_RULE;
 
   var USER = '【아동 정보】\n'
-    + '이름: ' + child.name + '\n'
+    + '이름: ' + aliasName() + '\n'
     + '생활연령: ' + (child._testAge || child.age) + '\n'
     + '장애유형: ' + child.type + '\n'
     + (institution  ? '기관명: ' + institution + '\n' : '')
@@ -1014,6 +1015,7 @@ function generateAssessReport() {
       raw = raw.replace(/U-TAP-?2/g, 'U-TAP').replace(/UTAP-?2/g, 'U-TAP');
       // 임상 표준 용어 통일: "중지화"→"파열음화" 등 (audience: clinical)
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');
+      raw = restoreName(raw, child.name);  // 가명 ○○ → 실명 복원 (H1)
       var cn = escHtml(child.name);
       // eslint-disable-next-line no-unsanitized/property
       result.innerHTML = '<div id="assessReportText" contenteditable="false" class="report-box"'
@@ -1065,14 +1067,15 @@ function generateParentEdu() {
     + '2. 이번 주 집에서 할 활동 3가지 (각각 제목 + 방법 + 소요 시간)\n'
     + '3. 부모님께 드리는 한마디\n'
     + '따뜻하고 실용적인 말투로, 부모가 바로 활용할 수 있게 작성하세요. JSON 없이 텍스트로.\n\n'
-    + _parentGuide;
-  var USER = '아동: ' + child.name + ' (' + (child._testAge||child.age) + ', ' + child.type + ')\n치료 목표: ' + ((child.goals || []).join(', ')||'없음')
+    + _parentGuide + AI_NAME_RULE;
+  var USER = '아동: ' + aliasName() + ' (' + (child._testAge||child.age) + ', ' + child.type + ')\n치료 목표: ' + ((child.goals || []).join(', ')||'없음')
     + '\n\n최근 세션:\n' + (sessionSummary || '세션 기록 없음');
 
   callClaude(SYSTEM, USER, 1500, getAIModel())
     .then(function(raw) {
       // 학부모용 — 한자어·비표준 용어 자동 치환
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
+      raw = restoreName(raw, child.name);  // 가명 ○○ → 실명 복원 (H1)
       result.innerHTML = '<div class="parent-edu-preview" id="eduText">' + escHtml(raw) + '</div>'
         + '<button class="print-btn" onclick="printParentEdu(\'' + escHtml(child.name) + '\')">🖨️ 인쇄하기</button>';
     })

@@ -417,9 +417,10 @@ function generatePortfolio() {
     + '"sessionHighlights":["인상적인 세션 순간 2-3개"],'
     + '"parentMessage":"부모님께 전하고 싶은 따뜻한 메시지 2-3문장",'
     + '"nextMonthPlan":"다음 달 치료 방향 제안 3-4문장",'
-    + '"professionalNote":"치료사 본인을 위한 전문 메모 (다음 달 슈퍼비전·임상 노트용)"}';
+    + '"professionalNote":"치료사 본인을 위한 전문 메모 (다음 달 슈퍼비전·임상 노트용)"}'
+    + AI_NAME_RULE;
 
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n'
+  var USER = '아동: ' + aliasName() + ' (' + child.age + ', ' + child.type + ')\n'
     + '치료 목표: ' + ((child.goals || []).join(', ') || '없음') + '\n'
     + '대상 월: ' + month + '\n'
     + '세션 수: ' + sessions.length + '회\n\n'
@@ -435,6 +436,7 @@ function generatePortfolio() {
     .then(function(raw) {
       // 학부모용 포트폴리오 — 한자어·비표준 용어 자동 치환
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
+      raw = restoreName(raw, child.name);  // 가명 ○○ → 실명 복원 (H1)
       var p = parseJSON(raw);
       // ★ DB 저장 (UPSERT — 동일 child·month 재생성 시 본문 교체, parent_visible 보존)
       _savePortfolioToDB(child, month, p, sessions, goalProgress)
@@ -800,8 +802,8 @@ function generateFAQ() {
   var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 부모가 묻는 까다로운 질문에 대해, '
     + '치료사가 그대로 사용하거나 참고할 수 있는 따뜻하고 전문적인 답변 예시를 작성하세요. '
     + '실제 치료 데이터를 근거로 활용하세요. 존댓말, 부모 마음을 헤아리는 톤. 300자 내외. JSON 없이 일반 텍스트.\n\n'
-    + _parentGuide;
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n'
+    + _parentGuide + AI_NAME_RULE;
+  var USER = '아동: ' + aliasName() + ' (' + child.age + ', ' + child.type + ')\n'
     + '최근 세션:\n' + (summary || '없음') + '\n\n부모 질문: "' + question + '"';
 
   // ES5 호환: .finally() 미지원 환경 대응
@@ -814,6 +816,7 @@ function generateFAQ() {
     .then(function(raw) {
       // 학부모 대상 — 자동 치환
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
+      raw = restoreName(raw, child.name);  // 가명 ○○ → 실명 복원 (H1)
       resultEl.innerHTML = '<div class="ai-response-box">'
         + '<div class="ai-response-label">💬 AI 답변 예시 (참고용, 그대로 또는 수정 후 사용)</div>'
         + '<div class="ai-response-text">' + escHtml(raw) + '</div>'

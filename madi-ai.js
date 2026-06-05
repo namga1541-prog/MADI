@@ -30,8 +30,7 @@ function generateReport() {
   var _parentGuide = (typeof SLP_PROMPT_PARENT_GUIDE !== 'undefined') ? SLP_PROMPT_PARENT_GUIDE : '';
   var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 부모님께 보낼 보고서를 두 형식으로 작성하세요. 순수 JSON만:'
     + ' {"kakao":"카카오톡 메시지 (이모지, 친근한 존댓말, 200자 내외)","report":"전문 보고서 (치료 경과, 목표 달성, 가정 지도, 존댓말, 400자 내외)"}\n\n'
-    + _parentGuide
-    + '\n[개인정보 보호] 아동의 이름은 반드시 "○○" 로만 표기하세요. 실명을 만들거나 추측하지 마세요.';
+    + _parentGuide + AI_NAME_RULE;
   // 개인정보 최소화(M2): 실명을 AI(미국 Anthropic)로 전송하지 않고 가명 ○○ 로 보낸 뒤, 응답에서 클라이언트가 실명 복원.
   var USER = '아동: ○○ (' + child.age + ', ' + child.type + ')\n목표: ' + ((child.goals || []).join(', ') || '없음') + '\n\n세션:\n' + summary;
 
@@ -50,10 +49,8 @@ function generateReport() {
         if (p.report) p.report = sanitizeSLPOutput(p.report, 'parent');
       }
       // 가명(○○) → 실명 복원 (실명은 전송하지 않고 클라이언트에서만 치환)
-      if (child.name) {
-        if (p.kakao)  p.kakao  = String(p.kakao).split('○○').join(child.name);
-        if (p.report) p.report = String(p.report).split('○○').join(child.name);
-      }
+      p.kakao  = restoreName(p.kakao, child.name);
+      p.report = restoreName(p.report, child.name);
       renderReport(p, child.name);
       resetBtn();
     })
@@ -313,7 +310,7 @@ function generateIEP() {
     + NL + '【언어 규칙】이 문서는 부모(주 양육자)가 읽습니다. 쉬운 일상 언어만 사용하세요.'
     + NL + '금지: "통합적 발달을 모색","정체를 타개","도모하다","증진","도출" 등 어려운 한자어.'
     + NL + '권장: "말이 늘고 있어요","문장으로 말하기 시작했어요","~을 함께 해보세요" 등 친근한 표현.'
-    + NL + '【개인정보 보호】아동의 이름은 반드시 "○○" 로만 표기하세요. 실명을 만들거나 추측하지 마세요.'
+    + AI_NAME_RULE
     + NL + '반드시 순수 JSON만 출력. 마크다운 코드블록 금지.'
     + NL + '{"priorityGoals":["가장 집중해야 할 목표 1-2개"],"longTermGoals":["3개월 후 기대 모습 2-3개"],"shortTermGoals":{"1개월":["구체적 단기목표"],"2개월":["구체적 단기목표"],"3개월":["구체적 단기목표"]},"parentCooperation":[{"activity":"부모와 함께할 활동명","how":"구체적 방법 2문장","frequency":"주 몇 회"}],"activities":["치료실 권장활동"],"therapistNote":"치료사 전용 임상 메모 — 접근법 변경 제안 포함"}';
 
@@ -335,8 +332,8 @@ function generateIEP() {
     .then(function(raw) {
       // IEP 는 부모도 보는 문서 — 학부모 어휘 정책 적용
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
-      // 가명(○○) → 실명 복원 (실명 미전송·클라이언트 치환). 이름에 JSON 특수문자 있으면 안전상 스킵.
-      if (child.name && child.name.indexOf('"') === -1 && child.name.indexOf('\\') === -1) raw = raw.split('○○').join(child.name);
+      // 가명(○○) → 실명 복원 (실명 미전송·클라이언트 치환, restoreName 이 특수문자 안전처리).
+      raw = restoreName(raw, child.name);
       var p = parseJSON(raw);
       if (!p || !p.longTermGoals) throw new Error('IEP 파싱 실패');
       // 구조 보정 — AI가 일부 필드 누락 시 renderIEP crash 방지
