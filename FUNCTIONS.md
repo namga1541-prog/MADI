@@ -5,10 +5,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 
 ## 전역 변수 (166)
 
-- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:360
-- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:362
-- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:417
-- `var _clientIdCounter = 0;` — madi-app.js:580
+- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:376
+- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:378
+- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:433
+- `var _clientIdCounter = 0;` — madi-app.js:596
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -51,11 +51,11 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var phonemeData = {}; // { 'ㅅ': {initial:70, medial:40, final:30}, ... }` — madi-child-detail.js:100
 - `var COMMON_PHONEMES = ['ㅅ','ㄹ','ㄷ','ㄴ','ㅈ','ㅊ','ㅆ','ㅉ','ㅎ','ㄱ','ㅋ','ㅌ','ㅍ','ㅂ'];` — madi-child-detail.js:102
 - `var _addChildLock = false;` — madi-child-detail.js:307
-- `var _searchDebounced = debounce(function() { renderChildGrid(); }, 250);` — madi-child-detail.js:723
-- `var _childStatusFilter = '등록';` — madi-child-detail.js:729
-- `var _bulkMode = false;` — madi-child-detail.js:732
-- `var _bulkSelected = {}; // { childId: true }` — madi-child-detail.js:733
-- `var _currentVisibleIds = []; // renderChildGrid에서 채워짐` — madi-child-detail.js:734
+- `var _searchDebounced = debounce(function() { renderChildGrid(); }, 250);` — madi-child-detail.js:728
+- `var _childStatusFilter = '등록';` — madi-child-detail.js:734
+- `var _bulkMode = false;` — madi-child-detail.js:737
+- `var _bulkSelected = {}; // { childId: true }` — madi-child-detail.js:738
+- `var _currentVisibleIds = []; // renderChildGrid에서 채워짐` — madi-child-detail.js:739
 - `var _VOUCHER_BADGE_MAP = {` — madi-children.js:72
 - `var _staffTrendChart = null;` — madi-children.js:545
 - `var MODEL_HAIKU = 'claude-haiku-4-5-20251001';` — madi-core.js:2
@@ -206,64 +206,65 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `statCard` — madi-ai.js:698
   ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L753
 
-## madi-app.js (52함수)
+## madi-app.js (53함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
 - `_isoDaysAgo` — madi-app.js:14
 - `_normalizeRows` — madi-app.js:22
 - `_supaFetchAll` — madi-app.js:29
 - `_page` — madi-app.js:32
 - `loadDBFromSupabase` — madi-app.js:44
-- `_loadOlderHistory` — madi-app.js:103
-  ▸ _컬렉션 저장 공통 헬퍼_ — L126
-- `_saveCollection` — madi-app.js:133
-- `saveChildren` — madi-app.js:149
-- `getSaveErrMsg` — madi-app.js:153
-- `_userErrMsg` — madi-app.js:162
-- `saveSessions` — madi-app.js:171
-- `saveSchedule` — madi-app.js:175
-- `saveAssess` — madi-app.js:179
-- `loadDB` — madi-app.js:190
-  ▸ _아동 연령 실시간 갱신_ — L195
-- `refreshChildAges` — madi-app.js:199
-- `saveIEP` — madi-app.js:208
-- `loadIEPFromSupa` — madi-app.js:218
-- `saveActivities` — madi-app.js:226
-- `loadActivitiesFromSupa` — madi-app.js:231
-  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L237
-- `attachModalA11y` — madi-app.js:245
-- `focusables` — madi-app.js:248
-- `onKey` — madi-app.js:254
-- `showInputPrompt` — madi-app.js:281
-- `close` — madi-app.js:313
-- `doCancel` — madi-app.js:317
-- `doOk` — madi-app.js:318
-- `showConfirm` — madi-app.js:335
-- `close` — madi-app.js:351
-- `doCancel` — madi-app.js:352
-- `debounce` — madi-app.js:361
-- `showToast` — madi-app.js:364
-- `vibrate` — madi-app.js:391
-- `toggleDarkMode` — madi-app.js:392
-- `loadDarkMode` — madi-app.js:398
-- `updateHeaderClock` — madi-app.js:402
-- `startHeaderClock` — madi-app.js:418
-- `fetchWithRetry` — madi-app.js:429
-- `doFetch` — madi-app.js:433
-- `setupNetworkMonitor` — madi-app.js:446
-- `showOfflineBanner` — madi-app.js:447
-- `hideOfflineBanner` — madi-app.js:453
-- `applyParentUI` — madi-app.js:459
-- `_initParentSidebar` — madi-app.js:484
-- `resetParentUI` — madi-app.js:524
-- `loadParentDashboard` — madi-app.js:547
-- `toggleMoreMenu` — madi-app.js:554
-- `closeMoreMenu` — madi-app.js:555
-- `getRoleFlags` — madi-app.js:562
-- `validatePasswordStrength` — madi-app.js:568
-  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L574
-- `generateClientId` — madi-app.js:581
-- `applyUserUI` — madi-app.js:586
-- `updateKbOffset` — madi-app.js:617
+- `_loadOlderHistory` — madi-app.js:112
+- `_hashStr` — madi-app.js:136
+  ▸ _컬렉션 저장 공통 헬퍼_ — L142
+- `_saveCollection` — madi-app.js:149
+- `saveChildren` — madi-app.js:165
+- `getSaveErrMsg` — madi-app.js:169
+- `_userErrMsg` — madi-app.js:178
+- `saveSessions` — madi-app.js:187
+- `saveSchedule` — madi-app.js:191
+- `saveAssess` — madi-app.js:195
+- `loadDB` — madi-app.js:206
+  ▸ _아동 연령 실시간 갱신_ — L211
+- `refreshChildAges` — madi-app.js:215
+- `saveIEP` — madi-app.js:224
+- `loadIEPFromSupa` — madi-app.js:234
+- `saveActivities` — madi-app.js:242
+- `loadActivitiesFromSupa` — madi-app.js:247
+  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L253
+- `attachModalA11y` — madi-app.js:261
+- `focusables` — madi-app.js:264
+- `onKey` — madi-app.js:270
+- `showInputPrompt` — madi-app.js:297
+- `close` — madi-app.js:329
+- `doCancel` — madi-app.js:333
+- `doOk` — madi-app.js:334
+- `showConfirm` — madi-app.js:351
+- `close` — madi-app.js:367
+- `doCancel` — madi-app.js:368
+- `debounce` — madi-app.js:377
+- `showToast` — madi-app.js:380
+- `vibrate` — madi-app.js:407
+- `toggleDarkMode` — madi-app.js:408
+- `loadDarkMode` — madi-app.js:414
+- `updateHeaderClock` — madi-app.js:418
+- `startHeaderClock` — madi-app.js:434
+- `fetchWithRetry` — madi-app.js:445
+- `doFetch` — madi-app.js:449
+- `setupNetworkMonitor` — madi-app.js:462
+- `showOfflineBanner` — madi-app.js:463
+- `hideOfflineBanner` — madi-app.js:469
+- `applyParentUI` — madi-app.js:475
+- `_initParentSidebar` — madi-app.js:500
+- `resetParentUI` — madi-app.js:540
+- `loadParentDashboard` — madi-app.js:563
+- `toggleMoreMenu` — madi-app.js:570
+- `closeMoreMenu` — madi-app.js:571
+- `getRoleFlags` — madi-app.js:578
+- `validatePasswordStrength` — madi-app.js:584
+  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L590
+- `generateClientId` — madi-app.js:597
+- `applyUserUI` — madi-app.js:602
+- `updateKbOffset` — madi-app.js:633
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3
@@ -489,20 +490,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `getClosedDuration` — madi-child-detail.js:324
 - `getVoucherUsed` — madi-child-detail.js:339
 - `deleteChild` — madi-child-detail.js:349
-- `closeChild` — madi-child-detail.js:400
-- `reopenChild` — madi-child-detail.js:416
-- `renderChildGrid` — madi-child-detail.js:431
-- `getPageNumbers` — madi-child-detail.js:701
-- `goToChildPage` — madi-child-detail.js:717
-- `onChildSearchInput` — madi-child-detail.js:724
-  ▸ _아동 일괄 처리 모드_ — L731
-- `toggleBulkMode` — madi-child-detail.js:736
-- `bulkToggleSelect` — madi-child-detail.js:751
-- `bulkSelectAllVisible` — madi-child-detail.js:766
-- `updateBulkCountLabel` — madi-child-detail.js:783
-- `bulkChangeStatus` — madi-child-detail.js:789
-- `applyBulkStatus` — madi-child-detail.js:806
-  ▸ _일괄 종결일 입력 모달_ — L832
+- `closeChild` — madi-child-detail.js:405
+- `reopenChild` — madi-child-detail.js:421
+- `renderChildGrid` — madi-child-detail.js:436
+- `getPageNumbers` — madi-child-detail.js:706
+- `goToChildPage` — madi-child-detail.js:722
+- `onChildSearchInput` — madi-child-detail.js:729
+  ▸ _아동 일괄 처리 모드_ — L736
+- `toggleBulkMode` — madi-child-detail.js:741
+- `bulkToggleSelect` — madi-child-detail.js:756
+- `bulkSelectAllVisible` — madi-child-detail.js:771
+- `updateBulkCountLabel` — madi-child-detail.js:788
+- `bulkChangeStatus` — madi-child-detail.js:794
+- `applyBulkStatus` — madi-child-detail.js:811
+  ▸ _일괄 종결일 입력 모달_ — L837
 
 ## madi-children.js (15함수)
 - `renderServiceStats` — madi-children.js:1
@@ -763,30 +764,30 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 ## madi-parent-home.js (23함수)
   ▸ _탭 전환_ — L9
 - `switchParentTab` — madi-parent-home.js:10
-  ▸ _내 아동 정보 가져오기 (공통)_ — L30
-- `getMyChildInfo` — madi-parent-home.js:33
-- `_emit` — madi-parent-home.js:36
-- `setActiveParentChild` — madi-parent-home.js:96
-- `renderParentChildSwitcher` — madi-parent-home.js:125
-  ▸ _홈 (페르소나 ⑦)_ — L154
-- `loadParentHome` — madi-parent-home.js:156
-- `_renderParentHero` — madi-parent-home.js:237
-- `_renderParentHeroStats` — madi-parent-home.js:279
-- `_renderParentRecentPortfolios` — madi-parent-home.js:293
-- `_renderParentNextSchedule` — madi-parent-home.js:355
-- `_renderParentWeekSessions` — madi-parent-home.js:380
-- `fmt` — madi-parent-home.js:396
-- `_loadParentTeacherMessages` — madi-parent-home.js:427
-- `_loadParentAssessments` — madi-parent-home.js:436
-- `_renderParentChartByScore` — madi-parent-home.js:480
-- `_renderParentChart` — madi-parent-home.js:574
-- `_renderParentVoucher` — madi-parent-home.js:648
-- `_renderParentVoucherUpcoming` — madi-parent-home.js:655
-- `_redrawParentVoucherPanel` — madi-parent-home.js:660
-- `_renderParentHomeActivities` — madi-parent-home.js:744
-- `_toggleParentActivity` — madi-parent-home.js:783
-- `_calcAge` — madi-parent-home.js:795
-- `_showParentOnboarding` — madi-parent-home.js:807
+  ▸ _내 아동 정보 가져오기 (공통)_ — L33
+- `getMyChildInfo` — madi-parent-home.js:36
+- `_emit` — madi-parent-home.js:39
+- `setActiveParentChild` — madi-parent-home.js:99
+- `renderParentChildSwitcher` — madi-parent-home.js:128
+  ▸ _홈 (페르소나 ⑦)_ — L157
+- `loadParentHome` — madi-parent-home.js:159
+- `_renderParentHero` — madi-parent-home.js:240
+- `_renderParentHeroStats` — madi-parent-home.js:282
+- `_renderParentRecentPortfolios` — madi-parent-home.js:296
+- `_renderParentNextSchedule` — madi-parent-home.js:358
+- `_renderParentWeekSessions` — madi-parent-home.js:383
+- `fmt` — madi-parent-home.js:399
+- `_loadParentTeacherMessages` — madi-parent-home.js:430
+- `_loadParentAssessments` — madi-parent-home.js:439
+- `_renderParentChartByScore` — madi-parent-home.js:483
+- `_renderParentChart` — madi-parent-home.js:577
+- `_renderParentVoucher` — madi-parent-home.js:651
+- `_renderParentVoucherUpcoming` — madi-parent-home.js:658
+- `_redrawParentVoucherPanel` — madi-parent-home.js:663
+- `_renderParentHomeActivities` — madi-parent-home.js:747
+- `_toggleParentActivity` — madi-parent-home.js:787
+- `_calcAge` — madi-parent-home.js:799
+- `_showParentOnboarding` — madi-parent-home.js:811
 
 ## madi-parent-pages.js (26함수)
   ▸ _일정 탭_ — L12
@@ -1211,21 +1212,21 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `copyParentNewInfo` — admin.html:2726
 - `loadParentList` — admin.html:2746
 - `deleteParentAccount` — admin.html:2774
-  ▸ _오류 모니터링_ — L2791
-- `loadErrorLogs` — admin.html:2792
-- `clearOldErrorLogs` — admin.html:2847
-- `generateLicenseKey` — admin.html:2863
-- `refreshLicenseKey` — admin.html:2873
-- `calcExpiresAt` — admin.html:2878
-- `copyLicenseKey` — admin.html:2888
-- `issueLicense` — admin.html:2897
-- `loadLicenseList` — admin.html:2938
-- `loadMyLicense` — admin.html:2993
-- `activateLicense` — admin.html:3052
-- `loadVocabFeedback` — admin.html:3080
-- `deleteVocabFeedback` — admin.html:3135
-- `loadClientErrors` — admin.html:3149
-- `checkRlsStatus` — admin.html:3200
-- `dismissRlsBanner` — admin.html:3211
-- `deleteClientError` — admin.html:3218
-- `_v` — admin.html:3240
+  ▸ _오류 모니터링_ — L2799
+- `loadErrorLogs` — admin.html:2800
+- `clearOldErrorLogs` — admin.html:2855
+- `generateLicenseKey` — admin.html:2871
+- `refreshLicenseKey` — admin.html:2881
+- `calcExpiresAt` — admin.html:2886
+- `copyLicenseKey` — admin.html:2896
+- `issueLicense` — admin.html:2905
+- `loadLicenseList` — admin.html:2946
+- `loadMyLicense` — admin.html:3001
+- `activateLicense` — admin.html:3060
+- `loadVocabFeedback` — admin.html:3088
+- `deleteVocabFeedback` — admin.html:3143
+- `loadClientErrors` — admin.html:3157
+- `checkRlsStatus` — admin.html:3208
+- `dismissRlsBanner` — admin.html:3219
+- `deleteClientError` — admin.html:3226
+- `_v` — admin.html:3248

@@ -69,25 +69,34 @@ function loadDBFromSupabase(silent) {
     refreshChildAges();   // 등록 시점 age → 오늘 기준으로 인메모리 갱신
     window._dataLoadedAt = Date.now();
     if (!silent) showToast('✅ 데이터 로드 완료 (아동 ' + childDB.length + '명)');
-    // 폴링(silent) 재렌더 전 .open 카드 id 목록 보존 → 재렌더 후 복원.
-    //   renderChildGrid 가 innerHTML 통째 교체라, toggleChildCard 가 DOM-only 로 .open 을 관리해
-    //   30초 폴링마다 펼친 카드가 결정적으로 닫히던 문제 해소.
-    var _openIds = [];
-    if (silent) {
-      document.querySelectorAll('.child-card.open').forEach(function(el) {
-        if (el.id) _openIds.push(el.id);  // id="cc_<childId>" 패턴
-      });
+    // 폴링(silent) 무변경 시 전체 풀렌더 스킵 — H6. 4개 컬렉션 JSON 해시를 직전 로드와 비교해
+    //   동일하면 renderChildGrid 등(innerHTML 통째 교체 + reflow)을 건너뛴다. GET 5분 캐시라 폴링은
+    //   대부분 동일 데이터인데도 30초마다 DOM 전체를 재구축하던 비용 제거. 비-silent(최초·수동 로드)는 항상 렌더.
+    var _newSig = _hashStr(JSON.stringify(supaCh)) + '|' + _hashStr(JSON.stringify(supaSe))
+                + '|' + _hashStr(JSON.stringify(supaSch)) + '|' + _hashStr(JSON.stringify(supaAs));
+    var _renderSkip = (silent && window._lastDataSig === _newSig);
+    window._lastDataSig = _newSig;
+    if (!_renderSkip) {
+      // 폴링(silent) 재렌더 전 .open 카드 id 목록 보존 → 재렌더 후 복원.
+      //   renderChildGrid 가 innerHTML 통째 교체라, toggleChildCard 가 DOM-only 로 .open 을 관리해
+      //   30초 폴링마다 펼친 카드가 결정적으로 닫히던 문제 해소.
+      var _openIds = [];
+      if (silent) {
+        document.querySelectorAll('.child-card.open').forEach(function(el) {
+          if (el.id) _openIds.push(el.id);  // id="cc_<childId>" 패턴
+        });
+      }
+      if (typeof renderChildGrid === 'function') renderChildGrid(); if (typeof populateChildSelects === 'function') populateChildSelects(); if (typeof renderGoalRows === 'function') renderGoalRows(); if (typeof renderSessionList === 'function') renderSessionList(); if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert(); if (typeof renderStaffCard === 'function') renderStaffCard();
+      // .open 카드 복원
+      if (_openIds.length) {
+        _openIds.forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.add('open');
+        });
+      }
+      if (typeof renderSchedView === 'function') renderSchedView();
+      if (typeof renderDashboard === 'function') renderDashboard();
     }
-    if (typeof renderChildGrid === 'function') renderChildGrid(); if (typeof populateChildSelects === 'function') populateChildSelects(); if (typeof renderGoalRows === 'function') renderGoalRows(); if (typeof renderSessionList === 'function') renderSessionList(); if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert(); if (typeof renderStaffCard === 'function') renderStaffCard();
-    // .open 카드 복원
-    if (_openIds.length) {
-      _openIds.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.add('open');
-      });
-    }
-    if (typeof renderSchedView === 'function') renderSchedView();
-    if (typeof renderDashboard === 'function') renderDashboard();
     loadActivitiesFromSupa(); loadIEPFromSupa();
     setTimeout(function() { if (typeof loadNotices === 'function') loadNotices(); }, 600);
     // 백그라운드: 과거 데이터 추가 로드 후 머지 (사용자 인지 없이)
@@ -121,6 +130,13 @@ function _loadOlderHistory(d90, d30) {
   }).catch(function(e) {
     if (window.console && console.warn) console.warn('[older history] silent:', e && e.message);
   });
+}
+
+// 경량 문자열 해시(djb2) — 폴링 변경 시그니처 비교용. 32bit unsigned 반환.
+function _hashStr(s) {
+  var h = 5381, i = s.length;
+  while (i) { h = (h * 33) ^ s.charCodeAt(--i); }
+  return h >>> 0;
 }
 
 // ── 컬렉션 저장 공통 헬퍼 ──

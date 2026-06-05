@@ -353,7 +353,7 @@ function deleteChild(id) {
   }
   var c = childDB.find(function(c) { return c.id === id; });
   if (!c) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
-  showConfirm(c.name + ' 정보와 모든 세션·일정을 삭제할까요?', function() {
+  showConfirm(c.name + ' 정보와 모든 세션·일정·포트폴리오·관찰기록을 삭제할까요?', function() {
   // 연결 데이터 ID 수집
   var sessIds  = sessionDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
   var schedIds = scheduleDB.filter(function(s){ return s.childId === id; }).map(function(s){ return s.id; });
@@ -364,7 +364,12 @@ function deleteChild(id) {
   var p2 = schedIds.length > 0 ? supaFetch('madi_schedules?id=in.('   + schedIds.join(',') + ')', 'DELETE') : Promise.resolve();
   var p3 = iepIds.length   > 0 ? supaFetch('madi_iep_history?id=in.(' + iepIds.join(',')   + ')', 'DELETE') : Promise.resolve();
   var p4 = assIds.length   > 0 ? supaFetch('madi_assessments?id=in.(' + assIds.join(',')   + ')', 'DELETE') : Promise.resolve();
-  Promise.all([p1, p2, p3, p4])
+  // 부수 PII 테이블(child_id 컬럼)도 파기 — 잊혀질 권리 이행, 고아 PII 잔존 방지.
+  //   ID 미수집(인메모리 미보유) 테이블이라 child_id=eq 직접 DELETE. 미존재 시 no-op(무해).
+  var p5 = supaFetch('madi_parent_children?child_id=eq.'     + encodeURIComponent(id), 'DELETE');
+  var p6 = supaFetch('madi_portfolios?child_id=eq.'          + encodeURIComponent(id), 'DELETE');
+  var p7 = supaFetch('madi_parent_observations?child_id=eq.' + encodeURIComponent(id), 'DELETE');
+  Promise.all([p1, p2, p3, p4, p5, p6, p7])
     .then(function() {
       return supaFetch('madi_children?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE');
     })
@@ -378,7 +383,7 @@ function deleteChild(id) {
       saveChildren(); saveSessions(); saveSchedule(); saveAssess();
       if (typeof saveIEP === 'function') saveIEP();
       renderChildGrid();
-      showToast('🗑️ 삭제 완료 (세션·일정 포함)');
+      showToast('🗑️ 삭제 완료 (세션·일정·포트폴리오·관찰기록 포함)');
       supaFetch('madi_audit_log', 'POST', {
         actor_id: currentUser.id,
         actor_role: currentUser.role,

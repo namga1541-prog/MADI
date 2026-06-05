@@ -19,6 +19,9 @@ function switchParentTab(tab) {
     var btnId = 'ptBtn' + t.charAt(0).toUpperCase() + t.slice(1);
     document.querySelectorAll('[id="' + btnId + '"]').forEach(function(btn) {
       btn.classList.toggle('active', t === tab);
+      // 스크린리더용 상태 동기화 (교사용 switchTab 패턴과 동일) — class 만 토글하면 SR 이 항상 '홈 탭'으로 오안내
+      btn.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+      btn.tabIndex = (t === tab) ? 0 : -1;
     });
   });
   if (tab === 'home')   loadParentHome();
@@ -772,8 +775,9 @@ function _renderParentHomeActivities() {
       +     '<b>' + escHtml(a.title) + '</b>'
       +     '<span>' + escHtml(a.desc) + '</span>'
       +   '</div>'
-      +   '<div class="dp-p-act-check ' + (isDone ? 'done' : '') + '" data-act-idx="' + i + '" '
-      +     'onclick="_toggleParentActivity(this, \'' + escHtml(storeKey) + '\', ' + i + ')">' + (isDone ? '✓' : '') + '</div>'
+      +   '<div class="dp-p-act-check ' + (isDone ? 'done' : '') + '" role="checkbox" tabindex="0" aria-checked="' + (isDone ? 'true' : 'false') + '" aria-label="' + escHtml(a.title) + ' 완료 표시" data-act-idx="' + i + '" '
+      +     'onclick="_toggleParentActivity(this, \'' + escHtml(storeKey) + '\', ' + i + ')" '
+      +     'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">' + (isDone ? '✓' : '') + '</div>'
       + '</div>';
   }).join('')
   + '<div style="margin-top:12px;font-size:11px;color:#94a3b8;text-align:center;">담당 선생님이 곧 맞춤 활동을 제안해 드릴 예정이에요 🌱</div>';
@@ -782,8 +786,8 @@ function _renderParentHomeActivities() {
 // 가정 활동 체크박스 토글 — localStorage 영속화 (자녀별·주차별 분리)
 function _toggleParentActivity(el, storeKey, idx) {
   var isDone = el.classList.contains('done');
-  if (isDone) { el.classList.remove('done'); el.textContent = ''; }
-  else        { el.classList.add('done');    el.textContent = '✓'; }
+  if (isDone) { el.classList.remove('done'); el.textContent = ''; el.setAttribute('aria-checked', 'false'); }
+  else        { el.classList.add('done');    el.textContent = '✓'; el.setAttribute('aria-checked', 'true'); }
   try {
     var s = JSON.parse(localStorage.getItem(storeKey) || '{}') || {};
     if (isDone) delete s[idx]; else s[idx] = true;
