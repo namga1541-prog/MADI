@@ -108,7 +108,7 @@ function changeSchedStatus(schedId, newStatus) {
   var sc = scheduleDB.find(function(s){ return String(s.id) === String(schedId); });
   if (!sc) return;
   sc.status = newStatus;
-  saveSchedule();
+  saveOneSchedule(sc);  // 단건 upsert (H2)
   showToast('상태가 변경됐습니다.');
 }
 

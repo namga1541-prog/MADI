@@ -967,7 +967,7 @@ function saveEditSched(id) {
     endTime = String(Math.floor(mins/60)%24).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
   }
   scheduleDB[idx] = Object.assign({}, scheduleDB[idx], { date:date, startTime:start, duration:dur, endTime:endTime, teacher:teacher, note:note });
-  saveSchedule();
+  saveOneSchedule(scheduleDB[idx]);  // 단건 upsert (H2)
   var ol = document.getElementById('editSchedOverlay'); if (ol) ol.remove();
   renderSchedView();
   showToast('✅ 일정 수정 완료!');

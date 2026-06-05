@@ -301,7 +301,7 @@ function actAddSchedule(a) {
     repeat: 'none'
   };
   scheduleDB.push(newSched);
-  saveSchedule();
+  saveOneSchedule(newSched);  // 단건 upsert (H2)
   if (typeof renderSchedView === 'function') renderSchedView();
   if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert();
   var teacherTxt = teacherName ? ' [' + teacherName + ']' : '';

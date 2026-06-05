@@ -214,6 +214,10 @@ function saveOneSession(row) {
 function saveSchedule() {
   return _saveCollection({ db: scheduleDB, lsKey: 'cn3_schedule', table: 'madi_schedules', label: '일정' });
 }
+/** 일정 단건 저장 (변경 row 만 upsert) — saveSchedule 의 lost-update 안전 버전. @returns {Promise<boolean>} */
+function saveOneSchedule(row) {
+  return _saveOneRow({ db: scheduleDB, row: row, lsKey: 'cn3_schedule', table: 'madi_schedules', label: '일정' });
+}
 /** @returns {Promise<boolean>} */
 function saveAssess() {
   return _saveCollection({ db: assessmentDB, lsKey: 'cn3_assess', table: 'madi_assessments', label: '검사',
