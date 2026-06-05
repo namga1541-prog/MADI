@@ -1015,6 +1015,11 @@
           </div>
         </div>
 
+        <div style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;font-size:12px;color:var(--text2);line-height:1.5;">
+          <input type="checkbox" id="signupAgree" style="margin-top:2px;width:17px;height:17px;flex:none;cursor:pointer;">
+          <label for="signupAgree" style="cursor:pointer;"><a href="terms.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">이용약관</a> 및 <a href="privacy.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">개인정보 수집·이용</a>에 동의합니다 <b style="color:#ef4444;">(필수)</b></label>
+        </div>
+
         <button class="login-btn-pri" id="signupSubmitBtn" onclick="doSignup()">✨ 가입하기</button>
         <div id="signupError" class="login-error"></div>
 
@@ -1133,6 +1138,11 @@
           <div class="login-field">
             <label for="parentSignupPasswordConfirm">비밀번호 확인</label>
             <input class="login-input" type="password" id="parentSignupPasswordConfirm" placeholder="다시 입력" autocomplete="new-password" onkeydown="if(event.key==='Enter')parentSignup();">
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;font-size:12px;color:var(--text2);line-height:1.5;">
+            <input type="checkbox" id="parentSignupAgree" style="margin-top:2px;width:17px;height:17px;flex:none;cursor:pointer;">
+            <label for="parentSignupAgree" style="cursor:pointer;"><a href="terms.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">이용약관</a> 및 <a href="privacy.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">개인정보 수집·이용</a>에 동의합니다 <b style="color:#ef4444;">(필수)</b></label>
           </div>
 
           <button class="login-btn-pri" id="parentSignupBtn" onclick="parentSignup()">✨ 가입 완료</button>

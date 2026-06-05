@@ -76,6 +76,8 @@ function doSignup() {
   if (!/^[a-zA-Z0-9_]+$/.test(username)) { errEl.textContent = '아이디는 영문/숫자/언더바(_)만 사용 가능합니다.'; return; }
   var pwErr = validatePasswordStrength(pw); if (pwErr) { errEl.textContent = pwErr; return; }
   if (pw !== pwConfirm) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; return; }
+  var agreeEl = document.getElementById('signupAgree');
+  if (!agreeEl || !agreeEl.checked) { errEl.textContent = '이용약관 및 개인정보 수집·이용에 동의해주세요.'; return; }
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '확인 중...';
   supaFetch('madi_centers?invite_code=eq.' + encodeURIComponent(inviteCode) + '&select=id,name,invite_expires_at', 'GET')

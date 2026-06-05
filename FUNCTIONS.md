@@ -104,7 +104,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _parentCurrentTab = 'home';` — madi-parent-home.js:5
 - `var MADI_VAPID_PUBLIC_KEY = 'BNH0y5wZW_nzhS5IG_6pMYAKmeDYoPWIkc9msFfNXyAsSxAeCzYjtEpW4NDdk` — madi-parent-home.js:7
 - `var _parentSignupMatchedChildren = []; // lookup 결과 캐시` — madi-parent-pages.js:301
-- `var _obsCategories = {` — madi-parent-pages.js:636
+- `var _obsCategories = {` — madi-parent-pages.js:641
 - `var _preBriefingShownKey = '';` — madi-parent.js:206
 - `var _quickRec = null; // SpeechRecognition 인스턴스` — madi-quick.js:7
 - `var _quickRecActive = false; // 받아쓰기 진행 중 여부` — madi-quick.js:8
@@ -328,20 +328,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `showSignupScreen` — madi-auth.js:46
 - `backToLoginFromSignup` — madi-auth.js:53
 - `doSignup` — madi-auth.js:55
-- `doLogin` — madi-auth.js:137
-  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L151
-- `_promptTotpCode` — madi-auth.js:197
-- `getMadiLogoSVG` — madi-auth.js:219
-  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L227
-- `_initWebVitals` — madi-auth.js:232
-- `showLogoutMenu` — madi-auth.js:305
-- `doLogout` — madi-auth.js:330
-- `showLoginUpdatePopup` — madi-auth.js:385
-- `_renderLoginUpdatePopup` — madi-auth.js:403
-- `_dismiss` — madi-auth.js:435
-- `_onKey` — madi-auth.js:445
-- `showChangePasswordModal` — madi-auth.js:457
-- `submitChangePassword` — madi-auth.js:489
+- `doLogin` — madi-auth.js:139
+  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L153
+- `_promptTotpCode` — madi-auth.js:199
+- `getMadiLogoSVG` — madi-auth.js:221
+  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L229
+- `_initWebVitals` — madi-auth.js:234
+- `showLogoutMenu` — madi-auth.js:307
+- `doLogout` — madi-auth.js:332
+- `showLoginUpdatePopup` — madi-auth.js:387
+- `_renderLoginUpdatePopup` — madi-auth.js:405
+- `_dismiss` — madi-auth.js:437
+- `_onKey` — madi-auth.js:447
+- `showChangePasswordModal` — madi-auth.js:459
+- `submitChangePassword` — madi-auth.js:491
 
 ## madi-board-notice.js (25함수)
   ▸ _게시판 이미지 업로드 유틸_ — L1
@@ -816,17 +816,17 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `parentLookup` — madi-parent-pages.js:360
   ▸ _액션 2: 학부모 가입 처리_ — L423
 - `parentSignup` — madi-parent-pages.js:424
-- `_b64UrlToUint8` — madi-parent-pages.js:499
-- `loadParentPushToggle` — madi-parent-pages.js:508
-- `onPushToggleTap` — madi-parent-pages.js:541
-- `_subscribePush` — madi-parent-pages.js:551
-- `_unsubscribePush` — madi-parent-pages.js:615
-  ▸ _관찰기록 홈 패널 렌더링 (홈 탭 하단에 삽입)_ — L642
-- `loadParentObservations` — madi-parent-pages.js:643
-- `_renderParentObsForm` — madi-parent-pages.js:655
-- `submitParentObservation` — madi-parent-pages.js:679
-- `_loadParentObsList` — madi-parent-pages.js:723
-- `_renderParentObsCard` — madi-parent-pages.js:752
+- `_b64UrlToUint8` — madi-parent-pages.js:504
+- `loadParentPushToggle` — madi-parent-pages.js:513
+- `onPushToggleTap` — madi-parent-pages.js:546
+- `_subscribePush` — madi-parent-pages.js:556
+- `_unsubscribePush` — madi-parent-pages.js:620
+  ▸ _관찰기록 홈 패널 렌더링 (홈 탭 하단에 삽입)_ — L647
+- `loadParentObservations` — madi-parent-pages.js:648
+- `_renderParentObsForm` — madi-parent-pages.js:660
+- `submitParentObservation` — madi-parent-pages.js:684
+- `_loadParentObsList` — madi-parent-pages.js:728
+- `_renderParentObsCard` — madi-parent-pages.js:757
 
 ## madi-parent.js (19함수)
   ▸ _W6: 회기 후 자동 브리핑 모달_ — L2

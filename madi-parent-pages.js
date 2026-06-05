@@ -445,6 +445,11 @@ function parentSignup() {
     errEl.textContent = '⚠️ 매칭된 아동 정보가 없습니다. 다시 조회해주세요.';
     return;
   }
+  var pAgreeEl = document.getElementById('parentSignupAgree');
+  if (!pAgreeEl || !pAgreeEl.checked) {
+    errEl.textContent = '⚠️ 이용약관 및 개인정보 수집·이용에 동의해주세요';
+    return;
+  }
 
   errEl.textContent = '';
   btn.disabled = true;
