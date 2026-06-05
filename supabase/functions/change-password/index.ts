@@ -73,6 +73,10 @@ Deno.serve(async (req: Request) => {
   if (!currentPw || !newPw) {
     return new Response(JSON.stringify({ error: '현재 비밀번호와 새 비밀번호를 모두 입력해주세요' }), { status: 400, headers: CORS })
   }
+  // 현재 비밀번호도 길이 상한 — bcrypt.compare 호출 전 과대 입력 차단(newPw 와 동일 기준).
+  if (currentPw.length > 128) {
+    return new Response(JSON.stringify({ error: '현재 비밀번호가 너무 깁니다' }), { status: 400, headers: CORS })
+  }
   // 비밀번호 최소 길이: 4자 (베타 기간 — 정식 배포 시 8자로 변경)
   if (newPw.length < 4) {
     return new Response(JSON.stringify({ error: '새 비밀번호는 4자 이상이어야 합니다' }), { status: 400, headers: CORS })

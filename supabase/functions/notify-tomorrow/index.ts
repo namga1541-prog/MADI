@@ -137,7 +137,7 @@ Deno.serve(async (req: Request) => {
       // center_id 필터로 타 센터 학부모-자녀 연결 침범 방지 (IDOR 차단)
       interface Link { parent_user_id: string; child_id: string }
       const links = await sq<Link>(_url, _key,
-        `madi_parent_children?child_id=in.(${childIds.join(',')})&center_id=eq.${enc(cfg.center_id)}&select=parent_user_id,child_id`
+        `madi_parent_children?child_id=in.(${childIds.map(c => enc(String(c))).join(',')})&center_id=eq.${enc(cfg.center_id)}&select=parent_user_id,child_id`
       );
       if (!links.length) {
         console.warn(`[push] center ${cfg.center_id}: 학부모-자녀 연결 없음 — 미발송, last_sent_date 미갱신`);
@@ -146,7 +146,7 @@ Deno.serve(async (req: Request) => {
 
       // ④ 아동 이름
       interface Child { id: number; data: { name?: string } }
-      const children = await sq<Child>(_url, _key, `madi_children?id=in.(${childIds.join(',')})&select=id,data`);
+      const children = await sq<Child>(_url, _key, `madi_children?id=in.(${childIds.map(c => enc(String(c))).join(',')})&select=id,data`);
       const nameMap: Record<number, string> = {};
       children.forEach(c => { nameMap[c.id] = c.data?.name ?? ''; });
 

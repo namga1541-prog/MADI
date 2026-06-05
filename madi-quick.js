@@ -558,7 +558,7 @@ function _startQuickDictation(SR) {
   try {
     _quickRec = new SR();
   } catch (e) {
-    if (typeof showToast === 'function') showToast('⚠️ 받아쓰기 초기화 실패: ' + (e.message || e));
+    if (typeof showToast === 'function') showToast('⚠️ 받아쓰기를 시작할 수 없습니다. 마이크 권한을 확인해주세요');
     return;
   }
   _quickRec.lang = 'ko-KR';
@@ -668,7 +668,7 @@ function quickAiClean() {
     })
     .catch(function(e) {
       if (btn) { btn.disabled = false; btn.textContent = '✨ AI 정리'; }
-      if (typeof showToast === 'function') showToast('⚠️ AI 정리 실패: ' + (e && e.message ? e.message : e));
+      if (typeof showToast === 'function') showToast('⚠️ AI 정리에 실패했습니다. 잠시 후 다시 시도해주세요');
     });
 }
 
@@ -795,7 +795,7 @@ function quickSave() {
 
   _quickUploadPhoto(_quickPhotoDataUrl)
     .catch(function(e) {
-      if (typeof showToast === 'function') showToast('⚠️ 사진 업로드 실패 — 사진 없이 저장됩니다 (' + (e && e.message || '') + ')');
+      if (typeof showToast === 'function') showToast('⚠️ 사진 업로드 실패 — 사진 없이 저장됩니다');
       return '';
     })
     .then(function(photoUrl) {

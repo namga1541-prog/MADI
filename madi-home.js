@@ -49,7 +49,7 @@ function saveCenterApiKey() {
       showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
     })
     .catch(function(err) {
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--red);">❌ 저장 실패: ' + escHtml(err.message || '오류') + '</span>';
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--red);">❌ ' + escHtml(_userErrMsg(err, 'API 키 저장')) + '</span>';
       showToast('❌ 저장 실패');
     });
 }

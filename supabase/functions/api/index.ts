@@ -730,6 +730,16 @@ Deno.serve(async (req: Request) => {
         + 'user_id=eq.' + encodeURIComponent(String(user.sub))
     }
 
+    // ★ madi_notifications GET 도 본인 수신분만 — push_subscriptions 와 동일한 IDOR 차단.
+    //   teacher 는 위 center_id 스코프(654-671)만 걸려, 직접 API 호출 시 자기 센터의 '모든'
+    //   학부모 대상 알림(세션 요약·점수 본문 포함)을 열람할 수 있었다. parent 는 PARENT_USER_SCOPED
+    //   에서 이미 user_id 강제. admin/superadmin 은 센터 운영 모니터링을 위해 예외.
+    if (tableName === 'madi_notifications' && (!method || method === 'GET')
+        && user.role !== 'superadmin' && user.role !== 'admin') {
+      finalPath = finalPath + (finalPath.includes('?') ? '&' : '?')
+        + 'user_id=eq.' + encodeURIComponent(String(user.sub))
+    }
+
     // ══════════════════════════════════════════════════════════
     // ★ superadmin POST: center_id 주입
     //   GET은 전체 조회 유지, POST만 자신의 center_id로 귀속

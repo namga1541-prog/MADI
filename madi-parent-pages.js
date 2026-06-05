@@ -715,7 +715,7 @@ function submitParentObservation(childId, centerId) {
   }).catch(function(err) {
     btn.disabled    = false;
     btn.textContent = '전송하기';
-    showToast('❌ 전송 실패: ' + ((err && err.message) || '오류가 발생했습니다'));
+    showToast('❌ ' + _userErrMsg(err, '관찰기록 전송'));
   });
 }
 

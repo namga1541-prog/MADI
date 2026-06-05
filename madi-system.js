@@ -13,7 +13,7 @@ var PERM_LIST = [
 function openPermModal(userId, userName, role) {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
   _permUserId = userId;
-  supaFetch('madi_users?id=eq.' + userId + '&select=permissions,role').then(function(rows) {
+  supaFetch('madi_users?id=eq.' + encodeURIComponent(userId) + '&select=permissions,role').then(function(rows) {
     _permData = {};
     if (Array.isArray(rows) && rows[0]) {
       if (rows[0].permissions) {
@@ -98,7 +98,7 @@ function savePermissions() {
     payload[p.key] = (_permData[p.key] !== false);
   });
   var _savedPermUserId = _permUserId;
-  supaFetch('madi_users?id=eq.' + _permUserId, 'PATCH', { permissions: payload })
+  supaFetch('madi_users?id=eq.' + encodeURIComponent(_permUserId), 'PATCH', { permissions: payload })
     .then(function() {
       showToast('✅ 권한 저장 완료');
       var _permOverlay = document.querySelector('.sched-modal-overlay');

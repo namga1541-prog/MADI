@@ -1629,7 +1629,7 @@ function renderDailyService() {
   if (filterTeacher) rows = rows.filter(function(r){ var t=r.type==='sched'?(r.sc.teacher||''):(r.s.teacher||''); return t===filterTeacher; });
   if (filterStatus)  rows = rows.filter(function(r){ return r.status===filterStatus; });
   rows.sort(function(a,b){ var ta=a.type==='sched'?(a.sc.startTime||''):''; var tb=b.type==='sched'?(b.sc.startTime||''):''; return ta.localeCompare(tb); });
-  if (!rows.length) { listEl.innerHTML='<div class="empty"><div class="empty-icon">📆</div><p>'+dt+' 기록이 없습니다.</p></div>'; if(summaryEl) summaryEl.textContent=''; return; }
+  if (!rows.length) { listEl.innerHTML='<div class="empty"><div class="empty-icon">📆</div><p>'+escHtml(dt)+' 기록이 없습니다.</p></div>'; if(summaryEl) summaryEl.textContent=''; return; }
   var doneCount=rows.filter(function(r){ return r.status==='done'; }).length;
   var cancelCount=rows.filter(function(r){ return r.status==='cancelled'||r.status==='makeup'||r.status==='carried'; }).length;
   if (summaryEl) summaryEl.innerHTML='총 <b>'+rows.length+'회기</b> — 완료 <b>'+doneCount+'</b> / 취소 <b>'+cancelCount+'</b> / 예정 <b>'+(rows.length-doneCount-cancelCount)+'</b>';

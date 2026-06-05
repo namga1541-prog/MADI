@@ -71,6 +71,11 @@ Deno.serve(async (req: Request) => {
   if (!username || !password) {
     return new Response(JSON.stringify({ error: '아이디와 비밀번호를 입력해주세요' }), { status: 400, headers: CORS })
   }
+  // 과대 입력 차단: bcrypt.compare 호출 전 길이 상한(bcrypt 는 72바이트 이후 무시 → 기능 영향 없음).
+  //   무인증 엔드포인트라 초장문 입력으로 worker CPU 를 소진시키는 경미 DoS 를 1차 rate limit 과 함께 막는다.
+  if (username.length > 128 || password.length > 128) {
+    return new Response(JSON.stringify({ error: '아이디 또는 비밀번호가 너무 깁니다' }), { status: 400, headers: CORS })
+  }
 
   // ── 레이트 리밋: IP+username 키, 분당 10회/시간당 50회 ──
   // IP 추출은 _shared 의 getClientIp 로 단일화 (cf-connecting-ip 우선). parent-auth 와 동일 로직.

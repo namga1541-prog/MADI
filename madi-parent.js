@@ -451,7 +451,7 @@ function generatePortfolio() {
       _resetPortfolioBtn();
     })
     .catch(function(err) {
-      resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(err.message || '오류') + '</p></div>';
+      resultEl.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:16px;border-left:5px solid #ef4444;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_userErrMsg(err, '포트폴리오 생성')) + '</p></div>';
       _resetPortfolioBtn();
     });
 }
@@ -476,7 +476,7 @@ function _savePortfolioToDB(child, month, content, sessions, goalProgress) {
     var existing = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
     if (existing) {
       // PATCH — content + stats 만 갱신, parent_visible 유지
-      return supaFetch('madi_portfolios?id=eq.' + existing.id, 'PATCH', {
+      return supaFetch('madi_portfolios?id=eq.' + encodeURIComponent(existing.id), 'PATCH', {
         content: { ai: content, stats: statsSnapshot, childName: child.name, childAge: child.age, childType: child.type },
         created_by: currentUser && currentUser.id,
         created_by_name: currentUser && currentUser.name
@@ -513,7 +513,7 @@ function togglePortfolioVisibility(portfolioId, makeVisible) {
     payload.opened_by = currentUser && currentUser.id;
     // opened_at 은 트리거가 자동 기록
   }
-  supaFetch('madi_portfolios?id=eq.' + portfolioId, 'PATCH', payload)
+  supaFetch('madi_portfolios?id=eq.' + encodeURIComponent(portfolioId), 'PATCH', payload)
     .then(function() {
       showToast(makeVisible ? '👁️ 학부모에게 공개됨' : '🔒 학부모 비공개로 전환됨');
       // 현재 child 의 히스토리 재렌더
@@ -759,7 +759,7 @@ function naturalSearch() {
       _resetAskBtn();
     })
     .catch(function(err) {
-      resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
+      resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(_userErrMsg(err, 'AI 분석')) + '</div></div>';
       _resetAskBtn();
     });
 }
@@ -822,7 +822,7 @@ function generateFAQ() {
       _resetFAQBtn();
     })
     .catch(function(err) {
-      resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(err.message || '오류') + '</div></div>';
+      resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⚠️ ' + escHtml(_userErrMsg(err, 'FAQ 생성')) + '</div></div>';
       _resetFAQBtn();
     });
 }
