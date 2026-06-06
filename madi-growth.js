@@ -381,7 +381,7 @@ function openEditModal(id) {
     + '<textarea class="form-input" id="editMemo" style="min-height:70px;">' + escHtml(child.memo || '') + '</textarea></div>'
 
     + '<div style="display:flex;gap:8px;margin-top:4px;">'
-    + '<button class="btn btn-primary" style="flex:1;" onclick="saveEditModal(' + id + ')">💾 저장</button>'
+    + '<button class="btn btn-primary" style="flex:1;" onclick="saveEditModal(\'' + id + '\')">💾 저장</button>'
     + '<button class="btn-ghost" style="flex:0.4;" onclick="closeEditModal()">취소</button>'
     + '</div></div>';
 

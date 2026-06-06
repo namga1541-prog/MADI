@@ -124,7 +124,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _QUICK_DRAFT_KEY_PREFIX = 'madi_quick_draft_'; // sessionStorage 임시저장 키 prefix` — madi-quick.js:24
 - `var _QUICK_DRAFT_TTL_MS = 6 * 60 * 60 * 1000; // 임시저장 유효 시간: 6시간` — madi-quick.js:25
 - `var _quickSaveDraftDeb = (typeof debounce === 'function') ? debounce(_quickSaveDraft, 600)` — madi-quick.js:67
-- `var _quickBackfillBusy = false;` — madi-quick.js:680
+- `var _quickBackfillBusy = false;` — madi-quick.js:681
 - `var SI_TESTS = [` — madi-report.js:4
 - `var DDST_DOMAINS = [` — madi-report.js:18
 - `var KDST_DOMAINS = [` — madi-report.js:26
@@ -892,47 +892,47 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _─_ — L121
   ▸ _─_ — L123
 - `_quickGetMySchedules` — madi-quick.js:124
-- `_quickFindSession` — madi-quick.js:139
-- `_quickFindChild` — madi-quick.js:152
-  ▸ _─_ — L158
-  ▸ _─_ — L160
-- `renderQuickCards` — madi-quick.js:161
-- `_quickRenderCards` — madi-quick.js:197
-- `_quickTimeAgo` — madi-quick.js:229
-  ▸ _─_ — L237
-  ▸ _─_ — L239
-- `openQuickForm` — madi-quick.js:240
-- `_quickRenderForm` — madi-quick.js:270
-- `_quickPrefillGoals` — madi-quick.js:316
-- `_quickFormHtml` — madi-quick.js:347
-- `_quickPhotoHtml` — madi-quick.js:413
-- `_quickRenderNextGoals` — madi-quick.js:438
-- `_quickToggleGoal` — madi-quick.js:457
-- `_quickRemoveGoal` — madi-quick.js:462
-- `quickAddGoal` — madi-quick.js:467
-  ▸ _─_ — L484
-  ▸ _─_ — L486
-- `quickPickPhoto` — madi-quick.js:487
-- `quickRemovePhoto` — madi-quick.js:520
-  ▸ _─_ — L529
-  ▸ _─_ — L531
-- `quickToggleDictation` — madi-quick.js:532
-- `_startQuickDictation` — madi-quick.js:557
-- `_quickStopDictation` — madi-quick.js:611
-  ▸ _─_ — L626
-  ▸ _─_ — L628
-- `quickAiClean` — madi-quick.js:629
-  ▸ _─_ — L675
-  ▸ _─_ — L679
-- `_quickBackfillOnePhoto` — madi-quick.js:681
-  ▸ _─_ — L707
-  ▸ _─_ — L710
-- `_quickNormalizeStorageUrl` — madi-quick.js:713
-- `_quickUploadPhoto` — madi-quick.js:725
-  ▸ _─_ — L751
-  ▸ _─_ — L753
-- `quickSave` — madi-quick.js:754
-- `closeQuickForm` — madi-quick.js:859
+- `_quickFindSession` — madi-quick.js:141
+- `_quickFindChild` — madi-quick.js:153
+  ▸ _─_ — L159
+  ▸ _─_ — L161
+- `renderQuickCards` — madi-quick.js:162
+- `_quickRenderCards` — madi-quick.js:198
+- `_quickTimeAgo` — madi-quick.js:230
+  ▸ _─_ — L238
+  ▸ _─_ — L240
+- `openQuickForm` — madi-quick.js:241
+- `_quickRenderForm` — madi-quick.js:271
+- `_quickPrefillGoals` — madi-quick.js:317
+- `_quickFormHtml` — madi-quick.js:348
+- `_quickPhotoHtml` — madi-quick.js:414
+- `_quickRenderNextGoals` — madi-quick.js:439
+- `_quickToggleGoal` — madi-quick.js:458
+- `_quickRemoveGoal` — madi-quick.js:463
+- `quickAddGoal` — madi-quick.js:468
+  ▸ _─_ — L485
+  ▸ _─_ — L487
+- `quickPickPhoto` — madi-quick.js:488
+- `quickRemovePhoto` — madi-quick.js:521
+  ▸ _─_ — L530
+  ▸ _─_ — L532
+- `quickToggleDictation` — madi-quick.js:533
+- `_startQuickDictation` — madi-quick.js:558
+- `_quickStopDictation` — madi-quick.js:612
+  ▸ _─_ — L627
+  ▸ _─_ — L629
+- `quickAiClean` — madi-quick.js:630
+  ▸ _─_ — L676
+  ▸ _─_ — L680
+- `_quickBackfillOnePhoto` — madi-quick.js:682
+  ▸ _─_ — L708
+  ▸ _─_ — L711
+- `_quickNormalizeStorageUrl` — madi-quick.js:714
+- `_quickUploadPhoto` — madi-quick.js:726
+  ▸ _─_ — L752
+  ▸ _─_ — L754
+- `quickSave` — madi-quick.js:755
+- `closeQuickForm` — madi-quick.js:860
 
 ## madi-report.js (10함수)
   ▸ _감각통합(감통) 평가 보고서_ — L1

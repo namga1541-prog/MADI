@@ -129,8 +129,10 @@ function _quickGetMySchedules() {
   return all.filter(function(s) {
     if (!s || s.date !== today) return false;
     var t = s.therapist || s.teacher || '';
-    return t === myName
-      && (s.center_id || '') === ((currentUser && currentUser.center_id) || '');
+    // center_id 클라이언트 필터 제거 — 서버 프록시가 이미 센터 격리를 강제하고,
+    //   scheduleDB 항목엔 center_id 가 없어(_normalizeRows 미복사) 항상 false 가 되어
+    //   빠른기록이 늘 빈 화면이던 버그(전수점검 CRITICAL).
+    return t === myName;
   }).sort(function(a, b) {
     return safeCmp(a.startTime || a.time, b.startTime || b.time);
   });
@@ -143,8 +145,7 @@ function _quickFindSession(sched) {
   for (var i = 0; i < arr.length; i++) {
     var se = arr[i];
     if (!se) continue;
-    if (se.childId === sched.childId && se.date === sched.date && (se.teacher || '') === myName
-        && (se.center_id || '') === ((currentUser && currentUser.center_id) || '')) return se;
+    if (se.childId === sched.childId && se.date === sched.date && (se.teacher || '') === myName) return se;
   }
   return null;
 }
