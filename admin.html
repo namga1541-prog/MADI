@@ -952,6 +952,24 @@ function supaFetch(path, method, body) {
   });
 }
 
+// 대형 센터(1000행 초과) 대응 — Supabase max-rows 컷 방지 offset 페이지네이션.
+//   madi-app.js _supaFetchAll 와 동일 패턴(admin.html 은 독립 페이지라 자체 사본).
+//   ⚠️ basePath 에 order=... 포함 필수(페이지 경계 안정 — 누락·중복 방지).
+function _supaFetchAll(basePath) {
+  var PAGE = 1000;
+  var acc = [];
+  function _page(offset) {
+    var sep = basePath.indexOf('?') > -1 ? '&' : '?';
+    return supaFetch(basePath + sep + 'limit=' + PAGE + '&offset=' + offset, 'GET').then(function(rows) {
+      if (!Array.isArray(rows)) return acc;
+      acc = acc.concat(rows);
+      if (rows.length < PAGE) return acc;
+      return _page(offset + PAGE);
+    });
+  }
+  return _page(0);
+}
+
 // admin.html 은 madi-*.js 를 로드하지 않는 독립 페이지라 자체 escHtml 사본 유지.
 // 단 madi-core.js 의 정본과 동일하게 작은따옴표(')도 escape — 속성 우회 XSS 방어.
 function escHtml(str) {
@@ -1256,9 +1274,9 @@ var scheduleDB = [];
 
 function loadAdminData() {
   return Promise.all([
-    supaFetch('madi_children?'  + centerFilter() + '&select=id,data&order=id.asc'),
-    supaFetch('madi_sessions?'  + centerFilter() + '&select=id,data&order=id.asc'),
-    supaFetch('madi_schedules?' + centerFilter() + '&select=id,data&order=id.asc')
+    _supaFetchAll('madi_children?'  + centerFilter() + '&select=id,data&order=id.asc'),
+    _supaFetchAll('madi_sessions?'  + centerFilter() + '&select=id,data&order=id.asc'),
+    _supaFetchAll('madi_schedules?' + centerFilter() + '&select=id,data&order=id.asc')
   ]).then(function(results) {
     function safeMap(arr) {
       if (!Array.isArray(arr)) return [];
@@ -2196,24 +2214,19 @@ function totpConfirmEnroll() {
   }).catch(function(){ if (err) err.textContent = '서버 오류'; });
 }
 function totpStartDisable() {
-  showInputPrompt({
-    title:    '🔓 2FA 해제',
-    label:    '현재 Authenticator 앱의 6자리 코드를 입력해 본인을 인증합니다',
-    type:     'text',
-    placeholder: '000000',
-    okLabel:  '해제',
-    validate: function(v){ return /^\d{6}$/.test((v||'').trim()) ? null : '6자리 숫자 필요'; },
-    onOk: function(code){
-      totpApi('disable', { code: code.trim() }).then(function(data){
-        if (data && data.ok) {
-          showToast('🔓 2FA 가 해제되었습니다');
-          totpRefreshStatus();
-        } else {
-          showToast('⚠️ ' + (data && data.error || '해제 실패'));
-        }
-      }).catch(function(){ showToast('⚠️ 서버 오류'); });
+  // admin.html 은 madi-*.js(showInputPrompt) 를 로드하지 않는 독립 페이지 → 네이티브 prompt 사용.
+  //   기존 showInputPrompt 호출은 ReferenceError 로 2FA 해제가 불가능했음(전수점검 HIGH).
+  var code = (window.prompt('🔓 2FA 해제\n현재 Authenticator 앱의 6자리 코드를 입력하세요.', '') || '').trim();
+  if (!code) return;
+  if (!/^\d{6}$/.test(code)) { showToast('⚠️ 6자리 숫자를 입력해주세요'); return; }
+  totpApi('disable', { code: code }).then(function(data){
+    if (data && data.ok) {
+      showToast('🔓 2FA 가 해제되었습니다');
+      totpRefreshStatus();
+    } else {
+      showToast('⚠️ ' + (data && data.error || '해제 실패'));
     }
-  });
+  }).catch(function(){ showToast('⚠️ 서버 오류'); });
 }
 // 페이지 로드 시 상태 한 번 갱신
 if (document.readyState === 'loading') {
