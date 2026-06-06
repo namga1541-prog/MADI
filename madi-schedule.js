@@ -762,7 +762,7 @@ function openEditSchedModal(id) {
     + '<div class="form-group"><label class="form-label">메모</label><textarea class="form-input" id="editSchedNote" style="min-height:60px;">' + escHtml(s.note||'') + '</textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:8px;">'
     + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + escHtml(String(id)) + '\')">📝 회기기록</button>'
-    + (currentUser && currentUser.role === 'admin'
+    + (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')
       ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(\'' + escHtml(String(id)) + '\')">💾 수정</button>'
       + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + escHtml(String(id)) + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
     + '</div></div>';

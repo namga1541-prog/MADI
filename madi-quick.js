@@ -735,10 +735,15 @@ function _quickUploadPhoto(dataUrl) {
   var base64   = m[2];
   var ext      = (mimeType.split('/')[1] || 'jpg').toLowerCase();
   if (ext === 'jpeg') ext = 'jpg';
+  // iOS Safari ITP 가 크로스사이트 쿠키를 차단하므로 Bearer 헤더로 인증 폴백(board-notice 와 동일).
+  //   누락 시 iOS 에서 사진 업로드가 401 로 실패하고 사진이 조용히 유실됨.
+  var _uHdrs = { 'Content-Type': 'application/json' };
+  var _uTok = (typeof getToken === 'function') ? getToken() : '';
+  if (_uTok) _uHdrs['Authorization'] = 'Bearer ' + _uTok;
   return fetch(EDGE_URL + '/upload-image', {
     method:      'POST',
     credentials: 'include',
-    headers:     { 'Content-Type': 'application/json' },
+    headers:     _uHdrs,
     body: JSON.stringify({ file: base64, mimeType: mimeType, folder: 'quick', ext: ext })
   })
   .then(function(res) { return res.json(); })

@@ -590,10 +590,9 @@ function deleteIEPRecord(id) {
     showToast('🗑️ 장단기계획(IEP) 기록 삭제됨', {
       undo: function() {
         if (!r) return;
-        var payload = Object.assign({}, r);
-        delete payload.id;
-        payload.center_id = currentUser.center_id;
-        supaFetch('madi_iep_history', 'POST', [payload])
+        // 복원은 saveIEP 와 동일한 제네릭 래핑({id,center_id,data})으로 — 평탄 필드를 그대로
+        //   POST 하면 madi_iep_history 에 없는 컬럼이라 400(42703)으로 복원이 항상 실패하던 버그 수정.
+        supaFetch('madi_iep_history', 'POST', [{ id: r.id, center_id: currentUser.center_id, data: r }])
           .then(function() { if (typeof loadIEP === 'function') loadIEP(); renderIEPHistory(childId); showToast('↩️ 복원됨'); })
           .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });
       }

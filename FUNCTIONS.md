@@ -200,14 +200,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `monthBlock` — madi-ai.js:521
 - `downloadIEPPDFById` — madi-ai.js:569
 - `deleteIEPRecord` — madi-ai.js:579
-- `downloadIEPPDF` — madi-ai.js:604
-- `monthSection` — madi-ai.js:612
-  ▸ _W5: 활동 자료 카탈로그_ — L652
-  ▸ _W8: 효과 통계 대시보드_ — L653
-- `renderEffectStats` — madi-ai.js:654
-- `avgGoalScore` — madi-ai.js:686
-- `statCard` — madi-ai.js:706
-  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L761
+- `downloadIEPPDF` — madi-ai.js:603
+- `monthSection` — madi-ai.js:611
+  ▸ _W5: 활동 자료 카탈로그_ — L651
+  ▸ _W8: 효과 통계 대시보드_ — L652
+- `renderEffectStats` — madi-ai.js:653
+- `avgGoalScore` — madi-ai.js:685
+- `statCard` — madi-ai.js:705
+  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L760
 
 ## madi-app.js (56함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
@@ -931,10 +931,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _─_ — L711
 - `_quickNormalizeStorageUrl` — madi-quick.js:714
 - `_quickUploadPhoto` — madi-quick.js:726
-  ▸ _─_ — L752
-  ▸ _─_ — L754
-- `quickSave` — madi-quick.js:755
-- `closeQuickForm` — madi-quick.js:860
+  ▸ _─_ — L757
+  ▸ _─_ — L759
+- `quickSave` — madi-quick.js:760
+- `closeQuickForm` — madi-quick.js:865
 
 ## madi-report.js (10함수)
   ▸ _감각통합(감통) 평가 보고서_ — L1

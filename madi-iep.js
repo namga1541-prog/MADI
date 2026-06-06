@@ -194,7 +194,7 @@ function suggestHomeActivities(sessionId) {
             return '- ' + a.name
               + (a.diagnosis ? ' [' + a.diagnosis + ']' : '')
               + (a.duration ? ' ' + a.duration + '분' : '')
-              + (a.tags ? ' #' + a.tags.replace(/,/g,' #') : '');
+              + ((a.tags && a.tags.length) ? ' #' + (Array.isArray(a.tags) ? a.tags.join(' #') : String(a.tags).replace(/,/g, ' #')) : '');
           }).join('\n')
         + '\n달성률이 낮은 목표와 관련된 활동을 우선 추천하세요. 카탈로그에 없으면 일반 활동도 가능합니다.';
     }
