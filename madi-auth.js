@@ -179,11 +179,11 @@ function doLogin(_totpCode) {
         var modal = document.createElement('div');
         modal.id = '_2faWarnModal';
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
-        modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;margin:16px;text-align:center;">' +
+        modal.innerHTML = '<div style="background:var(--card-bg,#fff);border-radius:16px;padding:32px;max-width:380px;margin:16px;text-align:center;">' +
           '<div style="font-size:40px;margin-bottom:12px;">🔐</div>' +
-          '<h3 style="margin:0 0 12px;font-size:18px;color:#1e293b;">2단계 인증 설정 필요</h3>' +
-          '<p style="margin:0 0 20px;font-size:14px;color:#64748b;line-height:1.6;">관리자 계정은 보안을 위해 2단계 인증(TOTP) 설정을 권장합니다.</p>' +
-          '<button onclick="document.getElementById(\'_2faWarnModal\').remove();" style="background:#e2e8f0;color:#475569;border:none;padding:10px 20px;border-radius:8px;margin-right:8px;cursor:pointer;font-size:14px;">나중에</button>' +
+          '<h3 style="margin:0 0 12px;font-size:18px;color:var(--text,#1e293b);">2단계 인증 설정 필요</h3>' +
+          '<p style="margin:0 0 20px;font-size:14px;color:var(--text2,#64748b);line-height:1.6;">관리자 계정은 보안을 위해 2단계 인증(TOTP) 설정을 권장합니다.</p>' +
+          '<button onclick="document.getElementById(\'_2faWarnModal\').remove();" style="background:var(--bg,#e2e8f0);color:var(--text2,#475569);border:none;padding:10px 20px;border-radius:8px;margin-right:8px;cursor:pointer;font-size:14px;">나중에</button>' +
           '<button onclick="document.getElementById(\'_2faWarnModal\').remove();if(typeof switchTab===\'function\')switchTab(5);" style="background:#4f46e5;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;">지금 설정</button>' +
           '</div>';
         document.body.appendChild(modal);
@@ -412,23 +412,23 @@ function _renderLoginUpdatePopup(n, dismissKey) {
 
   // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML =
-      '<div style="background:white;border-radius:14px;width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
+      '<div style="background:var(--card-bg,#fff);border-radius:14px;width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
     +   // 헤더: 제목 + 우상단 X
-        '<div style="position:relative;padding:20px 24px 14px;border-bottom:1px solid #e2e8f0;">'
-    +     '<div style="text-align:center;font-size:16px;font-weight:700;color:#1e293b;padding:0 28px;">' + title + '</div>'
-    +     '<button id="lupClose1" aria-label="닫기" style="position:absolute;top:14px;right:14px;width:28px;height:28px;border:none;background:transparent;font-size:20px;color:#94a3b8;cursor:pointer;line-height:1;padding:0;">×</button>'
+        '<div style="position:relative;padding:20px 24px 14px;border-bottom:1px solid var(--border,#e2e8f0);">'
+    +     '<div style="text-align:center;font-size:16px;font-weight:700;color:var(--text,#1e293b);padding:0 28px;">' + title + '</div>'
+    +     '<button id="lupClose1" aria-label="닫기" style="position:absolute;top:14px;right:14px;width:28px;height:28px;border:none;background:transparent;font-size:20px;color:var(--text2,#94a3b8);cursor:pointer;line-height:1;padding:0;">×</button>'
     +   '</div>'
     +   // 본문 (스크롤 가능)
-        '<div style="padding:18px 24px;overflow-y:auto;flex:1;font-size:14px;color:#334155;line-height:1.7;white-space:pre-wrap;word-break:break-word;">'
+        '<div style="padding:18px 24px;overflow-y:auto;flex:1;font-size:14px;color:var(--text2,#334155);line-height:1.7;white-space:pre-wrap;word-break:break-word;">'
     +     content
     +   '</div>'
     +   // 푸터: 좌측 체크박스 + 우측 닫기
-        '<div style="padding:14px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">'
-    +     '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#475569;cursor:pointer;">'
+        '<div style="padding:14px 20px;border-top:1px solid var(--border,#e2e8f0);background:var(--bg,#f8fafc);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">'
+    +     '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2,#475569);cursor:pointer;">'
     +       '<input type="checkbox" id="lupDontShow" style="width:14px;height:14px;cursor:pointer;margin:0;">'
     +       '<span>하루동안 이 창을 열지 않음</span>'
     +     '</label>'
-    +     '<button id="lupClose2" style="padding:8px 20px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer;">닫기</button>'
+    +     '<button id="lupClose2" style="padding:8px 20px;border:1px solid var(--border,#cbd5e1);border-radius:8px;background:var(--card-bg,#fff);color:var(--text2,#475569);font-size:13px;font-weight:600;cursor:pointer;">닫기</button>'
     +   '</div>'
     + '</div>';
 
@@ -463,23 +463,23 @@ function showChangePasswordModal() {
   overlay.id = 'changePwModal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.innerHTML =
-    '<div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,0.2);">'
-    + '<div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:20px;">🔑 비밀번호 변경</div>'
+    '<div style="background:var(--card-bg,#fff);border-radius:16px;padding:24px;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,0.2);">'
+    + '<div style="font-size:17px;font-weight:700;color:var(--text,#1e293b);margin-bottom:20px;">🔑 비밀번호 변경</div>'
     + '<div style="margin-bottom:12px;">'
-    + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">현재 비밀번호</label>'
+    + '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin-bottom:4px;">현재 비밀번호</label>'
     + '<input type="password" id="cpCurrent" class="form-input" placeholder="현재 비밀번호 입력" style="width:100%;box-sizing:border-box;">'
     + '</div>'
     + '<div style="margin-bottom:12px;">'
-    + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호</label>'
+    + '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin-bottom:4px;">새 비밀번호</label>'
     + '<input type="password" id="cpNew" class="form-input" placeholder="4자 이상" style="width:100%;box-sizing:border-box;">'
     + '</div>'
     + '<div style="margin-bottom:16px;">'
-    + '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">새 비밀번호 확인</label>'
+    + '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin-bottom:4px;">새 비밀번호 확인</label>'
     + '<input type="password" id="cpConfirm" class="form-input" placeholder="새 비밀번호 재입력" style="width:100%;box-sizing:border-box;" onkeydown="if(event.key===\'Enter\')submitChangePassword();">'
     + '</div>'
     + '<div id="cpError" style="font-size:12px;color:#ef4444;margin-bottom:12px;min-height:16px;word-break:break-word;"></div>'
     + '<div style="display:flex;gap:8px;">'
-    + '<button onclick="document.getElementById(\'changePwModal\').remove();" style="flex:1;padding:11px;border:1px solid #e2e8f0;border-radius:10px;background:white;font-size:14px;cursor:pointer;color:#64748b;">취소</button>'
+    + '<button onclick="document.getElementById(\'changePwModal\').remove();" style="flex:1;padding:11px;border:1px solid var(--border,#e2e8f0);border-radius:10px;background:var(--card-bg,#fff);font-size:14px;cursor:pointer;color:var(--text2,#64748b);">취소</button>'
     + '<button id="cpSubmitBtn" onclick="submitChangePassword();" style="flex:1;padding:11px;border:none;border-radius:10px;background:#0ea5a0;color:white;font-size:14px;font-weight:700;cursor:pointer;">변경</button>'
     + '</div>'
     + '</div>';

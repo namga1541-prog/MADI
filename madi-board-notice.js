@@ -355,12 +355,12 @@ function renderGlobalNoticeCard(n, isSuperAdmin) {
     +   '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
     +     typeBadge
     +     popupBadge
-    +     '<span style="font-size:14px;font-weight:700;color:#1e293b;">' + escHtml(n.title || '') + '</span>'
+    +     '<span style="font-size:14px;font-weight:700;color:var(--text,#1e293b);">' + escHtml(n.title || '') + '</span>'
     +   '</div>'
     +   '<div style="display:flex;gap:4px;flex-shrink:0;">' + adminBtns + '</div>'
     + '</div>'
-    + (n.content ? '<div style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin:8px 0 6px;">' + escHtml(n.content) + '</div>' : '')
-    + '<div style="font-size:11px;color:#64748b;margin-top:6px;">👤 ' + escHtml(n.author_name || '익명') + ' · ' + escHtml(when) + '</div>'
+    + (n.content ? '<div style="font-size:13px;color:var(--text2,#334155);line-height:1.6;white-space:pre-wrap;margin:8px 0 6px;">' + escHtml(n.content) + '</div>' : '')
+    + '<div style="font-size:11px;color:var(--text2,#64748b);margin-top:6px;">👤 ' + escHtml(n.author_name || '익명') + ' · ' + escHtml(when) + '</div>'
     + '</div>';
 }
 
@@ -587,17 +587,17 @@ function renderCenterNoticeCard(n, isAdminOrSuper, isSuperAdmin) {
     ? '<button class="btn-del" style="padding:5px 10px;font-size:11px;" onclick="deleteCenterNotice(\'' + _safeCNId + '\')">삭제</button>'
     : '';
 
-  return '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'
+  return '<div style="background:var(--card-bg,#fff);border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid ' + borderColor + ';">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap;">'
     +   '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
     +     typeBadge
     +     centerBadge
-    +     '<span style="font-size:14px;font-weight:700;color:#1e293b;">' + escHtml(n.title || '') + '</span>'
+    +     '<span style="font-size:14px;font-weight:700;color:var(--text,#1e293b);">' + escHtml(n.title || '') + '</span>'
     +   '</div>'
     +   '<div style="display:flex;gap:4px;flex-shrink:0;">' + editBtn + deleteBtn + '</div>'
     + '</div>'
-    + (n.content ? '<div style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin:8px 0 6px;">' + escHtml(n.content) + '</div>' : '')
-    + '<div style="font-size:11px;color:#64748b;margin-top:6px;">👤 ' + escHtml(n.author_name || '익명') + ' · ' + escHtml(when) + '</div>'
+    + (n.content ? '<div style="font-size:13px;color:var(--text2,#334155);line-height:1.6;white-space:pre-wrap;margin:8px 0 6px;">' + escHtml(n.content) + '</div>' : '')
+    + '<div style="font-size:11px;color:var(--text2,#64748b);margin-top:6px;">👤 ' + escHtml(n.author_name || '익명') + ' · ' + escHtml(when) + '</div>'
     + '</div>';
 }
 

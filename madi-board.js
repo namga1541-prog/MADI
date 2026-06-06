@@ -139,7 +139,7 @@ function renderLoungeUI() {
       +   '<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">내용</label>'
       +   '<textarea id="loungeContent" class="form-input" placeholder="건의 내용을 자세히 적어주세요..." rows="5" maxlength="3000" style="resize:vertical;font-family:inherit;margin-bottom:0;"></textarea>'
       + '</div>'
-      + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
+      + '<div style="border:1.5px dashed var(--border,#cbd5e1);border-radius:10px;padding:10px 12px;background:var(--bg,#f8fafc);">'
       +   '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 이미지 첨부 (최대 3장, 선택)</div>'
       +   '<input type="file" id="loungeImgInput" accept="image/*" multiple style="font-size:12px;" onchange="onLoungeImagesChange(this)">'
       +   '<div id="loungeImgPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;"></div>'
@@ -577,7 +577,7 @@ function _renderLibraryUI(posts) {
       + '</select>'
       + '<input type="text" id="libTitle" class="form-input" placeholder="자료 제목 (필수)" maxlength="100">'
       + '<textarea id="libContent" class="form-input" placeholder="자료 설명 (선택)" rows="3" style="resize:vertical;font-family:inherit;"></textarea>'
-      + '<div style="border:1.5px dashed #cbd5e1;border-radius:10px;padding:10px 12px;background:#f8fafc;">'
+      + '<div style="border:1.5px dashed var(--border,#cbd5e1);border-radius:10px;padding:10px 12px;background:var(--bg,#f8fafc);">'
       + '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">📎 파일 첨부 (이미지·PDF, 최대 5개)</div>'
       + '<input type="file" id="libFileInput" accept="image/*,application/pdf" multiple style="font-size:12px;" onchange="onLibFilesChange(this)">'
       + '<div id="libFilePreview" style="margin-top:6px;"></div>'
@@ -754,7 +754,7 @@ function openPostEditModal(opts) {
   }
 
   var hintHtml = opts.noteHint
-    ? '<div style="font-size:11px;color:#64748b;background:#f1f5f9;border-radius:6px;padding:6px 10px;margin-top:10px;">ℹ️ ' + escHtml(opts.noteHint) + '</div>'
+    ? '<div style="font-size:11px;color:var(--text2,#64748b);background:var(--bg,#f1f5f9);border-radius:6px;padding:6px 10px;margin-top:10px;">ℹ️ ' + escHtml(opts.noteHint) + '</div>'
     : '';
 
   var overlay = document.createElement('div');
@@ -762,19 +762,19 @@ function openPostEditModal(opts) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
   // eslint-disable-next-line no-unsanitized/property
   overlay.innerHTML =
-      '<div style="background:white;border-radius:14px;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
-    +   '<div style="padding:16px 22px;border-bottom:1px solid #e2e8f0;font-size:15px;font-weight:700;color:#1e293b;">' + escHtml(opts.header || '✏️ 글 수정') + '</div>'
+      '<div style="background:var(--card-bg,#fff);border-radius:14px;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.25);overflow:hidden;">'
+    +   '<div style="padding:16px 22px;border-bottom:1px solid var(--border,#e2e8f0);font-size:15px;font-weight:700;color:var(--text,#1e293b);">' + escHtml(opts.header || '✏️ 글 수정') + '</div>'
     +   '<div style="padding:18px 22px;overflow-y:auto;flex:1;">'
-    +     '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">제목</label>'
+    +     '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin-bottom:4px;">제목</label>'
     +     '<input id="peTitle" class="form-input" maxlength="' + maxTitle + '" style="font-size:14px;padding:8px;width:100%;box-sizing:border-box;">'
     +     selectHtml
-    +     '<label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin:10px 0 4px;">본문</label>'
+    +     '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin:10px 0 4px;">본문</label>'
     +     '<textarea id="peContent" class="form-input" rows="6" style="font-size:13px;padding:8px;width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;"></textarea>'
     +     hintHtml
     +     '<div id="peError" style="font-size:12px;color:#ef4444;margin-top:8px;min-height:14px;word-break:break-word;"></div>'
     +   '</div>'
-    +   '<div style="padding:14px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:flex-end;gap:8px;">'
-    +     '<button id="peCancel" style="padding:9px 18px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer;">취소</button>'
+    +   '<div style="padding:14px 20px;border-top:1px solid var(--border,#e2e8f0);background:var(--bg,#f8fafc);display:flex;justify-content:flex-end;gap:8px;">'
+    +     '<button id="peCancel" style="padding:9px 18px;border:1px solid var(--border,#cbd5e1);border-radius:8px;background:var(--card-bg,#fff);color:var(--text2,#475569);font-size:13px;font-weight:600;cursor:pointer;">취소</button>'
     +     '<button id="peSave" style="padding:9px 18px;border:none;border-radius:8px;background:#0ea5a0;color:white;font-size:13px;font-weight:700;cursor:pointer;">💾 저장</button>'
     +   '</div>'
     + '</div>';

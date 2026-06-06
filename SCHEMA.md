@@ -29,6 +29,6 @@
 | `madi_error_logs` | `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` |
 | `madi_parent_observations` | `id`, `parent_user_id`, `child_id`, `center_id`, `content`, `teacher_reply`, `category`(기본 'general'), `replied_at`, `replied_by`, `created_at` |
 | `madi_center_api_keys` | (마이그레이션 `migrations/add_center_api_keys.sql` 참조 — 센터별 API 키) |
-| `madi_activities` | `id`, `center_id`, `title`(또는 name), `tags`(text[]), `diagnosis`, `description` 등 flat 컬럼 — **제네릭 data 래핑 아님**, `saveActivities`가 `Object.assign({},a,{center_id})`로 평탄 전송, `a.diagnosis`·`a.tags`로 직접 접근 |
+| `madi_activities` | `id`, `center_id`, `name`, `tags`(text[]), `diagnosis`, `description` 등 flat 컬럼 — **제네릭 data 래핑 아님**, `saveActivities`가 `Object.assign({},a,{center_id})`로 평탄 전송, `a.name`·`a.diagnosis`·`a.tags`로 직접 접근 |
 | `madi_global_notices` | `id`, `notice_type`, `pinned`, `title`, `content`, `author_id`, `author_name`, `show_as_login_popup`, `created_at` — **전역(center_id 컬럼 없음)** |
 | `madi_notices` | `id`, `center_id`, `notice_type`, `pinned`, `title`, `content`, `author_id`, `author_name`, `created_at` |
