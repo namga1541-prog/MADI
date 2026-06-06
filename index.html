@@ -3,11 +3,14 @@
   <script>
   (function(){
     try {
+      // ⛔ BETA: 다크모드 봉인 — 라이트 전용 운영. 저장값 무시 + 정리(이미 켠 기기도 라이트로).
+      //   베타 후 복원: 아래 removeItem 삭제하고 주석 블록 되살리면 됨.
+      localStorage.removeItem('madi_dark');
       // FOUC 방지 — 저장 키는 'madi_dark'='1' (toggleDarkMode 와 동일). 'darkMode' 는 오타였음.
       // body 는 아직 없으므로 html 에 클래스 부여 → madi.css 의 html.dark-mode 배경 규칙이 흰 깜빡임 차단.
-      if (localStorage.getItem('madi_dark') === '1') {
-        document.documentElement.classList.add('dark-mode');
-      }
+      // if (localStorage.getItem('madi_dark') === '1') {
+      //   document.documentElement.classList.add('dark-mode');
+      // }
     } catch(e) {}
   })();
   </script>
@@ -1946,7 +1949,8 @@
     <!-- 화면 설정 -->
     <div class="card">
       <div class="card-title" style="margin-bottom:4px;">🎨 화면 설정</div>
-      <div class="setting-row">
+      <!-- ⛔ BETA: 다크모드 봉인 — 라이트 전용 운영. 베타 후 style="display:none" 제거해 복원. -->
+      <div class="setting-row" style="display:none;">
         <div class="setting-info">
           <div class="setting-label">🌙 다크 모드</div>
           <div class="setting-desc">야간·어두운 환경에서 눈 편함</div>

@@ -7,8 +7,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:403
 - `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:405
-- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:460
-- `var _clientIdCounter = 0;` — madi-app.js:623
+- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:463
+- `var _clientIdCounter = 0;` — madi-app.js:626
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -253,25 +253,25 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `vibrate` — madi-app.js:434
 - `toggleDarkMode` — madi-app.js:435
 - `loadDarkMode` — madi-app.js:441
-- `updateHeaderClock` — madi-app.js:445
-- `startHeaderClock` — madi-app.js:461
-- `fetchWithRetry` — madi-app.js:472
-- `doFetch` — madi-app.js:476
-- `setupNetworkMonitor` — madi-app.js:489
-- `showOfflineBanner` — madi-app.js:490
-- `hideOfflineBanner` — madi-app.js:496
-- `applyParentUI` — madi-app.js:502
-- `_initParentSidebar` — madi-app.js:527
-- `resetParentUI` — madi-app.js:567
-- `loadParentDashboard` — madi-app.js:590
-- `toggleMoreMenu` — madi-app.js:597
-- `closeMoreMenu` — madi-app.js:598
-- `getRoleFlags` — madi-app.js:605
-- `validatePasswordStrength` — madi-app.js:611
-  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L617
-- `generateClientId` — madi-app.js:624
-- `applyUserUI` — madi-app.js:629
-- `updateKbOffset` — madi-app.js:660
+- `updateHeaderClock` — madi-app.js:448
+- `startHeaderClock` — madi-app.js:464
+- `fetchWithRetry` — madi-app.js:475
+- `doFetch` — madi-app.js:479
+- `setupNetworkMonitor` — madi-app.js:492
+- `showOfflineBanner` — madi-app.js:493
+- `hideOfflineBanner` — madi-app.js:499
+- `applyParentUI` — madi-app.js:505
+- `_initParentSidebar` — madi-app.js:530
+- `resetParentUI` — madi-app.js:570
+- `loadParentDashboard` — madi-app.js:593
+- `toggleMoreMenu` — madi-app.js:600
+- `closeMoreMenu` — madi-app.js:601
+- `getRoleFlags` — madi-app.js:608
+- `validatePasswordStrength` — madi-app.js:614
+  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L620
+- `generateClientId` — madi-app.js:627
+- `applyUserUI` — madi-app.js:632
+- `updateKbOffset` — madi-app.js:663
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3
@@ -1207,39 +1207,39 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _다크모드_ — L2383
 - `toggleDarkMode` — admin.html:2384
 - `resetMaroPosition` — admin.html:2392
-- `toggleTeacherRow` — admin.html:2461
-- `getTeacherColor` — admin.html:2465
-- `renderOpsDashboard` — admin.html:2471
-- `set` — admin.html:2478
-- `renderTeacherChildMap` — admin.html:2520
-- `loadPermUserList` — admin.html:2572
-- `loadUserPerms` — admin.html:2588
-- `renderPermList` — admin.html:2597
-- `saveUserPerms` — admin.html:2612
-  ▸ _학부모_ — L2626
-- `populateParentChildSelect` — admin.html:2628
-- `filterParentChildList` — admin.html:2639
-- `showParentChildDrop` — admin.html:2660
-- `selectParentChild` — admin.html:2665
-- `createParentAccount` — admin.html:2674
-- `copyParentNewInfo` — admin.html:2728
-- `loadParentList` — admin.html:2748
-- `deleteParentAccount` — admin.html:2776
-  ▸ _오류 모니터링_ — L2801
-- `loadErrorLogs` — admin.html:2802
-- `clearOldErrorLogs` — admin.html:2857
-- `generateLicenseKey` — admin.html:2873
-- `refreshLicenseKey` — admin.html:2883
-- `calcExpiresAt` — admin.html:2888
-- `copyLicenseKey` — admin.html:2898
-- `issueLicense` — admin.html:2907
-- `loadLicenseList` — admin.html:2948
-- `loadMyLicense` — admin.html:3003
-- `activateLicense` — admin.html:3062
-- `loadVocabFeedback` — admin.html:3090
-- `deleteVocabFeedback` — admin.html:3145
-- `loadClientErrors` — admin.html:3159
-- `checkRlsStatus` — admin.html:3210
-- `dismissRlsBanner` — admin.html:3221
-- `deleteClientError` — admin.html:3228
-- `_v` — admin.html:3250
+- `toggleTeacherRow` — admin.html:2465
+- `getTeacherColor` — admin.html:2469
+- `renderOpsDashboard` — admin.html:2475
+- `set` — admin.html:2482
+- `renderTeacherChildMap` — admin.html:2524
+- `loadPermUserList` — admin.html:2576
+- `loadUserPerms` — admin.html:2592
+- `renderPermList` — admin.html:2601
+- `saveUserPerms` — admin.html:2616
+  ▸ _학부모_ — L2630
+- `populateParentChildSelect` — admin.html:2632
+- `filterParentChildList` — admin.html:2643
+- `showParentChildDrop` — admin.html:2664
+- `selectParentChild` — admin.html:2669
+- `createParentAccount` — admin.html:2678
+- `copyParentNewInfo` — admin.html:2732
+- `loadParentList` — admin.html:2752
+- `deleteParentAccount` — admin.html:2780
+  ▸ _오류 모니터링_ — L2805
+- `loadErrorLogs` — admin.html:2806
+- `clearOldErrorLogs` — admin.html:2861
+- `generateLicenseKey` — admin.html:2877
+- `refreshLicenseKey` — admin.html:2887
+- `calcExpiresAt` — admin.html:2892
+- `copyLicenseKey` — admin.html:2902
+- `issueLicense` — admin.html:2911
+- `loadLicenseList` — admin.html:2952
+- `loadMyLicense` — admin.html:3007
+- `activateLicense` — admin.html:3066
+- `loadVocabFeedback` — admin.html:3094
+- `deleteVocabFeedback` — admin.html:3149
+- `loadClientErrors` — admin.html:3163
+- `checkRlsStatus` — admin.html:3214
+- `dismissRlsBanner` — admin.html:3225
+- `deleteClientError` — admin.html:3232
+- `_v` — admin.html:3254

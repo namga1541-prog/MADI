@@ -439,8 +439,11 @@ function toggleDarkMode() {
   showToast(isDark ? '🌙 다크 모드' : '☀️ 라이트 모드');
 }
 function loadDarkMode() {
-  var saved; try { saved = localStorage.getItem('madi_dark'); } catch (_e) { saved = null; }
-  if (saved === '1') { document.body.classList.add('dark-mode'); var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', '#020617'); }
+  // ⛔ BETA: 다크모드 봉인 — 라이트 전용 운영. 저장값 무시하고 라이트 강제.
+  //   베타 후 복원: 아래 remove 줄 삭제하고 주석 블록 되살리면 됨.
+  document.body.classList.remove('dark-mode');
+  // var saved; try { saved = localStorage.getItem('madi_dark'); } catch (_e) { saved = null; }
+  // if (saved === '1') { document.body.classList.add('dark-mode'); var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', '#020617'); }
 }
 function updateHeaderClock() {
   var timeEl = document.getElementById('clockTime'), nextEl = document.getElementById('clockNext');

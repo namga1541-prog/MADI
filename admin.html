@@ -2410,11 +2410,15 @@ window.addEventListener('DOMContentLoaded', function() {
       drop.style.display = 'none';
     }
   });
-  if (localStorage.getItem('madi_dark') === '1') {
-    document.body.classList.add('dark-mode');
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', '#020617');
-  }
+  // ⛔ BETA: 다크모드 봉인 — 라이트 전용 운영. 저장값 무시하고 라이트 강제.
+  //   베타 후 복원: 아래 두 줄 삭제하고 주석 블록 되살리면 됨.
+  localStorage.removeItem('madi_dark');
+  document.body.classList.remove('dark-mode');
+  // if (localStorage.getItem('madi_dark') === '1') {
+  //   document.body.classList.add('dark-mode');
+  //   var meta = document.querySelector('meta[name="theme-color"]');
+  //   if (meta) meta.setAttribute('content', '#020617');
+  // }
   var nameEl = document.getElementById('adminUserName');
   if (nameEl && currentUser) nameEl.textContent = currentUser.name;
   var isSuper = currentUser && currentUser.role === 'superadmin';
