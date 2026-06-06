@@ -107,8 +107,9 @@ function saveSessionAI() {
     + '   한 오류에 여러 패턴이 동시 적용되면 모두 나열, 발달적/비발달적 판단까지 포함.'
     + '\n' + _clinicalGuide
     + (_diagGuide ? '\n' + _diagGuide : '')
-    + (_phonoGuide ? '\n' + _phonoGuide : '');
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n목표: ' + ((child.goals || []).join(', ') || '없음') + '\n\n치료사 입력:\n' + aiText;
+    + (_phonoGuide ? '\n' + _phonoGuide : '')
+    + AI_NAME_RULE;
+  var USER = '아동: ' + aliasName() + ' (' + child.age + ', ' + child.type + ')\n목표: ' + ((child.goals || []).join(', ') || '없음') + '\n\n치료사 입력:\n' + aiText;
 
   // ES5 호환: .finally() 미지원 환경 대응 — 양 분기에서 동일 cleanup
   function _resetAISaveBtn() {
@@ -118,7 +119,7 @@ function saveSessionAI() {
   }
   callClaude(SYSTEM, USER, 1200, MODEL_HAIKU)
     .then(function(raw) {
-      var p = parseJSON(raw);
+      var p = parseJSON(restoreName(raw, child.name));
       // 후처리: 비표준 용어 자동 치환 (치료사용 → 'clinical')
       var _san = (typeof sanitizeSLPOutput === 'function') ? sanitizeSLPOutput : function(t){ return t; };
       var sessionId = generateClientId();
@@ -204,8 +205,8 @@ function suggestHomeActivities(sessionId) {
   var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 오늘 세션 결과를 바탕으로 부모가 집에서 아이와 실천할 수 있는 활동 3가지를 추천하세요.'
     + ' 달성률이 낮은 목표를 보완하는 활동을 우선하고, 각 활동은 5-10분 내 일상에서 바로 쓸 수 있어야 합니다.'
     + ' 순수 JSON만 출력: {"activities":[{"title":"활동명","reason":"이 활동을 추천하는 이유 1문장","steps":"진행 방법 2-3문장","level":"쉬움/보통/어려움","tip":"부모 팁"}]}\n\n'
-    + _parentGuide;
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')' + NL
+    + _parentGuide + AI_NAME_RULE;
+  var USER = '아동: ' + aliasName() + ' (' + child.age + ', ' + child.type + ')' + NL
     + '오늘 세션 목표: ' + goalsText + NL
     + (weakGoals.length ? '달성률 60% 미만(집중 보완 필요): ' + weakGoals.join(', ') + NL : '')
     + '메모: ' + session.memo
@@ -215,6 +216,7 @@ function suggestHomeActivities(sessionId) {
     .then(function(raw) {
       // 학부모 대상 — 자동 치환
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
+      raw = restoreName(raw, child.name);
       var p = parseJSON(raw);
       var html = '<div class="ai-response-box">'
         + '<div class="ai-response-label">🏠 오늘 세션 기반 가정 활동 추천</div>';
@@ -804,8 +806,8 @@ function detectStagnation(btnEl) {
     + '"stagnations":[{"goal":"목표명","reason":"정체 판단 이유","suggestion":"새 접근법"}],'
     + '"strengths":["잘되고 있는 점들"],'
     + '"actions":[{"type":"iep|report|activity|schedule","label":"액션 제목(10자 이내)","detail":"치료사에게 구체적 지시 1문장"}]}' + NL
-    + 'actions는 정체가 있을 때만 최대 3개, 없으면 빈 배열. urgency는 정체 심각도에 따라 설정.';
-  var USER = '아동: ' + child.name + ' (' + child.age + ', ' + child.type + ')\n\n세션별 달성도:\n' + sessionLog;
+    + 'actions는 정체가 있을 때만 최대 3개, 없으면 빈 배열. urgency는 정체 심각도에 따라 설정.' + AI_NAME_RULE;
+  var USER = '아동: ' + aliasName() + ' (' + child.age + ', ' + child.type + ')\n\n세션별 달성도:\n' + sessionLog;
 
   var stagnBtn = btnEl || document.querySelector('[onclick*="detectStagnation"]');
   if (stagnBtn) { if (stagnBtn.dataset.busy === '1') return; stagnBtn.dataset.busy = '1'; stagnBtn.disabled = true; }
@@ -816,7 +818,7 @@ function detectStagnation(btnEl) {
   }
   callClaude(SYSTEM, USER, 1800, getAIModel())
     .then(function(raw) {
-      var p = parseJSON(raw);
+      var p = parseJSON(restoreName(raw, child.name));
       renderStagnationResult(p, child.name, childId);
       _resetStagnBtn();
     })

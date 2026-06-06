@@ -733,19 +733,28 @@ function naturalSearch() {
   if (!resultEl) { btn.dataset.busy = ''; btn.disabled = false; return; }
   resultEl.innerHTML = '<div class="ai-response-box"><div class="ai-response-label">⏳ AI가 데이터를 분석 중...</div></div>';
 
-  var allData = childDB.map(function(c) {
+  // 개인정보 최소화(M2/H1): 다중 아동을 한 번에 AI(Anthropic)로 보내므로 실명을 인덱스 가명
+  //   (아동1·아동2…)으로 치환해 전송하고, 질문·응답에서 가명↔실명을 양방향 매핑한다.
+  //   부분겹침(예: '김민'⊂'김민수', '아동1'⊂'아동10') 방지를 위해 길이 내림차순으로 치환한다.
+  var _nameMap = [];
+  childDB.forEach(function(c, i) { if (c.name) _nameMap.push({ real: String(c.name), alias: '아동' + (i + 1) }); });
+  var _byRealLen  = _nameMap.slice().sort(function(a, b) { return b.real.length - a.real.length; });
+  var _byAliasLen = _nameMap.slice().sort(function(a, b) { return b.alias.length - a.alias.length; });
+  function _aliasNames(t)   { if (t == null) return t; var s = String(t); _byRealLen.forEach(function(m)  { s = s.split(m.real).join(m.alias); }); return s; }
+  function _restoreNames(t) { if (t == null) return t; var s = String(t); _byAliasLen.forEach(function(m) { s = s.split(m.alias).join(m.real); }); return s; }
+  var allData = childDB.map(function(c, i) {
     var ss = sessionDB.filter(function(s) { return s.childId === c.id; })
       .sort(function(a, b) { return a.date < b.date ? -1 : 1; });
     var ssText = ss.map(function(s) {
       var g = (s.goals || []).map(function(g) { return g.name + ':' + (g.score !== null ? g.score + '%' : 'N/A'); }).join(', ');
       return s.date + ' [' + g + '] ' + (s.memo || '');
     }).join('\n');
-    return '◆ ' + c.name + ' (' + c.age + ', ' + c.type + ')\n' + ssText;
+    return '◆ 아동' + (i + 1) + ' (' + c.age + ', ' + c.type + ')\n' + _aliasNames(ssText);
   }).join('\n\n');
 
   var SYSTEM = '당신은 언어치료 데이터 분석 어시스턴트입니다. 치료사가 자연어로 묻는 질문에 정확한 데이터 기반 답변을 제공하세요. '
     + '날짜, 수치 등 구체적인 정보를 포함하세요. 200자 내외의 친근한 한국어로 답변하세요. JSON 없이 일반 텍스트로 답변.';
-  var USER = '치료 데이터:\n' + allData + '\n\n질문: ' + query;
+  var USER = '치료 데이터:\n' + allData + '\n\n질문: ' + _aliasNames(query);
 
   // ES5 호환: .finally() 미지원 환경 대응
   function _resetAskBtn() {
@@ -757,7 +766,7 @@ function naturalSearch() {
     .then(function(raw) {
       resultEl.innerHTML = '<div class="ai-response-box">'
         + '<div class="ai-response-label">🤖 AI 답변</div>'
-        + '<div class="ai-response-text">' + escHtml(raw) + '</div></div>';
+        + '<div class="ai-response-text">' + escHtml(_restoreNames(raw)) + '</div></div>';
       _resetAskBtn();
     })
     .catch(function(err) {

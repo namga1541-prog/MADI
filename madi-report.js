@@ -394,10 +394,12 @@ function generateSIReport() {
   var _styleGuide = (typeof getReportStyleGuide === 'function') ? getReportStyleGuide('si') : '';
   var SYSTEM = '당신은 한국 임상 현장의 감각통합 분야 전문 작업치료사입니다. 평가 결과를 바탕으로 전문적이고 임상적으로 타당한 보고서 종합 소견과 치료 권고사항을 작성합니다. 한국어로 작성하며, 아동의 강점과 어려움을 균형 있게 기술합니다.\n\n'
     + _clinicalGuide
-    + (_styleGuide ? '\n\n' + _styleGuide : '');
+    + (_styleGuide ? '\n\n' + _styleGuide : '') + AI_NAME_RULE;
 
+  // 개인정보 최소화(M2/H1): 실명·생년월일을 AI(Anthropic)로 전송하지 않음. 이름은 가명 ○○,
+  //   생년월일은 본문 작성에 불필요(생활연령으로 충분)하여 전송 제외. 응답에서 실명 복원.
   var USER = '[아동 정보]' + NL
-    + '이름: ' + d.child.name + ' / 성별: ' + (d.child.gender||'-') + ' / 생년월일: ' + (d.child.birth||'-') + ' / 생활연령: ' + (d.child.age||'-') + NL
+    + '이름: ' + aliasName() + ' / 성별: ' + (d.child.gender||'-') + ' / 생활연령: ' + (d.child.age||'-') + NL
     + '평가일: ' + d.date + ' / 정보제공자: ' + d.informant + NL + NL
     + '[I. 배경 정보]' + NL + d.bg + NL + NL
     + '[II. 검사 태도]' + NL + d.attitude + NL + NL
@@ -416,7 +418,7 @@ function generateSIReport() {
     .then(function(raw) {
       // 임상 보고서 — 비표준 용어만 통일
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');
-      var text = raw.trim();
+      var text = restoreName(raw, d.child.name).trim();
       /* eslint-disable-next-line no-unsanitized/property */
       result.innerHTML = '<div style="border:1.5px solid var(--mint,#0ea5a0);border-radius:12px;padding:16px;margin-top:4px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'

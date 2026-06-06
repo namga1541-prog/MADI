@@ -97,13 +97,13 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _wakeLock = null;` — madi-home.js:891
 - `var _pwaInstallPrompt = null;` — madi-home.js:892
 - `var _sessionSaveBusy = false; // 더블탭 중복 저장 방지` — madi-iep.js:9
-- `var sessionListExpanded = false;` — madi-iep.js:247
-- `var _dcmCallback = null;` — madi-iep.js:389
-- `var _dcmEscHandler = null;` — madi-iep.js:390
-- `var devChartObj = null;` — madi-iep.js:482
-- `var phonemeChartObj = null;` — madi-iep.js:598
-- `var _phonemePos = 'all'; // 'all' | 'initial' | 'medial' | 'final'` — madi-iep.js:599
-- `var _selectedPhonemes = null; // null = 전체` — madi-iep.js:600
+- `var sessionListExpanded = false;` — madi-iep.js:249
+- `var _dcmCallback = null;` — madi-iep.js:391
+- `var _dcmEscHandler = null;` — madi-iep.js:392
+- `var devChartObj = null;` — madi-iep.js:484
+- `var phonemeChartObj = null;` — madi-iep.js:600
+- `var _phonemePos = 'all'; // 'all' | 'initial' | 'medial' | 'final'` — madi-iep.js:601
+- `var _selectedPhonemes = null; // null = 전체` — madi-iep.js:602
 - `var _parentCurrentTab = 'home';` — madi-parent-home.js:5
 - `var MADI_VAPID_PUBLIC_KEY = 'BNH0y5wZW_nzhS5IG_6pMYAKmeDYoPWIkc9msFfNXyAsSxAeCzYjtEpW4NDdk` — madi-parent-home.js:7
 - `var _parentSignupMatchedChildren = []; // lookup 결과 캐시` — madi-parent-pages.js:301
@@ -745,32 +745,32 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _세션 저장_ — L8
 - `saveSession` — madi-iep.js:10
 - `saveSessionAI` — madi-iep.js:65
-- `_resetAISaveBtn` — madi-iep.js:114
-  ▸ _기능 2: 가정 활동 추천 AI_ — L153
-- `suggestHomeActivities` — madi-iep.js:154
-  ▸ _세션 목록_ — L245
-- `toggleSessionListExpand` — madi-iep.js:248
-- `renderSessionList` — madi-iep.js:253
-- `editSessionDate` — madi-iep.js:358
-  ▸ _삭제 확인 모달_ — L388
-- `showDeleteConfirm` — madi-iep.js:391
-- `_dcmEscHandler` — madi-iep.js:414
-- `checkDcmInput` — madi-iep.js:418
-- `closeDcmModal` — madi-iep.js:429
-- `executeDcm` — madi-iep.js:435
-- `deleteSession` — madi-iep.js:440
-  ▸ _차트_ — L481
-- `renderChart` — madi-iep.js:483
-  ▸ _기능 3: 발달 정체 자동 감지 + W7 액션 제안_ — L597
-- `renderPhonemeChart` — madi-iep.js:602
-- `renderPhonemeMatrixTable` — madi-iep.js:726
-- `togglePhonemeFilter` — madi-iep.js:761
-- `setPhonemePos` — madi-iep.js:774
-- `detectStagnation` — madi-iep.js:780
-- `_resetStagnBtn` — madi-iep.js:814
-- `renderStagnationResult` — madi-iep.js:830
-- `stagnationActionMeta` — madi-iep.js:886
-  ▸ _기능 4: 부모 보고서_ — L897
+- `_resetAISaveBtn` — madi-iep.js:115
+  ▸ _기능 2: 가정 활동 추천 AI_ — L154
+- `suggestHomeActivities` — madi-iep.js:155
+  ▸ _세션 목록_ — L247
+- `toggleSessionListExpand` — madi-iep.js:250
+- `renderSessionList` — madi-iep.js:255
+- `editSessionDate` — madi-iep.js:360
+  ▸ _삭제 확인 모달_ — L390
+- `showDeleteConfirm` — madi-iep.js:393
+- `_dcmEscHandler` — madi-iep.js:416
+- `checkDcmInput` — madi-iep.js:420
+- `closeDcmModal` — madi-iep.js:431
+- `executeDcm` — madi-iep.js:437
+- `deleteSession` — madi-iep.js:442
+  ▸ _차트_ — L483
+- `renderChart` — madi-iep.js:485
+  ▸ _기능 3: 발달 정체 자동 감지 + W7 액션 제안_ — L599
+- `renderPhonemeChart` — madi-iep.js:604
+- `renderPhonemeMatrixTable` — madi-iep.js:728
+- `togglePhonemeFilter` — madi-iep.js:763
+- `setPhonemePos` — madi-iep.js:776
+- `detectStagnation` — madi-iep.js:782
+- `_resetStagnBtn` — madi-iep.js:816
+- `renderStagnationResult` — madi-iep.js:832
+- `stagnationActionMeta` — madi-iep.js:888
+  ▸ _기능 4: 부모 보고서_ — L899
 
 ## madi-parent-home.js (23함수)
   ▸ _탭 전환_ — L9
@@ -839,7 +839,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_loadParentObsList` — madi-parent-pages.js:728
 - `_renderParentObsCard` — madi-parent-pages.js:757
 
-## madi-parent.js (19함수)
+## madi-parent.js (21함수)
   ▸ _W6: 회기 후 자동 브리핑 모달_ — L2
 - `showPostSessionBriefing` — madi-parent.js:3
 - `closePostBriefing` — madi-parent.js:107
@@ -866,12 +866,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `renderPortfolio` — madi-parent.js:610
   ▸ _기능 6: 자연어 검색_ — L716
 - `naturalSearch` — madi-parent.js:717
-- `_resetAskBtn` — madi-parent.js:751
-  ▸ _기능 7: 부모 FAQ 답변_ — L769
-- `generateFAQ` — madi-parent.js:770
-- `_resetFAQBtn` — madi-parent.js:810
-- `copyFAQText` — madi-parent.js:833
-  ▸ _유틸_ — L848
+- `_aliasNames` — madi-parent.js:743
+- `_restoreNames` — madi-parent.js:744
+- `_resetAskBtn` — madi-parent.js:760
+  ▸ _기능 7: 부모 FAQ 답변_ — L778
+- `generateFAQ` — madi-parent.js:779
+- `_resetFAQBtn` — madi-parent.js:819
+- `copyFAQText` — madi-parent.js:842
+  ▸ _유틸_ — L857
 
 ## madi-quick.js (33함수)
   ▸ _─_ — L4
@@ -942,12 +944,12 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `collectSIData` — madi-report.js:275
 - `generateSIReport` — madi-report.js:346
 - `fmtDevRow` — madi-report.js:374
-- `copySIReport` — madi-report.js:444
-  ▸ _감통보고서 — 사용자 정의 검사명 입력_ — L459
-- `addCustomSITest` — madi-report.js:461
-- `removeCustomSITest` — madi-report.js:498
-  ▸ _K-DST 발달수준 색상 시각화_ — L502
-- `updateKdstLevelColor` — madi-report.js:504
+- `copySIReport` — madi-report.js:446
+  ▸ _감통보고서 — 사용자 정의 검사명 입력_ — L461
+- `addCustomSITest` — madi-report.js:463
+- `removeCustomSITest` — madi-report.js:500
+  ▸ _K-DST 발달수준 색상 시각화_ — L504
+- `updateKdstLevelColor` — madi-report.js:506
 
 ## madi-schedule.js (43함수)
   ▸ _생년월일 숫자 입력 처리_ — L4
