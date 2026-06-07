@@ -78,8 +78,11 @@ function applyPermissions() {
   if (!canDo('useAI')) { var aiSubBtn = document.getElementById('ptBtn_ai'); if (aiSubBtn) aiSubBtn.style.display = 'none'; }
 }
 function getAIModel() {
-  try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') return MODEL_SONNET; if (v === 'haiku') return MODEL_HAIKU; } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+  // ⛔ AI 모델 Haiku 고정(대장님 방침) — 앱 전체 AI 분석을 Haiku 로 통일. 저장된 Sonnet
+  //   선택값이 있어도 무시한다. 되돌리려면 아래 return 줄을 지우고 주석 블록을 복원.
   return MODEL_HAIKU;
+  // try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') return MODEL_SONNET; if (v === 'haiku') return MODEL_HAIKU; } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
+  // return MODEL_HAIKU;
 }
 function saveAIModelChoice(choice) {
   if (choice !== 'haiku' && choice !== 'sonnet') return;

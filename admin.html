@@ -335,7 +335,9 @@
     </div>
 
     <!-- ── AI 모델 선택 ── -->
-    <div class="card" style="border:2px solid #8b5cf6;">
+    <!-- ⛔ AI 모델 Haiku 고정(대장님 방침) — 설정 UI 숨김. Sonnet 선택이 무시되므로 혼란 방지.
+         되돌리려면 아래 display:none 제거 + madi-core.js getAIModel() 복원. -->
+    <div class="card" style="border:2px solid #8b5cf6;display:none;">
       <div class="card-title">
         <div class="card-title-left" style="color:#8b5cf6;">🤖 AI 모델 설정</div>
         <span id="aiModelCurrentLabel" style="font-size:11px;color:var(--text2);font-weight:600;">불러오는 중...</span>
