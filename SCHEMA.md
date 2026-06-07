@@ -25,7 +25,7 @@
 | `madi_push_settings` | `center_id`, `enabled`, `push_time`, `message_title`, `message_body`, `last_sent_date` |
 | `madi_settings` | `key`(PK), `value` — **전역 테이블, center_id 컬럼 없음** |
 | `madi_lounge_posts` | `id`, `center_id`, `author_id`, `author_name`, `author_role`, `title`, `content`, `images`, `image_urls`, `note`, `visibility`, `created_at` |
-| `madi_lounge_comments` | `id`, `post_id`, `center_id`, `author_id`, `author_name`, `author_role`, `content`, `created_at` |
+| `madi_lounge_comments` | `id`, `post_id`, `center_id`, `author_id`, `author_name`, `author_role`, `content`, `image_url`, `created_at` — `image_url`·`author_role` 은 `board_image_columns_fix.sql`(2026-05-30)로 추가 |
 | `madi_error_logs` | `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` |
 | `madi_parent_observations` | `id`, `parent_user_id`, `child_id`, `center_id`, `content`, `teacher_reply`, `category`(기본 'general'), `replied_at`, `replied_by`, `created_at` |
 | `madi_center_api_keys` | (마이그레이션 `migrations/add_center_api_keys.sql` 참조 — 센터별 API 키) |
