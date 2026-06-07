@@ -413,7 +413,7 @@ function generateSIReport() {
     + 'V. 종합 소견: 주요 발달 특성, 감각 처리 패턴, 기능적 영향을 3~5문단으로 서술' + NL
     + 'VI. 치료 권고사항: 감각통합치료 목표, 접근법, 가정 연계 지도 등을 구체적으로 서술';
 
-  var aiModel = (typeof getAIModel === 'function') ? getAIModel() : 'claude-3-5-sonnet-20241022';
+  var aiModel = (typeof getAIModel === 'function') ? getAIModel() : 'claude-haiku-4-5-20251001';
   callClaude(SYSTEM, USER, 2000, aiModel)
     .then(function(raw) {
       // 임상 보고서 — 비표준 용어만 통일
