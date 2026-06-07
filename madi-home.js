@@ -195,7 +195,7 @@ function addStaffAccount() {
     if (typeof _teacherList !== 'undefined') _teacherList = [];
     loadStaffMgmtList();
   }).catch(function(err) {
-    if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
+    if (resultEl) resultEl.innerHTML = '<span style="color:var(--red);">❌ ' + escHtml(_userErrMsg(err, '계정 추가')) + ' (아이디 중복일 수 있습니다)</span>';
   });
 }
 
@@ -222,7 +222,7 @@ function loadStaffMgmtList() {
       // eslint-disable-next-line no-unsanitized/property
       el.innerHTML = staffHtml;
     }).catch(function(err) {
-      el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: ' + escHtml(err.message || '') + '</div>';
+      el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">' + escHtml(_userErrMsg(err, '목록 로드')) + '</div>';
     });
 }
 

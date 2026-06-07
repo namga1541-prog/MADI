@@ -573,10 +573,10 @@ function renderPortfolioHistory(childId) {
           +   '<div style="font-size:13px;font-weight:700;color:var(--text);">📁 ' + escHtml(r.month || '') + ' 포트폴리오 ' + tag + '</div>'
           +   '<div style="font-size:11px;color:var(--text2);margin-top:3px;">생성 ' + escHtml(createdShort) + byTxt + '</div>'
           + '</div>'
-          + '<button onclick="togglePortfolioVisibility(' + r.id + ',' + (visible ? 'false' : 'true') + ')" '
+          + '<button onclick="togglePortfolioVisibility(\'' + escHtml(String(r.id)) + '\',' + (visible ? 'false' : 'true') + ')" '
           +   'style="background:' + btnBg + ';color:' + btnCol + ';border:none;border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">'
           +   btnLabel + '</button>'
-          + '<button onclick="deletePortfolio(' + r.id + ')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">🗑️</button>'
+          + '<button onclick="deletePortfolio(\'' + escHtml(String(r.id)) + '\')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">🗑️</button>'
           + '</div>';
       }).join('');
     })
@@ -589,7 +589,7 @@ function renderPortfolioHistory(childId) {
 function deletePortfolio(portfolioId) {
   if (!portfolioId) return;
   showConfirm('이 포트폴리오를 삭제할까요?\n(학부모 공개 중이면 즉시 비공개됩니다)', function() {
-    supaFetch('madi_portfolios?id=eq.' + portfolioId, 'DELETE')
+    supaFetch('madi_portfolios?id=eq.' + encodeURIComponent(portfolioId), 'DELETE')
       .then(function() {
         showToast('🗑️ 포트폴리오 삭제됨');
         var childIdEl = document.getElementById('portfolioChild');
@@ -621,7 +621,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
       +   '<div style="font-size:11px;color:var(--text2);margin-top:3px;line-height:1.55;">기본 <b>비공개</b>입니다. 선생님이 검토 후 직접 공개해야 학부모가 열람할 수 있어요.</div>'
       + '</div>'
       + '<button id="portfolioVisToggleBtn" data-visible="' + (visible ? '1' : '0') + '" '
-      +   'onclick="togglePortfolioVisibility(' + savedRow.id + ', this.dataset.visible !== \'1\')" '
+      +   'onclick="togglePortfolioVisibility(\'' + escHtml(String(savedRow.id)) + '\', this.dataset.visible !== \'1\')" '
       +   'style="background:' + btnBg + ';color:' + btnCol + ';border:none;border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;">'
       +   btnLabel + '</button>'
       + '</div>';

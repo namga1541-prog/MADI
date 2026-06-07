@@ -157,8 +157,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var GITHUB_REPO = 'MADI';` — madi-system.js:332
 - `var GITHUB_FILE = 'index.html';` — madi-system.js:333
 - `var GITHUB_SW = 'sw.js';` — madi-system.js:334
-- `var _swNow = new Date();` — madi-system.js:339
-- `var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')` — madi-system.js:340
+- `var _swNow = nowKST();` — madi-system.js:339
+- `var SW_BUILD = 'madi-v5-' + ymd(_swNow).replace(/-/g,'')` — madi-system.js:340
 - `var SW_LINES = [` — madi-system.js:343
 - `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:445
 - `var _pwaPrompt = null;` — madi-system.js:1189

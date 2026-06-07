@@ -513,8 +513,8 @@ function renderBackupList() {
     }).join('');
     // eslint-disable-next-line no-unsanitized/property
     el.innerHTML = html;
-  }).catch(function(err) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">⚠️ 백업 로드 실패: ' + escHtml(err.message || '오류') + '</div>';
+  }).catch(function() {
+    el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">⚠️ 백업을 불러오지 못했습니다. 앱을 새로고침해 주세요.</div>';
   });
 }
 

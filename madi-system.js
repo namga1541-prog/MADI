@@ -336,8 +336,8 @@ var GITHUB_SW    = 'sw.js';
 // 인라인 SW 폴백 — 실제 sw.js 와 동기화 유지 (캐시명·SWR·푸시·notificationclick·offline·민감경로 차단).
 // 평상시 배포는 폴더의 실제 sw.js 파일을 직접 업로드하며, 이 상수는 다음 두 경우에만 사용:
 //   ① 배포 중 폴더에서 sw.js 를 못 읽을 때 폴백, ② ./sw.js 등록 실패 시 Blob URL 폴백(initPWA).
-var _swNow = new Date();
-var SW_BUILD = 'madi-v5-' + _swNow.toISOString().slice(0,10).replace(/-/g,'')
+var _swNow = nowKST();
+var SW_BUILD = 'madi-v5-' + ymd(_swNow).replace(/-/g,'')
              + '-' + String(_swNow.getHours()).padStart(2,'0')
              + String(_swNow.getMinutes()).padStart(2,'0');
 var SW_LINES = [
