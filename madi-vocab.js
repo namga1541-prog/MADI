@@ -336,7 +336,7 @@ var SLP_PROMPT_CLINICAL_GUIDE = ''
   + ' "아동발달검사(K-CDI)", "Denver Developmental Screening test(DDST)",'
   + ' "Korean Developmental Screening test(K-DST)", "Sensory Profile Ⅱ(SP2)".'
   + ' 문어체: 말·언어는 평어체 경어 "~함, ~됨, ~임, ~판단됨" / 감통은 서술체 "~하였다, ~보였다, ~사료된다".'
-  + ' 영어 임상 용어 그대로 사용 가능: attention, gesture, pointing, crane, conversational acts, primitive speech acts, Delayed language development, W-sitting, swing.'
+  + ' 영어 임상용어 사용 금지 — 반드시 쉬운 한글로 풀어쓸 것: 주의 집중, 몸짓, 가리키기, 상대의 손을 끌어 요구하기, 대화 기능, 초기의사소통의도, 언어발달지연, 다리를 W자로 벌려 앉는 자세, 그네. (영어 단어·괄호 병기 "한글(영어)" 모두 금지. 단 검사명 약어 REVT·PRES·U-TAP·SP2·DDST·K-DST·LSSC·KOLRA 등은 검사 고유명이라 유지.)'
   + ' 【조기출산(미숙아) 아동 필수 규칙】'
   + ' ① "수정연령", "corrected age", "adjusted age", "age adjusted for prematurity" 절대 사용 금지.'
   + ' ② 한국 임상 실무에서는 조기출산 아동도 생활연령 기준으로 검사 결과를 산출함.'
@@ -392,6 +392,22 @@ function sanitizeSLPOutput(text, audience) {
     }
   }
 
+  // 0) 영어 임상용어 → 쉬운 한글 (대장님 방침: 보고서는 한글로 작성).
+  //    괄호 병기 "한글(영어)"는 영어 괄호째 제거, 단독 영어는 한글로 치환.
+  //    검사명 약어(REVT·PRES·U-TAP·SP2·LSSC·KOLRA·DDST·K-DST 등)는 고유명이라 유지.
+  var _engToKo = [
+    ['(primitive speech acts)', ''], ['(conversational acts)', ''], ['(linguistic stimulus)', ''],
+    ['(Delayed language development)', ''], ['(joint attention)', ''], ['(Reading Fluency)', ''],
+    ['(Phonological Automatization)', ''], ['(eye contact)', ''], ['(W-sitting)', ''],
+    ['primitive speech acts', '초기의사소통의도'], ['conversational acts', '대화 기능'],
+    ['linguistic stimulus', '언어자극'], ['Delayed language development', '언어발달지연'],
+    ['joint attention', '공동주의'], ['eye contact', '눈맞춤'], ['Reading Fluency', '읽기 유창성'],
+    ['Phonological Automatization', '음운 처리 자동화'], ['W-sitting', '다리를 W자로 벌려 앉는 자세'],
+    ['gesture', '몸짓'], ['pointing', '가리키기'], ['crane', '상대의 손을 끌어 요구하기'],
+    ['babbling', '옹알이'], ['attention', '주의 집중'], ['swing', '그네'], ['decoding', '해독']
+  ];
+  for (var _e = 0; _e < _engToKo.length; _e++) { text = text.split(_engToKo[_e][0]).join(_engToKo[_e][1]); }
+
   // 1) 모든 문서에서 비표준 용어는 표준으로 통일
   Object.keys(SLP_VOCAB_BLOCKED_ALL).forEach(function(bad){
     text = boundedReplace(text, bad, SLP_VOCAB_BLOCKED_ALL[bad]);
@@ -427,8 +443,8 @@ var SLP_REPORT_SAMPLE_LANG = ''
   + '"신체 발달사항을 살펴보면, 네 발기기는 또래보다 한달정도 늦었다고 하며, 걷기 ○개월경, 뛰기 ○개월경에 가능했으며, ○개월부터 대소변 가리기를 하고 있다고 함."\n'
   + '"언어 발달사항으로는 옹알이가 거의 없었으며, ○개월경 첫 낱말을 보였다고 함. 두 낱말 조합은 ○개월 경 보였다고 함."\n\n'
   + '[II. 검사태도 패턴]\n'
-  + '"보호자와 분리가 가능하였음. 검사가 진행되는 동안 착석은 가능했으나 지속적으로 촉구가 필요했으며, attention 유지 시간이 짧았음. 지시를 듣고 이해하지 못한 상태에서 반응하는 모습을 빈번하게 보였으며 촉구 시 수정은 가능했음."\n'
-  + '"아동의 주된 의사표현 수단은 pointing+발성이었으며, 원하는 것을 요구할 때 crane, 부르기를 보임."\n\n'
+  + '"보호자와 분리가 가능하였음. 검사가 진행되는 동안 착석은 가능했으나 지속적으로 촉구가 필요했으며, 주의 집중 시간이 짧았음. 지시를 듣고 이해하지 못한 상태에서 반응하는 모습을 빈번하게 보였으며 촉구 시 수정은 가능했음."\n'
+  + '"아동의 주된 의사표현 수단은 손가락으로 가리키기와 소리내기였으며, 원하는 것을 요구할 때 상대의 손을 끌어당겨 표현하거나 부르기를 보임."\n\n'
   + '[IV. 검사결과 표 형식 — 마크다운 표 그대로]\n'
   + '| 평가도구/영역 | 원점수(점) | 등가연령 | 백분위수(%ile) | 비고 |\n'
   + '| REVT 수용 | 22 | 2세 6개월 미만 | 10-20 | 약간지체(유의요망) |\n'
@@ -456,7 +472,7 @@ var SLP_REPORT_SAMPLE_LANG = ''
   + '"가정 내 효과적인 linguistic stimulus(언어자극) 제공을 위한 부모교육 또한 도움이 될 것으로 판단됨."\n\n'
   + '[문체 — 평어체 경어 사용]\n'
   + '~함, ~음, ~보임, ~판단됨, ~확인되었음, ~평가됨. (1급 언어재활사 보고서 표준 문체)\n'
-  + '영어 임상 용어 그대로 사용 가능: attention, gesture, pointing, crane, conversational acts, linguistic stimulus, primitive speech acts, Delayed language development.\n\n'
+  + '영어 임상용어 금지 — 한글로 풀어쓸 것: 주의 집중, 몸짓, 가리키기, 상대의 손을 끌어 요구하기, 대화 기능, 언어자극, 초기의사소통의도, 언어발달지연. (영어 단어·괄호 병기 모두 쓰지 말 것)\n\n'
   + '════════════════════════════════════════\n'
   + '[추가 패턴 — 2026-05 보고서 5건 분석으로 보강]\n'
   + '════════════════════════════════════════\n\n'
@@ -567,7 +583,7 @@ var SLP_REPORT_SAMPLE_LANG = ''
   + '검사별 요약은 번호 매김: "- LSSC 검사결과, 전체언어 언어지수 ○○, 백분위수 ○○%ile, 평균으로 평가되었음." 다음 "1-1) 수용언어 ...", "1-2) 표현언어 ...", "2-1) 해독 ..." 식으로 하위영역 세분.\n'
   + '임상 결론은 ">" 마커로: "> 검사 결과, 아동은 읽기 유창성 저하 및 읽기 학습 부진으로 평가됨." / "> 전반적인 언어능력은 평균 범위에 해당함." / "> 조사 \'에/의\' 혼동이 관찰됨, 음운-정서법 규칙 적용 미숙과 관련된 오류 양상을 보임." / "> 읽기 처리 속도로 인해 학년 수준의 읽기 수행에 제한이 있을 수 있음."\n'
   + '제언 마무리: "> Reading Fluency(읽기 유창성) 및 Phonological Automatization(음운 처리 자동화), 담화 능력 증진을 위한 주 2회 언어치료가 필요할 것으로 판단됨."\n'
-  + '영어 임상용어 사용 가능: Reading Fluency, Phonological Automatization, LSSC, KOLRA, decoding.\n\n'
+  + '영어 임상용어 금지 — 한글로: 읽기 유창성, 음운 처리 자동화, 해독. (단 검사명 약어 LSSC·KOLRA 는 검사 고유명이라 유지)\n\n'
   + '[서명 — 학령기 말·언어]\n'
   + '"언어재활사 1급 제 ○○○○호 ○ ○ ○" — 우하단.';
 
