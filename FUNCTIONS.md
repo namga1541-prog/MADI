@@ -173,7 +173,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SLP_PROMPT_CLINICAL_GUIDE = ''` — madi-vocab.js:329
 - `var SLP_PROMPT_PHONO_GUIDE = ''` — madi-vocab.js:350
 - `var SLP_REPORT_SAMPLE_LANG = ''` — madi-vocab.js:422
-- `var SLP_REPORT_SAMPLE_SI = ''` — madi-vocab.js:549
+- `var SLP_REPORT_SAMPLE_SI = ''` — madi-vocab.js:575
 
 ## madi-ai.js (25함수)
 - `generateReport` — madi-ai.js:1
@@ -1116,7 +1116,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `sanitizeSLPOutput` — madi-vocab.js:369
 - `boundedReplace` — madi-vocab.js:379
 - `getClinicalGuideForDiagnosis` — madi-vocab.js:409
-- `getReportStyleGuide` — madi-vocab.js:663
+- `getReportStyleGuide` — madi-vocab.js:689
 
 ## admin.html (118함수)
 - `toKST` — admin.html:835
