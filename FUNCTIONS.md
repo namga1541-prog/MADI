@@ -170,10 +170,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SLP_PHONO_PATTERN_DEV_AGE = {` — madi-vocab.js:229
 - `var SLP_CLINICAL_TERMS = {` — madi-vocab.js:247
 - `var SLP_PROMPT_PARENT_GUIDE = ''` — madi-vocab.js:319
-- `var SLP_PROMPT_CLINICAL_GUIDE = ''` — madi-vocab.js:329
-- `var SLP_PROMPT_PHONO_GUIDE = ''` — madi-vocab.js:350
-- `var SLP_REPORT_SAMPLE_LANG = ''` — madi-vocab.js:438
-- `var SLP_REPORT_SAMPLE_SI = ''` — madi-vocab.js:591
+- `var SLP_PROMPT_CLINICAL_GUIDE = ''` — madi-vocab.js:330
+- `var SLP_PROMPT_PHONO_GUIDE = ''` — madi-vocab.js:352
+- `var SLP_REPORT_SAMPLE_LANG = ''` — madi-vocab.js:440
+- `var SLP_REPORT_SAMPLE_SI = ''` — madi-vocab.js:593
 
 ## madi-ai.js (25함수)
 - `generateReport` — madi-ai.js:1
@@ -1113,10 +1113,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _자음 변동_ — L129
   ▸ _음절 구조 변동_ — L176
   ▸ _동화_ — L198
-- `sanitizeSLPOutput` — madi-vocab.js:369
-- `boundedReplace` — madi-vocab.js:379
-- `getClinicalGuideForDiagnosis` — madi-vocab.js:425
-- `getReportStyleGuide` — madi-vocab.js:705
+- `sanitizeSLPOutput` — madi-vocab.js:371
+- `boundedReplace` — madi-vocab.js:381
+- `getClinicalGuideForDiagnosis` — madi-vocab.js:427
+- `getReportStyleGuide` — madi-vocab.js:707
 
 ## admin.html (118함수)
 - `toKST` — admin.html:835
