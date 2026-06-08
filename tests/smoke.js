@@ -330,14 +330,17 @@ if (!calcAgeFromBirth) {
     + String(_today.getMonth() + 1).padStart(2, '0')
     + String(_today.getDate()).padStart(2, '0');
   assertEq('5년 전 같은 날 → 5세', calcAgeFromBirth(_exact), '5세');
-  // 아직 생일 안 지남 → 월수 차감: 1년 전보다 한 달 뒤 생일이면 11개월
-  //   (오늘 = 생일 1개월 전 → 만 0세 11개월). 연말 경계는 회피해 +2달 사용.
-  var _bd = new Date(); _bd.setFullYear(_bd.getFullYear() - 1); _bd.setMonth(_bd.getMonth() + 2);
-  if (_bd.getFullYear() === _today.getFullYear()) { // 생일 안 지난 케이스만(롤오버 회피)
-    var _bdStr = _bd.getFullYear()
-      + String(_bd.getMonth() + 1).padStart(2, '0')
-      + String(_bd.getDate()).padStart(2, '0');
-    assertEq('생일 2개월 남음 → 0세 10개월(월수 차감)', calcAgeFromBirth(_bdStr), '0세 10개월');
+  // 생일 안 지남(월수 차감) — 고정 픽스처로 분기 직접 검증.
+  //   기준일을 인자로 받지 않는 함수라 '오늘'에 의존하지만, 아래 케이스는
+  //   '오늘이 생일 하루 전' 상황을 픽스처로 재현: birth = (오늘 - 5년 + 1일).
+  //   → 만 4세여야 한다(5세 생일이 내일이라 아직 5세 아님). years 차감 분기 박제.
+  var _almost5 = new Date(_today.getTime()); _almost5.setFullYear(_almost5.getFullYear() - 5); _almost5.setDate(_almost5.getDate() + 1);
+  // 월/일 경계로 5년 정수가 깨지는 날(말일 등)만 회피하고 실행
+  if (_almost5.getDate() !== 1 && _almost5.getMonth() === _today.getMonth()) {
+    var _a5Str = _almost5.getFullYear()
+      + String(_almost5.getMonth() + 1).padStart(2, '0')
+      + String(_almost5.getDate()).padStart(2, '0');
+    assertEq('5세 생일 내일 → 아직 4세(11개월, 일자 차감)', calcAgeFromBirth(_a5Str), '4세 11개월');
   }
   // 잘못된 생일(롤오버) → 빈 문자열
   assertEq('잘못된 생일(2월30일) → 빈 문자열', calcAgeFromBirth('20200230'), '');
