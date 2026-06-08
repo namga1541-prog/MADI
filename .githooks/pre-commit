@@ -41,6 +41,11 @@ if [ -n "$ASSET_CHANGED" ] && [ -f "$TOPLEVEL/tools/check-patterns.js" ]; then
   node "$TOPLEVEL/tools/check-patterns.js" || { echo "[pre-commit] check-patterns 차단(CHECK_STRICT)"; exit 1; }
 fi
 
+# ── 2-2. 스크립트 로드 순서 계약 검증 (index.html 의 madi-*.js 의존 순서) ──
+if [ -n "$ASSET_CHANGED" ] && [ -f "$TOPLEVEL/tools/check-load-order.js" ]; then
+  node "$TOPLEVEL/tools/check-load-order.js"
+fi
+
 # ── 3. ESLint — 스테이징된 madi-*.js 만 (XSS 1차 방어선) ───────
 STAGED_JS=$(echo "$STAGED" | grep -E '^madi-.*\.js$' || true)
 if [ -n "$STAGED_JS" ] && command -v npx >/dev/null 2>&1; then

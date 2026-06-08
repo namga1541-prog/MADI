@@ -40,6 +40,9 @@ var restoreName = _utils ? _utils.restoreName : function(text, realName) {
   return String(text).split('○○').join(realName);
 };
 
+// 다중 아동 인덱스 마스커 SSOT (madi-pii.js) — parent·chat 공용. 폴백 없음(실패 시 테스트 skip).
+var madiNameMasker; try { madiNameMasker = require('../madi-pii.js').madiNameMasker; } catch (e) { madiNameMasker = null; }
+
 var passed = 0, failed = 0;
 
 function assert(label, condition) {
@@ -184,6 +187,35 @@ assertEq('따옴표 포함 이름은 원문 유지(JSON 안전)', restoreName('�
 assertEq('역슬래시 포함 이름도 원문 유지', restoreName('○○', 'a\\b'), '○○');
 assertEq('null 입력 안전', restoreName(null, '김민준'), null);
 assertEq('실명 없으면 원문 유지', restoreName('○○ 보고서', ''), '○○ 보고서');
+
+section('AI 다중아동 가명화 SSOT (madiNameMasker, madi-pii.js)');
+if (!madiNameMasker) {
+  assert('madi-pii.js 로드(SSOT 존재)', false);
+} else {
+  // 사전 시딩(parent 패턴) — childDB 인덱스 순서로 아동N
+  var _mk = madiNameMasker([{ name: '김민수' }, { name: '이서연' }]);
+  assertEq('시딩: 첫째 → 아동1', _mk.alias('김민수'), '아동1');
+  assertEq('시딩: 둘째 → 아동2', _mk.alias('이서연'), '아동2');
+  assertEq('mask: 텍스트 내 실명 → 별칭', _mk.mask('김민수와 이서연'), '아동1와 아동2');
+  assertEq('restore: 별칭 → 실명 왕복', _mk.restore('아동1는 잘함, 아동2도 좋음'), '김민수는 잘함, 이서연도 좋음');
+  // 부분겹침 방지: '김민'⊂'김민수' — 긴 이름 먼저 치환
+  var _mk2 = madiNameMasker([{ name: '김민수' }, { name: '김민' }]);
+  assertEq('부분겹침: 긴 실명 우선', _mk2.mask('김민수'), '아동1');
+  // 접두 충돌 방지: '아동1'⊂'아동10' — 10명 시딩 후 아동10 복원
+  var _ten = []; for (var _i = 1; _i <= 10; _i++) _ten.push({ name: '아이' + _i });
+  var _mk3 = madiNameMasker(_ten);
+  assertEq('접두 충돌: 아동10 정확 복원', _mk3.restore('아동10'), '아이10');
+  assertEq('접두 충돌: 아동1 정확 복원', _mk3.restore('아동1'), '아이1');
+  // 지연 생성(chat 패턴) — 시딩 없이 등장 순서로 번호 부여
+  var _mkL = madiNameMasker();
+  assertEq('지연: 첫 등장 → 아동1', _mkL.alias('박지훈'), '아동1');
+  assertEq('지연: 같은 이름 재요청 → 동일 별칭', _mkL.alias('박지훈'), '아동1');
+  assertEq('지연: 둘째 등장 → 아동2', _mkL.alias('최유나'), '아동2');
+  assertEq('지연 후 restore 왕복', _mkL.restore('아동2가 아동1보다 빠름'), '최유나가 박지훈보다 빠름');
+  // null 안전
+  assertEq('mask null 안전', _mk.mask(null), null);
+  assertEq('restore null 안전', _mk.restore(null), null);
+}
 
 section('저장 흐름: mapRow + 배치 분할 (lost-update 리팩토링 박제)');
 var _mr = defaultMapRow({ id: 'x1', date: '2026-06-05' }, 'ctr1');

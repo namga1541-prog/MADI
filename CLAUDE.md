@@ -24,7 +24,8 @@
 |------|------|
 | `index.html` | 메인 앱 (선생님/관리자 UI) |
 | `admin.html` | 관리자 센터 |
-| `madi-core.js` | 공통 유틸, 상수, supaFetch, supaCache |
+| `madi-core.js` | 공통 유틸, 상수, supaFetch, supaCache, data-action 위임 |
+| `madi-pii.js` | AI 개인정보 가명화 SSOT (`madiNameMasker` 다중아동 마스커) — core 직후 로드 |
 | `madi-auth.js` | 랜딩·로그인·회원가입·로그아웃·비밀번호 변경 |
 | `madi-app.js` | DB 로드, 다크모드, 헤더 시계, 네트워크 모니터, 학부모 UI |
 | `madi-session.js` | 세션 기록 |
@@ -38,7 +39,8 @@
 | `madi-parent.js` | 학부모 포털 |
 | `madi-schedule.js` | 스케줄·캘린더 |
 | `madi-assessment.js` | 표준화검사 (AI 언어평가) |
-| `madi-system.js` | 감통 평가 + 권한·배포·PWA·IndexedDB·초기화 |
+| `madi-system.js` | 감통 평가 + 권한·PWA·초기화 (GitHub 배포는 madi-deploy.js 로 분리) |
+| `madi-deploy.js` | GitHub 원클릭 배포 + 마디 폴더핸들(IndexedDB) — system.js 앞 로드 |
 | `madi-chat.js` | 플로팅 AI 비서 (chat / 매크로 / 음성) |
 | `madi-report.js` | 리포트·장단기계획 |
 | `madi-board-notice.js` | 게시판 — 공지 (글로벌·센터) |
@@ -99,6 +101,10 @@
 - 전역 변수: `childDB`, `sessionDB`, `scheduleDB`, `assessmentDB` 등
 - DB 접근: 반드시 `supaFetch()` 경유 (직접 Supabase anon key 사용 금지)
 - HTML ID 네이밍: camelCase (`schedChildSel`, `bdPanel_lounge`)
+- **이벤트 바인딩(신규 코드)**: 인라인 `onclick="fn(...)"` 대신 `data-action` 위임 사용.
+  · `<button data-action="saveChild" data-arg="123">` → 단일 위임 핸들러(madi-core.js)가 `saveChild('123', el, ev)` 호출. 여러 인자는 `el.dataset` 에서 읽기.
+  · 이유: onclick 에 함수명을 문자열로 박으면 HTML↔JS 가 이름으로 결합돼 리네임이 grep/ESLint 로 보장 안 되는 위험 작업이 됨. 기존 onclick 226곳은 점진 이관(일괄 변환 금지), 새 핸들러만 이 패턴.
+- **AI 다중 아동 가명화**: 외부 LLM 에 여러 아동을 보낼 땐 반드시 `madiNameMasker(children)`(madi-pii.js) 경유 — `mask`/`restore` 왕복. 가명화 로직 복붙 금지(보안 불변식 SSOT). 단일 아동은 `aliasName()`/`restoreName()`(madi-core.js).
 
 ### 보안
 - 모든 사용자 입력은 `escHtml()` 처리
@@ -108,7 +114,7 @@
 ### 배포
 - `main` 브랜치 push → GitHub Pages 자동 배포 (1~2분 소요)
 - `sw.js` 캐시 버전은 pre-commit 훅이 자동 갱신 (수동 변경 불필요)
-  · 훅 실체: 버전 관리되는 `.githooks/pre-commit` (sw.js CACHE_NAME 갱신 + FUNCTIONS.md 재생성 + ESLint + HTML박제검사 + smoke)
+  · 훅 실체: 버전 관리되는 `.githooks/pre-commit` (sw.js CACHE_NAME 갱신 + FUNCTIONS.md 재생성 + ESLint + HTML박제검사 + 로드순서검사 + smoke)
   · **PC마다 최초 1회 설치 필요**: `git config core.hooksPath .githooks`
   · 정적 자산(JS/CSS/HTML)이 스테이징된 커밋에서만 CACHE_NAME 갱신
 - 변경 후 반드시 강제 새로고침 안내 (Ctrl+Shift+R)
@@ -230,13 +236,20 @@ npx eslint madi-ai.js # 특정 파일만
 ```js
 supaFetch('madi_users?id=eq.' + id, 'GET')
   .then(function(rows) { ... })
-  .catch(function(err) { showToast('⚠️ ' + err.message); });
+  .catch(function(err) { showError(err, '사용자 조회'); });  // 원문 노출 금지 — showError 경유
+```
+
+### 에러 처리 (`.catch` 표준 — showError)
+`.catch` 에서 `err.message` 원문을 그대로 토스트하지 말 것. 서버 원문엔 상태코드·테이블/컬럼명이 섞여 사용자에게 무의미하고 내부구조가 노출된다. `showError(err, action)`(madi-app.js)가 `_userErrMsg` 로 친화 문구를 만들고 원문은 console.warn 로 로깅한다.
+```js
+.catch(showError)                       // 가장 짧은 형태(action 생략 → '요청')
+.catch(function(e){ showError(e, '저장'); });  // 맥락 라벨 부여
 ```
 
 ### 토스트 메시지
 ```js
 showToast('✅ 저장됨');   // 성공
-showToast('⚠️ 오류');    // 경고
+showToast('⚠️ 오류');    // 경고 (단발 안내). 에러 객체가 있으면 showToast 대신 showError 사용
 ```
 
 ### 역할 분기

@@ -202,6 +202,13 @@ function _userErrMsg(e, action) {
   if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1) return action + ' 실패 — 서버 응답이 없습니다. 잠시 후 다시 시도해주세요';
   return action + '에 실패했습니다. 잠시 후 다시 시도해주세요';
 }
+// 범용 에러 핸들러 — Promise .catch 의 일관 진입점. 사용: .catch(showError) 또는 .catch(function(e){ showError(e, '저장'); })
+//   _userErrMsg 로 서버 원문(상태코드·테이블/컬럼명)을 숨긴 친화 토스트를 띄우고, 원문은 console.warn 으로 디버깅 로깅.
+//   파일마다 제각각이던 .catch 처리(토스트 누락·원문 노출)를 한 줄로 표준화.
+function showError(err, action) {
+  console.warn('[' + (action || 'error') + ']', err);
+  showToast('⚠️ ' + _userErrMsg(err, action || '요청'));
+}
 /** @returns {Promise<boolean>} */
 function saveSessions() {
   return _saveCollection({ db: sessionDB, lsKey: 'cn3_sessions', table: 'madi_sessions', label: '세션' });

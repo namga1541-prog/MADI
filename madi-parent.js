@@ -736,12 +736,9 @@ function naturalSearch() {
   // 개인정보 최소화(M2/H1): 다중 아동을 한 번에 AI(Anthropic)로 보내므로 실명을 인덱스 가명
   //   (아동1·아동2…)으로 치환해 전송하고, 질문·응답에서 가명↔실명을 양방향 매핑한다.
   //   부분겹침(예: '김민'⊂'김민수', '아동1'⊂'아동10') 방지를 위해 길이 내림차순으로 치환한다.
-  var _nameMap = [];
-  childDB.forEach(function(c, i) { if (c.name) _nameMap.push({ real: String(c.name), alias: '아동' + (i + 1) }); });
-  var _byRealLen  = _nameMap.slice().sort(function(a, b) { return b.real.length - a.real.length; });
-  var _byAliasLen = _nameMap.slice().sort(function(a, b) { return b.alias.length - a.alias.length; });
-  function _aliasNames(t)   { if (t == null) return t; var s = String(t); _byRealLen.forEach(function(m)  { s = s.split(m.real).join(m.alias); }); return s; }
-  function _restoreNames(t) { if (t == null) return t; var s = String(t); _byAliasLen.forEach(function(m) { s = s.split(m.alias).join(m.real); }); return s; }
+  var _m = madiNameMasker(childDB);  // SSOT: childDB 인덱스 순서로 '아동1'..'아동N' 사전 시딩 (madi-pii.js)
+  function _aliasNames(t)   { return _m.mask(t); }
+  function _restoreNames(t) { return _m.restore(t); }
   var allData = childDB.map(function(c, i) {
     var ss = sessionDB.filter(function(s) { return s.childId === c.id; })
       .sort(function(a, b) { return a.date < b.date ? -1 : 1; });

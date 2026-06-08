@@ -3,12 +3,12 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (172)
+## 전역 변수 (170)
 
-- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:403
-- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:405
-- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:463
-- `var _clientIdCounter = 0;` — madi-app.js:626
+- `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:410
+- `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:412
+- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:470
+- `var _clientIdCounter = 0;` — madi-app.js:633
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -45,9 +45,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var CHAT_MACROS = {` — madi-chat.js:358
 - `var chatRecognition = null;` — madi-chat.js:473
 - `var isChatRecording = false;` — madi-chat.js:474
-- `var _chatNameMap = {}; // alias → realName (복원용)` — madi-chat.js:658
-- `var _chatAliasByName = {}; // realName → alias` — madi-chat.js:659
-- `var _chatAliasN = 0;` — madi-chat.js:660
+- `var _chatMasker = null;` — madi-chat.js:659
 - `var inputMode = 0;` — madi-child-detail.js:1
 - `var recognition = null, isRecording = false;` — madi-child-detail.js:11
 - `var goalRows = [];` — madi-child-detail.js:61
@@ -84,6 +82,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _errReportCount = 0;` — madi-core.js:382
 - `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:383
 - `var _DP_VOUCHER_PRICE = {` — madi-dashboard.js:458
+- `var GITHUB_OWNER = 'namga1541-prog';` — madi-deploy.js:67
+- `var GITHUB_REPO = 'MADI';` — madi-deploy.js:68
+- `var GITHUB_FILE = 'index.html';` — madi-deploy.js:69
+- `var GITHUB_SW = 'sw.js';` — madi-deploy.js:70
+- `var _swNow = nowKST();` — madi-deploy.js:75
+- `var SW_BUILD = 'madi-v5-' + ymd(_swNow).replace(/-/g,'')` — madi-deploy.js:76
+- `var SW_LINES = [` — madi-deploy.js:79
+- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-deploy.js:181
 - `var _bcEscHandler = null;` — madi-growth.js:1
 - `var VOUCHER_KINDS = ['발달재활바우처','우리아이심리지원서비스바우처','꿈E든카드바우처','나래사랑카드바우처'];` — madi-growth.js:401
 - `var _showDischargedInSession = false;` — madi-growth.js:679
@@ -156,15 +162,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _myChangeTs = 0;` — madi-system.js:225
 - `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:226
 - `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:227
-- `var GITHUB_OWNER = 'namga1541-prog';` — madi-system.js:331
-- `var GITHUB_REPO = 'MADI';` — madi-system.js:332
-- `var GITHUB_FILE = 'index.html';` — madi-system.js:333
-- `var GITHUB_SW = 'sw.js';` — madi-system.js:334
-- `var _swNow = nowKST();` — madi-system.js:339
-- `var SW_BUILD = 'madi-v5-' + ymd(_swNow).replace(/-/g,'')` — madi-system.js:340
-- `var SW_LINES = [` — madi-system.js:343
-- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-system.js:445
-- `var _pwaPrompt = null;` — madi-system.js:1189
+- `var _pwaPrompt = null;` — madi-system.js:710
 - `var SLP_VOCAB_BLOCKED_PARENT = {` — madi-vocab.js:17
 - `var SLP_VOCAB_BLOCKED_ALL = {` — madi-vocab.js:71
 - `var SLP_VOCAB_ENCOURAGED = {` — madi-vocab.js:96
@@ -212,7 +210,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `statCard` — madi-ai.js:705
   ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L760
 
-## madi-app.js (56함수)
+## madi-app.js (57함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
 - `_isoDaysAgo` — madi-app.js:14
 - `_normalizeRows` — madi-app.js:22
@@ -228,53 +226,54 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_saveOneRow` — madi-app.js:177
 - `getSaveErrMsg` — madi-app.js:188
 - `_userErrMsg` — madi-app.js:197
-- `saveSessions` — madi-app.js:206
-- `saveOneSession` — madi-app.js:210
-- `saveSchedule` — madi-app.js:214
-- `saveOneSchedule` — madi-app.js:218
-- `saveAssess` — madi-app.js:222
-- `loadDB` — madi-app.js:233
-  ▸ _아동 연령 실시간 갱신_ — L238
-- `refreshChildAges` — madi-app.js:242
-- `saveIEP` — madi-app.js:251
-- `loadIEPFromSupa` — madi-app.js:261
-- `saveActivities` — madi-app.js:269
-- `loadActivitiesFromSupa` — madi-app.js:274
-  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L280
-- `attachModalA11y` — madi-app.js:288
-- `focusables` — madi-app.js:291
-- `onKey` — madi-app.js:297
-- `showInputPrompt` — madi-app.js:324
-- `close` — madi-app.js:356
-- `doCancel` — madi-app.js:360
-- `doOk` — madi-app.js:361
-- `showConfirm` — madi-app.js:378
-- `close` — madi-app.js:394
-- `doCancel` — madi-app.js:395
-- `debounce` — madi-app.js:404
-- `showToast` — madi-app.js:407
-- `vibrate` — madi-app.js:434
-- `toggleDarkMode` — madi-app.js:435
-- `loadDarkMode` — madi-app.js:441
-- `updateHeaderClock` — madi-app.js:448
-- `startHeaderClock` — madi-app.js:464
-- `fetchWithRetry` — madi-app.js:475
-- `doFetch` — madi-app.js:479
-- `setupNetworkMonitor` — madi-app.js:492
-- `showOfflineBanner` — madi-app.js:493
-- `hideOfflineBanner` — madi-app.js:499
-- `applyParentUI` — madi-app.js:505
-- `_initParentSidebar` — madi-app.js:530
-- `resetParentUI` — madi-app.js:570
-- `loadParentDashboard` — madi-app.js:593
-- `toggleMoreMenu` — madi-app.js:600
-- `closeMoreMenu` — madi-app.js:601
-- `getRoleFlags` — madi-app.js:608
-- `validatePasswordStrength` — madi-app.js:614
-  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L620
-- `generateClientId` — madi-app.js:627
-- `applyUserUI` — madi-app.js:632
-- `updateKbOffset` — madi-app.js:663
+- `showError` — madi-app.js:208
+- `saveSessions` — madi-app.js:213
+- `saveOneSession` — madi-app.js:217
+- `saveSchedule` — madi-app.js:221
+- `saveOneSchedule` — madi-app.js:225
+- `saveAssess` — madi-app.js:229
+- `loadDB` — madi-app.js:240
+  ▸ _아동 연령 실시간 갱신_ — L245
+- `refreshChildAges` — madi-app.js:249
+- `saveIEP` — madi-app.js:258
+- `loadIEPFromSupa` — madi-app.js:268
+- `saveActivities` — madi-app.js:276
+- `loadActivitiesFromSupa` — madi-app.js:281
+  ▸ _커스텀 confirm 모달 (브라우저 confirm 대체)_ — L287
+- `attachModalA11y` — madi-app.js:295
+- `focusables` — madi-app.js:298
+- `onKey` — madi-app.js:304
+- `showInputPrompt` — madi-app.js:331
+- `close` — madi-app.js:363
+- `doCancel` — madi-app.js:367
+- `doOk` — madi-app.js:368
+- `showConfirm` — madi-app.js:385
+- `close` — madi-app.js:401
+- `doCancel` — madi-app.js:402
+- `debounce` — madi-app.js:411
+- `showToast` — madi-app.js:414
+- `vibrate` — madi-app.js:441
+- `toggleDarkMode` — madi-app.js:442
+- `loadDarkMode` — madi-app.js:448
+- `updateHeaderClock` — madi-app.js:455
+- `startHeaderClock` — madi-app.js:471
+- `fetchWithRetry` — madi-app.js:482
+- `doFetch` — madi-app.js:486
+- `setupNetworkMonitor` — madi-app.js:499
+- `showOfflineBanner` — madi-app.js:500
+- `hideOfflineBanner` — madi-app.js:506
+- `applyParentUI` — madi-app.js:512
+- `_initParentSidebar` — madi-app.js:537
+- `resetParentUI` — madi-app.js:577
+- `loadParentDashboard` — madi-app.js:600
+- `toggleMoreMenu` — madi-app.js:607
+- `closeMoreMenu` — madi-app.js:608
+- `getRoleFlags` — madi-app.js:615
+- `validatePasswordStrength` — madi-app.js:621
+  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L627
+- `generateClientId` — madi-app.js:634
+- `applyUserUI` — madi-app.js:639
+- `updateKbOffset` — madi-app.js:670
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3
@@ -428,7 +427,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `closeVocabFeedbackModal` — madi-board.js:970
 - `submitVocabFeedback` — madi-board.js:975
 
-## madi-chat.js (39함수)
+## madi-chat.js (37함수)
   ▸ _플로팅 AI 비서_ — L6
 - `toggleChat` — madi-chat.js:11
   ▸ _마로 버튼 위치 이동_ — L39
@@ -470,12 +469,9 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `toggleChatVoiceInput` — madi-chat.js:476
 - `resetChatMicBtn` — madi-chat.js:519
 - `sendChat` — madi-chat.js:529
-  ▸ _채팅 비서 아동 PII 가명화(M2)_ — L654
-- `_resetChatAliases` — madi-chat.js:661
-- `_chatAlias` — madi-chat.js:662
-- `_aliasChatText` — madi-chat.js:672
-- `restoreChatNames` — madi-chat.js:679
-- `buildChatContext` — madi-chat.js:686
+- `_aliasChatText` — madi-chat.js:660
+- `restoreChatNames` — madi-chat.js:661
+- `buildChatContext` — madi-chat.js:663
 
 ## madi-child-detail.js (35함수)
 - `setInputMode` — madi-child-detail.js:2
@@ -595,7 +591,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `centerFilter` — madi-core.js:373
   ▸ _글로벌 에러 모니터링_ — L379
 - `_reportClientError` — madi-core.js:385
-  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L439
+  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L461
 
 ## madi-dashboard.js (24함수)
 - `_dpInitial` — madi-dashboard.js:13
@@ -631,6 +627,25 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_dpRenderTeacherRows` — madi-dashboard.js:882
 - `_dpLoadAdminTeacherTable` — madi-dashboard.js:911
 - `_dpRenderTeacherTable` — madi-dashboard.js:955
+
+## madi-deploy.js (12함수)
+  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L12
+- `_openMadiDB` — madi-deploy.js:13
+- `_saveFolderHandle` — madi-deploy.js:23
+- `_loadFolderHandle` — madi-deploy.js:35
+- `getMadiFolderHandle` — madi-deploy.js:47
+  ▸ _GitHub 자동 배포_ — L66
+  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L183
+- `_cleanupLegacyGithubToken` — madi-deploy.js:188
+- `deployFileViaProxy` — madi-deploy.js:201
+  ▸ _배포 대상 파일 자동 스캔_ — L225
+- `scanMadiFiles` — madi-deploy.js:228
+- `next` — madi-deploy.js:232
+  ▸ _파일 내용 → Git blob SHA-1 계산_ — L255
+- `gitBlobSha` — madi-deploy.js:258
+- `pollGithubPagesBuild` — madi-deploy.js:273
+- `poll` — madi-deploy.js:277
+- `deployToGitHub` — madi-deploy.js:312
 
 ## madi-growth.js (28함수)
 - `openBulkClosedDateModal` — madi-growth.js:2
@@ -874,14 +889,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `renderPortfolio` — madi-parent.js:610
   ▸ _기능 6: 자연어 검색_ — L716
 - `naturalSearch` — madi-parent.js:717
-- `_aliasNames` — madi-parent.js:743
-- `_restoreNames` — madi-parent.js:744
-- `_resetAskBtn` — madi-parent.js:760
-  ▸ _기능 7: 부모 FAQ 답변_ — L778
-- `generateFAQ` — madi-parent.js:779
-- `_resetFAQBtn` — madi-parent.js:819
-- `copyFAQText` — madi-parent.js:842
-  ▸ _유틸_ — L857
+- `_aliasNames` — madi-parent.js:740
+- `_restoreNames` — madi-parent.js:741
+- `_resetAskBtn` — madi-parent.js:757
+  ▸ _기능 7: 부모 FAQ 답변_ — L775
+- `generateFAQ` — madi-parent.js:776
+- `_resetFAQBtn` — madi-parent.js:816
+- `copyFAQText` — madi-parent.js:839
+  ▸ _유틸_ — L854
+
+## madi-pii.js (4함수)
+- `madiNameMasker` — madi-pii.js:17
+- `_register` — madi-pii.js:22
+- `_maskText` — madi-pii.js:40
+- `_restoreText` — madi-pii.js:48
 
 ## madi-quick.js (33함수)
   ▸ _─_ — L4
@@ -1056,7 +1077,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `parseJSON` — madi-session.js:566
   ▸ _센터 API 키 관리 (선택지 2)_ — L625
 
-## madi-system.js (41함수)
+## madi-system.js (29함수)
   ▸ _권한 설정 모달_ — L1
 - `openPermModal` — madi-system.js:13
 - `updatePermToggle` — madi-system.js:68
@@ -1069,50 +1090,33 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `initRealtime` — madi-system.js:237
 - `markMyChange` — madi-system.js:251
 - `stopRealtime` — madi-system.js:253
-  ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L276
-- `_openMadiDB` — madi-system.js:277
-- `_saveFolderHandle` — madi-system.js:287
-- `_loadFolderHandle` — madi-system.js:299
-- `getMadiFolderHandle` — madi-system.js:311
-  ▸ _GitHub 자동 배포_ — L330
-  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L447
-- `_cleanupLegacyGithubToken` — madi-system.js:452
-- `deployFileViaProxy` — madi-system.js:465
-  ▸ _배포 대상 파일 자동 스캔_ — L489
-- `scanMadiFiles` — madi-system.js:492
-- `next` — madi-system.js:496
-  ▸ _파일 내용 → Git blob SHA-1 계산_ — L519
-- `gitBlobSha` — madi-system.js:522
-- `pollGithubPagesBuild` — madi-system.js:537
-- `poll` — madi-system.js:541
-- `deployToGitHub` — madi-system.js:576
-- `processImportFile` — madi-system.js:755
-- `_processImportFileInner` — madi-system.js:772
-- `normalizeDisorderType` — madi-system.js:812
-- `parseRowsToChildren` — madi-system.js:824
-- `findCol` — madi-system.js:828
-- `analyzeImportData` — madi-system.js:893
-- `renderImportPreview` — madi-system.js:937
-- `confirmImport` — madi-system.js:994
-- `_batchPost` — madi-system.js:1078
-- `cancelImport` — madi-system.js:1098
-  ▸ _초기화_ — L1106
-- `init` — madi-system.js:1107
-  ▸ _PWA 지원_ — L1188
-- `initPWA` — madi-system.js:1191
-  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L1197
-- `_swApplyUpdate` — madi-system.js:1206
-- `_swDirty` — madi-system.js:1213
-- `_swShowUpdateBanner` — madi-system.js:1225
-- `_onVis` — madi-system.js:1254
-- `_pwaShouldShowBanner` — madi-system.js:1322
-- `showPWABanner` — madi-system.js:1333
-- `hidePWABanner` — madi-system.js:1364
-- `triggerPWAInstall` — madi-system.js:1378
-  ▸ _뒤로가기 버튼 탭 연동 + 모달 닫힘_ — L1392
-  ▸ _─_ — L1414
-  ▸ _─_ — L1416
-  ▸ _모듈 초기화_ — L1418
+- `processImportFile` — madi-system.js:276
+- `_processImportFileInner` — madi-system.js:293
+- `normalizeDisorderType` — madi-system.js:333
+- `parseRowsToChildren` — madi-system.js:345
+- `findCol` — madi-system.js:349
+- `analyzeImportData` — madi-system.js:414
+- `renderImportPreview` — madi-system.js:458
+- `confirmImport` — madi-system.js:515
+- `_batchPost` — madi-system.js:599
+- `cancelImport` — madi-system.js:619
+  ▸ _초기화_ — L627
+- `init` — madi-system.js:628
+  ▸ _PWA 지원_ — L709
+- `initPWA` — madi-system.js:712
+  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L718
+- `_swApplyUpdate` — madi-system.js:727
+- `_swDirty` — madi-system.js:734
+- `_swShowUpdateBanner` — madi-system.js:746
+- `_onVis` — madi-system.js:775
+- `_pwaShouldShowBanner` — madi-system.js:843
+- `showPWABanner` — madi-system.js:854
+- `hidePWABanner` — madi-system.js:885
+- `triggerPWAInstall` — madi-system.js:899
+  ▸ _뒤로가기 버튼 탭 연동 + 모달 닫힘_ — L913
+  ▸ _─_ — L935
+  ▸ _─_ — L937
+  ▸ _모듈 초기화_ — L939
 
 ## madi-vocab.js (4함수)
   ▸ _한자어 → 일상어 (학부모 대상 문서에서만 적용)_ — L16

@@ -436,6 +436,28 @@ if (typeof window !== 'undefined' && !window._madiErrorBound) {
   });
 }
 
+// ─── data-action 이벤트 위임 (인라인 onclick 대체 — 신규 코드 권장 패턴) ───
+//   HTML 에 함수명을 onclick 문자열로 박으면(현재 226곳) HTML↔JS 가 이름으로 결합돼 리네임이 위험해진다.
+//   신규 코드는 인라인 onclick 대신 아래처럼 선언하면 단일 위임 핸들러가 전역 함수를 호출한다:
+//     <button data-action="saveChild" data-arg="123">저장</button>
+//       → saveChild('123', el, ev) 호출   (인자는 data-arg 1개 + 엘리먼트 + 이벤트)
+//       → 여러 인자가 필요하면 el.dataset 에서 직접 읽는다.
+//   기존 onclick 226곳은 그대로 두고(점진 이관), 새로 추가하는 핸들러만 이 패턴을 쓴다.
+if (typeof document !== 'undefined' && typeof window !== 'undefined' && !window._madiActionBound) {
+  window._madiActionBound = true;
+  document.addEventListener('click', function(ev) {
+    var t = ev.target;
+    var el = (t && t.closest) ? t.closest('[data-action]') : null;
+    if (!el) return;
+    var name = el.getAttribute('data-action');
+    if (!name) return;
+    var fn = window[name];
+    if (typeof fn !== 'function') return;  // 미정의 액션은 조용히 무시(오타·로드 전 안전)
+    ev.preventDefault();
+    fn(el.getAttribute('data-arg'), el, ev);
+  });
+}
+
 // ── MADI 네임스페이스 (점진적 캡슐화용) ──────────────────
 // 현재는 기존 전역 변수 구조를 유지하면서 향후 마이그레이션을 위한 네임스페이스만 생성
 window.MADI = window.MADI || {};
