@@ -3,7 +3,7 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (170)
+## 전역 변수 (171)
 
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:410
 - `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:412
@@ -42,10 +42,11 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var chatOpen = false;` — madi-chat.js:8
 - `var chatWaiting = false;` — madi-chat.js:9
 - `var CHAT_HISTORY_MAX = 100;` — madi-chat.js:138
-- `var CHAT_MACROS = {` — madi-chat.js:358
-- `var chatRecognition = null;` — madi-chat.js:473
-- `var isChatRecording = false;` — madi-chat.js:474
-- `var _chatMasker = null;` — madi-chat.js:659
+- `var CHAT_MACROS = {` — madi-chat.js:359
+- `var chatRecognition = null;` — madi-chat.js:474
+- `var isChatRecording = false;` — madi-chat.js:475
+- `var _chatMasker = null;` — madi-chat.js:661
+- `var _chatTeacherMasker = null;` — madi-chat.js:662
 - `var inputMode = 0;` — madi-child-detail.js:1
 - `var recognition = null, isRecording = false;` — madi-child-detail.js:11
 - `var goalRows = [];` — madi-child-detail.js:61
@@ -427,7 +428,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `closeVocabFeedbackModal` — madi-board.js:970
 - `submitVocabFeedback` — madi-board.js:975
 
-## madi-chat.js (37함수)
+## madi-chat.js (38함수)
   ▸ _플로팅 AI 비서_ — L6
 - `toggleChat` — madi-chat.js:11
   ▸ _마로 버튼 위치 이동_ — L39
@@ -453,25 +454,26 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `parseAction` — madi-chat.js:217
 - `executeAction` — madi-chat.js:231
 - `actAddSchedule` — madi-chat.js:248
-- `actOpenSessionForChild` — madi-chat.js:311
-- `actOpenParentReport` — madi-chat.js:327
-- `actSwitchTab` — madi-chat.js:341
-- `actShowUnwritten` — madi-chat.js:347
-  ▸ _매크로 시스템 (W3)_ — L357
-- `macroHelp` — madi-chat.js:366
-- `macroTodayBrief` — madi-chat.js:377
-- `macroUnwritten` — madi-chat.js:402
-- `macroWeeklyStatus` — madi-chat.js:412
-- `macroTopProgress` — madi-chat.js:431
-- `avg` — madi-chat.js:440
-- `tryMacro` — madi-chat.js:462
-  ▸ _채팅 음성 입력 (W3)_ — L472
-- `toggleChatVoiceInput` — madi-chat.js:476
-- `resetChatMicBtn` — madi-chat.js:519
-- `sendChat` — madi-chat.js:529
-- `_aliasChatText` — madi-chat.js:660
-- `restoreChatNames` — madi-chat.js:661
-- `buildChatContext` — madi-chat.js:663
+- `actOpenSessionForChild` — madi-chat.js:312
+- `actOpenParentReport` — madi-chat.js:328
+- `actSwitchTab` — madi-chat.js:342
+- `actShowUnwritten` — madi-chat.js:348
+  ▸ _매크로 시스템 (W3)_ — L358
+- `macroHelp` — madi-chat.js:367
+- `macroTodayBrief` — madi-chat.js:378
+- `macroUnwritten` — madi-chat.js:403
+- `macroWeeklyStatus` — madi-chat.js:413
+- `macroTopProgress` — madi-chat.js:432
+- `avg` — madi-chat.js:441
+- `tryMacro` — madi-chat.js:463
+  ▸ _채팅 음성 입력 (W3)_ — L473
+- `toggleChatVoiceInput` — madi-chat.js:477
+- `resetChatMicBtn` — madi-chat.js:520
+- `sendChat` — madi-chat.js:530
+- `_aliasChatText` — madi-chat.js:663
+- `restoreChatNames` — madi-chat.js:667
+- `_restoreChatTeacher` — madi-chat.js:673
+- `buildChatContext` — madi-chat.js:675
 
 ## madi-child-detail.js (35함수)
 - `setInputMode` — madi-child-detail.js:2
@@ -901,10 +903,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _유틸_ — L854
 
 ## madi-pii.js (4함수)
-- `madiNameMasker` — madi-pii.js:17
-- `_register` — madi-pii.js:22
-- `_maskText` — madi-pii.js:40
-- `_restoreText` — madi-pii.js:48
+- `madiNameMasker` — madi-pii.js:18
+- `_register` — madi-pii.js:24
+- `_maskText` — madi-pii.js:42
+- `_restoreText` — madi-pii.js:50
 
 ## madi-quick.js (33함수)
   ▸ _─_ — L4

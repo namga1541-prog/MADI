@@ -8,23 +8,25 @@
 //   ⚠️ 컨벤션: 새 AI 다중 아동 호출부는 반드시 이 마스커를 경유 (복붙 금지 — 보안 불변식 누락 방지).
 // ═══════════════════════════════════════════════════════════════════════════
 
-// madiNameMasker([children]) → { alias, mask, restore }
-//   · seedChildren(선택): {name} 배열을 미리 등록(사전 시딩) — childDB 인덱스 순서로 '아동1'..'아동N'.
+// madiNameMasker([children], [prefix]) → { alias, mask, restore }
+//   · seedChildren(선택): {name} 배열을 미리 등록(사전 시딩) — 인덱스 순서로 '<prefix>1'..'<prefix>N'.
+//   · prefix(선택)  : 별칭 접두어. 기본 '아동'. 치료사 등 다른 종류는 '치료사' 등으로 분리(별칭 충돌 방지).
 //   · alias(name)   : 단일 이름 → 별칭. 미등록이면 즉석 부여(지연 생성, 등장 순서 번호). chat 의 _chatAlias 대체.
 //   · mask(text)    : 자유 텍스트 내 등록된 실명 → 별칭. 부분겹침('김민'⊂'김민수') 방지 위해 길이 내림차순.
 //   · restore(text) : 자유 텍스트 내 별칭 → 실명. '아동1'⊂'아동10' 접두 충돌 방지 위해 길이 내림차순.
 //   양방향 모두 같은 매핑을 공유하므로 mask→LLM→restore 왕복이 정확히 보존된다.
-function madiNameMasker(seedChildren) {
+function madiNameMasker(seedChildren, prefix) {
   var realToAlias = {};   // 실명 → 별칭 (mask·복원용 매핑의 정본)
   var aliasToReal = {};   // 별칭 → 실명 (restore 용)
   var n = 0;
+  var _prefix = prefix || '아동';
 
   function _register(name) {
     if (!name) return name;
     var key = String(name);
     if (realToAlias[key]) return realToAlias[key];
     n++;
-    var a = '아동' + n;
+    var a = _prefix + n;
     realToAlias[key] = a;
     aliasToReal[a] = key;
     return a;

@@ -218,6 +218,11 @@ if (!madiNameMasker) {
   // null 안전
   assertEq('mask null 안전', _mk.mask(null), null);
   assertEq('restore null 안전', _mk.restore(null), null);
+  // 보안2: prefix 분리(치료사) — 아동 별칭과 충돌 없이 독립 매핑
+  var _tm = madiNameMasker(null, '치료사');
+  assertEq('치료사 prefix: 첫 등장 → 치료사1', _tm.alias('김선생'), '치료사1');
+  assertEq('치료사 별칭 복원', _tm.restore('치료사1'), '김선생');
+  assert('아동/치료사 별칭 접두 분리', _tm.alias('박선생') === '치료사2' && _mk.alias('박선생') === '아동3');
 }
 
 section('인라인 핸들러 XSS 차단 (jsArg, 저장형 XSS 박제)');

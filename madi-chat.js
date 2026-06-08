@@ -273,7 +273,8 @@ function actAddSchedule(a) {
   var teacherColor = '';
   if (a.teacher && typeof a.teacher === 'string' && a.teacher.trim()) {
     // 교사 이름 검증 — 알려진 교사가 아니면 현재 사용자로 대체
-    var _reqName = a.teacher.trim();
+    //   (보안2: 컨텍스트에서 치료사명을 '치료사N' 별칭으로 보냈으므로, AI 가 별칭을 돌려주면 실명 복원 후 매칭)
+    var _reqName = _restoreChatTeacher(a.teacher.trim());
     var _knownNames = {};
     scheduleDB.forEach(function(s) { if (s.teacher) _knownNames[s.teacher] = true; });
     if (currentUser) _knownNames[currentUser.name] = true;
@@ -651,23 +652,35 @@ function sendChat() {
   });
 }
 
-// ─── 채팅 비서 아동 PII 가명화(M2) — SSOT: madiNameMasker(madi-pii.js) ───
-//   외부 LLM 으로 아동 실명을 보내지 않기 위해 컨텍스트·질문·이력의 아동명을 '아동N' 별칭으로
-//   치환하고, 응답 표시 직전에 실명 복원한다. 액션은 [id:xxx]·치료사명 기반이라 영향 없음.
-//   (치료사명은 addSchedule 액션 매칭에 필요해 가명화하지 않음 — 잔여 항목.)
-//   buildChatContext 가 마스커를 새로 만들어 sendChat 응답 복원까지 같은 매핑을 공유한다(등장 순서 지연 별칭).
+// ─── 채팅 비서 PII 가명화(M2/보안2) — SSOT: madiNameMasker(madi-pii.js) ───
+//   외부 LLM 으로 아동·치료사 실명을 보내지 않기 위해 컨텍스트·질문·이력의 이름을 별칭으로 치환하고,
+//   응답 표시 직전·액션 실행 직전에 실명 복원한다.
+//   · 아동명 → '아동N' (_chatMasker)   · 치료사명 → '치료사N' (_chatTeacherMasker, 접두 분리로 충돌 방지)
+//   치료사 별칭은 addSchedule 액션의 teacher 필드를 actAddSchedule 에서 restore 해 매칭을 유지한다.
+//   ⚠️ 남은 한계: 세션 메모 등 자유 서술에 적힌 미등록 PII(가족명·연락처)는 이름목록 기반 마스커가 못 잡는다.
 var _chatMasker = null;
-function _aliasChatText(text)   { return _chatMasker ? _chatMasker.mask(text)    : text; }  // 실명 → 별칭 (질문·이력)
-function restoreChatNames(text) { return _chatMasker ? _chatMasker.restore(text) : text; }  // 별칭 → 실명 (응답 표시 직전)
+var _chatTeacherMasker = null;
+function _aliasChatText(text) {
+  if (!_chatMasker) return text;
+  return _chatTeacherMasker ? _chatTeacherMasker.mask(_chatMasker.mask(text)) : _chatMasker.mask(text);
+}
+function restoreChatNames(text) {
+  if (!_chatMasker) return text;
+  var t = _chatMasker.restore(text);
+  return _chatTeacherMasker ? _chatTeacherMasker.restore(t) : t;
+}
+// 치료사 별칭(치료사N) → 실명 — actAddSchedule 의 teacher 매칭 직전 복원용.
+function _restoreChatTeacher(name) { return _chatTeacherMasker ? _chatTeacherMasker.restore(name) : name; }
 
 function buildChatContext() {
-  _chatMasker = madiNameMasker();  // 매 컨텍스트 빌드마다 새 마스커 — 현재 가시 아동 기준 등장 순서 재매핑
+  _chatMasker = madiNameMasker();              // 아동: '아동N'
+  _chatTeacherMasker = madiNameMasker(null, '치료사');  // 치료사: '치료사N' (접두 분리)
   var today = getTodayKST();
   var lines = ['📅 오늘: ' + today];
 
   if (currentUser) {
     var roleTxt = getRoleFlags().isAdminOrSuper ? '관리자' : '선생님';
-    lines.push('🔑 현재 로그인: ' + currentUser.name + ' (' + roleTxt + ')');
+    lines.push('🔑 현재 로그인: ' + _chatTeacherMasker.alias(currentUser.name) + ' (' + roleTxt + ')');
   }
   // 선생님 역할: 담당 아동만 컨텍스트에 포함 (타 아동 데이터 노출 방지)
   var _isAdminCtx = (typeof getRoleFlags === 'function') ? getRoleFlags().isAdminOrSuper
@@ -700,7 +713,7 @@ function buildChatContext() {
     lines.push('\n👥 치료사 목록 (' + teacherNames.length + '명, 일정 기반):');
     teacherNames.forEach(function(name) {
       var t = teachers[name];
-      lines.push('  - ' + name + ': 오늘 ' + t.todayCnt + '건, 이번 주 ' + t.weekCnt + '건, 전체 ' + t.totalCnt + '건');
+      lines.push('  - ' + _chatTeacherMasker.alias(name) + ': 오늘 ' + t.todayCnt + '건, 이번 주 ' + t.weekCnt + '건, 전체 ' + t.totalCnt + '건');
     });
   }
 
@@ -726,7 +739,7 @@ function buildChatContext() {
   if (uw.length > 0) {
     lines.push('\n⚠️ 미작성 세션 ' + uw.length + '건:');
     uw.forEach(function(u) {
-      var teacherTxt = u.teacher ? ' (담당: ' + u.teacher + ')' : '';
+      var teacherTxt = u.teacher ? ' (담당: ' + _chatTeacherMasker.alias(u.teacher) + ')' : '';
       lines.push('  - ' + u.date + ' ' + _chatMasker.alias(u.childName) + teacherTxt);
     });
   }
@@ -739,7 +752,7 @@ function buildChatContext() {
     lines.push('\n📅 오늘 스케줄:');
     todaySched.forEach(function(s) {
       var c = childDB.find(function(c) { return c.id === s.childId; });
-      var teacherTxt = s.teacher ? ' (담당: ' + s.teacher + ')' : '';
+      var teacherTxt = s.teacher ? ' (담당: ' + _chatTeacherMasker.alias(s.teacher) + ')' : '';
       lines.push('  - ' + (s.startTime || '') + ' ' + (c ? _chatMasker.alias(c.name) : '?') + teacherTxt);
     });
   }
