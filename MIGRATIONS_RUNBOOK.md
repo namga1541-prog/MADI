@@ -9,6 +9,38 @@ Supabase 신규 프로젝트 셋업 또는 기존 프로젝트 동기화 시 아
   - `pg_cron` (daily_digest_setup.sql 에서 필요)
   - `uuid-ossp` 또는 `pgcrypto` (UUID 생성, 보통 기본 활성)
 
+### 0-A. 코어 테이블 DDL — ⚠️ **신규(빈) 환경에서만**, 추정본
+
+```
+supabase/core_tables_ddl_inferred.sql
+```
+
+- 코어 임상 5개 테이블(`madi_children`/`sessions`/`schedules`/`assessments`/`iep_history`)의
+  `CREATE TABLE IF NOT EXISTS` 정의. **레포에 코어 DDL 이 없어** 신규 환경 재현용으로 추가.
+- ⚠️ **추정본이다.** SCHEMA.md + 코드 사용 패턴으로 역설계한 것이며 타입·제약 보장 불가.
+  - **운영/기존 DB**: 이미 테이블이 존재 → `IF NOT EXISTS` 가 no-op, **실행해도 무해**(데이터 불변).
+  - **실측 교체 필수**: `supabase db dump --schema-only --project-ref ujxdhafzjyrglaclarwe`
+    로 실제 DDL 을 받아 이 파일을 실측본으로 교체한 뒤 신규 환경에 사용할 것.
+- 인덱스·RLS 는 이 파일에 없음 → 아래 0-B, 1-C 에서 별도 적용.
+
+### 0-B. 코어 테이블 인덱스 — **[HIGH] 성능**, 비파괴적
+
+```
+supabase/add_core_indexes.sql
+```
+
+- 코어 5개 테이블에 인덱스 추가(기존 인덱스 0개 → 시퀀셜 스캔 제거). **비파괴적·멱등**(`IF NOT EXISTS`).
+- 생성 인덱스: `idx_children_center`, `idx_sessions_center_date`/`_center_child`,
+  `idx_schedules_center_date`/`_center_child`, `idx_assessments_center_date`/`_center_child`,
+  `idx_iep_history_center_date`/`_center_child`.
+  - 표현식은 라이브 쿼리와 동형: `(center_id, (data->>'date'))`, `(center_id, (data->>'childId'))`.
+- ⚠️ **`CREATE INDEX CONCURRENTLY` 는 트랜잭션 밖에서 한 줄씩 실행**해야 한다.
+  - 운영 DB(특히 `madi_schedules` 1700+행): 각 `CREATE INDEX` 문을 **하나씩 따로** SQL Editor 에서 Run.
+    전체를 한 번에 Run 하면 "cannot run inside a transaction block" 오류.
+  - 신규/소규모 환경: `CONCURRENTLY` 를 빼고 통째 Run 해도 무방(짧은 잠금).
+- 적용 후 `EXPLAIN ANALYZE` 로 `Index Scan` 사용 확인(파일 하단 검증 쿼리).
+- 언제든 실행 가능(앱 동작 불변). 운영 반영 권장 0순위.
+
 ## 1. 핵심 RLS 토대 (필수, 1순위)
 
 ```
@@ -46,6 +78,23 @@ supabase/rls_core_tables.sql
 - 1-B와 동일한 `FOR ALL USING (false)` 패턴, service_role 우회 동일
 - **반드시 1-B 적용 이후 실행**
 - 적용 후 파일 하단 주석의 확인 쿼리로 11개 행 모두 `qual: false` 검증
+
+## 1-D. 죽은 RLS 정책 정리 — **[MED] 선택, 동작 불변**
+
+```
+supabase/rls_cleanup_dead_policies.sql
+```
+
+- `/api` 가 service_role 로 RLS 를 우회하고 자체 JWT 라 `auth.uid()` 가 NULL 이므로,
+  `rls_security_setup.sql`·`parent_isolation_rls.sql` 의 **role 기반 정책은 모두 죽은(무효) 정책**이다.
+  인가의 SSOT 는 `supabase/functions/api/index.ts`.
+- 이 파일은 그 죽은 permissive 정책들을 `DROP POLICY IF EXISTS` 로 정리한다(감사 노이즈 제거).
+  - ⚠️ **`*_all_blocked`/`*_blocked`(USING(false)) 차단 정책은 유지** — anon-key 우발 노출 방어선(1-C, 1-B).
+  - ⚠️ `storage_policies_tighten.sql` 도 유지(실효).
+  - 헬퍼 함수(`madi_my_role` 등)는 미래 Supabase Auth 전환 대비로 **삭제하지 않음**.
+- **동작 불변**: service_role 경로라 죽은 정책을 지우든 두든 앱 동작 동일. **실행은 선택**(문서로만 둬도 무해).
+- 파일 상단에 테이블별 DEAD/KEEP 참조표(감사 SSOT) 포함.
+- ⚠️ **미래에 진짜 `auth.uid()` 경로로 전환하면** role 정책 재적용이 필요하므로 이 DROP 을 실행하지 말 것.
 
 ## 2. 학부모 격리 (1번 의존)
 
