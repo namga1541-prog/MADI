@@ -779,6 +779,13 @@ function callClaude(system, user, maxTokens, model) {
       var usedModel = (data.model || model || MODEL_HAIKU);
       recordApiUsage(usedModel, data.usage.input_tokens || 0, data.usage.output_tokens || 0);
     }
+    // max_tokens 잘림 감지 — 잘린 보고서가 완성본처럼 저장/노출되는 임상 안전 위험 차단.
+    // stop_reason 이 정상 종료('end_turn'/'stop_sequence'/'tool_use') 가 아니면 부분 산출물로 간주해 throw.
+    // 호출부는 모두 .then().catch() 패턴이므로 기존 .catch 가 에러로 처리(부분 저장/표시 방지).
+    var sr = data.stop_reason;
+    if (sr && sr !== 'end_turn' && sr !== 'stop_sequence' && sr !== 'tool_use') {
+      throw new Error('TRUNCATED: 응답이 max_tokens 로 잘렸습니다 (stop_reason=' + sr + ')');
+    }
     return (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
   });
 }

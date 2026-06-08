@@ -1,6 +1,7 @@
 // notify-tomorrow — 내일 치료 예약 Web Push 발송 (10분마다 cron 실행)
 // Cron: */10 * * * *  (Supabase Dashboard > Edge Functions > Schedule)
 import webpush from "npm:web-push@3.6.7";
+import { fetchWithTimeout } from '../_shared/auth.ts';
 
 const SUPA_URL   = Deno.env.get('SUPABASE_URL');
 const SUPA_KEY   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -27,23 +28,23 @@ function kstHHMM(): string {
 
 // ── Supabase REST 헬퍼 ────────────────────────────────────────────────
 async function sq<T>(url: string, key: string, path: string): Promise<T[]> {
-  const res = await fetch(`${url}/rest/v1/${path}`, {
+  const res = await fetchWithTimeout(`${url}/rest/v1/${path}`, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
-  });
+  }, 8000);
   if (!res.ok) throw new Error(`DB 쿼리 실패: ${res.status}`);
   let data: unknown;
   try { data = await res.json() } catch { data = [] }
   return data as T[];
 }
 async function sp(url: string, key: string, table: string, filter: string, data: Record<string, unknown>) {
-  const res = await fetch(`${url}/rest/v1/${table}?${filter}`, {
+  const res = await fetchWithTimeout(`${url}/rest/v1/${table}?${filter}`, {
     method: 'PATCH',
     headers: {
       apikey: key, Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json', Prefer: 'return=minimal',
     },
     body: JSON.stringify(data),
-  });
+  }, 8000);
   if (!res.ok) console.error(`sp ${table}:`, await res.text());
 }
 
@@ -218,10 +219,10 @@ Deno.serve(async (req: Request) => {
             if (status === 410 || status === 404) {
               // 만료된 구독 삭제 — 정상 정리 흐름이라 실패로 카운트하지 않음
               try {
-                await fetch(`${_url}/rest/v1/madi_push_subscriptions?endpoint=eq.${enc(sub.endpoint)}`, {
+                await fetchWithTimeout(`${_url}/rest/v1/madi_push_subscriptions?endpoint=eq.${enc(sub.endpoint)}`, {
                   method: 'DELETE',
                   headers: { apikey: _key, Authorization: `Bearer ${_key}` },
-                });
+                }, 8000);
               } catch(_) {}
             } else {
               // 네트워크 / 인증 / 5xx 등 — 진짜 실패. 하나라도 있으면 센터 미마킹 → 재시도.

@@ -20,8 +20,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var UTAP_NORMS = {` — madi-assessment.js:277
 - `var SYNCOMP_NORMS = {` — madi-assessment.js:298
 - `var LANGSOLVE_NORMS = {` — madi-assessment.js:309
-- `var _assessInterpPlain = '';` — madi-assessment.js:547
-- `var ASSESS_SCHEMA = {` — madi-assessment.js:653
+- `var _assessInterpPlain = '';` — madi-assessment.js:549
+- `var ASSESS_SCHEMA = {` — madi-assessment.js:655
 - `var PRIVACY_POLICY_VERSION = '2026-06-07';` — madi-auth.js:16
 - `var _inviteCheckTimer = null;` — madi-auth.js:30
 - `var _loungePostImages = []; // 글 작성 폼 첨부 File 객체 배열 (최대 3장)` — madi-board-notice.js:2
@@ -47,8 +47,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var CHAT_MACROS = {` — madi-chat.js:360
 - `var chatRecognition = null;` — madi-chat.js:475
 - `var isChatRecording = false;` — madi-chat.js:476
-- `var _chatMasker = null;` — madi-chat.js:663
-- `var _chatTeacherMasker = null;` — madi-chat.js:664
+- `var _chatMasker = null;` — madi-chat.js:664
+- `var _chatTeacherMasker = null;` — madi-chat.js:665
 - `var inputMode = 0;` — madi-child-detail.js:1
 - `var recognition = null, isRecording = false;` — madi-child-detail.js:11
 - `var goalRows = [];` — madi-child-detail.js:61
@@ -313,27 +313,27 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _U-TAP 자음정확도 판정_ — L454
   ▸ _언어문제해결력검사 (PFA 탭에 일시 대응)_ — L469
 - `_resetAutoCalcBtn` — madi-assessment.js:502
-  ▸ _중증도 자동 판정_ — L546
-- `getSeverityLabel` — madi-assessment.js:549
-- `renderSeveritySummary` — madi-assessment.js:558
-- `copyAssessInterp` — madi-assessment.js:628
-  ▸ _저장 + 바로 보고서 생성_ — L641
-- `addAndReport` — madi-assessment.js:642
-- `renderAssessFields` — madi-assessment.js:724
-- `getAssessFieldValues` — madi-assessment.js:760
-- `addAssessment` — madi-assessment.js:772
-  ▸ _검사명 변경 시: 이전 입력 자동저장 → 필드 다시 그리기_ — L815
-- `onAssessTypeChange` — madi-assessment.js:816
-- `formatAssessScores` — madi-assessment.js:821
-- `renderAssessmentList` — madi-assessment.js:840
-- `deleteAssessment` — madi-assessment.js:861
-- `generateAssessReport` — madi-assessment.js:893
-  ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L901
-  ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L951
-  ▸ _부모 교육 자료_ — L1073
-- `generateParentEdu` — madi-assessment.js:1074
-- `printParentEdu` — madi-assessment.js:1124
-  ▸ _데이터 이전_ — L1151
+  ▸ _중증도 자동 판정_ — L548
+- `getSeverityLabel` — madi-assessment.js:551
+- `renderSeveritySummary` — madi-assessment.js:560
+- `copyAssessInterp` — madi-assessment.js:630
+  ▸ _저장 + 바로 보고서 생성_ — L643
+- `addAndReport` — madi-assessment.js:644
+- `renderAssessFields` — madi-assessment.js:726
+- `getAssessFieldValues` — madi-assessment.js:762
+- `addAssessment` — madi-assessment.js:774
+  ▸ _검사명 변경 시: 이전 입력 자동저장 → 필드 다시 그리기_ — L817
+- `onAssessTypeChange` — madi-assessment.js:818
+- `formatAssessScores` — madi-assessment.js:823
+- `renderAssessmentList` — madi-assessment.js:842
+- `deleteAssessment` — madi-assessment.js:863
+- `generateAssessReport` — madi-assessment.js:895
+  ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L903
+  ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L953
+  ▸ _부모 교육 자료_ — L1083
+- `generateParentEdu` — madi-assessment.js:1084
+- `printParentEdu` — madi-assessment.js:1137
+  ▸ _데이터 이전_ — L1164
 
 ## madi-auth.js (22함수)
 - `showLanding` — madi-auth.js:18
@@ -478,10 +478,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `toggleChatVoiceInput` — madi-chat.js:478
 - `resetChatMicBtn` — madi-chat.js:521
 - `sendChat` — madi-chat.js:531
-- `_aliasChatText` — madi-chat.js:665
-- `restoreChatNames` — madi-chat.js:669
-- `_restoreChatTeacher` — madi-chat.js:675
-- `buildChatContext` — madi-chat.js:677
+- `_aliasChatText` — madi-chat.js:666
+- `restoreChatNames` — madi-chat.js:670
+- `_restoreChatTeacher` — madi-chat.js:676
+- `buildChatContext` — madi-chat.js:678
 
 ## madi-child-detail.js (35함수)
 - `setInputMode` — madi-child-detail.js:2
@@ -1097,8 +1097,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `renderBackupList` — madi-session.js:704
 - `deleteBackupConfirm` — madi-session.js:741
 - `callClaude` — madi-session.js:752
-- `parseJSON` — madi-session.js:786
-  ▸ _센터 API 키 관리 (선택지 2)_ — L845
+- `parseJSON` — madi-session.js:793
+  ▸ _센터 API 키 관리 (선택지 2)_ — L852
 
 ## madi-system.js (19함수)
   ▸ _권한 설정 모달_ — L1

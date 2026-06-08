@@ -63,8 +63,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
   <!-- Chart.js (~200KB) 도 ensureChart() lazy 로 분리 — 첫 차트 렌더 시점에만 로드 -->
   <!-- xlsx (~900KB) 는 initial bundle 에서 제외 — ensureXLSX() 가 필요 시점에 동적 로드 -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"
-          integrity="sha384-at3jkbgBWGYJtKuo3KcThCv2TCqDPWZu8tWJHxU35hgCToRWtFg41X88MYssX4eh"
+  <!-- ⚠️ SRI 통합해시는 ★정확한 버전★에 고정해야 함. @2(메이저 범위)는 jsdelivr 패치 릴리스 시
+       해시 불일치 → 스크립트 차단 → 로그인 불능. 버전 올릴 때 integrity 도 함께 재계산할 것:
+       curl -sL '<URL>' | openssl dgst -sha384 -binary | openssl base64 -A -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.0/dist/umd/supabase.js"
+          integrity="sha384-HlsOyqKcggCMG1je+4eTJKCduyUJxXpuVzI5SmMPXdo9VfJf/fKS57J3/z9EeaE+"
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <link rel="stylesheet" href="./madi.css">
 </head>

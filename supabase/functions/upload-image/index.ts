@@ -11,7 +11,7 @@
  * - Supabase Storage board-images 버킷에 저장
  */
 
-import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit } from '../_shared/auth.ts'
+import { makeCORS as makeBaseCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit, fetchWithTimeout } from '../_shared/auth.ts'
 
 // upload-image: sandboxed iframe CSRF 차단 위해 'null' Origin 거부
 function makeCORS(origin: string | null): Record<string, string> {
@@ -204,7 +204,7 @@ Deno.serve(async (req: Request) => {
 
   // ── 8. Supabase Storage 업로드 ──
   const uploadUrl = `${SUPABASE_URL}/storage/v1/object/board-images/${fileName}`
-  const uploadRes = await fetch(uploadUrl, {
+  const uploadRes = await fetchWithTimeout(uploadUrl, {
     method:  'POST',
     headers: {
       // 신형 API 키(sb_secret_) 환경: Storage 는 apikey 헤더로 인증. apikey 없이
@@ -215,7 +215,7 @@ Deno.serve(async (req: Request) => {
       'x-upsert':      'false',
     },
     body: fileBytes,
-  })
+  }, 30000)
 
   if (!uploadRes.ok) {
     const err = await uploadRes.text()

@@ -533,7 +533,9 @@ function autoCalcAssessScores() {
       })
       .catch(function(e) {
         if(window.console&&console.warn)console.warn('[madi-11 autoCalc]',e&&e.message);
-        showToast('❌ 자동 계산 실패 — 다시 시도해주세요');
+        showToast((e && e.message && e.message.indexOf('TRUNCATED') === 0)
+          ? '⚠️ 응답이 길어 잘렸습니다. 항목을 줄여 재시도하세요'
+          : '❌ 자동 계산 실패 — 다시 시도해주세요');
         _resetAutoCalcBtn();
       });
   } else {
@@ -970,10 +972,10 @@ function generateAssessReport() {
     + '- 신체발달력 (배밀이, 걷기, 뛰기, 배변 훈련)\n'
     + '- 언어발달력 (첫 낱말, 첫 문장, 현재 언어 수준)\n'
     + '- 이전 치료력 (기관명·기간·치료 종류)\n'
-    + '- 제공된 정보가 없는 항목은 일반적 임상 문체로 간략히 처리\n\n'
+    + '- 제공된 정보가 없는 항목은 "정보 미제공"으로 명시하고, 발달사·일화·수치를 창작하지 말 것\n\n'
     + 'II. 검사태도\n'
     + '- 의사소통 방식, eye contact 빈도, 협조도, 집중력, 특이 행동 관찰 내용 서술\n'
-    + '- 제공된 정보가 없으면 "전반적으로 협조적이었으며, 검사 지시에 잘 따랐음." 수준으로 기술\n\n'
+    + '- 제공된 정보가 없으면 관찰 내용을 지어내지 말고 "검사태도 관찰 정보 미제공"으로 명시\n\n'
     + 'III. 실시한 검사\n'
     + '- 번호 목록 형식 (예: 1. 수용 및 표현 어휘력 검사(REVT))\n\n'
     + 'IV. 검사결과\n'
@@ -985,7 +987,9 @@ function generateAssessReport() {
     + '  - 서술형 해석: "- [검사명] 검사결과, [번호-세부번호]) [영역] [수치] [수준 판정]으로 평가됨." 형식\n\n'
     + 'V. 요약 및 결론\n'
     + '- 각 검사 핵심 결과 요약 (불릿 포인트)\n'
-    + '- 진단명 (예: 수용 및 표현언어발달지연(Receptive-Expressive Language Developmental Delay))\n'
+    + '- 임상적 인상(clinical impression)·소견 — 단정적 진단명 대신 검사 결과·관찰에 근거한 소견 수준으로 기술 '
+    + '(예: "수용·표현 영역 전반에서 생활연령 대비 지연이 관찰되어 언어발달지연이 의심됨"). '
+    + '확정 진단명 단독 표기 금지 — 진단은 자격 언어재활사·의료진 확인이 필요함\n'
     + '- 관찰된 주요 특성들 (불릿 포인트)\n'
     + '- 치료 필요성 및 방향 기술\n\n'
     + 'VI. 제언\n'
@@ -993,6 +997,8 @@ function generateAssessReport() {
     + '- 치료 형태 및 빈도 (주 N회 개별/그룹)\n'
     + '- 가정 연계 지도 방향\n\n'
     + '【작성 지침】\n'
+    + '- 본 보고서는 AI 초안이며, 진단·해석은 자격 언어재활사의 확인이 필요함을 보고서 최상단에 1줄로 명시\n'
+    + '- 컨텍스트에 제공되지 않은 세션·점수·관찰·발달사를 지어내지 말 것. 정보가 없으면 "정보 미제공"으로 명시\n'
     + '- JSON 없이 보고서 형식으로 작성\n'
     + '- 마크다운 표(|) 형식으로 검사 결과 제시\n'
     + '- 전문 문어체 경어(~함, ~됨, ~임)\n'
@@ -1037,8 +1043,8 @@ function generateAssessReport() {
     + (institution  ? '기관명: ' + institution + '\n' : '')
     + (evaluator    ? '평가자: ' + evaluator + '\n' : '')
     + '\n【의뢰 사유】\n' + wrapUntrusted(referral || '현행 수준 파악을 위해 내원')
-    + '\n\n【배경정보】\n' + wrapUntrusted(background || '(배경정보 미입력 — 일반적 임상 문체로 작성)')
-    + '\n\n【검사태도 및 행동 관찰】\n' + wrapUntrusted(testBehavior || '(검사태도 미입력 — 일반적 협조적 수준으로 작성)')
+    + '\n\n【배경정보】\n' + wrapUntrusted(background || '(배경정보 미입력 — 창작하지 말고 "정보 미제공"으로 명시)')
+    + '\n\n【검사태도 및 행동 관찰】\n' + wrapUntrusted(testBehavior || '(검사태도 미입력 — 관찰 내용을 지어내지 말고 "정보 미제공"으로 명시)')
     + '\n\n【검사 결과】\n' + testLog;
 
   callClaude(SYSTEM, USER, 3000, getAIModel())
@@ -1064,8 +1070,12 @@ function generateAssessReport() {
     .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; })
     .catch(function(err) {
       if(window.console&&console.warn)console.warn('[AI 평가보고서]',err&&err.message);
+      // max_tokens 잘림: 부분 보고서를 저장/표시하지 않고 재생성 안내
+      var _msg = (err && err.message && err.message.indexOf('TRUNCATED') === 0)
+        ? '응답이 길어 잘렸습니다. 기간/항목을 줄여 재생성하세요.'
+        : _userErrMsg(err, 'AI 평가 보고서 생성');
       // eslint-disable-next-line no-unsanitized/property
-      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_userErrMsg(err, 'AI 평가 보고서 생성')) + '</p></div>';
+      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_msg) + '</p></div>';
       btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성';
     });
 }
@@ -1116,7 +1126,10 @@ function generateParentEdu() {
     .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성'; })
     .catch(function(err) {
       if(window.console&&console.warn)console.warn('[부모 교육자료]',err&&err.message);
-      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_userErrMsg(err, '부모 교육 자료 생성')) + '</p></div>';
+      var _msg = (err && err.message && err.message.indexOf('TRUNCATED') === 0)
+        ? '응답이 길어 잘렸습니다. 내용을 줄여 재생성하세요.'
+        : _userErrMsg(err, '부모 교육 자료 생성');
+      result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_msg) + '</p></div>';
       btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성';
     });
 }

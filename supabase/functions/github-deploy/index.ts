@@ -26,43 +26,102 @@ import {
   getAuthToken,
   verifyJwt,
   requireFreshSession,
+  fetchWithTimeout,
 } from '../_shared/auth.ts'
+
+// GitHub API 외부 호출 타임아웃 (2-B): 무기한 매달림 방지.
+const GITHUB_TIMEOUT_MS = 30000
 
 // github-deploy CORS: 기존과 동일 (null Origin 허용, authorization/content-type 헤더)
 function makeCORS(origin: string | null): Record<string, string> {
   return makeBaseCORS(origin, { headers: 'authorization, content-type' })
 }
 
-// ── GitHub 파일 업로드 ────────────────────────────────────────────────────
-async function deployFile(
-  pat: string, owner: string, repo: string,
-  filename: string, content: string, commitMsg: string
-): Promise<void> {
-  const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`
-  const headers = {
+// ── GitHub 다중 파일 원자적 배포 (Git Data API: 단일 커밋) ───────────────────
+//   기존 deployFile 은 Contents API 로 파일당 1커밋을 올려, N개 중 k번째에서 실패하면
+//   앞 k-1개는 이미 main 에 push 되어 운영 사이트 버전이 불일치(2-A)했다.
+//   → blob/tree/commit/ref 4단계로 모든 파일을 하나의 트리로 묶어 단일 커밋으로 atomically
+//      반영한다. 중간 단계 실패 시 ref 는 갱신되지 않으므로 main 에 부분 반영이 남지 않는다.
+function ghHeaders(pat: string): Record<string, string> {
+  return {
     'Authorization': 'token ' + pat,
     'Accept':        'application/vnd.github.v3+json',
     'Content-Type':  'application/json',
     'User-Agent':    'madi-deploy-edge',
   }
-  // Base64 인코딩 (UTF-8 안전)
-  const encoder = new TextEncoder()
-  const bytes   = encoder.encode(content)
-  const b64     = btoa(Array.from(bytes).map(b => String.fromCharCode(b)).join(''))
+}
 
-  // 기존 파일 SHA 조회
-  const getRes  = await fetch(apiBase, { headers })
-  const getInfo = await getRes.json() as { sha?: string; message?: string }
+// UTF-8 안전 Base64
+function toB64(content: string): string {
+  const bytes = new TextEncoder().encode(content)
+  return btoa(Array.from(bytes).map(b => String.fromCharCode(b)).join(''))
+}
 
-  const body: Record<string, unknown> = { message: commitMsg, content: b64 }
-  if (getInfo.sha) body.sha = getInfo.sha
-
-  const putRes = await fetch(apiBase, { method: 'PUT', headers, body: JSON.stringify(body) })
-  if (!putRes.ok) {
-    // GitHub API 에러 메시지를 클라이언트에 그대로 전달하지 않음 — 내부 정보 노출 방지
-    console.error('[github-deploy] PUT failed status=%d file=%s', putRes.status, filename)
-    throw new Error('파일 업로드 실패: ' + filename)
+async function ghJson(
+  url: string, init: RequestInit, pat: string, label: string
+): Promise<any> {
+  const res = await fetchWithTimeout(url, { ...init, headers: ghHeaders(pat) }, GITHUB_TIMEOUT_MS)
+  if (!res.ok) {
+    // 내부 정보 노출 방지 — 상태코드만 서버 로그에, 클라이언트엔 단계명만.
+    console.error('[github-deploy] %s failed status=%d', label, res.status)
+    throw new Error('GitHub ' + label + ' 실패')
   }
+  return await res.json()
+}
+
+async function deployFilesAtomic(
+  pat: string, owner: string, repo: string, branch: string,
+  files: Array<{ name: string; content: string; commitMsg: string }>
+): Promise<void> {
+  const apiRepo = `https://api.github.com/repos/${owner}/${repo}`
+
+  // 1) 현재 브랜치 HEAD ref → 최신 커밋 SHA
+  const ref = await ghJson(`${apiRepo}/git/ref/heads/${branch}`, { method: 'GET' }, pat, 'ref 조회')
+  const baseCommitSha = ref?.object?.sha as string
+  if (!baseCommitSha) throw new Error('GitHub ref 조회 실패')
+
+  // 2) 베이스 커밋 → 베이스 트리 SHA
+  const baseCommit = await ghJson(`${apiRepo}/git/commits/${baseCommitSha}`, { method: 'GET' }, pat, 'base commit 조회')
+  const baseTreeSha = baseCommit?.tree?.sha as string
+  if (!baseTreeSha) throw new Error('GitHub base tree 조회 실패')
+
+  // 3) 각 파일을 blob 으로 생성 (UTF-8 → base64) 후 트리 엔트리 구성
+  const treeEntries: Array<{ path: string; mode: string; type: string; sha: string }> = []
+  for (const f of files) {
+    const blob = await ghJson(
+      `${apiRepo}/git/blobs`,
+      { method: 'POST', body: JSON.stringify({ content: toB64(f.content), encoding: 'base64' }) },
+      pat, 'blob 생성',
+    )
+    if (!blob?.sha) throw new Error('GitHub blob 생성 실패')
+    treeEntries.push({ path: f.name, mode: '100644', type: 'blob', sha: blob.sha })
+  }
+
+  // 4) base_tree 위에 새 트리 생성 (변경 파일만 덮어씀 — 나머지는 base_tree 유지)
+  const newTree = await ghJson(
+    `${apiRepo}/git/trees`,
+    { method: 'POST', body: JSON.stringify({ base_tree: baseTreeSha, tree: treeEntries }) },
+    pat, 'tree 생성',
+  )
+  if (!newTree?.sha) throw new Error('GitHub tree 생성 실패')
+
+  // 5) 커밋 메시지: 첫 파일의 commitMsg 를 헤드라인으로, 다중이면 파일 수 표기
+  const headline = (files[0] && files[0].commitMsg) ? files[0].commitMsg : 'deploy'
+  const message  = files.length > 1 ? `${headline} (+${files.length - 1} files)` : headline
+  const newCommit = await ghJson(
+    `${apiRepo}/git/commits`,
+    { method: 'POST', body: JSON.stringify({ message, tree: newTree.sha, parents: [baseCommitSha] }) },
+    pat, 'commit 생성',
+  )
+  if (!newCommit?.sha) throw new Error('GitHub commit 생성 실패')
+
+  // 6) ref 를 새 커밋으로 이동 — 이 단계가 성공해야 비로소 main 에 반영(원자성 보장점).
+  //    fast-forward 만 허용(force=false): 동시 배포로 base 가 밀렸으면 실패하고 부분반영 없음.
+  await ghJson(
+    `${apiRepo}/git/refs/heads/${branch}`,
+    { method: 'PATCH', body: JSON.stringify({ sha: newCommit.sha, force: false }) },
+    pat, 'ref 갱신',
+  )
 }
 
 // ── 배포 경로 화이트리스트 ─────────────────────────────────────────────────
@@ -105,8 +164,10 @@ Deno.serve(async (req: Request) => {
   const SUPA_URL     = Deno.env.get('SUPABASE_URL')
   const SUPA_KEY     = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const GITHUB_PAT   = Deno.env.get('GITHUB_PAT')
-  const GITHUB_OWNER = Deno.env.get('GITHUB_OWNER') || 'namga1541-prog'
-  const GITHUB_REPO  = Deno.env.get('GITHUB_REPO')  || 'MADI'
+  const GITHUB_OWNER  = Deno.env.get('GITHUB_OWNER')  || 'namga1541-prog'
+  const GITHUB_REPO   = Deno.env.get('GITHUB_REPO')   || 'MADI'
+  // Pages 가 배포되는 브랜치. Contents API 기본동작(default branch)과 일치시키기 위해 main 기본값.
+  const GITHUB_BRANCH = Deno.env.get('GITHUB_BRANCH') || 'main'
 
   if (!JWT_SECRET || !SUPA_URL || !SUPA_KEY) {
     return new Response(JSON.stringify({ error: '서버 설정 오류' }), { status: 500, headers: CORS })
@@ -146,7 +207,7 @@ Deno.serve(async (req: Request) => {
   // ─ poll: GitHub Pages 빌드 상태 조회 ────────────────────────────────────
   if (action === 'poll') {
     const deployStartTs = body.deployStartTs as number || 0
-    const pollRes = await fetch(
+    const pollRes = await fetchWithTimeout(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pages/builds/latest`,
       {
         headers: {
@@ -154,7 +215,8 @@ Deno.serve(async (req: Request) => {
           'Accept':        'application/vnd.github+json',
           'User-Agent':    'madi-deploy-edge',
         }
-      }
+      },
+      GITHUB_TIMEOUT_MS
     )
     if (!pollRes.ok) {
       return new Response(JSON.stringify({ error: 'GitHub Pages 빌드 상태 조회 실패' }), { status: pollRes.status, headers: CORS })
@@ -170,8 +232,8 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: '배포할 파일이 없습니다' }), { status: 400, headers: CORS })
     }
 
-    const results: Array<{ name: string; ok: boolean; error?: string }> = []
-
+    // ── 1단계: 모든 파일 경로 검증 (배포 전에 일괄) ──
+    //   원자적 배포이므로 한 파일이라도 부적합하면 아무것도 올리지 않고 거부.
     for (const f of files) {
       // 경로 순회 및 절대 경로 공격 차단
       if (
@@ -192,21 +254,28 @@ Deno.serve(async (req: Request) => {
           { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } }
         )
       }
-      try {
-        await deployFile(GITHUB_PAT, GITHUB_OWNER, GITHUB_REPO, f.name, f.content, f.commitMsg)
-        results.push({ name: f.name, ok: true })
-      } catch (e) {
-        results.push({ name: f.name, ok: false, error: (e as Error).message })
-        // 첫 번째 실패 시 중단 (SHA 충돌 방지)
-        return new Response(
-          JSON.stringify({ error: f.name + ' 업로드 실패: ' + (e as Error).message, results }),
-          { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } }
-        )
-      }
     }
 
+    // ── 2단계: 단일 커밋으로 원자적 배포 (2-A) ──
+    //   ref 갱신 전 어느 단계에서 실패해도 main 에는 부분 반영이 남지 않는다.
+    try {
+      await deployFilesAtomic(GITHUB_PAT, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH, files)
+    } catch (e) {
+      // 부분 반영 없음을 명시 — 사용자는 안전하게 전체 재시도 가능.
+      console.error('[github-deploy] atomic deploy failed:', (e as Error).message)
+      return new Response(
+        JSON.stringify({
+          error: '배포에 실패했습니다. 변경사항이 반영되지 않았으니 다시 시도해주세요.',
+          atomic: true,           // 부분 적용 없음(원자적) — 클라이언트가 안심하고 재시도
+          applied: false,
+        }),
+        { status: 502, headers: { ...CORS, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const results = files.map(f => ({ name: f.name, ok: true }))
     return new Response(
-      JSON.stringify({ ok: true, results }),
+      JSON.stringify({ ok: true, atomic: true, results }),
       { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } }
     )
   }

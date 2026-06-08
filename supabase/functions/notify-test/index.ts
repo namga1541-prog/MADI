@@ -10,7 +10,7 @@
  * 응답: { ok, sent, parents, subs, reason? }
  */
 import webpush from "npm:web-push@3.6.7";
-import { makeCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit } from '../_shared/auth.ts';
+import { makeCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit, fetchWithTimeout } from '../_shared/auth.ts';
 
 // ── 메인 핸들러 ─────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
@@ -76,9 +76,10 @@ Deno.serve(async (req: Request) => {
   } catch { /* body 없으면 기본값 사용 */ }
 
   // 센터별 학부모 ID 조회 (madi_users where role='parent' and center_id matches)
-  const parentRes = await fetch(
+  const parentRes = await fetchWithTimeout(
     `${SUPA_URL}/rest/v1/madi_users?role=eq.parent&center_id=eq.${encodeURIComponent(centerId)}&select=id`,
-    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } },
+    8000
   );
   if (!parentRes.ok) {
     return new Response(JSON.stringify({ ok: false, reason: '학부모 조회 실패' }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
@@ -95,9 +96,10 @@ Deno.serve(async (req: Request) => {
   // center_id 직접 필터로 격리 강화 (parentIds 2단계 의존에 더해 DB 레벨에서 타 센터 구독 배제).
   // madi_push_subscriptions.center_id 가 NULL 인 레거시 행은 이 필터로 제외될 수 있으나,
   // 센터 격리(IDOR 방지)가 우선이라 의도된 동작.
-  const subsRes = await fetch(
+  const subsRes = await fetchWithTimeout(
     `${SUPA_URL}/rest/v1/madi_push_subscriptions?user_id=in.(${idsParam})&center_id=eq.${encodeURIComponent(centerId)}&select=user_id,endpoint,p256dh,auth`,
-    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } },
+    8000
   );
   if (!subsRes.ok) {
     return new Response(JSON.stringify({ ok: false, reason: '구독 조회 실패' }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
@@ -129,9 +131,10 @@ Deno.serve(async (req: Request) => {
       const status = (e as { statusCode?: number }).statusCode;
       if (status === 410 || status === 404) {
         // 만료된 구독 정리
-        await fetch(
+        await fetchWithTimeout(
           `${SUPA_URL}/rest/v1/madi_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,
-          { method: 'DELETE', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+          { method: 'DELETE', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } },
+          8000
         );
         expired++;
       }

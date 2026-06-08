@@ -10,6 +10,15 @@
  * Supabase CLI 의 deploy 는 import 트리를 자동 번들링하므로 별도 설정 불필요.
  */
 
+// ── fetch 타임아웃 래퍼 ────────────────────────────────────────────────────
+// 외부 fetch(Supabase REST/RPC, Anthropic 등)가 무기한 매달리는 것을 막는다.
+// AbortSignal.timeout(ms) 로 ms 후 자동 abort → 호출부의 기존 try/catch 가 AbortError 를 잡는다.
+// init.signal 이 이미 있으면 그것을 존중(호출자 의도 우선), 없으면 timeout signal 을 사용.
+export function fetchWithTimeout(url: string | URL, init: RequestInit, ms: number): Promise<Response> {
+  const signal = init && init.signal ? init.signal : AbortSignal.timeout(ms)
+  return fetch(url, { ...init, signal })
+}
+
 // ── CORS ─────────────────────────────────────────────────────────────────
 // 'null' Origin 허용 여부는 함수별로 다르므로 옵션으로 분리.
 // - login / api / change-password / ai-proxy: file:// 로컬 실행 지원 위해 allowNullOrigin=true 로 명시
@@ -134,20 +143,22 @@ export async function requireFreshSession(
     if (!(tokenIat > 0)) return true  // iat 없는 토큰은 본 검증 대상 아님 (api 동일)
 
     // session_revoked_at 컬럼 미존재면 base 컬럼만으로 retry (api/index.ts 동일)
-    let res = await fetch(
+    let res = await fetchWithTimeout(
       supaUrl + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(payload.sub))
         + '&select=password_changed_at,session_revoked_at',
-      { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
+      { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } },
+      8000
     )
     if (!res.ok) {
       // 컬럼 미존재(PostgREST 400)일 때만 base 컬럼으로 retry.
       // 5xx·네트워크 등 일시 오류는 revoke 검증을 조용히 건너뛰지 않도록 onError 로 보낸다
       // (failClosed 면 거부 — 로그아웃/강제종료 무효화의 간헐 누락 방지).
       if (res.status === 400) {
-        res = await fetch(
+        res = await fetchWithTimeout(
           supaUrl + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(payload.sub))
             + '&select=password_changed_at',
-          { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } }
+          { headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey } },
+          8000
         )
       } else {
         return onError
@@ -273,7 +284,7 @@ export async function checkRateLimit(
   //   비용(ai-proxy)·브루트포스(totp) 방어가 RPC 장애 시 단일 실패점이 되지 않도록 한다.
   const _onErr = opts.failClosed === true ? false : true
   try {
-    const r = await fetch(`${supaUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
+    const r = await fetchWithTimeout(`${supaUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
       method:  'POST',
       headers: {
         'Authorization': `Bearer ${supaKey}`,
@@ -281,7 +292,7 @@ export async function checkRateLimit(
         'Content-Type':  'application/json',
       },
       body: JSON.stringify({ p_key: key, p_min_window_ms: 60_000, p_hour_window_ms: 3_600_000 }),
-    })
+    }, 8000)
     if (!r.ok) return { allowed: _onErr }
     const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
     if (d.count >= perMin) {

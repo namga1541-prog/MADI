@@ -15,7 +15,10 @@
  */
 
 import bcrypt from "npm:bcryptjs@2.4.3"
-import { getClientIp } from '../_shared/auth.ts'
+import { getClientIp, fetchWithTimeout } from '../_shared/auth.ts'
+
+// 외부 fetch 타임아웃: Supabase REST/RPC 는 8s.
+const SUPA_TIMEOUT_MS = 8000
 
 const ALLOWED_ORIGINS = new Set([
   'https://namga1541-prog.github.io',
@@ -55,7 +58,7 @@ async function checkRateLimit(
 
   // RPC 호출 — DB가 단일 트랜잭션으로 카운트 증가 + 반환
   try {
-    const r = await fetch(`${supabaseUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
+    const r = await fetchWithTimeout(`${supabaseUrl}/rest/v1/rpc/madi_rate_limit_hit`, {
       method:  'POST',
       headers: {
         'Authorization': `Bearer ${serviceKey}`,
@@ -63,7 +66,7 @@ async function checkRateLimit(
         'Content-Type':  'application/json',
       },
       body: JSON.stringify({ p_key: key, p_min_window_ms: minMs, p_hour_window_ms: hourMs }),
-    })
+    }, SUPA_TIMEOUT_MS)
     if (r.ok) {
       const d = await r.json() as { count: number; hour_count: number; window_start: string; hour_start: string }
       if (d.count > RATE_PER_MINUTE) {
@@ -111,7 +114,7 @@ async function logParentConsent(
   fields: { actorId: string; centerId: string; version: string; sensitive: boolean; agreed: boolean },
 ): Promise<void> {
   try {
-    await fetch(`${supabaseUrl}/rest/v1/madi_audit_log`, {
+    await fetchWithTimeout(`${supabaseUrl}/rest/v1/madi_audit_log`, {
       method:  'POST',
       headers: {
         'Authorization': `Bearer ${serviceKey}`,
@@ -127,7 +130,7 @@ async function logParentConsent(
         row_id:     'v' + fields.version + '|sensitive:' + fields.sensitive + '|agreed:' + fields.agreed,
         center_id:  fields.centerId || null,
       }),
-    })
+    }, SUPA_TIMEOUT_MS)
   } catch (_) { /* best-effort 증빙 */ }
 }
 
@@ -147,6 +150,14 @@ Deno.serve(async (req: Request) => {
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+
+  // env 가드 — URL/SERVICE_KEY 미설정(빈 문자열)이면 모든 DB 호출이 무의미하게 실패하므로
+  //   다른 함수(ai-proxy 등)와 동일하게 진입부에서 명시적으로 500 차단.
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    return new Response(JSON.stringify({ error: '서버 설정 오류' }), {
+      status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
 
   // IP 추출은 _shared 의 getClientIp 로 단일화 (cf-connecting-ip 우선) — login 과 동일 로직.
   const ip = getClientIp(req)
@@ -202,9 +213,10 @@ Deno.serve(async (req: Request) => {
     }
 
     // 이미 가입된 계정인지 확인
-    const existRes  = await fetch(
+    const existRes  = await fetchWithTimeout(
       `${SUPABASE_URL}/rest/v1/madi_users?username=eq.${cleaned}&role=eq.parent&select=id`,
-      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } }
+      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } },
+      SUPA_TIMEOUT_MS
     )
     // DB 조회 실패(4xx/5xx)를 '미가입'으로 오인하지 않도록 명시 차단(M-20)
     if (!existRes.ok) {
@@ -231,9 +243,10 @@ Deno.serve(async (req: Request) => {
       `data->>phone.eq.${formatted}`,
     ].join(',')
 
-    const childRes = await fetch(
+    const childRes = await fetchWithTimeout(
       `${SUPABASE_URL}/rest/v1/madi_children?or=(${orFilter})&select=id,data`,
-      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } }
+      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } },
+      SUPA_TIMEOUT_MS
     )
     // 조회 실패를 '아동 없음'으로 오인하면 정상 사용자에게 가입 불가 오탐 → 명시 차단(M-20)
     if (!childRes.ok) {
@@ -302,9 +315,10 @@ Deno.serve(async (req: Request) => {
     const formattedPhone = `${cleanedPhone.slice(0, 3)}-${cleanedPhone.slice(3, 7)}-${cleanedPhone.slice(7)}`
 
     // 중복 계정 체크
-    const dupRes  = await fetch(
+    const dupRes  = await fetchWithTimeout(
       `${SUPABASE_URL}/rest/v1/madi_users?username=eq.${cleanedPhone}&select=id`,
-      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } }
+      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } },
+      SUPA_TIMEOUT_MS
     )
     // 중복 체크 조회 실패를 '중복 아님'으로 오인하면 중복 가입이 통과 → 계정 생성 전 명시 차단(M-20)
     if (!dupRes.ok) {
@@ -326,9 +340,10 @@ Deno.serve(async (req: Request) => {
     const childLinks: Array<{ child_id: string; center_id: string }> = []
 
     for (const cid of safeChildIds) {
-      const cr = await fetch(
+      const cr = await fetchWithTimeout(
         `${SUPABASE_URL}/rest/v1/madi_children?id=eq.${encodeURIComponent(String(cid))}&select=id,center_id,data`,
-        { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } }
+        { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } },
+        SUPA_TIMEOUT_MS
       )
       const cd = await cr.json()
       if (!Array.isArray(cd) || cd.length === 0) continue
@@ -367,7 +382,7 @@ Deno.serve(async (req: Request) => {
       permissions: {},
     }
 
-    const insertRes = await fetch(
+    const insertRes = await fetchWithTimeout(
       `${SUPABASE_URL}/rest/v1/madi_users`,
       {
         method: 'POST',
@@ -378,7 +393,8 @@ Deno.serve(async (req: Request) => {
           'Prefer':        'return=minimal',
         },
         body: JSON.stringify(newUser),
-      }
+      },
+      SUPA_TIMEOUT_MS
     )
 
     if (!insertRes.ok) {
@@ -413,19 +429,34 @@ Deno.serve(async (req: Request) => {
       center_id:      cl.center_id,
     }))
 
-    await fetch(
-      `${SUPABASE_URL}/rest/v1/madi_parent_children`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SERVICE_KEY}`,
-          'apikey':        SERVICE_KEY,
-          'Content-Type':  'application/json',
-          'Prefer':        'return=minimal',
+    // 연결 INSERT 실패는 더 이상 무음으로 삼키지 않는다(1-B). madi_users 는 이미 생성됐으므로
+    //   계정 자체는 살리되, 자녀 연결만 실패한 경우 응답에 linkWarning 을 실어 클라이언트가
+    //   "자녀 연결 실패 — 센터에 문의" 를 사용자에게 안내하게 한다(연결 없는 좀비 계정 가시화).
+    //   (트랜잭션 RPC 도입은 과도 — 실패 가시화 + 로깅으로 처리.)
+    let linkWarning = false
+    try {
+      const linkRes = await fetchWithTimeout(
+        `${SUPABASE_URL}/rest/v1/madi_parent_children`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SERVICE_KEY}`,
+            'apikey':        SERVICE_KEY,
+            'Content-Type':  'application/json',
+            'Prefer':        'return=minimal',
+          },
+          body: JSON.stringify(linkRows),
         },
-        body: JSON.stringify(linkRows),
+        SUPA_TIMEOUT_MS
+      )
+      if (!linkRes.ok) {
+        linkWarning = true
+        console.error('[parent-auth] signup link INSERT failed status=%d user=%s', linkRes.status, userId)
       }
-    ).catch(() => {}) // 연결 실패해도 계정은 생성됨 — 선생님이 수동 연결 가능
+    } catch (e) {
+      linkWarning = true
+      console.error('[parent-auth] signup link INSERT error user=%s:', userId, (e as Error).message)
+    }
 
     return new Response(JSON.stringify({
       user: {
@@ -434,7 +465,10 @@ Deno.serve(async (req: Request) => {
         name:      cleanedPhone,
         role:      'parent',
         center_id: centerId,
-      }
+      },
+      // true 면 계정은 생성됐으나 자녀 연결에 실패 — 클라이언트가 "센터에 문의" 안내.
+      linkWarning: linkWarning,
+      ...(linkWarning ? { linkWarningMessage: '계정은 생성됐지만 자녀 연결에 실패했습니다. 센터에 문의해주세요.' } : {}),
     }), {
       status: 200, headers: { ...cors, 'Content-Type': 'application/json' }
     })
