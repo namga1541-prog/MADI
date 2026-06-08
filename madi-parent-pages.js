@@ -276,6 +276,33 @@ function markAllNotifRead() {
     .catch(function(e){ showToast('❌ ' + _userErrMsg(e, '처리')); });
 }
 
+// PIPA: 학부모 셀프 데이터 열람·삭제 요청 — 개인정보 보호책임자 이메일로 prefill mailto.
+// 서버 변경 없이 권리 행사 진입점만 제공(privacy.html 제8조 보호책임자 이메일).
+function openParentDataRequest() {
+  if (!currentUser || currentUser.role !== 'parent') return;
+  var DPO_EMAIL = 'dinosau123@naver.com';
+  var who = (currentUser.name || '') + (currentUser.username ? ' (' + currentUser.username + ')' : '');
+  var subject = '[MADI] 개인정보 열람·삭제 요청';
+  var body = ''
+    + '아래 정보의 열람 또는 삭제를 요청합니다.\n\n'
+    + '────────────────────\n'
+    + '요청자: ' + who + '\n'
+    + '요청 유형(택1): [ ] 열람  [ ] 정정  [ ] 삭제\n'
+    + '대상(본인/자녀 이름): \n'
+    + '요청 사유: \n'
+    + '────────────────────\n\n'
+    + '※ 개인정보 보호법에 따라 요청을 처리해 드립니다.';
+  var href = 'mailto:' + DPO_EMAIL
+    + '?subject=' + encodeURIComponent(subject)
+    + '&body=' + encodeURIComponent(body);
+  try {
+    window.location.href = href;
+    showToast('📩 메일 앱에서 요청 양식을 작성해 보내주세요');
+  } catch (e) {
+    showToast('📩 개인정보 보호책임자(' + DPO_EMAIL + ')에게 메일로 요청해주세요');
+  }
+}
+
 function formatTimeAgo(isoTs) {
   if (!isoTs) return '';
   var ts = new Date(isoTs).getTime();
@@ -450,6 +477,11 @@ function parentSignup() {
     errEl.textContent = '⚠️ 이용약관 및 개인정보 수집·이용에 동의해주세요';
     return;
   }
+  var pSensitiveEl = document.getElementById('parentSignupAgreeSensitive');
+  if (!pSensitiveEl || !pSensitiveEl.checked) {
+    errEl.textContent = '⚠️ 민감정보(아동 건강·치료기록) 수집·이용에 동의해주세요';
+    return;
+  }
 
   errEl.textContent = '';
   btn.disabled = true;
@@ -465,7 +497,8 @@ function parentSignup() {
       action: 'signup',
       phone: phone,
       password: pw,
-      childIds: childIds
+      childIds: childIds,
+      consent: { agreed: true, sensitive: true, version: PRIVACY_POLICY_VERSION }
     })
   })
     .then(function(r) { return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })

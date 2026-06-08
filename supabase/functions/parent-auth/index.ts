@@ -99,6 +99,38 @@ function validatePhone(phone: string): boolean {
   return cleaned.length === 11 && cleaned.startsWith('010')
 }
 
+// ── [PIPA] 학부모 가입 동의 증빙 (best-effort) ───────────────────────────
+//   가입 성공 시 madi_audit_log 에 동의 1행 append-only 기록.
+//   ⚠️ madi_audit_log 실제 컬럼만 사용(SCHEMA.md): actor_id, actor_role, action,
+//      table_name, row_id, center_id. (record_id/actor_name 컬럼 없음.)
+//   version·sensitive 여부는 row_id 에 packing — 스키마 변경 없음.
+//   try/catch 로 감싸 로깅 실패해도 가입 본 요청에는 영향 없음.
+async function logParentConsent(
+  supabaseUrl: string,
+  serviceKey: string,
+  fields: { actorId: string; centerId: string; version: string; sensitive: boolean; agreed: boolean },
+): Promise<void> {
+  try {
+    await fetch(`${supabaseUrl}/rest/v1/madi_audit_log`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey':        serviceKey,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({
+        actor_id:   fields.actorId,
+        actor_role: 'parent',
+        action:     'consent_signup',
+        table_name: 'consent',
+        row_id:     'v' + fields.version + '|sensitive:' + fields.sensitive + '|agreed:' + fields.agreed,
+        center_id:  fields.centerId || null,
+      }),
+    })
+  } catch (_) { /* best-effort 증빙 */ }
+}
+
 // ── 메인 핸들러 ──────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get('origin')
@@ -119,7 +151,10 @@ Deno.serve(async (req: Request) => {
   // IP 추출은 _shared 의 getClientIp 로 단일화 (cf-connecting-ip 우선) — login 과 동일 로직.
   const ip = getClientIp(req)
 
-  let body: { action?: string; phone?: string; password?: string; childIds?: string[] }
+  let body: {
+    action?: string; phone?: string; password?: string; childIds?: string[]
+    consent?: { agreed?: unknown; sensitive?: unknown; version?: unknown }
+  }
   try {
     body = await req.json()
   } catch {
@@ -355,6 +390,19 @@ Deno.serve(async (req: Request) => {
       }
       return new Response(JSON.stringify({ error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' }), {
         status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ★ [PIPA] 가입 성공 — 동의 증빙 기록 (best-effort, 하위호환: consent 없으면 생략).
+    //   고정 계약: body.consent = { agreed, sensitive, version }.
+    const _consent = (body.consent && typeof body.consent === 'object') ? body.consent : null
+    if (_consent) {
+      logParentConsent(SUPABASE_URL, SERVICE_KEY, {
+        actorId:   userId,
+        centerId:  centerId,
+        version:   _consent.version != null ? String(_consent.version).slice(0, 64) : 'unknown',
+        sensitive: _consent.sensitive === true,
+        agreed:    _consent.agreed === true,
       })
     }
 

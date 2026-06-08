@@ -113,13 +113,53 @@ async function logSettingsAccess(
       },
       body: JSON.stringify({
         actor_id:    user.sub      ?? null,
-        actor_name:  user.name     ?? null,
+        actor_role:  user.role     ?? null,
         action:      (!method || method === 'GET') ? 'SELECT' : method,
         table_name:  'madi_settings',
-        record_id:   keyName,
+        row_id:      keyName,
       }),
     })
   } catch (_) { /* fire-and-forget */ }
+}
+
+// ── 동의/증빙 감사 기록 (PIPA) ────────────────────────────────────────────
+// 동의(가입·아동등록)를 madi_audit_log 에 append-only 증빙으로 1행 기록한다.
+//   best-effort: 이 INSERT 실패가 가입/아동생성 본 요청을 실패시키면 안 되므로 try/catch.
+//   ⚠️ madi_audit_log 의 실제 컬럼만 사용(SCHEMA.md): actor_id, actor_role, action,
+//      table_name, row_id, center_id, child_id. (record_id/actor_name 컬럼은 존재하지 않음.)
+//   민감정보(version·sensitive 여부)는 row_id 문자열에 packing — 스키마 변경 없음.
+async function logConsentAudit(
+  supaUrl: string,
+  supaKey: string,
+  fields: {
+    action: string
+    actorId?: unknown
+    actorRole?: unknown
+    rowId?: unknown
+    centerId?: unknown
+    childId?: unknown
+  },
+): Promise<void> {
+  try {
+    await fetch(`${supaUrl}/rest/v1/madi_audit_log`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${supaKey}`,
+        'apikey':        supaKey,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({
+        actor_id:   fields.actorId   != null ? String(fields.actorId)   : null,
+        actor_role: fields.actorRole != null ? String(fields.actorRole) : null,
+        action:     fields.action,
+        table_name: 'consent',
+        row_id:     fields.rowId   != null ? String(fields.rowId).slice(0, 200) : null,
+        center_id:  fields.centerId != null ? String(fields.centerId) : null,
+        child_id:   fields.childId  != null ? String(fields.childId)  : null,
+      }),
+    })
+  } catch (_) { /* best-effort 증빙 — 실패해도 본 요청에 영향 없음 */ }
 }
 
 // ★ 학부모 child_id 기반 필터가 필요한 테이블 (data JSON 내 childId 필드)
@@ -161,15 +201,20 @@ Deno.serve(async (req: Request) => {
   }
 
   // 요청 본문 파싱 — 세션 무효화 검증의 fail-closed 판단(쓰기 여부)에 method 가 필요하므로 먼저 읽는다.
-  let reqBody: { path: string; method?: string; body?: unknown }
+  let reqBody: { path: string; method?: string; body?: unknown; consent?: unknown }
   try {
-    reqBody = await req.json() as { path: string; method?: string; body?: unknown }
+    reqBody = await req.json() as { path: string; method?: string; body?: unknown; consent?: unknown }
   } catch {
     return new Response(JSON.stringify({ error: '잘못된 요청 형식입니다.' }), { status: 400, headers: CORS })
   }
   const method  = reqBody.method
   const body    = reqBody.body
   let   path    = reqBody.path   // 정제·재작성 가능하도록 let
+  // ★ [PIPA] 치료사 가입 동의 페이로드(고정 계약): consent = { agreed, sensitive, version }.
+  //   하위호환: 구버전 클라(consent 미전송) 는 undefined → 동의 로깅만 생략하고 가입은 정상 진행.
+  const consent = (reqBody.consent && typeof reqBody.consent === 'object')
+    ? reqBody.consent as { agreed?: unknown; sensitive?: unknown; version?: unknown }
+    : null
   const isWrite = method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE'
 
   // ── 세션 무효화 검증 (H-3: 쓰기 요청은 fail-closed) ──
@@ -278,6 +323,16 @@ Deno.serve(async (req: Request) => {
     // ★ 학부모 전체 차단 — 세션 기록 등 (선생님 보호 정책)
     if (user.role === 'parent' && PARENT_BLOCKED_TABLES.includes(tableName)) {
       return new Response(JSON.stringify({ error: '학부모는 해당 데이터를 열람할 수 없습니다' }), { status: 403, headers: CORS })
+    }
+
+    // ★ [HIGH IDOR 차단] 학부모의 madi_parent_children 직접 쓰기 전면 차단.
+    //   READ(본인 연결 조회)는 PARENT_USER_SCOPED 에서 parent_user_id=eq.본인 으로 격리되어 유지.
+    //   POST 분기는 parent_user_id 만 본인으로 강제하고 child_id 는 클라 입력 그대로 INSERT 했으므로,
+    //   학부모가 임의 child_id 를 보내 타인 아동 임상데이터 전체에 자기연결(IDOR)할 수 있었다.
+    //   이 연결은 회원가입(parent-auth, 전화번호 재검증) 또는 관리자/교사 경로(service_role/별도 함수)
+    //   로만 생성되어야 하므로, parent 의 이 테이블 write(POST/PATCH/PUT/DELETE)는 항상 403.
+    if (user.role === 'parent' && tableName === 'madi_parent_children' && method && method !== 'GET') {
+      return new Response(JSON.stringify({ error: '아동 연결은 회원가입 또는 센터를 통해서만 가능합니다' }), { status: 403, headers: CORS })
     }
 
     // ★ 학부모 default-deny — 허용 화이트리스트 외 전면 차단 (라운지·초대 등 내부 채널 IDOR 방지)
@@ -486,6 +541,21 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // ★ [PIPA] 아동 등록 시 보호자 동의 증빙 — guardianConsent 캡처 후 INSERT 본문에서 제거.
+    //   madi_children 에는 guardianConsent 컬럼이 없어 그대로 forwarding 하면 PostgREST 42703(400)
+    //   으로 아동 생성이 깨진다. 반드시 분리(strip)한 뒤 전달하고, 생성 성공 후 audit_log 에 증빙 기록.
+    let childGuardianConsent = false
+    if (tableName === 'madi_children' && method === 'POST') {
+      const _childRows = Array.isArray(body) ? body : (body ? [body] : [])
+      for (const row of _childRows) {
+        if (row && typeof row === 'object') {
+          const obj = row as Record<string, unknown>
+          if (obj.guardianConsent === true) childGuardianConsent = true
+          delete obj.guardianConsent
+        }
+      }
+    }
+
     // ★ 작성자 위장 차단 — 라운지/공지 POST 의 author_id·author_name 을 JWT(서버)에서 강제.
     //   클라이언트가 타인 author_id 나 NULL(작성자 추적 우회)을 보내도 무시하고 본인으로 덮어쓴다.
     if (method === 'POST' &&
@@ -651,6 +721,14 @@ Deno.serve(async (req: Request) => {
     // ══════════════════════════════════════════════════════════
     // 일반 center_id 스코프 (치료사 등 비관리자)
     // ══════════════════════════════════════════════════════════
+    //
+    // ※ [MED 보안 — 서버 강제 불가] 권한 'viewOtherChildren'("다른 선생님 아동 조회")는
+    //   여기서 서버 강제할 수 없다. madi_children 에는 담당교사 소유 컬럼이 존재하지 않으며
+    //   (SCHEMA.md: id, center_id, data JSONB 뿐), 담당관계는 클라이언트 isMyChild(madi-core.js)
+    //   가 sessionDB/scheduleDB 의 data.teacher === currentUser.name 매칭으로 런타임 추론한다.
+    //   따라서 이 필터는 **UI 편의 필터(보안 경계 아님)**이며, 같은 센터 교사는 직접 API 호출 시
+    //   센터 내 모든 아동을 조회할 수 있다(센터 격리만 서버 보장). 서버 강제하려면 madi_children
+    //   에 담당교사 컬럼(예: assigned_teacher_id)을 신설하고 여기에 필터를 추가해야 한다(스키마 부재로 보류).
     } else if (user.role !== 'admin' && user.role !== 'superadmin' && !GLOBAL_TABLES.includes(tableName)) {
       const centerId = user.center_id as string
       if (!centerId) {
@@ -815,6 +893,43 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: '요청을 처리할 수 없습니다', code: response.status }),
         { status: response.status, headers: { ...CORS, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // ── [PIPA] 동의 증빙 기록 (성공 경로에서만, best-effort) ──────────────
+    //   ① 치료사 가입(madi_users POST + consent 페이로드): action='consent_signup'
+    //   ② 아동 등록(madi_children POST + guardianConsent:true): action='consent_child'
+    //   data(return=representation) 에서 신규 row id 를 추출해 증빙에 박는다.
+    //   logConsentAudit 는 try/catch 내장 best-effort — 실패해도 가입/생성 응답엔 영향 없음.
+    function _firstRowId(d: unknown): unknown {
+      if (Array.isArray(d) && d.length > 0 && d[0] && typeof d[0] === 'object') {
+        return (d[0] as Record<string, unknown>).id
+      }
+      if (d && typeof d === 'object') return (d as Record<string, unknown>).id
+      return null
+    }
+    if (method === 'POST' && tableName === 'madi_users' && consent) {
+      const newUserId = _firstRowId(data) ?? user.sub
+      const ver = consent.version != null ? String(consent.version).slice(0, 64) : 'unknown'
+      const sens = consent.sensitive === true
+      // version·민감동의 여부를 row_id 에 packing (스키마 변경 없이 기존 컬럼만 사용)
+      logConsentAudit(SUPA_URL, SUPA_KEY, {
+        action:    'consent_signup',
+        actorId:   newUserId,
+        actorRole: 'teacher',
+        rowId:     'v' + ver + '|sensitive:' + sens + '|agreed:' + (consent.agreed === true),
+        centerId:  user.center_id,
+      })
+    }
+    if (method === 'POST' && tableName === 'madi_children' && childGuardianConsent) {
+      const newChildId = _firstRowId(data)
+      logConsentAudit(SUPA_URL, SUPA_KEY, {
+        action:    'consent_child',
+        actorId:   user.sub,
+        actorRole: user.role,
+        rowId:     'guardianConsent:true',
+        centerId:  user.center_id,
+        childId:   newChildId,
+      })
     }
 
     return new Response(

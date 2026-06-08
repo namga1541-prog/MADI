@@ -1,3 +1,8 @@
+// 외부 AI 처리 고지(PIPA MED) — AI 생성 결과 패널에 1회 표시. 정적 문구라 escHtml 불필요.
+var AI_PROCESSING_NOTICE = '<div style="font-size:11px;color:var(--text2,#888);line-height:1.5;margin:8px 0;">'
+  + 'ℹ️ 이 기능은 개인정보를 가명화하여 외부 AI(미국 Anthropic)로 전송해 처리합니다. '
+  + '자세한 내용은 개인정보처리방침을 참고하세요.</div>';
+
 function generateReport() {
   if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
   if (!getApiKeyOrAlert()) return;
@@ -63,7 +68,8 @@ function generateReport() {
 
 function renderReport(p, name) {
   var k = p.kakao || '', r = p.report || '';
-  var html = '<div class="card">'
+  var html = AI_PROCESSING_NOTICE
+    + '<div class="card">'
     + '<div class="card-title"><div class="card-title-left">💛 카카오톡 메시지</div></div>'
     + '<div class="kakao-box" id="kakaoText">' + escHtml(k) + '</div>'
     + '<button class="copy-btn" onclick="copyKakao()">📋 카카오톡 메시지 복사</button>'
@@ -379,6 +385,7 @@ function renderIEP(p, childName) {
     + '<div style="font-size:15px;font-weight:700;color:var(--purple);">📋 장단기계획(IEP) 3개월 치료 계획</div>'
     + '<div style="font-size:11px;color:var(--text2);">' + escHtml(childName) + ' · ' + today + '</div>'
     + '</div>'
+    + AI_PROCESSING_NOTICE
 
     // 우선순위 목표 (신규)
     + (p.priorityGoals && p.priorityGoals.length ? '<div style="background:#fef3c7;border-radius:10px;padding:10px 14px;margin-bottom:14px;border-left:4px solid #f59e0b;">'

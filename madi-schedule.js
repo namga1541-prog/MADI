@@ -12,7 +12,10 @@ function parseBirth(val) {
   if (s.length !== 8) return null;
   var y = s.slice(0,4), m = s.slice(4,6), d = s.slice(6,8);
   var dt = new Date(y + '-' + m + '-' + d + 'T00:00:00');
-  return isNaN(dt.getTime()) ? null : dt;
+  if (isNaN(dt.getTime())) return null;
+  // 롤오버 거부: 13월·45일 등 비현실 날짜는 Date가 다음 달로 넘겨 통과시키므로 재검증
+  if (dt.getMonth() + 1 !== Number(m) || dt.getDate() !== Number(d)) return null;
+  return dt;
 }
 
 function calcAgeFromBirth(birthStr) {
@@ -699,7 +702,8 @@ function saveSchedFromModal() {
   var untilEl   = document.getElementById('schedRepeatUntil');
   var until     = repeat !== 'none' ? (untilEl ? untilEl.value : '') : '';
   if (until) {
-    var untilDate = new Date(until);
+    // 로컬 자정으로 통일 — new Date(until)은 UTC 파싱이라 new Date()(로컬)와 새벽 경계 1일 오차
+    var untilDate = new Date(until + 'T00:00:00');
     var maxDate = new Date();
     maxDate.setFullYear(maxDate.getFullYear() + 2);
     if (untilDate > maxDate) {

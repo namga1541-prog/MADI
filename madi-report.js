@@ -248,7 +248,10 @@ function renderSIReport() {
     + '<textarea class="form-input" id="siExtra" rows="2" placeholder="치료사가 직접 추가할 내용 (선택 사항)" style="resize:vertical;"></textarea>'
     + '</div>'
 
-    // 7. AI 생성 버튼
+    // 7. AI 처리 고지(PIPA MED) + 생성 버튼
+    + '<div style="font-size:11px;color:var(--text2,#888);line-height:1.5;margin:8px 0;">'
+    + 'ℹ️ 이 기능은 개인정보를 가명화하여 외부 AI(미국 Anthropic)로 전송해 처리합니다. '
+    + '자세한 내용은 개인정보처리방침을 참고하세요.</div>'
     + '<button id="siReportBtn" class="btn btn-primary" onclick="generateSIReport()" '
     + 'style="width:100%;background:var(--teal,#0ea5a0);border-color:var(--teal,#0ea5a0);">'
     + '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)</button>'

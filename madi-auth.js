@@ -10,6 +10,9 @@
    madi-app.js 로 3분할.
    ─────────────────────────────────────────────────────────── */
 
+// 개인정보 처리방침 버전 (동의 페이로드에 포함 — 서버/parent-pages 공용 전역)
+var PRIVACY_POLICY_VERSION = '2026-06-08';
+
 function showLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'flex'; }
 function hideLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'none'; }
 function backToLanding()  { var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'none'; var ss = document.getElementById('signupScreen'); if (ss) ss.style.display = 'none'; showLanding(); }
@@ -78,6 +81,8 @@ function doSignup() {
   if (pw !== pwConfirm) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; return; }
   var agreeEl = document.getElementById('signupAgree');
   if (!agreeEl || !agreeEl.checked) { errEl.textContent = '이용약관 및 개인정보 수집·이용에 동의해주세요.'; return; }
+  var sensitiveEl = document.getElementById('signupAgreeSensitive');
+  if (!sensitiveEl || !sensitiveEl.checked) { errEl.textContent = '민감정보(아동 건강·치료기록) 수집·이용에 동의해주세요.'; return; }
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '확인 중...';
   supaFetch('madi_centers?invite_code=eq.' + encodeURIComponent(inviteCode) + '&select=id,name,invite_expires_at', 'GET')
@@ -91,7 +96,7 @@ function doSignup() {
     .then(function(center) {
       return hashPassword(pw).then(function(hashed) {
         // role/permissions 는 서버(api/index.ts)에서 teacher·기본값으로 강제됨 — 클라이언트 값 무시됨
-        var newUser = { id: generateClientId(), username: username, name: name, password: hashed, role: 'teacher', center_id: center.id, color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), permissions: { viewOtherChildren:true, deleteSession:true, useAI:true } };
+        var newUser = { id: generateClientId(), username: username, name: name, password: hashed, role: 'teacher', center_id: center.id, color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), permissions: { viewOtherChildren:true, deleteSession:true, useAI:true }, consent: { agreed: true, sensitive: true, version: PRIVACY_POLICY_VERSION } };
         return supaFetch('madi_users', 'POST', [newUser]).then(function(){ return { center: center, user: newUser }; });
       });
     })

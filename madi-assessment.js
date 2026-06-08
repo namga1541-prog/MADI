@@ -195,8 +195,28 @@ function getREVTAgeKey(ageMonths) {
 }
 
 // 점수 → 백분위 보간 (백분위 테이블에서 역방향 계산)
+// 반환 계약:
+//   숫자(>=0) = 추정 백분위
+//   -1        = 규준표 최저점수 '미만'(strictly less than) → 표시부에서 "1%ile 미만"으로 렌더
+//   null      = 산출 불가
+// 동점(같은 원점수가 여러 백분위 행에 걸침)이면 하향편향을 피해 그 run 전체 백분위의 중앙값 반환.
 function interpolatePct(table, rawScore, colIdx) {
   // colIdx: 1=수용, 2=표현
+  // 하한 '미만'은 가장 먼저 판정 — 최저행과 같은 값(==)은 정상 산출, 미만(<)만 sentinel.
+  if (rawScore < table[0][colIdx]) return -1;
+  // 동점 run 우선 처리: rawScore 와 정확히 같은 점수의 행이 2개 이상이면(비단조 구간)
+  //   첫 일치 브래킷의 최저 백분위만 반환하던 일관 하향편향 대신 그 run 의 중앙값을 반환.
+  var run = [];
+  for (var k = 0; k < table.length; k++) {
+    if (table[k][colIdx] === rawScore) run.push(table[k][0]);
+  }
+  if (run.length >= 2) {
+    run.sort(function(a, b) { return a - b; });
+    var mid = Math.floor(run.length / 2);
+    return (run.length % 2 === 1)
+      ? run[mid]
+      : Math.round((run[mid - 1] + run[mid]) / 2);
+  }
   for (var i = 0; i < table.length - 1; i++) {
     var lo = table[i], hi = table[i+1];
     var loScore = lo[colIdx], hiScore = hi[colIdx];
@@ -206,8 +226,7 @@ function interpolatePct(table, rawScore, colIdx) {
       return Math.round(lo[0] + ratio * (hi[0] - lo[0]));
     }
   }
-  // 범위 벗어나면 가장 가까운 값
-  if (rawScore <= table[0][colIdx])  return table[0][0];
+  // 범위 벗어나면 가장 가까운 값 (상한 초과는 최고 백분위)
   if (rawScore >= table[table.length-1][colIdx]) return table[table.length-1][0];
   return null;
 }
@@ -556,6 +575,9 @@ function renderSeveritySummary() {
       var pct = parseFloat(el.value);
       if (isNaN(pct)) return;
       var sev = getSeverityLabel(pct);
+      // -1 sentinel: 규준표 최저점수 미만 → "1%ile 미만"으로 표시(심도 지체)
+      var isBelowFloor = (pct === -1);
+      var pctText = isBelowFloor ? '1%ile 미만' : (pct + '%ile');
       var domainName = f.label.replace('%ile', '').trim();
       var eqKey = f.key.replace('Pct', 'Eq').replace('percentile', 'eqAge');
       var eqEl  = document.getElementById('af_' + eqKey);
@@ -566,9 +588,9 @@ function renderSeveritySummary() {
       var eqHtml = eqVal ? ' <span style="font-size:11px;color:var(--text2);">/ ' + escHtml(eqVal) + '</span>' : '';
       rows += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">'
         + '<span style="min-width:90px;font-size:12px;color:var(--text2);">' + escHtml(domainName) + '</span>'
-        + '<strong style="font-size:12px;">' + pct + '%ile</strong>'
+        + '<strong style="font-size:12px;">' + escHtml(pctText) + '</strong>'
         + eqHtml + sevHtml + '</div>';
-      if (sev) plainParts.push(domainName + ' ' + pct + '%ile(' + sev.label + ')');
+      if (sev) plainParts.push(domainName + ' ' + pctText + '(' + sev.label + ')');
     }
 
     if (f.key === 'wordJudge' || f.key === 'sentJudge') {
@@ -803,7 +825,13 @@ function formatAssessScores(a) {
   schema.forEach(function(f) {
     var v = scores[f.key];
     if (v !== null && v !== undefined && v !== '') {
-      parts.push('<span style="font-size:11px;color:var(--text2);">' + escHtml(f.label.replace(' 원점수','').replace(' %ile','')) + ':</span> <strong>' + escHtml(String(v)) + '</strong>' + (f.label.includes('%ile') ? '%ile' : ''));
+      var isPct = f.label.includes('%ile');
+      // -1 sentinel: 규준표 최저점수 미만 → "1%ile 미만" (하한 평탄화 방지)
+      if (isPct && Number(v) === -1) {
+        parts.push('<span style="font-size:11px;color:var(--text2);">' + escHtml(f.label.replace(' 원점수','').replace(' %ile','')) + ':</span> <strong>1%ile 미만</strong>');
+        return;
+      }
+      parts.push('<span style="font-size:11px;color:var(--text2);">' + escHtml(f.label.replace(' 원점수','').replace(' %ile','')) + ':</span> <strong>' + escHtml(String(v)) + '</strong>' + (isPct ? '%ile' : ''));
     }
   });
   return parts.length > 0 ? parts.join(' &nbsp;|&nbsp; ') : '점수 없음';
@@ -904,7 +932,13 @@ function generateAssessReport() {
     schema.forEach(function(f) {
       var v = scores[f.key];
       if (v !== null && v !== undefined && v !== '') {
-        lines.push('  ' + f.label + ': ' + v + (f.label.includes('%ile') ? 'ile' : ''));
+        var isPct = f.label.includes('%ile');
+        // -1 sentinel: 규준표 최저점수 미만 → "1%ile 미만"으로 명시(AI에 최중증 신호 전달)
+        if (isPct && Number(v) === -1) {
+          lines.push('  ' + f.label + ': 1%ile 미만 (규준 최저점수 미만)');
+          return;
+        }
+        lines.push('  ' + f.label + ': ' + v + (isPct ? 'ile' : ''));
       }
     });
     if (a.memo) lines.push('  특이사항: ' + a.memo);

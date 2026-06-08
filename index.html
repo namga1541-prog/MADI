@@ -1024,6 +1024,11 @@
           <label for="signupAgree" style="cursor:pointer;"><a href="terms.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">이용약관</a> 및 <a href="privacy.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">개인정보 수집·이용</a>에 동의합니다 <b style="color:#ef4444;">(필수)</b></label>
         </div>
 
+        <div style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;font-size:12px;color:var(--text2);line-height:1.5;">
+          <input type="checkbox" id="signupAgreeSensitive" style="margin-top:2px;width:17px;height:17px;flex:none;cursor:pointer;">
+          <label for="signupAgreeSensitive" style="cursor:pointer;">민감정보(아동 건강·치료기록) 수집·이용에 동의합니다 <b style="color:#ef4444;">(필수)</b></label>
+        </div>
+
         <button class="login-btn-pri" id="signupSubmitBtn" onclick="doSignup()">✨ 가입하기</button>
         <div id="signupError" class="login-error" role="alert"></div>
 
@@ -1147,6 +1152,11 @@
           <div style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;font-size:12px;color:var(--text2);line-height:1.5;">
             <input type="checkbox" id="parentSignupAgree" style="margin-top:2px;width:17px;height:17px;flex:none;cursor:pointer;">
             <label for="parentSignupAgree" style="cursor:pointer;"><a href="terms.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">이용약관</a> 및 <a href="privacy.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">개인정보 수집·이용</a>에 동의합니다 <b style="color:#ef4444;">(필수)</b></label>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;font-size:12px;color:var(--text2);line-height:1.5;">
+            <input type="checkbox" id="parentSignupAgreeSensitive" style="margin-top:2px;width:17px;height:17px;flex:none;cursor:pointer;">
+            <label for="parentSignupAgreeSensitive" style="cursor:pointer;">민감정보(아동 건강·치료기록) 수집·이용에 동의합니다 <b style="color:#ef4444;">(필수)</b></label>
           </div>
 
           <button class="login-btn-pri" id="parentSignupBtn" onclick="parentSignup()">✨ 가입 완료</button>
@@ -2190,6 +2200,13 @@
 
     <!-- 📝 관찰기록 전송 섹션 -->
     <div id="parentObsSection" style="margin-top:12px;"></div>
+
+    <!-- 🔐 내 정보·자녀 데이터 권리 (PIPA: 열람/삭제 요청 진입점) -->
+    <div style="margin-top:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">🔐 내 정보·자녀 데이터 권리</div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">개인정보 보호법에 따라 내 정보와 자녀 데이터의 <b>열람·정정·삭제</b>를 요청하실 수 있습니다.</p>
+      <button class="btn btn-primary" style="font-size:13px;" onclick="openParentDataRequest()">📩 데이터 열람·삭제 요청하기</button>
+    </div>
   </div>
 </div>
 

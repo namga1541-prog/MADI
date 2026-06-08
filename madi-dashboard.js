@@ -137,8 +137,16 @@ function renderDashboardTeacher() {
   var weekSched = mySched.filter(function(s){ return s.date >= monStr && s.date <= sunStr; });
   var weekSchedDue = weekSched.filter(function(s){ return s.date <= todayStr; }); // 오늘까지 도래한 일정
   var weekSchedFuture = weekSched.length - weekSchedDue.length;
+  // 세션 1건이 일정 1건만 소비하도록 매칭 — 같은 날 동일아동 2회 일정이 세션 1건으로 둘 다
+  //   작성됨 처리되어 작성률이 과대평가되던 문제 방지
+  var _doneConsumed = {};
   var weekDone = weekSchedDue.filter(function(s){
-    return _sessions.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+    for (var di = 0; di < _sessions.length; di++) {
+      var ss = _sessions[di];
+      if (_doneConsumed[di]) continue;
+      if (ss.childId === s.childId && ss.date === s.date) { _doneConsumed[di] = true; return true; }
+    }
+    return false;
   }).length;
   var weekPending = weekSchedDue.length - weekDone;
   var weekRatePct = weekSchedDue.length > 0 ? Math.round(weekDone / weekSchedDue.length * 100) : null;

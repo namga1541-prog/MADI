@@ -134,6 +134,11 @@ function openChildRegModal() {
     + '<div class="form-group"><label class="form-label">메모</label>'
     + '<textarea class="form-input" id="m_childMemo" placeholder="특이사항, 가정환경 등" style="min-height:60px;"></textarea></div>'
 
+    + '<div class="form-group" style="margin-top:4px;"><label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#475569;cursor:pointer;line-height:1.5;">'
+    + '<input type="checkbox" id="m_childGuardianConsent" style="margin-top:2px;flex-shrink:0;">'
+    + '<span>아동의 법정대리인(보호자)으로부터 개인정보·민감정보(건강·치료기록) 수집·이용 동의를 받았습니다 <span style="color:#ef4444;font-weight:700;">(필수)</span></span>'
+    + '</label></div>'
+
     + '<button class="btn btn-primary" style="margin-top:4px;" onclick="addChildFromModal()">✅ 등록 완료</button>'
     + '</div>';
 
@@ -161,10 +166,12 @@ function addChildFromModal() {
   var phone  = (document.getElementById('m_childPhone')||{}).value.trim();
   var status = (document.getElementById('m_childStatus')||{}).value || '등록';
   var memo   = (document.getElementById('m_childMemo')||{}).value.trim();
+  var guardianConsent = !!((document.getElementById('m_childGuardianConsent')||{}).checked);
 
   if (!name)  { showToast('이름을 입력해주세요.'); return; }
   if (name.length > 20) { showToast('⚠️ 이름은 20자 이내로 입력해 주세요.'); return; }
   if (!birth) { showToast('생년월일을 입력해주세요.'); return; }
+  if (!guardianConsent) { showToast('⚠️ 보호자 동의 확인에 체크해 주세요'); return; }
 
   if (_addChildLock) return;
   _addChildLock = true;
@@ -172,6 +179,7 @@ function addChildFromModal() {
 
   var newChild = { id: generateClientId(), name:name, birth:birth, age:age, type:type,
     phone:phone, goals:[], memo:memo, status:status, startDate:'', voucherLimit:0,
+    guardianConsentAt: new Date().toISOString(),
     color:CHILD_COLORS[childDB.length % CHILD_COLORS.length] };
   childDB.push(newChild);
   var _saveP = saveOneChild(newChild);
