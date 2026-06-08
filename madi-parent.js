@@ -183,10 +183,10 @@ function showStagnationAlert(childName, stagnatedGoals, childId) {
     + '</div>'
     + '<div style="display:flex;gap:6px;">'
     + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;color:#b45309;border-color:#fed7aa;" '
-    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(3);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=\'' + escHtml(String(childId)) + '\';renderChart();}},200);">'
+    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(3);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=\'' + jsArg(String(childId)) + '\';renderChart();}},200);">'
     + '📊 추이 차트 보기</button>'
     + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;color:#8b5cf6;border-color:#ddd6fe;" '
-    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(3);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=\'' + escHtml(String(childId)) + '\';renderChart();detectStagnation();}},200);">'
+    + 'onclick="document.getElementById(\'stagAlertCard\').remove();switchTab(3);switchPortfolioTab(\'trend\');setTimeout(function(){var el=document.getElementById(\'chartChild\');if(el){el.value=\'' + jsArg(String(childId)) + '\';renderChart();detectStagnation();}},200);">'
     + '🔍 정체 분석 실행</button>'
     + '</div>'
     + '</div>'
@@ -573,10 +573,10 @@ function renderPortfolioHistory(childId) {
           +   '<div style="font-size:13px;font-weight:700;color:var(--text);">📁 ' + escHtml(r.month || '') + ' 포트폴리오 ' + tag + '</div>'
           +   '<div style="font-size:11px;color:var(--text2);margin-top:3px;">생성 ' + escHtml(createdShort) + byTxt + '</div>'
           + '</div>'
-          + '<button onclick="togglePortfolioVisibility(\'' + escHtml(String(r.id)) + '\',' + (visible ? 'false' : 'true') + ')" '
+          + '<button onclick="togglePortfolioVisibility(\'' + jsArg(String(r.id)) + '\',' + (visible ? 'false' : 'true') + ')" '
           +   'style="background:' + btnBg + ';color:' + btnCol + ';border:none;border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">'
           +   btnLabel + '</button>'
-          + '<button onclick="deletePortfolio(\'' + escHtml(String(r.id)) + '\')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">🗑️</button>'
+          + '<button onclick="deletePortfolio(\'' + jsArg(String(r.id)) + '\')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">🗑️</button>'
           + '</div>';
       }).join('');
     })
@@ -621,7 +621,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
       +   '<div style="font-size:11px;color:var(--text2);margin-top:3px;line-height:1.55;">기본 <b>비공개</b>입니다. 선생님이 검토 후 직접 공개해야 학부모가 열람할 수 있어요.</div>'
       + '</div>'
       + '<button id="portfolioVisToggleBtn" data-visible="' + (visible ? '1' : '0') + '" '
-      +   'onclick="togglePortfolioVisibility(\'' + escHtml(String(savedRow.id)) + '\', this.dataset.visible !== \'1\')" '
+      +   'onclick="togglePortfolioVisibility(\'' + jsArg(String(savedRow.id)) + '\', this.dataset.visible !== \'1\')" '
       +   'style="background:' + btnBg + ';color:' + btnCol + ';border:none;border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;">'
       +   btnLabel + '</button>'
       + '</div>';
@@ -706,7 +706,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
   if (p.professionalNote) fullText += '【전문 메모】\n' + p.professionalNote;
 
   html += '<div style="display:none;" id="portfolioFullText">' + escHtml(fullText) + '</div>';
-  html += '<button class="pdf-btn" onclick="downloadPDF(\'' + escHtml(child.name) + '_' + escHtml(String(month)) + '\',\'portfolioFullText\',\'' + escHtml(child.name) + ' 월간 포트폴리오 (' + escHtml(String(month)) + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
+  html += '<button class="pdf-btn" onclick="downloadPDF(\'' + jsArg(child.name) + '_' + escHtml(String(month)) + '\',\'portfolioFullText\',\'' + jsArg(child.name) + ' 월간 포트폴리오 (' + escHtml(String(month)) + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
 
   var portfolioResultEl = document.getElementById('portfolioResult');
   // eslint-disable-next-line no-unsanitized/property

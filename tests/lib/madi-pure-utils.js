@@ -71,6 +71,19 @@
     return String(text).split('○○').join(realName);
   }
 
+  // ── escJs / jsArg (madi-core.js 실제 구현 복사) ──────────────────
+  // 인라인 핸들러 JS 인자용. madi-core.js 수정 시 함께 갱신.
+  function escJs(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g,  "\\'")
+      .replace(/"/g,  '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r');
+  }
+  function jsArg(str) { return escHtml(escJs(str)); }
+
   // ── formatAge (madi-01.js 에 없는 함수 — 이 파일에서 정의) ──────────
   // 개월 수(정수)를 'N세 M개월' 형식의 한국어 문자열로 변환한다.
   // 예: formatAge(26) → '2세 2개월'
@@ -94,6 +107,8 @@
     getMonthKST: getMonthKST,
     fmtDateKR:   fmtDateKR,
     formatAge:   formatAge,
-    restoreName: restoreName
+    restoreName: restoreName,
+    escJs:       escJs,
+    jsArg:       jsArg
   };
 });

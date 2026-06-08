@@ -366,7 +366,7 @@ function renderWeekGrid() {
           var items = cells.map(function(s) {
             var child = childById[s.childId];
             var time  = (s.startTime||s.time||'').slice(0,5);
-            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">'
+            return '<div style="font-size:11px;cursor:pointer;line-height:1.3;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + jsArg(String(s.id)) + '\')">'
               + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '')
               + '<span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span></div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
@@ -437,7 +437,7 @@ function renderDayGrid() {
         var time = (s.startTime || s.time || '').slice(0, 5);
         var type = escHtml(s.type || '언어재활');
         var border = idx < scheds.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
-        html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;' + border + 'background:white;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">'
+        html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;' + border + 'background:white;" onclick="openEditSchedModal(\'' + jsArg(String(s.id)) + '\')">'
           + '<div style="font-size:12px;color:var(--text2);min-width:40px;font-weight:600;font-variant-numeric:tabular-nums;">' + time + '</div>'
           + '<div style="width:3px;height:36px;border-radius:2px;background:' + color + ';flex-shrink:0;"></div>'
           + '<div style="flex:1;min-width:0;">'
@@ -511,7 +511,7 @@ function renderDayGrid() {
           var items = cell.map(function(s) {
             var child = childById[s.childId];
             var type = escHtml(s.type || '');
-            return '<div style="cursor:pointer;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')"><span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
+            return '<div style="cursor:pointer;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + jsArg(String(s.id)) + '\')"><span style="font-weight:700;">' + escHtml(child ? child.name : '?') + '</span>' + (type ? '<br><span style="color:#64748b;font-size:10px;">' + type + '</span>' : '') + '</div>';
           }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
           html += '<td style="padding:5px 8px;border:1px solid #e2e8f0;background:' + color + '15;vertical-align:top;">' + items + '</td>';
         }
@@ -761,10 +761,10 @@ function openEditSchedModal(id) {
     + '<div class="form-group"><label class="form-label">담당 선생님</label><select class="form-input" id="editSchedTeacher">' + buildTeacherOptions(s.teacher||'') + '</select></div>'
     + '<div class="form-group"><label class="form-label">메모</label><textarea class="form-input" id="editSchedNote" style="min-height:60px;">' + escHtml(s.note||'') + '</textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:8px;">'
-    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + escHtml(String(id)) + '\')">📝 회기기록</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:var(--blue);border-color:var(--blue);" onclick="goToSessionFromSched(\'' + jsArg(String(id)) + '\')">📝 회기기록</button>'
     + (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')
-      ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(\'' + escHtml(String(id)) + '\')">💾 수정</button>'
-      + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + escHtml(String(id)) + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
+      ? '<button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="saveEditSched(\'' + jsArg(String(id)) + '\')">💾 수정</button>'
+      + '<button class="btn-del" style="flex:0.6;padding:11px 10px;font-size:13px;" onclick="confirmSchedDelete(\'' + jsArg(String(id)) + '\',' + (hasGroup?1:0) + ')">🗑️ 삭제</button>' : '')
     + '</div></div>';
   document.body.appendChild(overlay);
   if (typeof attachModalA11y === 'function') {
@@ -848,7 +848,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
           var t = s.therapist || s.teacher || '';
           var tcolor = getTeacherColor(t);
           var time = (s.startTime||s.time||'').slice(0,5);
-          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + escHtml(String(s.id)) + '\')">' + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '') + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">' + escHtml(t) + '</span></div>';
+          return '<div style="font-size:11px;cursor:pointer;line-height:1.4;padding:6px 2px;min-height:44px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;" onclick="openEditSchedModal(\'' + jsArg(String(s.id)) + '\')">' + (time ? '<span style="color:var(--text2);font-size:10px;">' + time + '</span><br>' : '') + '<span style="font-weight:700;color:' + tcolor + ';background:' + tcolor + '15;border-radius:4px;padding:0 4px;">' + escHtml(t) + '</span></div>';
         }).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:2px 0;">');
         var bgStyle = daySched.length >= 2 ? 'background:#fff7ed;border:1px solid #fed7aa;' : 'border:1px solid #e2e8f0;';
         html += '<td style="padding:4px 5px;' + bgStyle + 'vertical-align:top;">' + items + '</td>';
@@ -883,7 +883,7 @@ function confirmSchedDelete(id, hasGroup) {
     + '<label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;"><input type="radio" name="delOpt" value="future" style="accent-color:var(--mint);width:16px;height:16px;"> <div><div style="font-weight:700;font-size:14px;">이후 반복일정포함</div></div></label>'
     + '</div><div style="display:flex;gap:8px;">'
     + '<button class="btn-ghost" style="flex:1;" onclick="document.getElementById(\'delSchedOverlay\').remove();document.removeEventListener(\'keydown\',window._delEsc);window._delEsc=null;">아니요</button>'
-    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + escHtml(String(id)) + '\')">네, 삭제하겠습니다</button>'
+    + '<button class="btn btn-primary" style="flex:1;margin-top:0;background:#ef4444;border-color:#ef4444;" onclick="execSchedDeleteChoice(\'' + jsArg(String(id)) + '\')">네, 삭제하겠습니다</button>'
     + '</div></div>';
   document.body.appendChild(delOv);
   window._delEsc = function(e) {

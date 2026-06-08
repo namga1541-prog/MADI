@@ -505,10 +505,10 @@ function renderBackupList() {
         + '세션 ' + escHtml(String(b.counts ? b.counts.sessions : '?')) + ' · '
         + escHtml(String(sizeKB)) + 'KB</div>'
         + '</div>'
-        + '<button class="btn-del" onclick="deleteBackupConfirm(\'' + escHtml(String(b.id)) + '\')">삭제</button>'
+        + '<button class="btn-del" onclick="deleteBackupConfirm(\'' + jsArg(String(b.id)) + '\')">삭제</button>'
         + '</div>'
         + '<button class="btn-ghost" style="width:100%;font-size:12px;padding:6px 4px;color:var(--mint);border-color:#a7f3d0;" '
-        + 'onclick="restoreFromBackup(\'' + escHtml(String(b.id)) + '\')">↻ 이 백업으로 복원</button>'
+        + 'onclick="restoreFromBackup(\'' + jsArg(String(b.id)) + '\')">↻ 이 백업으로 복원</button>'
         + '</div>';
     }).join('');
     // eslint-disable-next-line no-unsanitized/property

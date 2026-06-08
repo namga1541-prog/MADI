@@ -319,8 +319,8 @@ function renderSessionList() {
       + '<span style="font-size:15px;font-weight:700;color:' + safeCColor + ';">' + escHtml(cName) + '</span>'
       + '<div style="display:flex;align-items:center;gap:6px;">'
       + '<span style="font-size:12px;color:#64748b;">📅 ' + s.date + '</span>'
-      + '<button class="btn-ghost" style="padding:7px 10px;font-size:11px;" onclick="editSessionDate(\'' + escHtml(String(s.id)) + '\')">✏️</button>'
-      + (canDo('deleteSession') ? '<button class="btn-del" style="padding:7px 12px;font-size:11px;" onclick="deleteSession(\'' + escHtml(String(s.id)) + '\')">삭제</button>' : '')
+      + '<button class="btn-ghost" style="padding:7px 10px;font-size:11px;" onclick="editSessionDate(\'' + jsArg(String(s.id)) + '\')">✏️</button>'
+      + (canDo('deleteSession') ? '<button class="btn-del" style="padding:7px 12px;font-size:11px;" onclick="deleteSession(\'' + jsArg(String(s.id)) + '\')">삭제</button>' : '')
       + '</div></div>'
       // 목표 달성도
       + goalHtml
@@ -631,7 +631,7 @@ function renderPhonemeChart(childId) {
     // eslint-disable-next-line no-unsanitized/property
     filterEl.innerHTML = allPhonemes.map(function(p) {
       var active = _selectedPhonemes.indexOf(p) > -1;
-      return '<span onclick="togglePhonemeFilter(\'' + escHtml(p) + '\')" '
+      return '<span onclick="togglePhonemeFilter(\'' + jsArg(p) + '\')" '
         + 'style="font-size:12px;padding:4px 10px;border-radius:20px;cursor:pointer;font-weight:700;'
         + 'background:' + escHtml(active ? '#db2777' : '#f1f5f9') + ';'
         + 'color:' + escHtml(active ? 'white' : '#94a3b8') + ';'

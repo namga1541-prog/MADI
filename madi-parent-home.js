@@ -776,7 +776,7 @@ function _renderParentHomeActivities() {
       +     '<span>' + escHtml(a.desc) + '</span>'
       +   '</div>'
       +   '<div class="dp-p-act-check ' + (isDone ? 'done' : '') + '" role="checkbox" tabindex="0" aria-checked="' + (isDone ? 'true' : 'false') + '" aria-label="' + escHtml(a.title) + ' 완료 표시" data-act-idx="' + i + '" '
-      +     'onclick="_toggleParentActivity(this, \'' + escHtml(storeKey) + '\', ' + i + ')" '
+      +     'onclick="_toggleParentActivity(this, \'' + jsArg(storeKey) + '\', ' + i + ')" '
       +     'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">' + (isDone ? '✓' : '') + '</div>'
       + '</div>';
   }).join('')

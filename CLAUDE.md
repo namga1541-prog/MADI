@@ -107,7 +107,10 @@
 - **AI 다중 아동 가명화**: 외부 LLM 에 여러 아동을 보낼 땐 반드시 `madiNameMasker(children)`(madi-pii.js) 경유 — `mask`/`restore` 왕복. 가명화 로직 복붙 금지(보안 불변식 SSOT). 단일 아동은 `aliasName()`/`restoreName()`(madi-core.js).
 
 ### 보안
-- 모든 사용자 입력은 `escHtml()` 처리
+- 모든 사용자 입력은 `escHtml()` 처리 (HTML/속성 맥락)
+- **인라인 핸들러 JS 인자는 `escHtml`이 아니라 `jsArg()`** — `onclick="fn('" + jsArg(x) + "')"`.
+  · 이유: `escHtml`만 쓰면 HTML 파서가 `&#39;`를 `'`로 디코딩해 JS 문자열을 탈출하는 **저장형 XSS**가 가능(브라우저 실증·smoke 박제). `jsArg`=`escHtml(escJs(x))`로 JS·HTML 두 맥락을 모두 차단.
+  · 신규 코드는 인라인 핸들러보다 **`data-action` 위임** 권장(JS 문자열 맥락 자체 제거).
 - 서버 필터링은 Edge Function에서 수행 — 클라이언트 필터만으로 보안 불가
 - RLS 정책이 있으므로 DB 직접 접근 주의
 

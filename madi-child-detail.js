@@ -107,7 +107,7 @@ function initPhonemeChips() {
   // eslint-disable-next-line no-unsanitized/property
   el.innerHTML = COMMON_PHONEMES.map(function(p) {
     return '<span class="phoneme-chip' + (phonemeData[p] ? ' added' : '') + '" '
-      + 'id="chip_' + escHtml(p) + '" onclick="addPhonemeRow(\'' + escHtml(p) + '\')">' + escHtml(p) + '</span>';
+      + 'id="chip_' + escHtml(p) + '" onclick="addPhonemeRow(\'' + jsArg(p) + '\')">' + escHtml(p) + '</span>';
   }).join('');
 }
 
@@ -148,7 +148,7 @@ function addPhonemeRow(phoneme) {
     + makePhonemeCell(phoneme, 'initial')
     + makePhonemeCell(phoneme, 'medial')
     + makePhonemeCell(phoneme, 'final')
-    + '<button onclick="removePhonemeRow(\'' + escHtml(phoneme) + '\')" '
+    + '<button onclick="removePhonemeRow(\'' + jsArg(phoneme) + '\')" '
     + 'style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:0;line-height:1;">×</button>';
 
   var phonemeRowsEl = document.getElementById('phonemeRows');
@@ -167,7 +167,7 @@ function makePhonemeCell(phoneme, pos) {
   return '<input class="phoneme-input' + getPhonemeClass(val) + '" '
     + 'type="number" min="0" max="100" placeholder="—" '
     + 'value="' + (val !== '' && val !== null && val !== undefined ? val : '') + '" '
-    + 'oninput="onPhonemeInput(this,\'' + escHtml(phoneme) + '\',\'' + escHtml(pos) + '\')">';
+    + 'oninput="onPhonemeInput(this,\'' + jsArg(phoneme) + '\',\'' + jsArg(pos) + '\')">';
 }
 
 function getPhonemeClass(val) {

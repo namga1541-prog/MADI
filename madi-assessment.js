@@ -823,7 +823,7 @@ function renderAssessmentList() {
       + '<span class="test-date">📅 ' + escHtml(a.date) + '</span></div>'
       + '<div style="font-size:12px;line-height:1.8;margin-top:6px;">' + formatAssessScores(a) + '</div>'
       + (a.memo ? '<div style="font-size:11px;color:var(--text2);margin-top:5px;">' + escHtml(a.memo) + '</div>' : '')
-      + '<button class="btn-del" style="margin-top:8px;" onclick="deleteAssessment(\'' + escHtml(String(a.id || '')) + '\')">삭제</button>'
+      + '<button class="btn-del" style="margin-top:8px;" onclick="deleteAssessment(\'' + jsArg(String(a.id || '')) + '\')">삭제</button>'
       + '</div>';
   });
   // eslint-disable-next-line no-unsanitized/property
@@ -1077,7 +1077,7 @@ function generateParentEdu() {
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'parent');
       raw = restoreName(raw, child.name);  // 가명 ○○ → 실명 복원 (H1)
       result.innerHTML = '<div class="parent-edu-preview" id="eduText">' + escHtml(raw) + '</div>'
-        + '<button class="print-btn" onclick="printParentEdu(\'' + escHtml(child.name) + '\')">🖨️ 인쇄하기</button>';
+        + '<button class="print-btn" onclick="printParentEdu(\'' + jsArg(child.name) + '\')">🖨️ 인쇄하기</button>';
     })
     .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🖨️ 부모 교육 자료 생성'; })
     .catch(function(err) {

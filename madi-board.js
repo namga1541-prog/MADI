@@ -211,10 +211,10 @@ function renderInquiryCard(post, user) {
   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 
   var editBtn = isMine
-    ? '<button class="btn-ghost" style="font-size:11px;color:#0c4a6e;border-color:#38bdf8;padding:4px 10px;flex-shrink:0;" onclick="editLoungePost(\'' + escHtml(String(post.id)) + '\')">✏️ 수정</button>'
+    ? '<button class="btn-ghost" style="font-size:11px;color:#0c4a6e;border-color:#38bdf8;padding:4px 10px;flex-shrink:0;" onclick="editLoungePost(\'' + jsArg(String(post.id)) + '\')">✏️ 수정</button>'
     : '';
   var deleteBtn = canDelete
-    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(\'' + escHtml(String(post.id)) + '\')">삭제</button>'
+    ? '<button class="btn-ghost" style="font-size:11px;color:#ef4444;border-color:#ef4444;padding:4px 10px;flex-shrink:0;" onclick="deleteLoungePost(\'' + jsArg(String(post.id)) + '\')">삭제</button>'
     : '';
 
   return '<div class="card" style="border-left:4px solid ' + toColor + ';margin-bottom:4px;">'
@@ -241,7 +241,7 @@ function renderInquiryCard(post, user) {
     + (post.image_urls && post.image_urls.length ? renderImageThumbs(post.image_urls) : '')
     // 댓글 (답변)
     + '<div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:4px;">'
-    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + toColor + ';border-color:' + toColor + ';" onclick="toggleComments(\'' + escHtml(String(post.id)) + '\')">💬 답변 <span id="commentCount_' + escHtml(String(post.id)) + '"></span></button>'
+    +   '<button class="btn-ghost" style="font-size:12px;padding:5px 12px;color:' + toColor + ';border-color:' + toColor + ';" onclick="toggleComments(\'' + jsArg(String(post.id)) + '\')">💬 답변 <span id="commentCount_' + escHtml(String(post.id)) + '"></span></button>'
     +   '<div id="commentArea_' + escHtml(String(post.id)) + '" style="display:none;margin-top:10px;"></div>'
     + '</div>'
     + '</div>';
@@ -402,7 +402,7 @@ function renderComments(postId) {
           +   '<div style="font-size:11px;color:var(--text2);">'
           +     '<span style="font-weight:600;color:var(--text);">' + roleBadge + ' ' + escHtml(c.author_name || '익명') + '</span> · ' + when
           +   '</div>'
-          + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(\'' + escHtml(String(postId)) + '\',\'' + escHtml(String(c.id)) + '\')">🗑️</button>' : '')
+          + (canDelete ? '<button class="btn-ghost" style="font-size:10px;color:#ef4444;border-color:#ef4444;padding:2px 8px;" onclick="deleteComment(\'' + jsArg(String(postId)) + '\',\'' + jsArg(String(c.id)) + '\')">🗑️</button>' : '')
           + '</div>'
           + '<div style="font-size:13px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + escHtml(c.content) + '</div>'
         + (c.image_url && /^https?:\/\//.test(c.image_url) ? '<a href="' + escHtml(c.image_url) + '" target="_blank" rel="noopener">'
@@ -415,11 +415,11 @@ function renderComments(postId) {
   // 작성 폼
   var formHtml = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">'
     + '<div style="display:flex;gap:6px;">'
-    + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeydown="if(event.key===\'Enter\'&&!event.isComposing) saveComment(\'' + escHtml(String(postId)) + '\')">'
-    + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(\'' + escHtml(String(postId)) + '\')">📝 등록</button>'
+    + '<input type="text" id="newComment_' + postId + '" class="form-input" placeholder="댓글을 입력하세요..." style="flex:1;font-size:13px;" onkeydown="if(event.key===\'Enter\'&&!event.isComposing) saveComment(\'' + jsArg(String(postId)) + '\')">'
+    + '<button class="btn btn-primary" style="margin-top:0;font-size:13px;padding:8px 14px;white-space:nowrap;" onclick="saveComment(\'' + jsArg(String(postId)) + '\')">📝 등록</button>'
     + '</div>'
     + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;">'
-    + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(\'' + escHtml(String(postId)) + '\',this)"></label>'
+    + '📎 이미지 <input type="file" accept="image/*" style="font-size:11px;" onchange="onCommentImageChange(\'' + jsArg(String(postId)) + '\',this)"></label>'
     + '</div>';
 
   // eslint-disable-next-line no-unsanitized/property
@@ -563,7 +563,7 @@ function _renderLibraryUI(posts) {
   var catHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">'
     + '<button onclick="setLibCat(\'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===''?'var(--mint)':'var(--border)')+';background:'+(activeCat===''?'var(--mint)':'var(--card)')+';color:'+(activeCat===''?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">전체</button>'
     + LIBRARY_CATEGORIES.map(function(c) {
-        return '<button onclick="setLibCat(\''+escHtml(c).replace(/'/g, '&#39;')+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+escHtml(c)+'</button>';
+        return '<button onclick="setLibCat(\''+jsArg(c).replace(/'/g, '&#39;')+'\')" style="padding:5px 12px;border-radius:20px;border:2px solid '+(activeCat===c?'var(--mint)':'var(--border)')+';background:'+(activeCat===c?'var(--mint)':'var(--card)')+';color:'+(activeCat===c?'white':'var(--text2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+escHtml(c)+'</button>';
       }).join('')
     + '</div>';
 
@@ -607,10 +607,10 @@ function _renderLibraryUI(posts) {
       }
       var dt = p.created_at ? new Date(p.created_at).toLocaleDateString('ko-KR') : '';
       var editBtn = isMine
-        ? '<button onclick="editLibraryPost(\''+escHtml(String(p.id))+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #38bdf8;background:#e0f2fe;color:#0c4a6e;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>'
+        ? '<button onclick="editLibraryPost(\''+jsArg(String(p.id))+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #38bdf8;background:#e0f2fe;color:#0c4a6e;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>'
         : '';
       var delBtn = canDel
-        ? '<button onclick="deleteLibraryPost(\''+escHtml(String(p.id))+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>'
+        ? '<button onclick="deleteLibraryPost(\''+jsArg(String(p.id))+'\')" style="flex-shrink:0;padding:4px 10px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>'
         : '';
       return '<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);">'
         + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'

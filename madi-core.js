@@ -33,6 +33,22 @@ function escHtml(str) {
     .replace(/"/g,  '&quot;')
     .replace(/'/g,  '&#39;');
 }
+// JS 문자열 리터럴 이스케이프 — 백슬래시·따옴표·개행을 무력화.
+function escJs(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g,  "\\'")
+    .replace(/"/g,  '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+}
+// 인라인 이벤트 핸들러 JS 인자 전용 — onclick="fn('<여기>')" 처럼
+//   "HTML 속성 안의 JS 문자열" 맥락에 사용자 값을 넣을 때 반드시 이 함수를 쓴다.
+//   escHtml 만 쓰면 HTML 파서가 &#39; 를 ' 로 디코딩해 JS 문자열을 깨고 나오는 저장형 XSS 가 가능
+//   (브라우저 실증됨). escHtml(escJs(x)) 로 JS·HTML 두 맥락을 모두 막는다.
+//   ※ 신규 코드는 인라인 핸들러 대신 data-action 위임(파일 하단) 권장 — JS 문자열 맥락 자체를 없앤다.
+function jsArg(str) { return escHtml(escJs(str)); }
 
 /* ── KST(UTC+9) 날짜 유틸: 실행 환경 타임존과 무관하게 동작 ── */
 function toKST(d)      { return new Date(d.getTime() + d.getTimezoneOffset() * 60000 + 9 * 3600000); }

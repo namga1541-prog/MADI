@@ -71,7 +71,7 @@ function renderReport(p, name) {
     + '<div class="card">'
     + '<div class="card-title"><div class="card-title-left">📄 전문 보고서</div></div>'
     + '<div class="report-box" id="reportText">' + escHtml(r) + '</div>'
-    + '<button class="pdf-btn" onclick="downloadPDF(\'' + escHtml(name) + '\',\'reportText\',\'언어치료 경과 보고서\')">⬇️ PDF 다운로드</button>'
+    + '<button class="pdf-btn" onclick="downloadPDF(\'' + jsArg(name) + '\',\'reportText\',\'언어치료 경과 보고서\')">⬇️ PDF 다운로드</button>'
     + '</div>';
   // eslint-disable-next-line no-unsanitized/property
   document.getElementById('reportResult').innerHTML = html;
@@ -431,7 +431,7 @@ function renderIEP(p, childName) {
 
     // 버튼
     + '<div style="display:flex;gap:8px;margin-top:14px;">'
-    + '<button class="btn btn-purple" style="flex:1;" onclick="downloadIEPPDF(\'' + escHtml(childName) + '\')">🖨️ PDF 출력</button>'
+    + '<button class="btn btn-purple" style="flex:1;" onclick="downloadIEPPDF(\'' + jsArg(childName) + '\')">🖨️ PDF 출력</button>'
     + '<button class="btn-ghost" style="flex:0.5;" onclick="document.getElementById(\'iepResult\').innerHTML=\'\'">닫기</button>'
     + '</div>'
     + '</div>';
@@ -492,11 +492,11 @@ function renderIEPHistory(childId) {
       + '<div style="font-size:11px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
       + (goals ? escHtml(goals) : '—') + '</div>'
       + '</div>'
-      + '<button class="btn-del" onclick="deleteIEPRecord(\'' + escHtml(String(r.id || '')) + '\')">삭제</button>'
+      + '<button class="btn-del" onclick="deleteIEPRecord(\'' + jsArg(String(r.id || '')) + '\')">삭제</button>'
       + '</div>'
       + '<div style="display:flex;gap:6px;">'
-      + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;" onclick="loadIEPRecord(\'' + escHtml(String(r.id || '')) + '\')">📂 불러오기</button>'
-      + '<button class="btn-ghost" style="flex:0.5;font-size:12px;padding:7px 4px;" onclick="downloadIEPPDFById(\'' + escHtml(String(r.id || '')) + '\')">🖨️ PDF</button>'
+      + '<button class="btn-ghost" style="flex:1;font-size:12px;padding:7px 4px;" onclick="loadIEPRecord(\'' + jsArg(String(r.id || '')) + '\')">📂 불러오기</button>'
+      + '<button class="btn-ghost" style="flex:0.5;font-size:12px;padding:7px 4px;" onclick="downloadIEPPDFById(\'' + jsArg(String(r.id || '')) + '\')">🖨️ PDF</button>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -554,7 +554,7 @@ function renderIEPView(p, childName) {
     + '</div></div>'
     + ((p.therapistNote || p.notes) ? '<div style="background:#fffbeb;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.7;">📝 <strong>치료사 참고:</strong> ' + escHtml(p.therapistNote || p.notes) + '</div>' : '')
     + '<div style="display:flex;gap:8px;margin-top:14px;">'
-    + '<button class="btn btn-purple" style="flex:1;" onclick="downloadIEPPDF(\'' + escHtml(childName) + '\')">🖨️ PDF 출력</button>'
+    + '<button class="btn btn-purple" style="flex:1;" onclick="downloadIEPPDF(\'' + jsArg(childName) + '\')">🖨️ PDF 출력</button>'
     + '<button class="btn-ghost" style="flex:0.5;" onclick="document.getElementById(\'iepResult\').innerHTML=\'\'">닫기</button>'
     + '</div></div>';
   var iepViewEl = document.getElementById('iepResult');

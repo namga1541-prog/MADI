@@ -19,6 +19,8 @@ module.exports = {
     supaFetch: 'readonly',
     supaCache: 'readonly',
     escHtml: 'readonly',
+    escJs: 'readonly',
+    jsArg: 'readonly',
     showToast: 'readonly',
     canDo: 'readonly',
     SUPA_URL: 'readonly',
@@ -59,8 +61,8 @@ module.exports = {
       'error',
       {
         escape: {
-          // escHtml()로 래핑된 값은 안전하다고 간주
-          methods: ['escHtml'],
+          // escHtml()·jsArg()(=escHtml∘escJs, 인라인 핸들러 인자용)로 래핑된 값은 안전하다고 간주
+          methods: ['escHtml', 'jsArg'],
         },
       },
     ],
@@ -69,7 +71,7 @@ module.exports = {
       'error',
       {
         escape: {
-          methods: ['escHtml'],
+          methods: ['escHtml', 'jsArg'],
         },
       },
     ],

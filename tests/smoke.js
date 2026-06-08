@@ -43,6 +43,9 @@ var restoreName = _utils ? _utils.restoreName : function(text, realName) {
 // 다중 아동 인덱스 마스커 SSOT (madi-pii.js) — parent·chat 공용. 폴백 없음(실패 시 테스트 skip).
 var madiNameMasker; try { madiNameMasker = require('../madi-pii.js').madiNameMasker; } catch (e) { madiNameMasker = null; }
 
+// 인라인 핸들러 JS 인자 이스케이프 (madi-core.js / madi-pure-utils.js)
+var jsArg = _utils ? _utils.jsArg : function(s) { return String(s); };
+
 var passed = 0, failed = 0;
 
 function assert(label, condition) {
@@ -216,6 +219,15 @@ if (!madiNameMasker) {
   assertEq('mask null 안전', _mk.mask(null), null);
   assertEq('restore null 안전', _mk.restore(null), null);
 }
+
+section('인라인 핸들러 XSS 차단 (jsArg, 저장형 XSS 박제)');
+// escHtml 만으로는 HTML 파서가 &#39;→' 디코딩해 JS 문자열 탈출 가능 → jsArg 로 백슬래시 이스케이프 추가.
+//   jsArg 출력은 디코딩돼도 \' (JS 이스케이프된 따옴표)라 onclick="fn('<jsArg>')" 를 깨지 못한다.
+assertEq("따옴표를 백슬래시+HTML 이중 이스케이프", jsArg("a'b"), "a\\&#39;b");
+assertEq('역슬래시 이스케이프(먼저)', jsArg('a\\b'), 'a\\\\b');
+assert('페이로드의 닫는 따옴표가 백슬래시로 무력화', jsArg("');alert(1);('").indexOf("\\&#39;") !== -1);
+assert('순수 텍스트는 안전 통과', jsArg('김민준') === '김민준');
+assertEq('null 안전', jsArg(null), '');
 
 section('저장 흐름: mapRow + 배치 분할 (lost-update 리팩토링 박제)');
 var _mr = defaultMapRow({ id: 'x1', date: '2026-06-05' }, 'ctr1');
