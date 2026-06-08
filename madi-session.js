@@ -561,14 +561,59 @@ function _execRestoreFromBackup(id, fullRestore) {
       iepDB        = backup.data.iep         || [];
       _optionsCacheKey = null;  // 성능: 캐시 무효화
       refreshChildAges();   // 백업 시점 age → 오늘 기준 갱신
-      // 로컬 저장
-      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
-      saveActivities(); saveIEP();
+      // 로컬 저장 + 서버 upsert (Promise<boolean> 반환). 완전 복원 시 upsert 완료 후 잉여행 삭제.
+      var saves = [saveChildren(), saveSessions(), saveSchedule(), saveAssess(), saveActivities(), saveIEP()];
       // 화면 갱신
       renderChildGrid(); populateChildSelects(); renderSessionList();
       if (typeof renderSchedView === 'function') renderSchedView();
-      showToast('✅ 백업 ' + id + ' 으로 복원 완료!');
-      setTimeout(function() { renderBackupList(); }, 500);
+
+      if (!fullRestore) {
+        showToast('✅ 백업 ' + id + ' 으로 복원(머지) 완료!');
+        setTimeout(function() { renderBackupList(); }, 500);
+        return;
+      }
+
+      // ── 완전 복원: 백업에 없는 서버 행을 center_id 범위에서 삭제 ──
+      showToast('📡 복원 적용 중... (잉여 데이터 정리)');
+      Promise.all(saves).then(function() {
+        return _deleteOrphanServerRows(backup.data);
+      }).then(function(report) {
+        if (!report) { // 산출 불가 — 삭제 생략, 머지로 안전 종료
+          showToast('✅ 백업 ' + id + ' 복원 완료 (잉여행 정리는 건너뜀)');
+          setTimeout(function() { renderBackupList(); }, 500);
+          return;
+        }
+        if (report.total === 0) {
+          showToast('✅ 백업 ' + id + ' 으로 완전 복원 완료! (삭제할 잉여 데이터 없음)');
+          setTimeout(function() { renderBackupList(); }, 500);
+          return;
+        }
+        // 삭제 건수 고지 + 최종 확인
+        var lines = report.perTable.filter(function(t){ return t.ids.length > 0; }).map(function(t) {
+          return '· ' + t.label + ': ' + t.ids.length + '건';
+        }).join('\n');
+        showConfirm(
+          '⚠️ 백업 이후 추가된 서버 데이터 ' + report.total + '건을 영구 삭제합니다.\n\n' + lines +
+          '\n\n이 작업은 되돌릴 수 없습니다. 진행하시겠습니까?',
+          function() {
+            _execOrphanDeletes(report.perTable).then(function(deleted) {
+              if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(true); // 서버 기준 재동기화
+              showToast('✅ 완전 복원 완료! (잉여 ' + deleted + '건 삭제)');
+              setTimeout(function() { renderBackupList(); }, 500);
+            }).catch(function(e) {
+              showToast('⚠️ 일부 삭제 실패 — ' + _userErrMsg(e, '잉여행 삭제') + ' (복원 내용은 적용됨)');
+            });
+          },
+          { danger: true, okLabel: '삭제하고 완전 복원', cancelLabel: '삭제 취소(머지로 종료)',
+            onCancel: function() {
+              showToast('✅ 백업 ' + id + ' 복원(머지) 완료 — 잉여행은 유지됨');
+              setTimeout(function() { renderBackupList(); }, 500);
+            } }
+        );
+      }).catch(function(e) {
+        showToast('⚠️ ' + _userErrMsg(e, '완전 복원') + ' (백업 내용은 적용됨)');
+        setTimeout(function() { renderBackupList(); }, 500);
+      });
     }
 
     // 무결성 검증
@@ -580,6 +625,79 @@ function _execRestoreFromBackup(id, fullRestore) {
     }
   }).catch(function(err) {
     showToast('❌ ' + _userErrMsg(err, '백업 복원'));
+  });
+}
+
+// 완전 복원 — 백업↔서버 테이블 매핑. 백업 키 / 서버 테이블 / 사용자 라벨.
+var _RESTORE_TABLES = [
+  { key: 'children',    table: 'madi_children',    label: '아동' },
+  { key: 'sessions',    table: 'madi_sessions',    label: '세션' },
+  { key: 'schedule',    table: 'madi_schedules',   label: '일정' },
+  { key: 'assessments', table: 'madi_assessments', label: '검사' },
+  { key: 'activities',  table: 'madi_activities',  label: '활동' },
+  { key: 'iep',         table: 'madi_iep_history', label: 'IEP' }
+];
+
+// 각 테이블에서 "현재 center 의 서버 id 집합 − 백업 id 집합" = 삭제 후보 id 목록 산출.
+//   삭제는 절대 자동 실행하지 않고 목록·건수만 반환(최종 확인은 호출부).
+//   ⚠️ 단일 center 로만 스코프: superadmin(전 센터) 또는 center_id 부재 시 null 반환(삭제 미수행).
+function _deleteOrphanServerRows(backupData) {
+  var cid = getCenterId();
+  if (!cid || (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'superadmin')) {
+    // 안전: 단일 center 스코프를 보장할 수 없으면 삭제 자체를 포기.
+    return Promise.resolve(null);
+  }
+  var scope = 'center_id=eq.' + encodeURIComponent(cid);
+  // 각 테이블의 서버 id 목록을 center 스코프로 조회.
+  var fetches = _RESTORE_TABLES.map(function(t) {
+    return _supaFetchAll(t.table + '?' + scope + '&select=id')
+      .then(function(rows) { return Array.isArray(rows) ? rows : []; });
+  });
+  return Promise.all(fetches).then(function(resultsArr) {
+    var perTable = [], total = 0;
+    _RESTORE_TABLES.forEach(function(t, idx) {
+      var serverRows = resultsArr[idx] || [];
+      var backupList = (backupData && backupData[t.key]) || [];
+      var backupIds = {};
+      backupList.forEach(function(r) { if (r && r.id != null) backupIds[String(r.id)] = true; });
+      var orphanIds = [];
+      serverRows.forEach(function(r) {
+        if (r && r.id != null && !backupIds[String(r.id)]) orphanIds.push(String(r.id));
+      });
+      perTable.push({ table: t.table, label: t.label, scope: scope, ids: orphanIds });
+      total += orphanIds.length;
+    });
+    return { perTable: perTable, total: total };
+  });
+}
+
+// 산출된 orphan id 들을 center_id 스코프 + id=in.(...) 로 DELETE.
+//   각 DELETE 는 반드시 center_id 조건을 동반(타 센터·전체삭제 방지). 100개씩 배치.
+//   하나라도 실패하면 reject(호출부에서 중단·안내).
+function _execOrphanDeletes(perTable) {
+  var cid = getCenterId();
+  if (!cid) return Promise.reject(new Error('center_id 없음 — 삭제 중단'));
+  var scope = 'center_id=eq.' + encodeURIComponent(cid);
+  var jobs = [];
+  perTable.forEach(function(t) {
+    if (!t.ids || t.ids.length === 0) return;
+    for (var i = 0; i < t.ids.length; i += 100) {
+      (function(batchTable, batchIds) {
+        jobs.push(function() {
+          var inList = batchIds.map(function(x) { return encodeURIComponent(x); }).join(',');
+          // 이중 안전장치: center_id 스코프를 항상 포함.
+          return supaFetch(batchTable + '?' + scope + '&id=in.(' + inList + ')', 'DELETE');
+        });
+      })(t.table, t.ids.slice(i, i + 100));
+    }
+  });
+  return jobs.reduce(function(p, job) {
+    return p.then(function() { return job(); });
+  }, Promise.resolve()).then(function() {
+    // 실제 삭제 건수 = 산출된 orphan id 총합(배치는 단지 분할 전송).
+    var actual = 0;
+    perTable.forEach(function(t) { actual += (t.ids ? t.ids.length : 0); });
+    return actual;
   });
 }
 

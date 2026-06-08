@@ -3,7 +3,7 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (177)
+## 전역 변수 (178)
 
 - `var AI_PROCESSING_NOTICE = '<div style="font-size:11px;color:var(--text2,#888);line-height` — madi-ai.js:2
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:415
@@ -161,6 +161,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var BACKUP_DB_NAME = 'madi_backup_db';` — madi-session.js:292
 - `var BACKUP_STORE = 'daily_backups';` — madi-session.js:293
 - `var BACKUP_KEEP = 7; // 7일치 보관` — madi-session.js:294
+- `var _RESTORE_TABLES = [` — madi-session.js:632
 - `var _permUserId = null;` — madi-system.js:2
 - `var _permData = {};` — madi-system.js:3
 - `var PERM_LIST = [` — madi-system.js:5
@@ -1048,7 +1049,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_exportScheduleRtf` — madi-schedule.js:1115
   ▸ _표준화 검사_ — L1135
 
-## madi-session.js (41함수)
+## madi-session.js (43함수)
   ▸ _보안: API 키 마스킹 / 토글_ — L1
 - `maskApiKey` — madi-session.js:2
 - `showMaskedApiKey` — madi-session.js:7
@@ -1090,11 +1091,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `restoreFromBackup` — madi-session.js:518
 - `_execRestoreFromBackup` — madi-session.js:543
 - `applyBackup` — madi-session.js:554
-- `renderBackupList` — madi-session.js:586
-- `deleteBackupConfirm` — madi-session.js:623
-- `callClaude` — madi-session.js:634
-- `parseJSON` — madi-session.js:668
-  ▸ _센터 API 키 관리 (선택지 2)_ — L727
+  ▸ _완전 복원: 백업에 없는 서버 행을 center_id 범위에서 삭제_ — L576
+- `_deleteOrphanServerRows` — madi-session.js:644
+- `_execOrphanDeletes` — madi-session.js:677
+- `renderBackupList` — madi-session.js:704
+- `deleteBackupConfirm` — madi-session.js:741
+- `callClaude` — madi-session.js:752
+- `parseJSON` — madi-session.js:786
+  ▸ _센터 API 키 관리 (선택지 2)_ — L845
 
 ## madi-system.js (19함수)
   ▸ _권한 설정 모달_ — L1
