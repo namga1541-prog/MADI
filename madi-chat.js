@@ -599,6 +599,11 @@ function sendChat() {
   //   첫 질문이 항상 실패하던 버그. 선두의 비-user 메시지를 제거해 user 로 시작하도록 보정.
   while (messages.length && messages[0].role !== 'user') messages.shift();
   messages = messages.concat([{ role: 'user', content: text }]);
+  // 아동 실명 가명화(M2): 외부 LLM 전송 직전, 컨텍스트와 동일 별칭으로 질문·이력의 실명 치환.
+  //   (표시용 chatHistory 는 실명 유지 — 전송 사본만 가명화. 응답은 restoreChatNames 로 복원.)
+  messages = messages.map(function(m) {
+    return { role: m.role, content: (typeof m.content === 'string') ? _aliasChatText(m.content) : m.content };
+  });
 
   fetchWithRetry(EDGE_URL + '/ai-proxy', {
     method:      'POST',
@@ -620,6 +625,7 @@ function sendChat() {
       recordApiUsage(usedModel, data.usage.input_tokens || 0, data.usage.output_tokens || 0);
     }
     var reply = (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
+    reply = restoreChatNames(reply);  // 별칭 아동N → 실명 복원 (M2, 표시 직전)
     hideTypingIndicator();
     var parsed = parseAction(reply);
     addAiMsg(parsed.displayText || '죄송해요, 다시 한번 물어봐주세요.');
@@ -645,7 +651,40 @@ function sendChat() {
   });
 }
 
+// ─── 채팅 비서 아동 PII 가명화(M2) ───
+//   외부 LLM 으로 아동 실명을 보내지 않기 위해 컨텍스트·질문·이력의 아동명을 '아동N' 별칭으로
+//   치환하고, 응답 표시 직전에 실명 복원한다. 액션은 [id:xxx]·치료사명 기반이라 영향 없음.
+//   (치료사명은 addSchedule 액션 매칭에 필요해 가명화하지 않음 — 잔여 항목.)
+var _chatNameMap = {};       // alias → realName (복원용)
+var _chatAliasByName = {};   // realName → alias
+var _chatAliasN = 0;
+function _resetChatAliases() { _chatNameMap = {}; _chatAliasByName = {}; _chatAliasN = 0; }
+function _chatAlias(name) {
+  if (!name) return name;
+  if (_chatAliasByName[name]) return _chatAliasByName[name];
+  _chatAliasN++;
+  var alias = '아동' + _chatAliasN;
+  _chatAliasByName[name] = alias;
+  _chatNameMap[alias] = name;
+  return alias;
+}
+// 실명 → 별칭 (사용자 질문·이력에 적용). 긴 이름 먼저 치환해 부분일치 오염 방지.
+function _aliasChatText(text) {
+  if (!text) return text;
+  var names = Object.keys(_chatAliasByName).sort(function(a, b) { return b.length - a.length; });
+  for (var i = 0; i < names.length; i++) text = String(text).split(names[i]).join(_chatAliasByName[names[i]]);
+  return text;
+}
+// 별칭 → 실명 (응답 표시 직전). 긴 별칭(아동12) 먼저 치환해 '아동1' 접두 충돌 방지.
+function restoreChatNames(text) {
+  if (!text) return text;
+  var aliases = Object.keys(_chatNameMap).sort(function(a, b) { return b.length - a.length; });
+  for (var i = 0; i < aliases.length; i++) text = String(text).split(aliases[i]).join(_chatNameMap[aliases[i]]);
+  return text;
+}
+
 function buildChatContext() {
+  _resetChatAliases();  // 매 컨텍스트 빌드마다 별칭 초기화 (현재 가시 아동 기준 재매핑)
   var today = getTodayKST();
   var lines = ['📅 오늘: ' + today];
 
@@ -692,7 +731,7 @@ function buildChatContext() {
     var ss    = sessionDB.filter(function(s) { return s.childId === c.id; });
     var last  = ss.length > 0 ? ss[ss.length - 1] : null;
     var vUsed = getVoucherUsed(c.id);
-    var line  = '  - ' + c.name + ' [id:' + c.id + '] (' + c.age + ', ' + c.type + ') | 세션 ' + ss.length + '회';
+    var line  = '  - ' + _chatAlias(c.name) + ' [id:' + c.id + '] (' + c.age + ', ' + c.type + ') | 세션 ' + ss.length + '회';
     if (last)              line += ' | 최근 ' + last.date;
     if (c.voucherLimit > 0) line += ' | 바우쳐 ' + vUsed + '/' + c.voucherLimit;
     if (last && last.goals && last.goals.length > 0) {
@@ -711,7 +750,7 @@ function buildChatContext() {
     lines.push('\n⚠️ 미작성 세션 ' + uw.length + '건:');
     uw.forEach(function(u) {
       var teacherTxt = u.teacher ? ' (담당: ' + u.teacher + ')' : '';
-      lines.push('  - ' + u.date + ' ' + u.childName + teacherTxt);
+      lines.push('  - ' + u.date + ' ' + _chatAlias(u.childName) + teacherTxt);
     });
   }
 
@@ -724,14 +763,14 @@ function buildChatContext() {
     todaySched.forEach(function(s) {
       var c = childDB.find(function(c) { return c.id === s.childId; });
       var teacherTxt = s.teacher ? ' (담당: ' + s.teacher + ')' : '';
-      lines.push('  - ' + (s.startTime || '') + ' ' + (c ? c.name : '?') + teacherTxt);
+      lines.push('  - ' + (s.startTime || '') + ' ' + (c ? _chatAlias(c.name) : '?') + teacherTxt);
     });
   }
 
   if (assessmentDB.length > 0) {
     lines.push('\n📋 최근 검사: ' + assessmentDB.slice(-3).map(function(a) {
       var c = childDB.find(function(c) { return c.id === a.childId; });
-      return (c ? c.name : '?') + ' ' + a.testName;
+      return (c ? _chatAlias(c.name) : '?') + ' ' + a.testName;
     }).join(', '));
   }
 

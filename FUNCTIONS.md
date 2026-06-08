@@ -3,7 +3,7 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (169)
+## 전역 변수 (172)
 
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:403
 - `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:405
@@ -45,6 +45,9 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var CHAT_MACROS = {` — madi-chat.js:358
 - `var chatRecognition = null;` — madi-chat.js:473
 - `var isChatRecording = false;` — madi-chat.js:474
+- `var _chatNameMap = {}; // alias → realName (복원용)` — madi-chat.js:658
+- `var _chatAliasByName = {}; // realName → alias` — madi-chat.js:659
+- `var _chatAliasN = 0;` — madi-chat.js:660
 - `var inputMode = 0;` — madi-child-detail.js:1
 - `var recognition = null, isRecording = false;` — madi-child-detail.js:11
 - `var goalRows = [];` — madi-child-detail.js:61
@@ -425,7 +428,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `closeVocabFeedbackModal` — madi-board.js:970
 - `submitVocabFeedback` — madi-board.js:975
 
-## madi-chat.js (35함수)
+## madi-chat.js (39함수)
   ▸ _플로팅 AI 비서_ — L6
 - `toggleChat` — madi-chat.js:11
   ▸ _마로 버튼 위치 이동_ — L39
@@ -467,7 +470,12 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `toggleChatVoiceInput` — madi-chat.js:476
 - `resetChatMicBtn` — madi-chat.js:519
 - `sendChat` — madi-chat.js:529
-- `buildChatContext` — madi-chat.js:648
+  ▸ _채팅 비서 아동 PII 가명화(M2)_ — L654
+- `_resetChatAliases` — madi-chat.js:661
+- `_chatAlias` — madi-chat.js:662
+- `_aliasChatText` — madi-chat.js:672
+- `restoreChatNames` — madi-chat.js:679
+- `buildChatContext` — madi-chat.js:686
 
 ## madi-child-detail.js (35함수)
 - `setInputMode` — madi-child-detail.js:2
