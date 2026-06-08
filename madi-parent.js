@@ -750,8 +750,9 @@ function naturalSearch() {
   }).join('\n\n');
 
   var SYSTEM = '당신은 언어치료 데이터 분석 어시스턴트입니다. 치료사가 자연어로 묻는 질문에 정확한 데이터 기반 답변을 제공하세요. '
-    + '날짜, 수치 등 구체적인 정보를 포함하세요. 200자 내외의 친근한 한국어로 답변하세요. JSON 없이 일반 텍스트로 답변.';
-  var USER = '치료 데이터:\n' + allData + '\n\n질문: ' + _aliasNames(query);
+    + '날짜, 수치 등 구체적인 정보를 포함하세요. 200자 내외의 친근한 한국어로 답변하세요. JSON 없이 일반 텍스트로 답변.'
+    + AI_UNTRUSTED_NOTE;  // 보안4: 인젝션 방어
+  var USER = '치료 데이터:\n' + allData + '\n\n질문: ' + wrapUntrusted(_aliasNames(query));
 
   // ES5 호환: .finally() 미지원 환경 대응
   function _resetAskBtn() {
@@ -808,9 +809,9 @@ function generateFAQ() {
   var SYSTEM = '당신은 한국 언어치료 임상 현장의 베테랑 언어재활사입니다. 부모가 묻는 까다로운 질문에 대해, '
     + '치료사가 그대로 사용하거나 참고할 수 있는 따뜻하고 전문적인 답변 예시를 작성하세요. '
     + '실제 치료 데이터를 근거로 활용하세요. 존댓말, 부모 마음을 헤아리는 톤. 300자 내외. JSON 없이 일반 텍스트.\n\n'
-    + _parentGuide + AI_NAME_RULE;
+    + _parentGuide + AI_NAME_RULE + AI_UNTRUSTED_NOTE;  // 보안4: 인젝션 방어
   var USER = '아동: ' + aliasName() + ' (' + child.age + ', ' + child.type + ')\n'
-    + '최근 세션:\n' + (summary || '없음') + '\n\n부모 질문: "' + question + '"';
+    + '최근 세션:\n' + (summary || '없음') + '\n\n부모 질문: ' + wrapUntrusted(question);
 
   // ES5 호환: .finally() 미지원 환경 대응
   function _resetFAQBtn() {

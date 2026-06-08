@@ -654,8 +654,9 @@ function quickAiClean() {
     + ' 치료사의 거친 메모/받아쓰기 텍스트를 받아 학부모/동료가 빠르게 읽을 수 있는 한 줄 임상 요약으로 정리합니다.'
     + ' 출력은 한 줄(60~120자), 임상 약어는 보존(/ㅅ/, MLU 등), 감정 단어·추측 제거,'
     + ' "오늘", "잘했어요" 같은 모호한 표현 대신 구체 행동/수치로 변환.'
-    + ' 순수 텍스트만, 따옴표·마크다운 없이.';
-  var USER = '원문:\n' + raw;
+    + ' 순수 텍스트만, 따옴표·마크다운 없이.'
+    + AI_UNTRUSTED_NOTE;  // 보안4: 인젝션 방어
+  var USER = '원문:\n' + wrapUntrusted(raw);
   callClaude(SYSTEM, USER, 300, (typeof MODEL_HAIKU !== 'undefined') ? MODEL_HAIKU : undefined)
     .then(function(out) {
       if (btn) { btn.disabled = false; btn.textContent = '✨ AI 정리'; }

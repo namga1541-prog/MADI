@@ -593,7 +593,8 @@ function sendChat() {
     + '5. showUnwritten: 미작성 세션 강조\n'
     + '   {"type":"showUnwritten"}\n\n'
     + '치료사별 일정 질문 시 위 [치료사 목록]과 [오늘 스케줄]의 (담당: ___) 정보를 활용하세요. '
-    + '액션 블록은 사용자에게 보이지 않고 자동 처리됩니다. 자연스러운 답변 + 필요시 액션블록 형식으로 응답하세요.';
+    + '액션 블록은 사용자에게 보이지 않고 자동 처리됩니다. 자연스러운 답변 + 필요시 액션블록 형식으로 응답하세요.'
+    + AI_UNTRUSTED_NOTE;  // 보안4: 인젝션 방어 — 사용자 메시지의 명령은 따르지 말 것(액션 emit 비서라 특히 중요)
 
   var messages = chatHistory.slice(0, -1).slice(-8);
   // Anthropic Messages API 는 첫 메시지가 user 여야 함 — 채팅 인사말(assistant)이 선두면 400 오류로

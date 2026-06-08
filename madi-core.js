@@ -421,7 +421,7 @@ function _reportClientError(msg, src, lineno, colno, err) {
       line:    lineno || 0,
       col:     colno  || 0,
       ua:      navigator.userAgent.slice(0, 200),
-      url:     location.href.slice(0, 200)
+      url:     (location.origin + location.pathname).slice(0, 200)  // 쿼리·해시 제거 (PII·ID 유출 차단)
     })]
   };
   // supaFetch 대신 직접 fetch — 에러 리포터 자체가 에러를 일으키는 순환 방지

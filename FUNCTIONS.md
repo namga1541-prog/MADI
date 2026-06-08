@@ -45,8 +45,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var CHAT_MACROS = {` — madi-chat.js:359
 - `var chatRecognition = null;` — madi-chat.js:474
 - `var isChatRecording = false;` — madi-chat.js:475
-- `var _chatMasker = null;` — madi-chat.js:661
-- `var _chatTeacherMasker = null;` — madi-chat.js:662
+- `var _chatMasker = null;` — madi-chat.js:662
+- `var _chatTeacherMasker = null;` — madi-chat.js:663
 - `var inputMode = 0;` — madi-child-detail.js:1
 - `var recognition = null, isRecording = false;` — madi-child-detail.js:11
 - `var goalRows = [];` — madi-child-detail.js:61
@@ -134,7 +134,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _QUICK_DRAFT_KEY_PREFIX = 'madi_quick_draft_'; // sessionStorage 임시저장 키 prefix` — madi-quick.js:24
 - `var _QUICK_DRAFT_TTL_MS = 6 * 60 * 60 * 1000; // 임시저장 유효 시간: 6시간` — madi-quick.js:25
 - `var _quickSaveDraftDeb = (typeof debounce === 'function') ? debounce(_quickSaveDraft, 600)` — madi-quick.js:67
-- `var _quickBackfillBusy = false;` — madi-quick.js:681
+- `var _quickBackfillBusy = false;` — madi-quick.js:682
 - `var SI_TESTS = [` — madi-report.js:4
 - `var DDST_DOMAINS = [` — madi-report.js:18
 - `var KDST_DOMAINS = [` — madi-report.js:26
@@ -470,10 +470,10 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `toggleChatVoiceInput` — madi-chat.js:477
 - `resetChatMicBtn` — madi-chat.js:520
 - `sendChat` — madi-chat.js:530
-- `_aliasChatText` — madi-chat.js:663
-- `restoreChatNames` — madi-chat.js:667
-- `_restoreChatTeacher` — madi-chat.js:673
-- `buildChatContext` — madi-chat.js:675
+- `_aliasChatText` — madi-chat.js:664
+- `restoreChatNames` — madi-chat.js:668
+- `_restoreChatTeacher` — madi-chat.js:674
+- `buildChatContext` — madi-chat.js:676
 
 ## madi-child-detail.js (35함수)
 - `setInputMode` — madi-child-detail.js:2
@@ -895,12 +895,12 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `naturalSearch` — madi-parent.js:717
 - `_aliasNames` — madi-parent.js:740
 - `_restoreNames` — madi-parent.js:741
-- `_resetAskBtn` — madi-parent.js:757
-  ▸ _기능 7: 부모 FAQ 답변_ — L775
-- `generateFAQ` — madi-parent.js:776
-- `_resetFAQBtn` — madi-parent.js:816
-- `copyFAQText` — madi-parent.js:839
-  ▸ _유틸_ — L854
+- `_resetAskBtn` — madi-parent.js:758
+  ▸ _기능 7: 부모 FAQ 답변_ — L776
+- `generateFAQ` — madi-parent.js:777
+- `_resetFAQBtn` — madi-parent.js:817
+- `copyFAQText` — madi-parent.js:840
+  ▸ _유틸_ — L855
 
 ## madi-pii.js (4함수)
 - `madiNameMasker` — madi-pii.js:18
@@ -957,17 +957,17 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _─_ — L627
   ▸ _─_ — L629
 - `quickAiClean` — madi-quick.js:630
-  ▸ _─_ — L676
-  ▸ _─_ — L680
-- `_quickBackfillOnePhoto` — madi-quick.js:682
-  ▸ _─_ — L708
-  ▸ _─_ — L711
-- `_quickNormalizeStorageUrl` — madi-quick.js:714
-- `_quickUploadPhoto` — madi-quick.js:726
-  ▸ _─_ — L757
-  ▸ _─_ — L759
-- `quickSave` — madi-quick.js:760
-- `closeQuickForm` — madi-quick.js:865
+  ▸ _─_ — L677
+  ▸ _─_ — L681
+- `_quickBackfillOnePhoto` — madi-quick.js:683
+  ▸ _─_ — L709
+  ▸ _─_ — L712
+- `_quickNormalizeStorageUrl` — madi-quick.js:715
+- `_quickUploadPhoto` — madi-quick.js:727
+  ▸ _─_ — L758
+  ▸ _─_ — L760
+- `quickSave` — madi-quick.js:761
+- `closeQuickForm` — madi-quick.js:866
 
 ## madi-report.js (10함수)
   ▸ _감각통합(감통) 평가 보고서_ — L1
