@@ -80,7 +80,7 @@
     </div>
 
     <div class="form-group" style="margin-top:4px;">
-      <label class="form-label">오류 유형</label>
+      <label class="form-label" for="vfType">오류 유형</label>
       <select id="vfType" class="form-input">
         <option value="비표준 임상 용어">비표준 임상 용어 (예: 수정연령, 중지화)</option>
         <option value="AI 보고서 표현 오류">AI 보고서 표현 오류</option>
@@ -90,20 +90,20 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">❌ 잘못된 표현 · 문장 <span style="color:#ef4444;font-weight:700;">*</span></label>
+      <label class="form-label" for="vfWrong">❌ 잘못된 표현 · 문장 <span style="color:#ef4444;font-weight:700;">*</span></label>
       <textarea id="vfWrong" class="form-input" rows="3"
         placeholder="예: 수정연령(chronological age adjusted for prematurity)을 고려하여야 하므로..."
         style="resize:vertical;"></textarea>
     </div>
 
     <div class="form-group">
-      <label class="form-label">✅ 권장 표현 <span style="font-weight:400;color:var(--text2);">(아시면)</span></label>
+      <label class="form-label" for="vfCorrect">✅ 권장 표현 <span style="font-weight:400;color:var(--text2);">(아시면)</span></label>
       <input id="vfCorrect" class="form-input" type="text"
         placeholder="예: 생활연령 기준으로 산출 / 추적관찰 및 주기적인 평가 요망">
     </div>
 
     <div class="form-group" style="margin-bottom:16px;">
-      <label class="form-label">📝 발견 상황 <span style="font-weight:400;color:var(--text2);">(선택)</span></label>
+      <label class="form-label" for="vfContext">📝 발견 상황 <span style="font-weight:400;color:var(--text2);">(선택)</span></label>
       <textarea id="vfContext" class="form-input" rows="2"
         placeholder="예: 표준화검사 보고서 자동생성 결과 / PRES 검사 보고서 섹션"
         style="resize:vertical;"></textarea>
@@ -151,10 +151,10 @@
     <!-- 선택된 아동 이름 미리보기 -->
     <div id="bcdNamePreview" style="background:#f8fafc;border-radius:var(--r-sm);padding:10px 12px;margin-bottom:14px;font-size:var(--fs-sm);color:var(--text2);line-height:1.7;max-height:80px;overflow-y:auto;"></div>
 
-    <label class="form-label">종결일</label>
+    <label class="form-label" for="bcdDateInput">종결일</label>
     <input id="bcdDateInput" type="date" class="form-input" style="width:100%;margin-bottom:12px;">
 
-    <label class="form-label">종결 사유</label>
+    <label class="form-label" for="bcdReasonSelect">종결 사유</label>
     <select id="bcdReasonSelect" class="form-input" style="width:100%;margin-bottom:6px;" onchange="toggleBcdReasonEtc()">
       <option value="치료 완료">치료 완료</option>
       <option value="자발적 종결">자발적 종결 (보호자 요청)</option>
@@ -893,7 +893,7 @@
         </div>
 
         <button class="login-btn-pri" id="loginSubmitBtn" onclick="doLogin()">로그인</button>
-        <div id="loginError" class="login-error"></div>
+        <div id="loginError" class="login-error" role="alert"></div>
 
         <div class="login-divider-v2"><span>처음 이용하시나요?</span></div>
 
@@ -1025,7 +1025,7 @@
         </div>
 
         <button class="login-btn-pri" id="signupSubmitBtn" onclick="doSignup()">✨ 가입하기</button>
-        <div id="signupError" class="login-error"></div>
+        <div id="signupError" class="login-error" role="alert"></div>
 
         <button class="login-btn-link" onclick="backToLoginFromSignup()">← 로그인 화면으로</button>
 
@@ -1429,11 +1429,11 @@
       <div class="card-title"><div class="card-title-left">📝 세션 기록</div></div>
 
       <div class="form-group">
-        <label class="form-label">아동 선택</label>
+        <label class="form-label" for="sessionChild">아동 선택</label>
         <select class="form-input" id="sessionChild"><option value="">아동 검색...</option></select>
       </div>
       <div class="form-group">
-        <label class="form-label">세션 날짜</label>
+        <label class="form-label" for="sessionDate">세션 날짜</label>
         <input class="form-input" type="date" id="sessionDate">
       </div>
 
@@ -1452,7 +1452,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">세션 메모</label>
+          <label class="form-label" for="sessionMemo">세션 메모</label>
           <textarea class="form-input" id="sessionMemo" placeholder="반응, 특이사항 등"></textarea>
         </div>
 
@@ -1512,7 +1512,7 @@
       <div id="aiMode" style="display:none;">
         <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceInput()">🎤 음성 입력 시작</button>
         <div class="form-group">
-          <label class="form-label">자유롭게 입력 (AI가 자동 정리)</label>
+          <label class="form-label" for="aiInput">자유롭게 입력 (AI가 자동 정리)</label>
           <textarea class="form-input" id="aiInput" placeholder="예: 오늘 민준이 ㅅ발음 7/10 성공, 집중력 양호" style="min-height:140px;"></textarea>
         </div>
         <button class="btn btn-primary" id="aiSaveBtn" onclick="saveSessionAI()">🤖 AI 정리 후 저장</button>
@@ -1588,36 +1588,36 @@
         <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📝 보고서 상세 정보 <span style="font-weight:400;color:#94a3b8;">(선택 — 입력할수록 보고서 품질 향상)</span></div>
         <div class="form-row">
           <div style="flex:1;">
-            <label class="form-label">기관명</label>
+            <label class="form-label" for="reportInstitution">기관명</label>
             <input class="form-input" type="text" id="reportInstitution" placeholder="예: 햇살의원 아동발달클리닉">
           </div>
           <div style="flex:1;">
-            <label class="form-label">평가자</label>
+            <label class="form-label" for="reportEvaluator">평가자</label>
             <input class="form-input" type="text" id="reportEvaluator" placeholder="예: 홍길동 (1급 언어재활사)">
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">의뢰 사유</label>
+          <label class="form-label" for="reportReferralReason">의뢰 사유</label>
           <input class="form-input" type="text" id="reportReferralReason" placeholder="예: 현행 수준 파악 및 언어 발달 지연 여부 확인을 위해 내원">
         </div>
         <div class="form-group">
-          <label class="form-label">📌 임신·출산 정보</label>
+          <label class="form-label" for="reportBgPregnancy">📌 임신·출산 정보</label>
           <textarea class="form-input" id="reportBgPregnancy" placeholder="예: 32주 3일 출산, 산모 32세, 출생 시 체중 2.5kg, 첫째" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">🗣️ 언어발달력</label>
+          <label class="form-label" for="reportBgLanguage">🗣️ 언어발달력</label>
           <textarea class="form-input" id="reportBgLanguage" placeholder="예: 12개월경 첫 낱말(엄마·아빠), 24개월경 두 단어 조합" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">🚶 신체발달력</label>
+          <label class="form-label" for="reportBgPhysical">🚶 신체발달력</label>
           <textarea class="form-input" id="reportBgPhysical" placeholder="예: 5개월 뒤집기, 10개월 배밀이, 14개월 첫 보행, 배변 훈련 24개월" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">📋 이전 평가 및 치료력</label>
+          <label class="form-label" for="reportBgTreatment">📋 이전 평가 및 치료력</label>
           <textarea class="form-input" id="reportBgTreatment" placeholder="예: 24개월경 OO발달센터 6개월 언어치료(주2회), 평가 경험 없음" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">검사 태도 및 행동 관찰</label>
+          <label class="form-label" for="reportTestBehavior">검사 태도 및 행동 관찰</label>
           <textarea class="form-input" id="reportTestBehavior" placeholder="협조도, eye contact 빈도, 집중력, 특이 행동, 검사 수행 방식 등" style="min-height:60px;"></textarea>
         </div>
       </div>
@@ -1630,8 +1630,8 @@
 
       <!-- 아동 선택 + 생활연령 자동 표시 -->
       <div class="form-group">
-        <label class="form-label">아동 선택</label>
-        
+        <label class="form-label" for="assessChild">아동 선택</label>
+
         <div style="display:flex;gap:8px;align-items:center;margin-top:0;">
           <div id="assessChildWrap" style="flex:1;"><select class="form-input" id="assessChild" onchange="onAssessChildChange(); renderAssessmentList();"></select></div>
           <div id="assessAgeDisplay" style="
@@ -1644,9 +1644,9 @@
       </div>
 
       <div class="form-row">
-        <div style="flex:1;"><label class="form-label">검사일</label>
+        <div style="flex:1;"><label class="form-label" for="assessDate">검사일</label>
           <input class="form-input" type="date" id="assessDate" onchange="onAssessChildChange()"></div>
-        <div style="flex:1.6;"><label class="form-label">검사명</label>
+        <div style="flex:1.6;"><label class="form-label" for="assessType">검사명</label>
           <select class="form-input" id="assessType" onchange="onAssessTypeChange()">
             <option value="REVT">REVT (수용·표현 어휘)</option>
             <option value="SELSI">SELSI (영유아 언어발달)</option>
@@ -1678,7 +1678,7 @@
       <div id="assessSeverityPanel" style="display:none;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;"></div>
 
       <div class="form-group">
-        <label class="form-label">메모</label>
+        <label class="form-label" for="assessMemo">메모</label>
         <textarea class="form-input" id="assessMemo" placeholder="협조도, 특이사항 등" style="min-height:54px;"></textarea>
       </div>
       <p style="font-size:11px;color:var(--text2);background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;line-height:1.6;margin:0;">
@@ -1759,11 +1759,11 @@
     <div class="card">
       <div class="card-title"><div class="card-title-left">📨 부모보고 리포트</div></div>
       <div class="form-group">
-        <label class="form-label">아동 선택</label>
+        <label class="form-label" for="reportChild">아동 선택</label>
         <select class="form-input" id="reportChild"><option value="">아동 검색...</option></select>
       </div>
       <div class="form-group">
-        <label class="form-label">기간</label>
+        <label class="form-label" for="reportPeriod">기간</label>
         <select class="form-input" id="reportPeriod">
           
           
@@ -1791,7 +1791,7 @@
       </div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">검사 결과 + 최근 세션 데이터를 기반으로 <strong>3개월 치료 계획 초안</strong>을 자동 생성합니다.<br>장기목표 · 단기목표(월별) · 권장 활동을 포함합니다.</p>
       <div class="form-group">
-        <label class="form-label">아동 선택</label>
+        <label class="form-label" for="iepChild">아동 선택</label>
         <select class="form-input" id="iepChild" style="margin-bottom:8px;"><option value="">아동 검색...</option></select>
       </div>
       <button class="btn btn-purple" id="iepBtn" onclick="generateIEP()">📋 장단기계획(IEP) 초안 생성 (AI)</button>
@@ -1819,11 +1819,11 @@
 
     <div class="card">
       <div class="form-group">
-        <label class="form-label">아동 선택</label>
+        <label class="form-label" for="portfolioChild">아동 선택</label>
         <select class="form-input" id="portfolioChild" onchange="onPortfolioChildChange()"><option value="">아동 검색...</option></select>
       </div>
       <div class="form-group">
-        <label class="form-label">대상 월</label>
+        <label class="form-label" for="portfolioMonth">대상 월</label>
         <input class="form-input" type="month" id="portfolioMonth">
       </div>
       <button class="btn btn-purple" id="portfolioBtn" onclick="generatePortfolio()">📁 포트폴리오 생성</button>
@@ -2018,15 +2018,15 @@
     <div class="card">
       <div class="card-title" style="margin-bottom:4px;">🔑 비밀번호 변경</div>
       <div class="form-group" style="margin-bottom:10px;">
-        <label class="form-label">현재 비밀번호</label>
+        <label class="form-label" for="oldPassword">현재 비밀번호</label>
         <input type="password" class="form-input" id="oldPassword" placeholder="현재 비밀번호 입력" autocomplete="current-password">
       </div>
       <div class="form-group" style="margin-bottom:10px;">
-        <label class="form-label">새 비밀번호</label>
+        <label class="form-label" for="newPassword">새 비밀번호</label>
         <input type="password" class="form-input" id="newPassword" placeholder="새 비밀번호 (4자 이상)" autocomplete="new-password">
       </div>
       <div class="form-group" style="margin-bottom:12px;">
-        <label class="form-label">새 비밀번호 확인</label>
+        <label class="form-label" for="newPassword2">새 비밀번호 확인</label>
         <input type="password" class="form-input" id="newPassword2" placeholder="새 비밀번호 다시 입력" autocomplete="new-password">
       </div>
       <button class="btn btn-primary" onclick="changeMyPassword()" style="width:100%;margin-top:0;">💾 비밀번호 변경</button>

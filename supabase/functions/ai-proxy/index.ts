@@ -178,14 +178,16 @@ Deno.serve(async (req: Request) => {
   SAFETY_GUARD += '\n(요청자 역할: ' + role + ')\n'
 
   // system 을 array 형태로 변환 + 큰 부분에 cache_control 부여 (Prompt Caching 활용)
-  // - SAFETY_GUARD: 항상 prepend, 캐시 불필요 (짧음)
-  // - userSystem: 반복되는 큰 prompt → cache_control: ephemeral 로 5분 캐시
-  // 캐시 히트 시 입력 토큰 비용 90% 절감 (반복되는 평가보고서 가이드 등)
+  // ⚠️ 순서 주의: cache_control 은 "그 블록까지의 prefix 전체" 를 캐싱한다.
+  // - userSystem(반복되는 큰 prompt, 역할 불변): prefix 선두에 두고 cache_control → 캐시 키가 role 에
+  //   영향받지 않아 parent/teacher/admin 혼재 환경에서도 히트율 최대 (입력 토큰 90% 절감 유지).
+  // - SAFETY_GUARD(role 별 가변, 짧음): 캐시 경계 뒤에 배치 → role 차이가 캐시를 갈라놓지 않게 한다.
+  //   (이전엔 SAFETY_GUARD 가 선두라 role 마다 캐시가 분기돼 히트율이 떨어졌음.)
   const userSystem = typeof reqBody.system === 'string' ? reqBody.system : ''
   if (userSystem.length > 0) {
     reqBody.system = [
-      { type: 'text', text: SAFETY_GUARD },
-      { type: 'text', text: userSystem, cache_control: { type: 'ephemeral' } }
+      { type: 'text', text: userSystem, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: SAFETY_GUARD }
     ]
   } else {
     reqBody.system = SAFETY_GUARD

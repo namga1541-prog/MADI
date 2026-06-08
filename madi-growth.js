@@ -170,10 +170,11 @@ function addChildFromModal() {
   _addChildLock = true;
   setTimeout(function(){ _addChildLock = false; }, 1500);
 
-  childDB.push({ id: generateClientId(), name:name, birth:birth, age:age, type:type,
+  var newChild = { id: generateClientId(), name:name, birth:birth, age:age, type:type,
     phone:phone, goals:[], memo:memo, status:status, startDate:'', voucherLimit:0,
-    color:CHILD_COLORS[childDB.length % CHILD_COLORS.length] });
-  var _saveP = saveChildren();
+    color:CHILD_COLORS[childDB.length % CHILD_COLORS.length] };
+  childDB.push(newChild);
+  var _saveP = saveOneChild(newChild);
   renderChildGrid();
   populateChildSelects();
   var modal = document.getElementById('childRegModal');
@@ -540,7 +541,7 @@ function saveEditModal(id) {
   }
   childDB[idx] = updatedChild;
 
-  var _saveP = saveChildren();
+  var _saveP = saveOneChild(updatedChild);
   renderChildGrid();
   populateChildSelects();
   closeEditModal();

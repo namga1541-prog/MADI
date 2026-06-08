@@ -78,6 +78,17 @@
     }
     /* :focus-visible 를 지원하는 브라우저에서는 마우스 :focus 윤곽선 제거 */
     :focus:not(:focus-visible) { outline: none; }
+    /* 컴포넌트별 input:focus{outline:none} 이 명시도(0-2-0)로 전역 :focus-visible(0-1-0)
+       를 덮어 키보드 포커스 윤곽까지 지우는 문제 보강. 동일 명시도로 키보드 포커스 복원. */
+    .form-input:focus-visible,
+    .login-input:focus-visible,
+    .goal-name-input:focus-visible,
+    .goal-score-input:focus-visible,
+    .phoneme-input:focus-visible,
+    .apikey-bar input:focus-visible {
+      outline: 2px solid var(--mint, #0ea5a0);
+      outline-offset: 2px;
+    }
     /* ── 커스텀 Confirm 모달 ── */
     .confirm-ov {
       position:fixed; inset:0; background:rgba(0,0,0,0.48);

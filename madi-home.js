@@ -997,11 +997,22 @@ function showPWAInstall() {
     return;
   }
   var modal = document.getElementById('pwaGuideModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    if (typeof attachModalA11y === 'function') {
+      _pwaGuideRelease = attachModalA11y(modal, closePWAGuide);
+    }
+    var _pf = modal.querySelector('button, a[href], [tabindex]:not([tabindex="-1"])');
+    if (_pf && _pf.focus) try { _pf.focus(); } catch (e) {}
+  }
 }
+var _pwaGuideRelease = null;
 function closePWAGuide() {
   var modal = document.getElementById('pwaGuideModal');
   if (modal) modal.style.display = 'none';
+  if (typeof _pwaGuideRelease === 'function') { _pwaGuideRelease(); _pwaGuideRelease = null; }
 }
 
 // ── 비밀번호 변경 ──

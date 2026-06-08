@@ -334,7 +334,7 @@ function _renderParentRecentPortfolios(childId) {
         var preview = (ai.overview || ai.parentMessage || '').toString().slice(0, 90);
         var who     = r.created_by_name ? '담당 ' + escHtml(r.created_by_name) + ' 선생님' : '';
         return ''
-          + '<div class="dp-p-sess" onclick="switchParentTab(\'report\')">'
+          + '<div class="dp-p-sess" role="button" tabindex="0" aria-label="포트폴리오 보기" onclick="switchParentTab(\'report\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">'
           +   '<div class="dp-p-sess-date">'
           +     '<div class="dp-p-sess-date-num">📁</div>'
           +     '<div class="dp-p-sess-date-day">' + escHtml(month.slice(2)) + '</div>'  // 'YY-MM'
@@ -412,7 +412,7 @@ function _renderParentWeekSessions(sessions) {
     var preview = note.slice(0, 100);
     var goal = s.goal || s.title || '세션 진행';
     return ''
-      + '<div class="dp-p-sess" onclick="switchParentTab(\'report\')">'
+      + '<div class="dp-p-sess" role="button" tabindex="0" aria-label="세션 기록 보기" onclick="switchParentTab(\'report\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">'
       +   '<div class="dp-p-sess-date">'
       +     '<div class="dp-p-sess-date-num">' + dt.getDate() + '</div>'
       +     '<div class="dp-p-sess-date-day">' + wd[dt.getDay()] + '요일</div>'

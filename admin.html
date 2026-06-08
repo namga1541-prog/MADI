@@ -983,6 +983,18 @@ function escHtml(str) {
     .replace(/'/g,'&#39;');
 }
 
+// 서버 원문(PostgREST 테이블·컬럼·제약조건명) 노출 차단용 친화 메시지 변환기.
+//   admin.html 은 madi-app.js(_userErrMsg)를 로드하지 않는 독립 페이지라 자체 사본 유지.
+//   supaFetch 가 throw new Error(status + ': ' + 서버본문) 으로 던지므로 e.message 직접 노출 금지.
+function adminErrMsg(e) {
+  var msg = (e && e.message) ? String(e.message) : '';
+  if (!navigator.onLine) return '인터넷 연결을 확인해주세요';
+  if (msg.indexOf('403') !== -1 || msg.indexOf('401') !== -1) return '권한이 없습니다';
+  if (msg.indexOf('409') !== -1) return '이미 처리되었거나 중복된 항목입니다';
+  if (msg.indexOf('timeout') !== -1 || msg.indexOf('RETRY') !== -1 || msg.indexOf('Failed to fetch') !== -1) return '서버 응답이 없습니다. 잠시 후 다시 시도해주세요';
+  return '처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요';
+}
+
 function showConfirm(msg, onOk, opts) {
   opts = opts || {};
   var okLabel     = opts.okLabel     || '확인';
@@ -1140,7 +1152,7 @@ function savePushSettings() {
       if (st) st.textContent = '저장 완료';
     })
     .catch(function(e) {
-      showToast('⚠️ 저장 실패: ' + (e.message || ''));
+      showToast('⚠️ 저장 실패: ' + adminErrMsg(e));
     });
 }
 
@@ -1183,7 +1195,7 @@ function sendPushTest() {
       if (st) st.textContent = msg;
     })
     .catch(function(e) {
-      var err = e.message || '호출 실패';
+      var err = adminErrMsg(e);
       showToast('⚠️ ' + err);
       if (st) st.textContent = '실패: ' + err;
     });
@@ -1226,7 +1238,7 @@ function sendInAppNotifTest() {
           });
       })
       .catch(function(e) {
-        var err = e.message || '발송 실패';
+        var err = adminErrMsg(e);
         showToast('⚠️ 인앱 알림 ' + err);
         if (st) st.textContent = '인앱 알림 실패: ' + err;
       });
@@ -1296,7 +1308,7 @@ function loadAdminData() {
     loadStaffMgmtList();
     loadPermUserList();
   }).catch(function(e) {
-    showToast('❌ 데이터 로드 실패: ' + (e.message || ''));
+    showToast('❌ 데이터 로드 실패: ' + adminErrMsg(e));
   });
 }
 
@@ -1304,7 +1316,7 @@ function saveSchedulePatch(schedId, newStatus) {
   var sc = scheduleDB.find(function(s){ return String(s.id) === String(schedId); });
   if (sc) sc.status = newStatus;
   return supaFetch('madi_schedules?id=eq.' + schedId, 'PATCH', { data: sc })
-    .catch(function(e){ showToast('❌ 상태 저장 실패: ' + (e.message||'')); });
+    .catch(function(e){ showToast('❌ 상태 저장 실패: ' + adminErrMsg(e)); });
 }
 
 // ══════════════════════════════
@@ -1764,7 +1776,7 @@ function exportSettlementExcel() {
     XLSX.utils.book_append_sheet(wb, ws, ym+' 정산');
     XLSX.writeFile(wb, '아이마디아이_정산_'+ym+'.xlsx');
     showToast('✅ 엑셀 파일이 다운로드됐습니다!');
-  } catch(e) { showToast('❌ 엑셀 생성 실패: '+(e.message||'')); }
+  } catch(e) { showToast('❌ 엑셀 생성 실패: '+adminErrMsg(e)); }
 }
 
 var _staffTrendChart = null;
@@ -2028,7 +2040,7 @@ function loadNotices() {
       renderNoticeList();
     })
     .catch(function(e) {
-      listEl.innerHTML = '<div class="empty"><p>오류가 발생했습니다.<br><small>'+escHtml(e.message||'')+'</small></p></div>';
+      listEl.innerHTML = '<div class="empty"><p>오류가 발생했습니다.<br><small>'+escHtml(adminErrMsg(e))+'</small></p></div>';
     });
 }
 function renderNoticeList() {
@@ -2062,13 +2074,13 @@ function saveNotice() {
       showToast('✅ 공지가 등록됐습니다');
       loadNotices();
     })
-    .catch(function(e) { showToast('❌ 저장 실패: '+(e.message||'')); });
+    .catch(function(e) { showToast('❌ 저장 실패: '+adminErrMsg(e)); });
 }
 function deleteNotice(id) {
   showConfirm('이 공지를 삭제할까요?', function() {
     supaFetch('madi_notices?id=eq.'+encodeURIComponent(id),'DELETE')
       .then(function() { showToast('🗑️ 공지가 삭제됐습니다'); loadNotices(); })
-      .catch(function(e) { showToast('❌ 삭제 실패: '+(e.message||'')); });
+      .catch(function(e) { showToast('❌ 삭제 실패: '+adminErrMsg(e)); });
   });
 }
 
@@ -2107,7 +2119,7 @@ function loadStaffMgmtList() {
           + actionButtons
           +'</div>';
       }).join('');
-    }).catch(function(err){ el.innerHTML='<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: '+escHtml(err.message||'')+'</div>'; });
+    }).catch(function(err){ el.innerHTML='<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">로드 실패: '+escHtml(adminErrMsg(err))+'</div>'; });
 }
 function showStaffTrendFromCard(el) { showStaffTrend(el.dataset.teacher); }
 function removeStaffAccountFromBtn(btn) { removeStaffAccount(btn.dataset.uid, btn.dataset.uname); }
@@ -2146,7 +2158,7 @@ function resetStaffPassword(id, name) {
           function(){}, { danger: false, okLabel: '확인', cancelLabel: '닫기' });
       })
       .catch(function(err) {
-        showToast('❌ 재설정 실패: ' + escHtml(err.message || '오류'));
+        showToast('❌ 재설정 실패: ' + adminErrMsg(err));
       });
   }, { danger: false, okLabel: '재설정' });
 }
@@ -2263,7 +2275,7 @@ function saveCenterApiKey() {
       if (statusEl) statusEl.innerHTML='<span style="color:var(--green);">✅ 저장 완료: '+maskApiKey(key)+'</span>';
       showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
     }).catch(function(err){
-      if (statusEl) statusEl.innerHTML='<span style="color:var(--red);">❌ 저장 실패: '+escHtml(err.message||'오류')+'</span>';
+      if (statusEl) statusEl.innerHTML='<span style="color:var(--red);">❌ 저장 실패: '+escHtml(adminErrMsg(err))+'</span>';
       showToast('❌ 저장 실패');
     });
 }
@@ -2344,7 +2356,7 @@ function regenInviteCode() {
       }
       showToast('✅ 재발급 완료: ' + newCode);
     })
-    .catch(function(err) { showToast('❌ 재발급 실패: ' + escHtml(err.message || '오류')); });
+    .catch(function(err) { showToast('❌ 재발급 실패: ' + adminErrMsg(err)); });
   }, { danger: false, okLabel: '재발급' });
 }
 
@@ -2390,7 +2402,7 @@ function addStaffAccount() {
       setTimeout(function() { if (resultEl) resultEl.innerHTML = ''; }, 3000);
     })
     .catch(function(err) {
-      if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ 추가 실패: ' + escHtml(err.message || '아이디 중복일 수 있습니다') + '</span>';
+      if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444;">❌ 추가 실패: ' + escHtml(adminErrMsg(err)) + '</span>';
     });
 }
 
@@ -2638,7 +2650,7 @@ function saveUserPerms(){
   });
   supaFetch('madi_users?id=eq.'+encodeURIComponent(_pcu),'PATCH',{permissions:clean})
     .then(function(){ if(st) st.innerHTML='<span style="color:var(--green);">✅ 저장 완료</span>'; showToast('✅ 권한 저장 완료'); })
-    .catch(function(e){ if(st) st.innerHTML='<span style="color:var(--red);">❌ '+escHtml((e&&e.message)||'오류')+'</span>'; });
+    .catch(function(e){ if(st) st.innerHTML='<span style="color:var(--red);">❌ '+escHtml(adminErrMsg(e))+'</span>'; });
 }
 
 // ── 학부모 ──
@@ -2740,7 +2752,7 @@ function createParentAccount() {
       showToast('✅ 학부모 계정 생성 완료');
       loadParentList();
     })
-    .catch(function(e) { showToast('❌ ' + ((e && e.message) || '생성 실패')); });
+    .catch(function(e) { showToast('❌ 생성 실패: ' + adminErrMsg(e)); });
 }
 
 function copyParentNewInfo() {
@@ -2812,7 +2824,7 @@ function deleteParentAccount(userId, name) {
         showToast('✅ 학부모 계정 삭제 완료');
         loadParentList();
       })
-      .catch(function(e) { showToast('❌ ' + ((e && e.message) || '삭제 실패')); });
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + adminErrMsg(e)); });
   });
 }
 
@@ -2960,7 +2972,7 @@ function issueLicense() {
       if (keyEl) keyEl.value = '';
       loadLicenseList();
     })
-    .catch(function(e) { showToast('❌ 발급 실패: ' + (e.message || '')); });
+    .catch(function(e) { showToast('❌ 발급 실패: ' + adminErrMsg(e)); });
 }
 
 function loadLicenseList() {
@@ -3099,7 +3111,7 @@ function activateLicense() {
           loadMyLicense();
         });
     })
-    .catch(function(e) { showToast('❌ 활성화 실패: ' + (e.message || '')); });
+    .catch(function(e) { showToast('❌ 활성화 실패: ' + adminErrMsg(e)); });
 }
 
 // ══════════════════════════════
@@ -3156,7 +3168,7 @@ function loadVocabFeedback() {
       el.innerHTML = html;
     })
     .catch(function(e) {
-      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px;">❌ 불러오기 실패: ' + escHtml(e.message || '') + '</div>';
+      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px;">❌ 불러오기 실패: ' + escHtml(adminErrMsg(e)) + '</div>';
     });
 }
 
@@ -3167,7 +3179,7 @@ function deleteVocabFeedback(id) {
         showToast('🗑️ 항목 삭제 완료');
         loadVocabFeedback();
       })
-      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + adminErrMsg(e)); });
   }, { okLabel: '삭제', cancelLabel: '취소', danger: true });
 }
 
@@ -3215,7 +3227,7 @@ function loadClientErrors() {
         + '</div>' + html;
     })
     .catch(function(e) {
-      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px;">❌ 불러오기 실패: ' + escHtml(e.message || '') + '</div>';
+      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px;">❌ 불러오기 실패: ' + escHtml(adminErrMsg(e)) + '</div>';
     });
 }
 
@@ -3250,7 +3262,7 @@ function deleteClientError(id) {
         showToast('🗑️ 항목 삭제 완료');
         loadClientErrors();
       })
-      .catch(function(e) { showToast('❌ 삭제 실패: ' + (e.message || '')); });
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + adminErrMsg(e)); });
   }, { okLabel: '삭제', cancelLabel: '취소', danger: true });
 }
 

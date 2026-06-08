@@ -166,6 +166,11 @@ function saveChildren() {
   return _saveCollection({ db: childDB, lsKey: 'cn3_children', table: 'madi_children', label: '아동',
     before: function() { _optionsCacheKey = null; } });
 }
+/** 아동 단건 저장 (변경 row 만 upsert) — saveChildren 의 lost-update 안전 버전. @returns {Promise<boolean>} */
+function saveOneChild(row) {
+  return _saveOneRow({ db: childDB, row: row, lsKey: 'cn3_children', table: 'madi_children', label: '아동',
+    before: function() { _optionsCacheKey = null; } });
+}
 // ── 단건 행 저장 헬퍼 (H2 lost-update 완화) ──
 // 변경된 row 하나만 서버에 upsert + localStorage 미러 갱신. 컬렉션 통째 upsert(_saveCollection)가
 // 다중 사용자 환경에서 무관한 타 row 의 stale 사본으로 동시 편집을 덮어쓰던 lost-update 를,

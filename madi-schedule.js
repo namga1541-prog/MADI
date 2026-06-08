@@ -732,9 +732,9 @@ function saveSchedFromModal() {
     entries.push({ id: generateClientId(), childId: childId, date: date,
       startTime: startTime, duration: duration, endTime: endTime, note: note, teacher: teacher.trim() });
   }
-  entries.forEach(function(e){ scheduleDB.push(e); });
+  entries.forEach(function(e){ scheduleDB.push(e); saveOneSchedule(e); });
   if (_saveBtn) delete _saveBtn.dataset.busy;
-  saveSchedule(); closeSchedModal(); renderSchedView(); renderUnwrittenAlert();
+  closeSchedModal(); renderSchedView(); renderUnwrittenAlert();
   showToast('✅ ' + entries.length + '개 일정 추가!');
 }
 
@@ -962,7 +962,7 @@ function saveEditSched(id) {
   var endTime = '';
   if (start && dur) {
     var parts = start.split(':');
-    if (!parts || parts.length < 2) { saveSchedule(); var ol2 = document.getElementById('editSchedOverlay'); if (ol2) ol2.remove(); renderSchedView(); showToast('✅ 일정 수정 완료!'); return; }
+    if (!parts || parts.length < 2) { showToast('⚠️ 시간 형식 오류'); return; }
     var mins  = parseInt(parts[0]) * 60 + parseInt(parts[1]) + dur;
     endTime = String(Math.floor(mins/60)%24).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
   }
