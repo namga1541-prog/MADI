@@ -393,29 +393,90 @@ function buildBackupSnapshot() {
   };
 }
 
+// 전체 로드 완료 여부 — 부분 스냅샷 백업 방지(수정1).
+//   1) 메인 로드 완료: window._dataLoadedAt (loadDBFromSupabase 가 children/sessions/schedule/assessments 머지 후 설정)
+//   2) 과거 데이터 머지 완료: window._olderHistoryLoaded (boot+1.5s 비동기 _loadOlderHistory 가 90일+/30일+ 세션·일정 머지)
+//   둘 중 하나라도 미완료면 부분 스냅샷이므로 백업하지 않는다(스킵 후 재시도는 호출부 maybeAutoBackup 책임).
+function isFullLoadComplete() {
+  if (typeof window === 'undefined') return false;
+  if (!window._dataLoadedAt) return false;          // 메인 로드 전
+  if (window._olderHistoryLoaded !== true) return false;  // 과거 머지 전(메인 로드가 false 로 리셋)
+  return true;
+}
+
+// 직전 일간 백업 대비 컬렉션 급감 감지 — 완료 신호가 불확실하거나 일시적 로드 실패로
+//   인메모리가 비정상 축소된 상태를 백업이 박제하는 것을 방지(보수적 2차 가드).
+//   기존 백업에 N>0 건이 있었는데 현재가 그 절반 미만이면 부분/손상 스냅샷으로 간주.
+function looksLikePartialSnapshot(snapshot) {
+  return listBackups().then(function(arr) {
+    var prev = null, i;
+    for (i = 0; i < arr.length; i++) {
+      if (arr[i] && arr[i].id && String(arr[i].id).indexOf('safety_') !== 0 && arr[i].counts) { prev = arr[i]; break; }
+    }
+    if (!prev) return false;  // 비교 대상 없음 → 통과
+    var keys = ['children', 'sessions', 'schedule', 'assessments', 'activities', 'iep'];
+    var cur = snapshot.counts;
+    for (i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var pc = (prev.counts[k] || 0), cc = (cur[k] || 0);
+      if (pc >= 4 && cc < pc * 0.5) return true;  // 의미있는 양이 절반 미만으로 급감
+    }
+    return false;
+  }).catch(function() { return false; });  // 비교 실패는 차단하지 않음(백업 자체는 진행)
+}
+
 function autoBackup() {
   // 데이터가 아예 없으면 백업 스킵
   if ((childDB || []).length === 0 && (sessionDB || []).length === 0) return Promise.resolve();
 
+  // 수정1: 전체 로드 미완료면 부분 스냅샷 박제 방지 — 저장하지 않고 다음 기회로 미룬다.
+  if (!isFullLoadComplete()) {
+    if (window.console && console.debug) console.debug('[자동 백업] 전체 로드 미완료 — 스킵(다음 기회 재시도)');
+    return Promise.resolve(false);
+  }
+
   var dateKey = getTodayKST();
   var snapshot = buildBackupSnapshot();
-  var record = Object.assign({ id: dateKey, createdAt: Date.now() }, snapshot);
 
-  return putBackup(record)
-    .then(pruneOldBackups)
-    .then(function() {
-      localStorage.setItem('madi_last_backup', dateKey);
-      if (window.console && console.debug) console.debug('[자동 백업] ' + dateKey + ' 저장됨 (' + Math.round(snapshot.size/1024) + 'KB)');
-    })
-    .catch(function(err) {
-      if (window.console && console.error) console.error('[자동 백업 실패]', err);
-    });
+  return looksLikePartialSnapshot(snapshot).then(function(partial) {
+    if (partial) {
+      if (window.console && console.warn) console.warn('[자동 백업] 컬렉션 급감 감지 — 부분/손상 의심으로 스킵');
+      return false;
+    }
+    var record = Object.assign({ id: dateKey, createdAt: Date.now() }, snapshot);
+    return putBackup(record)
+      .then(pruneOldBackups)
+      .then(function() {
+        localStorage.setItem('madi_last_backup', dateKey);
+        if (window.console && console.debug) console.debug('[자동 백업] ' + dateKey + ' 저장됨 (' + Math.round(snapshot.size/1024) + 'KB)');
+        return true;
+      });
+  }).catch(function(err) {
+    if (window.console && console.error) console.error('[자동 백업 실패]', err);
+    return false;
+  });
 }
 
 function pruneOldBackups() {
+  // 일간 백업(날짜 id)과 safety 백업(safety_* — 복원 직전 자동 백업)을 분리해 각각 보관.
+  //   과거: listBackups 가 id localeCompare 내림차순이라 'safety_*' 가 날짜 id 보다 위로 정렬돼
+  //   prune 시 최근 일간 백업이 먼저 삭제되던 버그. createdAt 기준으로 각 그룹 최신 N개만 보존.
   return listBackups().then(function(arr) {
-    if (arr.length <= BACKUP_KEEP) return;
-    var toDelete = arr.slice(BACKUP_KEEP);
+    var daily = [], safety = [];
+    arr.forEach(function(b) {
+      if (b && b.id && String(b.id).indexOf('safety_') === 0) safety.push(b);
+      else daily.push(b);
+    });
+    function byCreatedDesc(a, b) {
+      var ax = (a && typeof a.createdAt === 'number') ? a.createdAt : 0;
+      var bx = (b && typeof b.createdAt === 'number') ? b.createdAt : 0;
+      if (ax !== bx) return bx - ax;            // 최신 우선
+      return safeCmp(b.id, a.id);               // createdAt 동률 시 id 내림차순(결정성)
+    }
+    daily.sort(byCreatedDesc);
+    safety.sort(byCreatedDesc);
+    var toDelete = daily.slice(BACKUP_KEEP).concat(safety.slice(BACKUP_KEEP));
+    if (toDelete.length === 0) return;
     return Promise.all(toDelete.map(function(b) { return deleteBackup(b.id); }));
   });
 }
@@ -425,20 +486,61 @@ function maybeAutoBackup() {
   try { last = localStorage.getItem('madi_last_backup'); } catch (_e) { last = null; }
   var todayKey = getTodayKST();
   if (last === todayKey) return; // 오늘 이미 백업
-  // 약간 늦게 실행 (앱 로드 방해 안 하기)
-  setTimeout(function() { autoBackup(); }, 5000);
+  // 수정1: 전체 로드(메인 + 과거 머지 + activities/iep)가 끝날 때까지 기다렸다 백업한다.
+  //   _loadOlderHistory 는 boot+1.5s 비동기이므로 단발 5초 타이머는 미완료 스냅샷을 박제할 수 있다.
+  //   완료될 때까지 폴링하되, 무한 대기 방지를 위해 시도 횟수를 제한한다(완료 안 되면 그냥 스킵).
+  var attempts = 0;
+  var MAX_ATTEMPTS = 24;           // 5s + 24*2.5s ≈ 65s 까지 대기
+  function tryBackup() {
+    // autoBackup 내부에서 isFullLoadComplete() 로 한 번 더 가드하지만,
+    //   여기서 먼저 확인해 미완료면 putBackup 자체를 호출하지 않고 재시도한다.
+    if (typeof isFullLoadComplete === 'function' && !isFullLoadComplete()) {
+      attempts++;
+      if (attempts >= MAX_ATTEMPTS) {
+        if (window.console && console.warn) console.warn('[자동 백업] 로드 완료 신호 미도달 — 오늘 백업 보류');
+        return;
+      }
+      setTimeout(tryBackup, 2500);
+      return;
+    }
+    autoBackup();
+  }
+  setTimeout(tryBackup, 5000);
 }
 
 // ─────── 백업 복원 ───────
+// 두 가지 복원 모드(수정2):
+//   • 머지(기본)        : 백업 내용을 인메모리에 덮어쓰고 서버에 upsert. 백업 이후 추가된
+//                         서버 행은 그대로 유지된다(삭제 없음).
+//   • 완전 복원(선택)   : 위 + center_id 범위 내에서 "백업에 없는 서버 행"을 DELETE 하여
+//                         백업 시점 그대로 되돌린다. 백업 이후 추가된 데이터가 영구 삭제될 수 있어
+//                         별도 확인 + 삭제 건수 고지 후에만 실행한다.
 function restoreFromBackup(id) {
-  showConfirm('⚠️ 백업 ' + id + ' 으로 복원하시겠습니까?\n\n현재 모든 데이터가 백업으로 덮어써집니다.\n복원 직전 자동으로 현재 상태도 백업됩니다.', function() {
-    showConfirm('정말 진행하시겠습니까? 이 작업은 되돌릴 수 없습니다.', function() {
-      _execRestoreFromBackup(id);
-    }, { danger: true, okLabel: '복원' });
+  showConfirm('⚠️ 백업 ' + id + ' 으로 복원하시겠습니까?\n\n복원 직전 자동으로 현재 상태도 백업됩니다.', function() {
+    // 1차 모드 선택: 완전 복원 여부. 기본(취소) = 머지.
+    showConfirm(
+      '복원 방식을 선택해주세요.\n\n' +
+      '[확인] 완전 복원 — 백업 이후 추가된 데이터까지 삭제하고 백업 시점 그대로 되돌립니다. (추가된 데이터 영구 삭제)\n' +
+      '[취소] 머지 — 기존 데이터는 유지되고 백업 내용이 덮어써집니다. (삭제 없음, 안전)',
+      function() {
+        // 완전 복원 경로 — 삭제 대상 산출 후 건수 고지 + 최종 확인은 _execRestoreFromBackup 내부에서.
+        _execRestoreFromBackup(id, true);
+      },
+      {
+        danger: true,
+        okLabel: '완전 복원(삭제 포함)',
+        cancelLabel: '머지(삭제 없음)',
+        onCancel: function() {
+          showConfirm('머지 복원을 진행합니다.\n\n기존 데이터는 유지되고 백업 내용이 덮어써집니다. 이 작업은 되돌릴 수 없습니다.', function() {
+            _execRestoreFromBackup(id, false);
+          }, { danger: true, okLabel: '복원' });
+        }
+      }
+    );
   }, { danger: true });
 }
 
-function _execRestoreFromBackup(id) {
+function _execRestoreFromBackup(id, fullRestore) {
   // 1. 현재 상태를 안전 백업
   var safetyKey = 'safety_' + Date.now();
   var safetySnapshot = buildBackupSnapshot();

@@ -3,7 +3,7 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (174)
+## 전역 변수 (177)
 
 - `var AI_PROCESSING_NOTICE = '<div style="font-size:11px;color:var(--text2,#888);line-height` — madi-ai.js:2
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:415
@@ -22,8 +22,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var LANGSOLVE_NORMS = {` — madi-assessment.js:309
 - `var _assessInterpPlain = '';` — madi-assessment.js:547
 - `var ASSESS_SCHEMA = {` — madi-assessment.js:653
-- `var PRIVACY_POLICY_VERSION = '2026-06-08';` — madi-auth.js:14
-- `var _inviteCheckTimer = null;` — madi-auth.js:28
+- `var PRIVACY_POLICY_VERSION = '2026-06-07';` — madi-auth.js:16
+- `var _inviteCheckTimer = null;` — madi-auth.js:30
 - `var _loungePostImages = []; // 글 작성 폼 첨부 File 객체 배열 (최대 3장)` — madi-board-notice.js:2
 - `var _loungeCommentImages = {}; // { postId: File } 댓글 첨부 1장` — madi-board-notice.js:3
 - `var MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB` — madi-board-notice.js:115
@@ -81,9 +81,12 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SUPA_CACHE_TTL = 5 * 60 * 1000;` — madi-core.js:229
 - `var _offlineQueue = [];` — madi-core.js:253
 - `var _offlineQueueBusy = false;` — madi-core.js:254
-- `var currentUser = null;` — madi-core.js:344
-- `var _errReportCount = 0;` — madi-core.js:398
-- `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:399
+- `var _OQ_DEADLETTER_KEY = 'cn3_oq_deadletter';` — madi-core.js:266
+- `var _OQ_DEADLETTER_MAX = 50;` — madi-core.js:267
+- `var _OQ_MAX_RETRY = 5;` — madi-core.js:268
+- `var currentUser = null;` — madi-core.js:399
+- `var _errReportCount = 0;` — madi-core.js:453
+- `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:454
 - `var _DP_VOUCHER_PRICE = {` — madi-dashboard.js:466
 - `var GITHUB_OWNER = 'namga1541-prog';` — madi-deploy.js:67
 - `var GITHUB_REPO = 'MADI';` — madi-deploy.js:68
@@ -332,30 +335,30 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _데이터 이전_ — L1151
 
 ## madi-auth.js (22함수)
-- `showLanding` — madi-auth.js:16
-- `hideLanding` — madi-auth.js:17
-- `backToLanding` — madi-auth.js:18
-- `showLoginScreen` — madi-auth.js:19
-- `hideLoginScreen` — madi-auth.js:20
-- `loadUserList` — madi-auth.js:21
-- `onInviteCodeInput` — madi-auth.js:29
-- `showSignupScreen` — madi-auth.js:49
-- `backToLoginFromSignup` — madi-auth.js:56
-- `doSignup` — madi-auth.js:58
-- `doLogin` — madi-auth.js:144
-  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L158
-- `_promptTotpCode` — madi-auth.js:204
-- `getMadiLogoSVG` — madi-auth.js:226
-  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L234
-- `_initWebVitals` — madi-auth.js:239
-- `showLogoutMenu` — madi-auth.js:312
-- `doLogout` — madi-auth.js:337
-- `showLoginUpdatePopup` — madi-auth.js:392
-- `_renderLoginUpdatePopup` — madi-auth.js:410
-- `_dismiss` — madi-auth.js:442
-- `_onKey` — madi-auth.js:452
-- `showChangePasswordModal` — madi-auth.js:464
-- `submitChangePassword` — madi-auth.js:496
+- `showLanding` — madi-auth.js:18
+- `hideLanding` — madi-auth.js:19
+- `backToLanding` — madi-auth.js:20
+- `showLoginScreen` — madi-auth.js:21
+- `hideLoginScreen` — madi-auth.js:22
+- `loadUserList` — madi-auth.js:23
+- `onInviteCodeInput` — madi-auth.js:31
+- `showSignupScreen` — madi-auth.js:51
+- `backToLoginFromSignup` — madi-auth.js:58
+- `doSignup` — madi-auth.js:60
+- `doLogin` — madi-auth.js:146
+  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L160
+- `_promptTotpCode` — madi-auth.js:206
+- `getMadiLogoSVG` — madi-auth.js:228
+  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L236
+- `_initWebVitals` — madi-auth.js:241
+- `showLogoutMenu` — madi-auth.js:314
+- `doLogout` — madi-auth.js:339
+- `showLoginUpdatePopup` — madi-auth.js:394
+- `_renderLoginUpdatePopup` — madi-auth.js:412
+- `_dismiss` — madi-auth.js:444
+- `_onKey` — madi-auth.js:454
+- `showChangePasswordModal` — madi-auth.js:466
+- `submitChangePassword` — madi-auth.js:498
 
 ## madi-board-notice.js (25함수)
   ▸ _게시판 이미지 업로드 유틸_ — L1
@@ -542,7 +545,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `showStaffTrend` — madi-children.js:678
   ▸ _입력 모드_ — L761
 
-## madi-core.js (48함수)
+## madi-core.js (51함수)
   ▸ _상수_ — L1
 - `isAdminRole` — madi-core.js:14
 - `isStaffRole` — madi-core.js:15
@@ -588,18 +591,21 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _오프라인 쓰기 큐_ — L252
 - `_oqSave` — madi-core.js:258
 - `_oqEnqueue` — madi-core.js:259
-- `_oqFlush` — madi-core.js:264
-  ▸ _─_ — L286
-- `supaFetch` — madi-core.js:297
-- `hashPassword` — madi-core.js:345
-- `getCenterId` — madi-core.js:350
-- `_loadScriptOnce` — madi-core.js:354
-- `ensureXLSX` — madi-core.js:371
-- `ensureChart` — madi-core.js:381
-- `centerFilter` — madi-core.js:389
-  ▸ _글로벌 에러 모니터링_ — L395
-- `_reportClientError` — madi-core.js:401
-  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L477
+- `_oqDeadLetter` — madi-core.js:269
+- `_oqIsPermanentFailure` — madi-core.js:282
+- `_oqFlush` — madi-core.js:294
+- `_oqAfterDrain` — madi-core.js:333
+  ▸ _─_ — L341
+- `supaFetch` — madi-core.js:352
+- `hashPassword` — madi-core.js:400
+- `getCenterId` — madi-core.js:405
+- `_loadScriptOnce` — madi-core.js:409
+- `ensureXLSX` — madi-core.js:426
+- `ensureChart` — madi-core.js:436
+- `centerFilter` — madi-core.js:444
+  ▸ _글로벌 에러 모니터링_ — L450
+- `_reportClientError` — madi-core.js:456
+  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L532
 
 ## madi-dashboard.js (24함수)
 - `_dpInitial` — madi-dashboard.js:13
@@ -1042,7 +1048,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_exportScheduleRtf` — madi-schedule.js:1115
   ▸ _표준화 검사_ — L1135
 
-## madi-session.js (37함수)
+## madi-session.js (41함수)
   ▸ _보안: API 키 마스킹 / 토글_ — L1
 - `maskApiKey` — madi-session.js:2
 - `showMaskedApiKey` — madi-session.js:7
@@ -1073,18 +1079,22 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `deleteBackup` — madi-session.js:350
 - `quickHash` — madi-session.js:362
 - `buildBackupSnapshot` — madi-session.js:371
-- `autoBackup` — madi-session.js:396
-- `pruneOldBackups` — madi-session.js:415
-- `maybeAutoBackup` — madi-session.js:423
-  ▸ _백업 복원_ — L432
-- `restoreFromBackup` — madi-session.js:433
-- `_execRestoreFromBackup` — madi-session.js:441
-- `applyBackup` — madi-session.js:452
-- `renderBackupList` — madi-session.js:484
-- `deleteBackupConfirm` — madi-session.js:521
-- `callClaude` — madi-session.js:532
-- `parseJSON` — madi-session.js:566
-  ▸ _센터 API 키 관리 (선택지 2)_ — L625
+- `isFullLoadComplete` — madi-session.js:400
+- `looksLikePartialSnapshot` — madi-session.js:410
+- `autoBackup` — madi-session.js:428
+- `pruneOldBackups` — madi-session.js:460
+- `byCreatedDesc` — madi-session.js:470
+- `maybeAutoBackup` — madi-session.js:484
+- `tryBackup` — madi-session.js:494
+  ▸ _백업 복원_ — L511
+- `restoreFromBackup` — madi-session.js:518
+- `_execRestoreFromBackup` — madi-session.js:543
+- `applyBackup` — madi-session.js:554
+- `renderBackupList` — madi-session.js:586
+- `deleteBackupConfirm` — madi-session.js:623
+- `callClaude` — madi-session.js:634
+- `parseJSON` — madi-session.js:668
+  ▸ _센터 API 키 관리 (선택지 2)_ — L727
 
 ## madi-system.js (19함수)
   ▸ _권한 설정 모달_ — L1

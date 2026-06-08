@@ -46,6 +46,12 @@ var madiNameMasker; try { madiNameMasker = require('../madi-pii.js').madiNameMas
 // 인라인 핸들러 JS 인자 이스케이프 (madi-core.js / madi-pure-utils.js)
 var jsArg = _utils ? _utils.jsArg : function(s) { return String(s); };
 
+// 임상 계산 함수 (실파일 구현 미러 — madi-pure-utils.js). 폴백 없음(없으면 skip).
+var interpolatePct   = _utils ? _utils.interpolatePct   : null;
+var parseBirth       = _utils ? _utils.parseBirth       : null;
+var calcAgeFromBirth = _utils ? _utils.calcAgeFromBirth : null;
+var weekDoneCount    = _utils ? _utils.weekDoneCount    : null;
+
 var passed = 0, failed = 0;
 
 function assert(label, condition) {
@@ -251,6 +257,122 @@ assertEq('성공 시 head 제거(FIFO 전진)', oqStep([{p:'a'},{p:'b'}], true).
 assertEq('성공 후 다음 head 는 b', oqStep([{p:'a'},{p:'b'}], true)[0].p, 'b');
 assertEq('실패 시 큐 보존(재시도 대상)', oqStep([{p:'a'},{p:'b'}], false).length, 2);
 assertEq('빈 큐는 그대로', oqStep([], true).length, 0);
+
+// ──────────────────────────────────
+// 회귀 테스트 — 2026-06-08 수정한 임상 계산 버그 박제
+// ──────────────────────────────────
+
+section('회귀: interpolatePct 백분위 보간 (madi-assessment.js)');
+if (!interpolatePct) {
+  assert('madi-pure-utils.js interpolatePct 로드', false);
+} else {
+  // 규준표 구조: [백분위, 수용점수(col1), 표현점수(col2)] — 실제 SELSI_PCT_TABLE 동형.
+  // col1 단조증가, col2 에 동점 run(45·45)·상한 동점(60·60) 포함해 경계 검증.
+  var _T = [
+    [1,  3, 10],
+    [5,  5, 20],
+    [10, 5, 30],   // col1 동점 run 시작: 점수 5 가 백분위 5·10 두 행
+    [25, 8, 45],
+    [50, 12, 45],  // col2 동점 run: 점수 45 가 백분위 25·50 두 행
+    [90, 18, 55],
+    [99, 25, 60]
+  ];
+  // 하한 '미만'(strictly <) → sentinel -1
+  assertEq('수용 하한 미만(2<3) → -1(미만 표시)', interpolatePct(_T, 2, 1), -1);
+  // 최저행과 정확히 같음(==) → 정상 산출(미만 아님)
+  assertEq('수용 최저행과 동일(3) → 백분위 1(미만 아님)', interpolatePct(_T, 3, 1), 1);
+  // 동점 run(col1: 점수 5 → 백분위 5·10) → 중앙값 (짝수 2개 → round((5+10)/2)=8)
+  assertEq('수용 동점 run(5) → 백분위 중앙값 8', interpolatePct(_T, 5, 1), 8);
+  // 동점 run(col2: 점수 45 → 백분위 25·50) → 중앙값 round((25+50)/2)=38
+  assertEq('표현 동점 run(45) → 백분위 중앙값 38', interpolatePct(_T, 45, 2), 38);
+  // 정상 브래킷 보간 (수용 점수 10 은 8~12 사이, 백분위 25~50)
+  assertEq('수용 보간(10 → 25~50 사이)', interpolatePct(_T, 10, 1), 38);
+  // 상한 초과 → 최고 백분위
+  assertEq('수용 상한 초과(99) → 최고 백분위 99', interpolatePct(_T, 99, 1), 99);
+  assertEq('수용 상한 정확(25) → 최고 백분위 99', interpolatePct(_T, 25, 1), 99);
+  // 동점 run 홀수 개 → 정확한 중앙값 (점수 45 가 col2 에서 3행이면 가운데)
+  var _T2 = [[10,1,45],[50,2,45],[90,3,45]];
+  assertEq('동점 run 홀수(3개) → 가운데값 50', interpolatePct(_T2, 45, 2), 50);
+}
+
+section('회귀: parseBirth 날짜 롤오버 거부 (madi-schedule.js)');
+if (!parseBirth) {
+  assert('madi-pure-utils.js parseBirth 로드', false);
+} else {
+  assertEq('2월30일(20260230) → null', parseBirth('20260230'), null);
+  assertEq('13월(20261301) → null', parseBirth('20261301'), null);
+  assertEq('4월31일(20260431) → null', parseBirth('20260431'), null);
+  assertEq('빈 입력 → null', parseBirth(''), null);
+  assertEq('8자리 아님(7자리) → null', parseBirth('2026010'), null);
+  // 정상 8자리 → Date (하이픈 포함 입력도 정규화)
+  var _pb = parseBirth('20200315');
+  assert('정상(20200315) → Date 객체', _pb instanceof Date && !isNaN(_pb.getTime()));
+  assert('정상 파싱 연·월·일 정확', _pb.getFullYear() === 2020 && _pb.getMonth() === 2 && _pb.getDate() === 15);
+  var _pbDash = parseBirth('2020-03-15');
+  assert('하이픈 포함도 정상 파싱', _pbDash instanceof Date && _pbDash.getDate() === 15);
+  assert('윤년 2월29일(20240229) 정상 통과', parseBirth('20240229') instanceof Date);
+  assertEq('비윤년 2월29일(20260229) → null', parseBirth('20260229'), null);
+}
+
+section('회귀: calcAgeFromBirth 만나이 계산 (madi-schedule.js)');
+if (!calcAgeFromBirth) {
+  assert('madi-pure-utils.js calcAgeFromBirth 로드', false);
+} else {
+  // 미래 생일 → 빈 문자열 (오늘+1년 기준 안전 마진)
+  var _future = new Date(); _future.setFullYear(_future.getFullYear() + 1);
+  var _fStr = _future.getFullYear()
+    + String(_future.getMonth() + 1).padStart(2, '0')
+    + String(_future.getDate()).padStart(2, '0');
+  assertEq('미래 생일 → 빈 문자열', calcAgeFromBirth(_fStr), '');
+  // 정확히 N세 (오늘로부터 정수 년 전 생일이면 'N세')
+  var _today = new Date();
+  var _exact = (_today.getFullYear() - 5)
+    + String(_today.getMonth() + 1).padStart(2, '0')
+    + String(_today.getDate()).padStart(2, '0');
+  assertEq('5년 전 같은 날 → 5세', calcAgeFromBirth(_exact), '5세');
+  // 아직 생일 안 지남 → 월수 차감: 1년 전보다 한 달 뒤 생일이면 11개월
+  //   (오늘 = 생일 1개월 전 → 만 0세 11개월). 연말 경계는 회피해 +2달 사용.
+  var _bd = new Date(); _bd.setFullYear(_bd.getFullYear() - 1); _bd.setMonth(_bd.getMonth() + 2);
+  if (_bd.getFullYear() === _today.getFullYear()) { // 생일 안 지난 케이스만(롤오버 회피)
+    var _bdStr = _bd.getFullYear()
+      + String(_bd.getMonth() + 1).padStart(2, '0')
+      + String(_bd.getDate()).padStart(2, '0');
+    assertEq('생일 2개월 남음 → 0세 10개월(월수 차감)', calcAgeFromBirth(_bdStr), '0세 10개월');
+  }
+  // 잘못된 생일(롤오버) → 빈 문자열
+  assertEq('잘못된 생일(2월30일) → 빈 문자열', calcAgeFromBirth('20200230'), '');
+}
+
+section('회귀: weekDone 세션-일정 1:1 매칭 (madi-dashboard.js)');
+if (!weekDoneCount) {
+  assert('madi-pure-utils.js weekDoneCount 로드', false);
+} else {
+  // 같은 날 동일아동 2일정 + 1세션 → done=1 (세션 1건이 일정 2건 채우는 과대평가 방지)
+  var _sch2 = [
+    { childId: 'c1', date: '2026-06-08' },
+    { childId: 'c1', date: '2026-06-08' }
+  ];
+  assertEq('2일정 + 1세션 → done=1(과대평가 방지)',
+    weekDoneCount(_sch2, [{ childId: 'c1', date: '2026-06-08' }]), 1);
+  // 같은 날 동일아동 2일정 + 2세션 → done=2 (각 세션이 각 일정 소비)
+  assertEq('2일정 + 2세션 → done=2',
+    weekDoneCount(_sch2, [
+      { childId: 'c1', date: '2026-06-08' },
+      { childId: 'c1', date: '2026-06-08' }
+    ]), 2);
+  // 세션 없음 → done=0
+  assertEq('2일정 + 0세션 → done=0', weekDoneCount(_sch2, []), 0);
+  // 다른 아동/날짜 세션은 매칭 안 됨
+  assertEq('일정과 무관한 세션은 매칭 안 됨',
+    weekDoneCount(_sch2, [{ childId: 'c2', date: '2026-06-08' }, { childId: 'c1', date: '2026-06-07' }]), 0);
+  // 세션 과잉(2일정 + 3세션) → done=2 (일정 수가 상한)
+  assertEq('2일정 + 3세션 → done=2(일정 수 상한)',
+    weekDoneCount(_sch2, [
+      { childId: 'c1', date: '2026-06-08' },
+      { childId: 'c1', date: '2026-06-08' },
+      { childId: 'c1', date: '2026-06-08' }
+    ]), 2);
+}
 
 // ──────────────────────────────────
 // 결과 출력

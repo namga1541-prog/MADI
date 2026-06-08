@@ -161,29 +161,49 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
-      // ⑥ 학부모별 1회 발송 (다자녀면 첫 번째 자녀 기준)
-      //    발송 성공/실패 카운트를 추적해 모든 발송이 fatal 실패면 last_sent_date 갱신 보류 → 다음 cron 에서 재시도
-      const sentParents = new Set<string>();
-      let centerSent = 0;
-      let centerFatalFail = 0; // 410/404 외의 진짜 실패 (네트워크 오류 등)
-      for (const link of links) {
-        if (sentParents.has(link.parent_user_id)) continue;
-        // madi_schedules.child_id=bigint, madi_parent_children.child_id=text
-        const sched = scheds.find(s => String(s.child_id) === link.child_id);
-        if (!sched) continue;
+      // ⑥ 학부모별 1회 발송 — 내일 예약된 '모든' 자녀를 한 알림 본문에 합쳐 발송 (다자녀 누락 해소).
+      //    발송 성공/실패를 학부모 단위로 추적: 한 학부모라도 비-만료 실패가 있으면 그 센터는
+      //    last_sent_date 미마킹 → 다음 cron 에서 재시도(부분실패 영구누락 방지). 멱등성: 성공/만료
+      //    대상은 다음 틱에서도 재발송되지 않도록, 실패가 없을 때만 센터 완료로 마킹한다.
 
+      // 학부모 → [{name, time}] 집계 (내일 예약된 자녀 전체)
+      const parentChildren: Record<string, Array<{ name: string; time: string }>> = {};
+      for (const link of links) {
+        // madi_schedules.child_id=bigint, madi_parent_children.child_id=text — 문자열 비교
+        const childScheds = scheds.filter(s => String(s.child_id) === link.child_id);
+        if (!childScheds.length) continue;
         const childName = nameMap[Number(link.child_id)] || '아동';
-        const startTime = sched.data?.startTime ?? '';
+        if (!parentChildren[link.parent_user_id]) parentChildren[link.parent_user_id] = [];
+        for (const sched of childScheds) {
+          parentChildren[link.parent_user_id].push({
+            name: childName,
+            time: sched.data?.startTime ?? '',
+          });
+        }
+      }
+
+      // 시간순 정렬 + 본문 라인 구성 헬퍼. 템플릿 {아동이름}/{시간} 을 자녀별로 치환해 한 줄씩 생성.
+      const buildBody = (items: Array<{ name: string; time: string }>): string => {
+        const sorted = items.slice().sort((a, b) => a.time.localeCompare(b.time));
+        return sorted
+          .map(it => cfg.message_body.replace(/{아동이름}/g, it.name).replace(/{시간}/g, it.time))
+          .join('\n');
+      };
+
+      let centerSent = 0;
+      let centerFatalFail = 0; // 410/404 외의 진짜 실패 (네트워크 오류 등) — 센터 전체 기준
+      for (const parentId of Object.keys(parentChildren)) {
+        const items = parentChildren[parentId];
+        if (!items.length) continue;
+
         const title = cfg.message_title;
-        const body  = cfg.message_body
-          .replace(/{아동이름}/g, childName)
-          .replace(/{시간}/g, startTime);
+        const body  = buildBody(items);
         const payload = JSON.stringify({
           title, body,
           url: 'https://namga1541-prog.github.io/MADI/',
         });
 
-        const parentSubs = subs.filter(s => s.user_id === link.parent_user_id);
+        const parentSubs = subs.filter(s => s.user_id === parentId);
         for (const sub of parentSubs) {
           try {
             await webpush.sendNotification(
@@ -204,22 +224,24 @@ Deno.serve(async (req: Request) => {
                 });
               } catch(_) {}
             } else {
-              // 네트워크 / 인증 / 기타 — 진짜 실패. 추적 후 임계치 초과 시 재시도용으로 last_sent_date 미갱신.
+              // 네트워크 / 인증 / 5xx 등 — 진짜 실패. 하나라도 있으면 센터 미마킹 → 재시도.
               centerFatalFail++;
               console.error(`[push] sendNotification fail status=${status} endpoint=${sub.endpoint.slice(0, 80)}... msg=${msg}`);
             }
           }
         }
-        sentParents.add(link.parent_user_id);
       }
 
       // ⑦ 발송 완료 기록
-      //    - 한 명이라도 성공했으면 오늘 분 완료로 마킹 (중복 발송 방지)
-      //    - 모두 fatal 실패면 미마킹 → 다음 10분 cron 에서 재시도
-      if (centerSent > 0 || centerFatalFail === 0) {
+      //    - 비-만료 실패가 하나도 없을 때만 오늘 분 완료로 마킹 (부분실패 영구누락 방지).
+      //    - fatal 실패가 하나라도 있으면 미마킹 → 다음 10분 cron 에서 재시도.
+      //    - 멱등성: 이미 성공/만료정리된 대상은 재발송되지 않음(이번 틱에서만 재시도되는 건 실패분 포함 센터 전체이나,
+      //      성공 대상은 같은 알림을 한 번 더 받을 수 있음 — 누락보다 안전한 쪽 선택. 발송 단위를 센터→대상으로
+      //      내리는 최소 변경 범위 내에서 endpoint별 멱등 마킹은 도입하지 않음).
+      if (centerFatalFail === 0) {
         await sp(_url, _key, 'madi_push_settings', `center_id=eq.${enc(cfg.center_id)}`, { last_sent_date: todayKST });
       } else {
-        console.warn(`[push] center ${cfg.center_id}: 전송 ${centerSent}/${centerFatalFail} — last_sent_date 미갱신 (다음 cron 재시도)`);
+        console.warn(`[push] center ${cfg.center_id}: 전송 ${centerSent}건 / 실패 ${centerFatalFail}건 — last_sent_date 미갱신 (다음 cron 재시도)`);
       }
     } catch (e) {
       console.error(`[push] center ${cfg.center_id}:`, e);

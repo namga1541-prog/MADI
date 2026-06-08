@@ -86,6 +86,82 @@ const PARENT_USER_SCOPED: Record<string, string> = {
   'madi_parent_observations':  'parent_user_id',
 }
 
+// ── 클라이언트 감사 이벤트(madi_audit_log POST) 허용 action 목록 ────────────
+// 클라가 보내는 action 값 중 서버가 수용하는 화이트리스트. 목록 밖 값은 'client_other'로 정규화.
+// (실제 사용처: madi-core.js _reportClientError, madi-child-detail.js deleteChild,
+//  madi-system.js savePermissions/deleteStaff, madi-board.js vocab feedback)
+const AUDIT_CLIENT_ACTIONS = new Set([
+  'client_error', 'DELETE_CHILD', 'UPDATE_PERMISSIONS', 'DELETE_STAFF', 'vocab_feedback',
+])
+
+// ── 클라이언트 감사 이벤트 서버 정제 INSERT ──────────────────────────────────
+// 클라 body 를 그대로 PostgREST 로 넘기지 않고, 서버가 필드를 정제·강제해 service_role 로 INSERT.
+//   · actor_id/actor_role/center_id 는 JWT 에서 강제(클라 위조 무시).
+//   · action 은 화이트리스트로 제한, 밖이면 'client_other'.
+//   · row_id/child_id/table_name 은 클라 값 허용하되 문자열화·길이 200 제한.
+//   · changed_cols(text[]) 는 배열만 수용, 각 원소 문자열화·길이 2000 제한, 최대 20개.
+//   · ⚠️ SCHEMA.md 의 실제 컬럼만 사용. record_id 로 와도 row_id 로 매핑(현재 클라는 row_id 사용).
+async function insertClientAudit(
+  supaUrl: string,
+  supaKey: string,
+  user: Record<string, unknown>,
+  rawBody: unknown,
+): Promise<Response> {
+  const CORS_H = { 'Content-Type': 'application/json' }
+  const src = Array.isArray(rawBody) ? rawBody[0] : rawBody
+  if (!src || typeof src !== 'object') {
+    return new Response(JSON.stringify({ error: '잘못된 감사 페이로드' }), { status: 400, headers: CORS_H })
+  }
+  const c = src as Record<string, unknown>
+  const str200 = (v: unknown): string | null => (v != null ? String(v).slice(0, 200) : null)
+
+  // action 화이트리스트 정규화
+  const rawAction = c.action != null ? String(c.action) : ''
+  const action = AUDIT_CLIENT_ACTIONS.has(rawAction) ? rawAction : 'client_other'
+
+  // changed_cols(text[]) — 배열만 수용. 클라는 [JSON.stringify({...})] 또는 ['permissions','role'] 전송.
+  let changedCols: string[] | null = null
+  if (Array.isArray(c.changed_cols)) {
+    changedCols = c.changed_cols.slice(0, 20).map((x) => String(x).slice(0, 2000))
+  }
+
+  // row_id: 클라가 record_id 로 보냈을 가능성도 흡수(현재 클라는 row_id 사용).
+  const rowId = c.row_id != null ? str200(c.row_id) : str200(c.record_id)
+
+  const insertRow: Record<string, unknown> = {
+    actor_id:    user.sub  != null ? String(user.sub)  : null,   // JWT 강제(위조 방지)
+    actor_role:  user.role != null ? String(user.role) : null,   // JWT 강제
+    action:      action,
+    table_name:  str200(c.table_name),
+    row_id:      rowId,
+    center_id:   user.center_id != null ? String(user.center_id) : null,  // JWT 강제
+    child_id:    str200(c.child_id),
+    changed_cols: changedCols,
+  }
+
+  try {
+    const res = await fetch(`${supaUrl}/rest/v1/madi_audit_log`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${supaKey}`,
+        'apikey':        supaKey,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify(insertRow),
+    })
+    if (!res.ok) {
+      console.error('[api] audit insert fail', res.status, (await res.text()).slice(0, 300))
+      // 클라는 .catch(()=>{}) 로 무시하므로 상태만 전달(내부 구조 비노출)
+      return new Response(JSON.stringify({ ok: false }), { status: res.status, headers: CORS_H })
+    }
+    return new Response(JSON.stringify({ ok: true }), { status: 201, headers: CORS_H })
+  } catch (e) {
+    console.error('[api] audit insert error', (e as Error).message)
+    return new Response(JSON.stringify({ ok: false }), { status: 500, headers: CORS_H })
+  }
+}
+
 // ── 민감 설정 SELECT 감사 ──────────────────────────────────────────────
 // 외부 보안 감사 후속 (2026-05-23) — admin 권한자가 madi_settings(특히 api_key) 를
 // 조회한 흐름을 madi_audit_log 에 기록. fire-and-forget — 로깅 실패는 본 요청에 영향 X.
@@ -277,6 +353,21 @@ Deno.serve(async (req: Request) => {
       } catch (_) {
         return new Response(JSON.stringify({ urls: {} }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } })
       }
+    }
+
+    // ★ 클라이언트 감사 이벤트(madi_audit_log) POST 전용 통제 분기.
+    //   ALLOWED_TABLES 에 audit_log 를 넣지 않고 여기서 흡수 — POST 만 정제 INSERT 허용,
+    //   actor/center 는 JWT 강제, action 화이트리스트. GET(운영자 조회)·기타 method 는 차단.
+    //   (이 분기가 없으면 클라 감사쓰기가 403 → .catch(()=>{}) 로 영구 폐기됐음.)
+    if (tableName === 'madi_audit_log') {
+      if (method !== 'POST') {
+        // GET 등 운영자 조회는 이 프록시로는 불허(직접 DB/별도 경로). POST 만 수용.
+        return new Response(JSON.stringify({ error: '감사 로그는 기록(POST)만 가능합니다' }), { status: 403, headers: CORS })
+      }
+      const auditRes = await insertClientAudit(SUPA_URL, SUPA_KEY, user, body)
+      // insertClientAudit 의 최소 헤더에 CORS 를 합쳐 반환
+      const merged: Record<string, string> = { ...CORS, 'Content-Type': 'application/json' }
+      return new Response(auditRes.body, { status: auditRes.status, headers: merged })
     }
 
     // 허용 테이블 체크

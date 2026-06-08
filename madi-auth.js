@@ -11,7 +11,9 @@
    ─────────────────────────────────────────────────────────── */
 
 // 개인정보 처리방침 버전 (동의 페이로드에 포함 — 서버/parent-pages 공용 전역)
-var PRIVACY_POLICY_VERSION = '2026-06-08';
+//   ⚠️ privacy.html·terms.html 의 게시 '시행일' 과 반드시 일치시킬 것(동의 증빙 정합성).
+//   방침 본문을 실제 개정할 때만 이 날짜를 올린다.
+var PRIVACY_POLICY_VERSION = '2026-06-07';
 
 function showLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'flex'; }
 function hideLanding()    { var el = document.getElementById('landingScreen'); if (el) el.style.display = 'none'; }

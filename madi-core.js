@@ -257,9 +257,39 @@ var _offlineQueueBusy = false;
 })();
 function _oqSave(){ try { localStorage.setItem('_madiOQ', JSON.stringify(_offlineQueue)); } catch(e){} }
 function _oqEnqueue(path, method, body){
-  _offlineQueue.push({path: path, method: method, body: body});
+  _offlineQueue.push({path: path, method: method, body: body, retryCount: 0});
   _oqSave();
   if (typeof showToast === 'function') showToast('📶 오프라인 상태 — 연결 시 자동 저장됩니다.');
+}
+// 영구실패 항목 격리(dead-letter) — 재시도해도 영원히 실패하는 4xx 가 큐 선두를 막아
+//   뒤 정상 항목을 영구 차단·유실시키는 것을 방지. 자동 재전송하지 않는 운영/디버깅용 보관.
+var _OQ_DEADLETTER_KEY = 'cn3_oq_deadletter';
+var _OQ_DEADLETTER_MAX = 50;
+var _OQ_MAX_RETRY = 5;
+function _oqDeadLetter(item, reason){
+  try {
+    var dl = [];
+    try { var s = localStorage.getItem(_OQ_DEADLETTER_KEY); if (s) dl = JSON.parse(s); } catch(e){}
+    if (!Array.isArray(dl)) dl = [];
+    dl.push({ path: item.path, method: item.method, body: item.body, reason: reason, ts: Date.now() });
+    while (dl.length > _OQ_DEADLETTER_MAX) dl.shift(); // 상한 초과 시 가장 오래된 항목부터 폐기
+    localStorage.setItem(_OQ_DEADLETTER_KEY, JSON.stringify(dl));
+  } catch(e){}
+  if (window.console && console.warn) console.warn('[오프라인큐] dead-letter 격리 (' + reason + '):', item.method, item.path);
+}
+// 에러 메시지에서 HTTP 상태를 추출(supaFetch throw 형식: 'NNN: ...' / fetchWithRetry: 'RETRY:NNN' / 'Failed to fetch').
+// 반환: true = 영구실패(격리), false = 일시실패(재시도 보존).
+function _oqIsPermanentFailure(err){
+  var msg = (err && err.message) ? err.message : '';
+  if (msg.indexOf('RETRY:') === 0) return false;                 // 5xx/429 재시도 소진 — 일시적
+  if (msg.indexOf('Failed to fetch') !== -1) return false;        // 네트워크 오류 — 일시적
+  var m = /^(\d{3})\b/.exec(msg);
+  if (!m) return false;                                           // 상태 불명 — 일시 취급(retryCount 상한이 보호)
+  var code = parseInt(m[1], 10);
+  // 4xx 라도 401(세션만료·재로그인)·408(요청타임아웃)·429(레이트리밋)는 일시적 → 재시도 유지
+  if (code === 401 || code === 408 || code === 429) return false;
+  if (code >= 400 && code < 500) return true;                     // 그 외 4xx(400/403/404/409/422 등) — 영구
+  return false;                                                   // 5xx·기타 — 일시적
 }
 function _oqFlush(){
   if (_offlineQueueBusy || !_offlineQueue.length) return;
@@ -271,13 +301,38 @@ function _oqFlush(){
     .then(function(){
       _offlineQueue.shift(); _oqSave(); _offlineQueueBusy = false;
       if (_offlineQueue.length) setTimeout(_oqFlush, 500);
-      else if (typeof showToast === 'function') showToast('✅ 오프라인 기록이 저장되었습니다.');
-    }).catch(function(){
+      else {
+        if (typeof showToast === 'function') showToast('✅ 오프라인 기록이 저장되었습니다.');
+        _oqAfterDrain(); // 큐 완전 배수 후 서버 최신으로 재동기화(stale 덮어쓰기 인지)
+      }
+    }).catch(function(err){
       _offlineQueueBusy = false;
-      // 일시 실패(네트워크·미인증 등): 'online' 이벤트만 기다리지 않고 일정 시간 후 재시도해
+      item.retryCount = (item.retryCount || 0) + 1;
+      // 영구실패(4xx) 또는 재시도 상한 초과 → dead-letter 로 격리하고 큐를 전진시켜 뒤 항목 진행.
+      if (_oqIsPermanentFailure(err) || item.retryCount > _OQ_MAX_RETRY){
+        var reason = _oqIsPermanentFailure(err)
+          ? ('permanent ' + ((err && err.message) ? err.message.slice(0, 80) : ''))
+          : ('retry-exhausted (' + item.retryCount + ')');
+        _oqDeadLetter(item, reason);
+        _offlineQueue.shift(); _oqSave();
+        if (typeof showToast === 'function') showToast('⚠️ 일부 변경을 저장하지 못했습니다.');
+        if (_offlineQueue.length) setTimeout(_oqFlush, 500);
+        else _oqAfterDrain();
+        return;
+      }
+      // 일시 실패(네트워크·5xx·401·429·타임아웃 등): 큐 보존. retryCount 만 증가시켜 영속.
+      // 'online' 이벤트만 기다리지 않고 일정 시간 후 재시도해
       //   이미 온라인 상태로 앱을 재시작한 경우(전환 이벤트 없음)에도 결국 전송되게 한다.
+      _oqSave();
       if (_offlineQueue.length) setTimeout(_oqFlush, 30000);
     });
+}
+// 큐 완전 배수(성공·격리 무관) 후 1회: 서버 최신으로 화면 재동기화 + 폴링 충돌 방지.
+//   오프라인 중 타 사용자가 같은 레코드를 바꿨다면 stale 전체객체로 덮어쓴 직후 화면이 서버와
+//   맞춰져 사용자가 이상을 인지할 수 있게 한다(보수적 lost-update 완화 — 머지/충돌해결은 미구현).
+function _oqAfterDrain(){
+  if (typeof markMyChange === 'function') markMyChange();
+  if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(true);
 }
 window.addEventListener('online', function(){ setTimeout(_oqFlush, 1000); });
 // 시작 시 이미 온라인이면(오프라인→온라인 전환 이벤트가 발생하지 않는 재시작 시나리오) 복원된
