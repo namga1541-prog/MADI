@@ -346,7 +346,7 @@ if (navigator.onLine) setTimeout(_oqFlush, 4000);
  * @param {string} path PostgREST 경로 (예: 'madi_children?id=eq.' + id)
  * @param {'GET'|'POST'|'PATCH'|'DELETE'} [method] 기본 'GET'
  * @param {any} [body] POST/PATCH 본문
- * @param {{cache?:boolean}} [opts]
+ * @param {{cache?:boolean, noCache?:boolean, consent?:object}} [opts] consent: PIPA 동의({agreed,sensitive,version})를 엔벨로프 최상위로 전달(api/index.ts logConsentAudit). INSERT row 가 아니라 envelope 로 보내야 함 — madi_users 엔 consent 컬럼 없음.
  * @returns {Promise<any>} 응답 JSON (실패 시 reject)
  */
 function supaFetch(path, method, body, opts) {
@@ -370,7 +370,7 @@ function supaFetch(path, method, body, opts) {
     method: 'POST',
     credentials: 'include',
     headers: _sfHdrs,
-    body: JSON.stringify({ path: path, method: m, body: body || null })
+    body: JSON.stringify({ path: path, method: m, body: body || null, consent: opts.consent })
   }, {
     retries: 2,
     allowPostRetry: true,

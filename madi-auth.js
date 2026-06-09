@@ -98,8 +98,12 @@ function doSignup() {
     .then(function(center) {
       return hashPassword(pw).then(function(hashed) {
         // role/permissions 는 서버(api/index.ts)에서 teacher·기본값으로 강제됨 — 클라이언트 값 무시됨
-        var newUser = { id: generateClientId(), username: username, name: name, password: hashed, role: 'teacher', center_id: center.id, color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), permissions: { viewOtherChildren:true, deleteSession:true, useAI:true }, consent: { agreed: true, sensitive: true, version: PRIVACY_POLICY_VERSION } };
-        return supaFetch('madi_users', 'POST', [newUser]).then(function(){ return { center: center, user: newUser }; });
+        var newUser = { id: generateClientId(), username: username, name: name, password: hashed, role: 'teacher', center_id: center.id, color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), permissions: { viewOtherChildren:true, deleteSession:true, useAI:true } };
+        // ★ [PIPA] 동의는 INSERT row 가 아니라 supaFetch 엔벨로프 최상위(opts.consent)로 전달.
+        //   madi_users 에 consent 컬럼이 없어 row 에 넣으면 PostgREST 42703(400) → 가입 실패.
+        //   엔벨로프로 보내야 api/index.ts 의 logConsentAudit(action='consent_signup')가 동의 증빙을 기록한다.
+        var _consent = { agreed: true, sensitive: true, version: PRIVACY_POLICY_VERSION };
+        return supaFetch('madi_users', 'POST', [newUser], { consent: _consent }).then(function(){ return { center: center, user: newUser }; });
       });
     })
     .then(function(result) {

@@ -628,6 +628,10 @@ Deno.serve(async (req: Request) => {
           // ※ status 는 운영 DB(madi_users)에 존재하지 않는 컬럼 → 주입 시 PostgREST 42703(400)
           //   으로 직원 추가가 전부 실패함. 계정 활성/비활성 상태가 필요해지면 status 컬럼을
           //   추가(DEFAULT 'active')한 뒤 여기서 위임할 것. 현재는 주입하지 않는다.
+          // ★ [PIPA] 동의 증빙은 엔벨로프 최상위 consent 로만 받는다(아래 logConsentAudit).
+          //   madi_users 에 consent 컬럼이 없어 row 에 남으면 42703(400) → 가입 실패.
+          //   구버전/오작성 클라가 row 에 consent 를 넣어도 방어적으로 제거(children 의 guardianConsent 패턴 미러).
+          delete obj.consent
         }
       }
     }

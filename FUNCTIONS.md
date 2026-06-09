@@ -346,20 +346,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `showSignupScreen` — madi-auth.js:51
 - `backToLoginFromSignup` — madi-auth.js:58
 - `doSignup` — madi-auth.js:60
-- `doLogin` — madi-auth.js:146
-  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L160
-- `_promptTotpCode` — madi-auth.js:206
-- `getMadiLogoSVG` — madi-auth.js:228
-  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L236
-- `_initWebVitals` — madi-auth.js:241
-- `showLogoutMenu` — madi-auth.js:314
-- `doLogout` — madi-auth.js:339
-- `showLoginUpdatePopup` — madi-auth.js:394
-- `_renderLoginUpdatePopup` — madi-auth.js:412
-- `_dismiss` — madi-auth.js:444
-- `_onKey` — madi-auth.js:454
-- `showChangePasswordModal` — madi-auth.js:466
-- `submitChangePassword` — madi-auth.js:498
+- `doLogin` — madi-auth.js:150
+  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L164
+- `_promptTotpCode` — madi-auth.js:210
+- `getMadiLogoSVG` — madi-auth.js:232
+  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L240
+- `_initWebVitals` — madi-auth.js:245
+- `showLogoutMenu` — madi-auth.js:318
+- `doLogout` — madi-auth.js:343
+- `showLoginUpdatePopup` — madi-auth.js:398
+- `_renderLoginUpdatePopup` — madi-auth.js:416
+- `_dismiss` — madi-auth.js:448
+- `_onKey` — madi-auth.js:458
+- `showChangePasswordModal` — madi-auth.js:470
+- `submitChangePassword` — madi-auth.js:502
 
 ## madi-board-notice.js (25함수)
   ▸ _게시판 이미지 업로드 유틸_ — L1
