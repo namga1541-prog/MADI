@@ -270,12 +270,19 @@ function saveIEP() {
     showToast('⚠️ IEP 저장 중 오류가 발생했습니다');
   });
 }
+// 무변경 폴링(30초)에서 IEP/활동 DOM 통째 재구축 방지 — 직전 직렬화 결과와 동일하면 render 생략.
+//   safeSetItem 용 JSON.stringify 를 그대로 시그니처로 재사용하므로 추가 직렬화 비용 0.
+var _lastIepJson = null, _lastActivitiesJson = null;
 function loadIEPFromSupa() {
   _supaFetchAll('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
       var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); return d; });
-      if (parsed.length > 0) { iepDB = parsed; safeSetItem('cn3_iep', JSON.stringify(iepDB)); var _iepEl = document.getElementById('iepChild'); if (_iepEl && typeof renderIEPHistory === 'function') renderIEPHistory(String(_iepEl.value || '')); }
+      if (parsed.length > 0) {
+        iepDB = parsed;
+        var _j = JSON.stringify(iepDB); safeSetItem('cn3_iep', _j);
+        if (_j !== _lastIepJson) { _lastIepJson = _j; var _iepEl = document.getElementById('iepChild'); if (_iepEl && typeof renderIEPHistory === 'function') renderIEPHistory(String(_iepEl.value || '')); }
+      }
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 function saveActivities() {
@@ -285,7 +292,13 @@ function saveActivities() {
 }
 function loadActivitiesFromSupa() {
   _supaFetchAll('madi_activities?' + centerFilter() + '&order=id.asc')
-    .then(function(rows) { if (Array.isArray(rows) && rows.length > 0) { activityDB = rows; safeSetItem('cn3_activities', JSON.stringify(activityDB)); if (typeof renderActivityCatalog === 'function') renderActivityCatalog(); } })
+    .then(function(rows) {
+      if (Array.isArray(rows) && rows.length > 0) {
+        activityDB = rows;
+        var _j = JSON.stringify(activityDB); safeSetItem('cn3_activities', _j);
+        if (_j !== _lastActivitiesJson) { _lastActivitiesJson = _j; if (typeof renderActivityCatalog === 'function') renderActivityCatalog(); }
+      }
+    })
     .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
 
@@ -602,12 +615,8 @@ function resetParentUI() {
   var appMain = document.getElementById('appMain'); if (appMain) appMain.style.paddingLeft = '';
 }
 
-function loadParentDashboard() {
-  if (!currentUser || currentUser.role !== 'parent') return;
-  supaFetch('madi_parent_children?parent_user_id=eq.' + encodeURIComponent(currentUser.id) + '&select=child_id,center_id', 'GET')
-    .then(function(links) { if (!Array.isArray(links) || links.length === 0) return; window._parentChildId = links[0].child_id; window._parentCenterId = links[0].center_id; })
-    .catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
-}
+// loadParentDashboard 제거(전수감사 정리): 호출부 0건 죽은 함수 + 자녀식별 SSOT 는
+//   madi-parent-home.js(다자녀 정식 처리). 첫 링크만 보던 열화 중복 버전이라 삭제.
 
 function toggleMoreMenu(e) { if (e) e.stopPropagation(); var menu = document.getElementById('moreMenu'); if (!menu) return; menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none'; }
 function closeMoreMenu() { var menu = document.getElementById('moreMenu'); if (menu) menu.style.display = 'none'; }

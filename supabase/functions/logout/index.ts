@@ -9,7 +9,7 @@
  *      → JWT가 없거나 파싱 실패해도 (1)은 반드시 진행
  */
 
-import { makeCORS, getAuthToken, verifyJwt } from '../_shared/auth.ts'
+import { makeCORS, getAuthToken, verifyJwt, checkRateLimit } from '../_shared/auth.ts'
 
 Deno.serve(async (req: Request) => {
   const CORS = makeCORS(req.headers.get('origin'), { allowNullOrigin: true })
@@ -30,22 +30,30 @@ Deno.serve(async (req: Request) => {
         const payload = await verifyJwt(token, JWT_SECRET)
         const userId  = payload.sub as string
         if (userId) {
-          const revokedAt = new Date().toISOString()
-          const patchRes = await fetch(
-            `${SUPA_URL}/rest/v1/madi_users?id=eq.${userId}`,
-            {
-              method:  'PATCH',
-              headers: {
-                'Content-Type':  'application/json',
-                'apikey':        SUPA_KEY,
-                'Authorization': `Bearer ${SUPA_KEY}`,
-                'Prefer':        'return=minimal',
-              },
-              body: JSON.stringify({ session_revoked_at: revokedAt }),
+          // rate limit — 유일한 쓰기성(무인증 호출 가능) 엔드포인트라 토큰 보유 시 PATCH 반복
+          //   호출로 madi_users 쓰기를 무제한 유발할 수 있다. 쿠키 만료(1)는 항상 진행하고
+          //   session_revoked_at PATCH(2)만 제한. fail-open(가용성 우선, 기본값).
+          const rl = await checkRateLimit(`logout:${userId}`, SUPA_URL, SUPA_KEY, 10, 100)
+          if (!rl.allowed) {
+            console.warn('[logout] rate limit 초과 — session_revoked_at PATCH 생략(쿠키 만료는 진행)')
+          } else {
+            const revokedAt = new Date().toISOString()
+            const patchRes = await fetch(
+              `${SUPA_URL}/rest/v1/madi_users?id=eq.${userId}`,
+              {
+                method:  'PATCH',
+                headers: {
+                  'Content-Type':  'application/json',
+                  'apikey':        SUPA_KEY,
+                  'Authorization': `Bearer ${SUPA_KEY}`,
+                  'Prefer':        'return=minimal',
+                },
+                body: JSON.stringify({ session_revoked_at: revokedAt }),
+              }
+            )
+            if (!patchRes.ok) {
+              console.error('[logout] session_revoked_at 업데이트 실패:', patchRes.status)
             }
-          )
-          if (!patchRes.ok) {
-            console.error('[logout] session_revoked_at 업데이트 실패:', patchRes.status)
           }
         }
       }

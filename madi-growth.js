@@ -158,6 +158,9 @@ function m_updateAge() {
 }
 
 function addChildFromModal() {
+  // 권한 게이트 — 아동 '생성' 경로에도 수정 경로(closeChild/reopenChild 등)와 동일한 editChild 강제.
+  //   (서버 프록시는 teacher 의 madi_children 쓰기를 허용하므로 editChild 제한은 클라에서 일관 강제.)
+  if (typeof canDo !== 'function' || !canDo('editChild')) { showToast('⚠️ 아동 등록 권한이 없습니다.'); return; }
   var name   = (document.getElementById('m_childName')||{}).value.trim();
   var raw    = ((document.getElementById('m_childBirth')||{}).value||'').replace(/[^0-9]/g,'');
   var birth  = raw.length===8 ? raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8) : '';

@@ -183,10 +183,10 @@ function renderQuickCards() {
   if (todo === 0) {
     // eslint-disable-next-line no-unsanitized/property
     box.innerHTML =
-      '<div class="card" style="text-align:center;padding:36px 16px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #6ee7b7;">'
-      + '<div style="font-size:42px;margin-bottom:10px;">🎉</div>'
-      + '<div style="font-size:16px;color:#065f46;font-weight:800;">오늘 수업 다 기록했어요!</div>'
-      + '<div style="font-size:12px;color:#047857;margin-top:6px;">총 ' + scheds.length + '건 완료</div>'
+      '<div class="card quick-done-card">'
+      + '<div class="qdc-emoji">🎉</div>'
+      + '<div class="qdc-title">오늘 수업 다 기록했어요!</div>'
+      + '<div class="qdc-sub">총 ' + scheds.length + '건 완료</div>'
       + '</div>'
       + _quickRenderCards(scheds);
     return;
@@ -366,8 +366,8 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
     +       '<label class="form-label" style="margin:0;">📝 한 줄 요약</label>'
     +       '<div style="display:flex;gap:6px;">'
-    +         '<button type="button" id="quickMicBtn" onclick="quickToggleDictation()" class="btn" aria-label="음성 입력" style="min-height:44px;padding:7px 12px;font-size:13px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;font-weight:700;">🎤 받아쓰기</button>'
-    +         '<button type="button" id="quickAiBtn" onclick="quickAiClean()" class="btn" aria-label="AI 정리" style="min-height:44px;padding:7px 12px;font-size:13px;background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6;font-weight:700;">✨ AI 정리</button>'
+    +         '<button type="button" id="quickMicBtn" onclick="quickToggleDictation()" class="btn qk-mic-btn" aria-label="음성 입력">🎤 받아쓰기</button>'
+    +         '<button type="button" id="quickAiBtn" onclick="quickAiClean()" class="btn qk-ai-btn" aria-label="AI 정리">✨ AI 정리</button>'
     +       '</div>'
     +     '</div>'
     +     '<textarea id="quickSummary" class="form-input" rows="4" maxlength="' + _QUICK_SUMMARY_MAX_LEN + '" placeholder="예) /ㅅ/ 음소 단어 수준 산출 70% · 차례 기다리기 양호 · 다음 시간 문장 수준 진입">' + escHtml(summary) + '</textarea>'
@@ -448,7 +448,7 @@ function _quickRenderNextGoals() {
     html += '<label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-soft,#f1f5f9);">'
       + '<input type="checkbox" ' + (g.checked ? 'checked' : '') + ' onchange="_quickToggleGoal(' + i + ')" style="width:18px;height:18px;cursor:pointer;">'
       + '<span style="flex:1;font-size:14px;color:var(--text);">' + escHtml(g.name) + '</span>'
-      + '<button type="button" onclick="_quickRemoveGoal(' + i + ')" aria-label="목표 삭제" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:8px 10px;min-width:40px;min-height:40px;">✕</button>'
+      + '<button type="button" onclick="_quickRemoveGoal(' + i + ')" aria-label="목표 삭제" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:8px 10px;min-width:44px;min-height:44px;">✕</button>'
       + '</label>';
   });
   // eslint-disable-next-line no-unsanitized/property
@@ -599,9 +599,7 @@ function _startQuickDictation(SR) {
     var btn = document.getElementById('quickMicBtn');
     if (btn) {
       btn.textContent = '⏹ 중지';
-      btn.style.background = '#fee2e2';
-      btn.style.borderColor = '#fca5a5';
-      btn.style.color = '#991b1b';
+      btn.classList.add('recording');  // 색은 CSS(.qk-mic-btn.recording, 다크 대응)가 처리
     }
     if (typeof showToast === 'function') showToast('🎤 말씀하세요...');
   } catch (e) {
@@ -618,9 +616,7 @@ function _quickStopDictation() {
   var btn = document.getElementById('quickMicBtn');
   if (btn) {
     btn.textContent = '🎤 받아쓰기';
-    btn.style.background = '#fef3c7';
-    btn.style.borderColor = '#fcd34d';
-    btn.style.color = '#92400e';
+    btn.classList.remove('recording');  // 평상시 색은 CSS(.qk-mic-btn)가 처리
   }
 }
 

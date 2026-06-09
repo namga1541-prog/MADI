@@ -293,6 +293,11 @@ var BACKUP_DB_NAME = 'madi_backup_db';
 var BACKUP_STORE   = 'daily_backups';
 var BACKUP_KEEP    = 7; // 7일치 보관
 
+// 백업 IndexedDB 수명관리 — madi-deploy.js 의 _openMadiDB 패턴과 통일(전수감사 정리):
+//   · onblocked: 다른 탭이 연결을 잡아 version 상향이 막힐 때 안내(무한 무피드백 대기 방지).
+//   · 쓰기 tx 는 req.onsuccess 가 아니라 tx.oncomplete(커밋 확정)에 resolve.
+//   · tx.onabort 처리(QuotaExceeded 등)로 Promise 가 영영 pending 으로 남지 않게 한다.
+//   · 모든 종료 경로에서 db.close() — 미닫힘 연결 누적·향후 onblocked 차단 사고 예방.
 function openBackupDB() {
   return new Promise(function(resolve, reject) {
     var req = indexedDB.open(BACKUP_DB_NAME, 1);
@@ -302,6 +307,7 @@ function openBackupDB() {
         db.createObjectStore(BACKUP_STORE, { keyPath: 'id' });
       }
     };
+    req.onblocked = function() { if (typeof showToast === 'function') showToast('⚠️ 다른 탭에서 마디가 열려 있어 백업 저장소 접근이 지연됩니다. 다른 탭을 닫아주세요.'); };
     req.onsuccess = function(e) { resolve(e.target.result); };
     req.onerror   = function(e) { reject(e.target.error); };
   });
@@ -311,10 +317,10 @@ function putBackup(record) {
   return openBackupDB().then(function(db) {
     return new Promise(function(resolve, reject) {
       var tx = db.transaction(BACKUP_STORE, 'readwrite');
-      var store = tx.objectStore(BACKUP_STORE);
-      var req = store.put(record);
-      req.onsuccess = function() { resolve(); };
-      req.onerror   = function(e) { reject(e.target.error); };
+      tx.objectStore(BACKUP_STORE).put(record);
+      tx.oncomplete = function() { db.close(); resolve(); };
+      tx.onerror    = function() { db.close(); reject(tx.error); };
+      tx.onabort    = function() { db.close(); reject(tx.error || new Error('백업 트랜잭션 중단(저장소 부족 가능)')); };
     });
   });
 }
@@ -323,15 +329,16 @@ function listBackups() {
   return openBackupDB().then(function(db) {
     return new Promise(function(resolve, reject) {
       var tx = db.transaction(BACKUP_STORE, 'readonly');
-      var store = tx.objectStore(BACKUP_STORE);
-      var req = store.getAll();
+      var req = tx.objectStore(BACKUP_STORE).getAll();
       req.onsuccess = function() {
         var arr = req.result || [];
         // 날짜 내림차순
         arr.sort(function(a, b) { return safeCmp(b.id, a.id); });
         resolve(arr);
       };
-      req.onerror = function(e) { reject(e.target.error); };
+      tx.oncomplete = function() { db.close(); };
+      tx.onerror    = function() { db.close(); reject(tx.error); };
+      tx.onabort    = function() { db.close(); reject(tx.error || new Error('백업 조회 중단')); };
     });
   });
 }
@@ -342,7 +349,9 @@ function getBackup(id) {
       var tx = db.transaction(BACKUP_STORE, 'readonly');
       var req = tx.objectStore(BACKUP_STORE).get(id);
       req.onsuccess = function() { resolve(req.result); };
-      req.onerror   = function(e) { reject(e.target.error); };
+      tx.oncomplete = function() { db.close(); };
+      tx.onerror    = function() { db.close(); reject(tx.error); };
+      tx.onabort    = function() { db.close(); reject(tx.error || new Error('백업 조회 중단')); };
     });
   });
 }
@@ -351,9 +360,10 @@ function deleteBackup(id) {
   return openBackupDB().then(function(db) {
     return new Promise(function(resolve, reject) {
       var tx = db.transaction(BACKUP_STORE, 'readwrite');
-      var req = tx.objectStore(BACKUP_STORE).delete(id);
-      req.onsuccess = function() { resolve(); };
-      req.onerror   = function(e) { reject(e.target.error); };
+      tx.objectStore(BACKUP_STORE).delete(id);
+      tx.oncomplete = function() { db.close(); resolve(); };
+      tx.onerror    = function() { db.close(); reject(tx.error); };
+      tx.onabort    = function() { db.close(); reject(tx.error || new Error('백업 삭제 중단')); };
     });
   });
 }

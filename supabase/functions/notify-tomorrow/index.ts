@@ -10,6 +10,21 @@ const VAPID_PRIV = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
 const VAPID_SUB  = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:namga1541@gmail.com';
 const CRON_SECRET = Deno.env.get('CRON_SECRET');
 
+// x-cron-secret 상수시간 비교 — SHA-256 다이제스트(고정 32바이트)를 XOR 누적 비교해
+//   타이밍 사이드채널 + 길이 누출을 모두 제거한다(무인증 외부노출 cron 엔드포인트 방어).
+//   평문 !== 비교는 첫 불일치 바이트에서 조기 반환해 응답시간 차로 secret 점진 추정이 가능.
+async function cronSecretEqual(provided: string, expected: string): Promise<boolean> {
+  const enc = new TextEncoder();
+  const [ha, hb] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(provided)),
+    crypto.subtle.digest('SHA-256', enc.encode(expected)),
+  ]);
+  const va = new Uint8Array(ha), vb = new Uint8Array(hb);
+  let diff = 0;
+  for (let i = 0; i < va.length; i++) diff |= va[i] ^ vb[i];
+  return diff === 0;
+}
+
 // ── KST 헬퍼 ─────────────────────────────────────────────────────────
 // KST '오늘'(자정 기준) 날짜를 먼저 구한 뒤 일(day) 단위로 offset 을 더한다.
 // 단순히 now+9h 에 offsetDays*24h 를 더하면 KST 자정~09시 구간에서
@@ -62,7 +77,7 @@ Deno.serve(async (req: Request) => {
       { status: 503, headers: CORS_HEADERS }
     )
   }
-  if (req.headers.get('x-cron-secret') !== CRON_SECRET) {
+  if (!(await cronSecretEqual(req.headers.get('x-cron-secret') ?? '', CRON_SECRET))) {
     return new Response(JSON.stringify({ ok: false, reason: '인증 실패 (x-cron-secret 불일치)' }), { status: 401, headers: CORS_HEADERS });
   }
 

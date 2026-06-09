@@ -867,27 +867,32 @@ function deleteAssessment(id) {
   }
   showConfirm('이 검사 결과를 삭제할까요?', function() {
     var backup = assessmentDB.find(function(a) { return a.id === id; });
-    var deleteUrl = 'madi_assessments?id=eq.' + id
-      + (currentUser && currentUser.center_id ? '&center_id=eq.' + currentUser.center_id : '');
-    supaFetch(deleteUrl, 'DELETE').catch(function(e) {
+    var deleteUrl = 'madi_assessments?id=eq.' + encodeURIComponent(id)
+      + (currentUser && currentUser.center_id ? '&center_id=eq.' + encodeURIComponent(currentUser.center_id) : '');
+    // DELETE 결과로 토스트·로컬상태를 게이트한다(성공 시에만 제거/렌더/'삭제됨').
+    //   과거: 낙관적 로컬 제거 + 무조건 '삭제됨' 토스트 + fire-and-forget DELETE 라,
+    //   DELETE 실패 시 '삭제됨'과 '삭제 실패' 토스트가 동시에 뜨고(모순), 서버엔 행이 남아
+    //   다음 로드에 되살아났다. upsert(saveAssess)는 부재 행을 지우지 않으므로 DELETE 가 정본.
+    supaFetch(deleteUrl, 'DELETE').then(function() {
+      assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
+      saveAssess();
+      renderAssessmentList();
+      showToast('🗑️ 검사결과 삭제됨', {
+        undo: function() {
+          if (!backup) return;
+          // undo 전용 POST 가 검사객체를 data(JSONB)로 래핑하지 않아 최상위 컬럼으로 전송돼
+          //   PostgREST 400(조용한 복원 실패·데이터 유실)나던 문제 → 삭제 전 backup 을 메모리에
+          //   되돌리고 표준 저장 경로(saveAssess, mapRow 로 data 래핑)로 통째 재저장해 회귀 차단.
+          if (!assessmentDB.some(function(a){ return String(a.id) === String(backup.id); })) {
+            assessmentDB.push(backup);
+          }
+          renderAssessmentList();
+          saveAssess().then(function(ok) { if (ok !== false) showToast('↩️ 복원됨'); });
+        }
+      });
+    }).catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-11 deleteAssessment]',e&&e.message);
       showToast('❌ 검사결과 삭제 실패 — 다시 시도해주세요');
-    });
-    assessmentDB = assessmentDB.filter(function(a) { return a.id !== id; });
-    saveAssess();
-    renderAssessmentList();
-    showToast('🗑️ 검사결과 삭제됨', {
-      undo: function() {
-        if (!backup) return;
-        // undo 전용 POST 가 검사객체를 data(JSONB)로 래핑하지 않아 최상위 컬럼으로 전송돼
-        //   PostgREST 400(조용한 복원 실패·데이터 유실)나던 문제 → 삭제 전 backup 을 메모리에
-        //   되돌리고 표준 저장 경로(saveAssess, mapRow 로 data 래핑)로 통째 재저장해 회귀 차단.
-        if (!assessmentDB.some(function(a){ return String(a.id) === String(backup.id); })) {
-          assessmentDB.push(backup);
-        }
-        renderAssessmentList();
-        saveAssess().then(function(ok) { if (ok !== false) showToast('↩️ 복원됨'); });
-      }
     });
   });
 }

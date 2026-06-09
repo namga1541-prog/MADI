@@ -751,8 +751,8 @@ function renderDashboardAdmin() {
 
   // 매출 추정 패널 (바우처 단가 × 완료 세션)
   var revBreakdownRows = Object.keys(revByVoucher).map(function(vt){
-    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f1f5f9;">'
-      + '<span style="color:#64748b;">' + escHtml(vt) + '</span>'
+    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
+      + '<span style="color:var(--text2);">' + escHtml(vt) + '</span>'
       + '<span style="font-weight:600;">' + escHtml(_dpFmtWon(revByVoucher[vt])) + '</span>'
       + '</div>';
   }).join('');
@@ -767,7 +767,7 @@ function renderDashboardAdmin() {
     +     '</button>'
     +   '</div>'
     +   '<div class="dp-panel-body">'
-    +     '<div style="font-size:1.6rem;font-weight:700;color:#0f3b66;padding:8px 0;">' + escHtml(_dpFmtWon(revTotal)) + '</div>'
+    +     '<div style="font-size:1.6rem;font-weight:700;color:var(--mint);padding:8px 0;">' + escHtml(_dpFmtWon(revTotal)) + '</div>'
     +     '<div id="dpRevBreakdown" style="' + (revOpen ? '' : 'display:none;') + 'padding-top:8px;">'
     +       (revBreakdownRows || '<div class="dp-empty">세션 데이터 없음</div>')
     +     '</div>'
