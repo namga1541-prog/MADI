@@ -8,6 +8,8 @@
 - **모든 ID는 문자열**(childId, user id, center_id, session/schedule id). `generateClientId()`·`safeMap` 이 String 으로 정규화.
 - `parseInt(select.value)` / `Number(dataset.id)` 로 ID 를 숫자화하거나 숫자 비교하면 **매칭이 항상 깨지는 회귀 버그**. 비교는 `String(a) === String(b)`.
 - 단, 나이·점수·금액·회차·개월수는 진짜 숫자 → parseInt 정상.
+- **DB 쪽은 반대로 numeric**: 코어 5테이블(children/sessions/schedules/assessments/iep_history)의 `id` 컬럼은 **numeric** (2026-06-10 라이브 실측). 케어플 임포트 잔재로 2^53 초과 id가 있어 JSON number로 받으면 정밀도 손실·세션 충돌 → **세션 읽기는 `select=id::text` 캐스팅**(madi-app.js 적용됨, 2026-06-09 HIGH 수정). 새 읽기 경로를 추가할 때 이 캐스팅을 빼먹으면 동일 버그 재발.
+- 임포트·신규 행 id 생성은 반드시 `generateClientId()`(문자열) — `Date.now()×10000`급 숫자 id 직접 생성 금지(정밀도 충돌 원흉).
 
 ## 날짜·시간대 (KST)
 - `toKST(d) = new Date(d.getTime() + d.getTimezoneOffset()*60000 + 9h)` — **getTimezoneOffset 을 보정**하므로 **KST 기기에선 `new Date()` == `nowKST()`**. (madi-core.js:33)

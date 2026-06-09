@@ -6,7 +6,8 @@
 
 ## 임상 데이터 테이블 (제네릭 구조)
 `madi_children` · `madi_sessions` · `madi_schedules` · `madi_assessments` · `madi_iep_history`
-- 공통 컬럼: **`id`(text PK), `center_id`(text), `data`(JSONB — 실제 필드 전체)**
+- 공통 컬럼: **`id`(numeric PK), `center_id`(text), `data`(JSONB — 실제 필드 전체)**
+  · ⚠️ `id`는 **numeric이다 — text 아님** (2026-06-10 코어 5테이블 전부 라이브 실측: JSON 응답 숫자형 + 문자열 필터 400 교차검증). 과거 케어플 임포트가 2^53(JS 안전정수) 초과 id를 만들어 JSON number 수신 시 정밀도 손실 → **세션 읽기는 `select=id::text` 캐스팅 필수**(madi-app.js 2곳 적용, 2026-06-09 HIGH 수정). 쓰기는 문자열 id를 보내도 PostgREST가 numeric 변환하므로 안전. 신규/임포트 id는 반드시 `generateClientId()`(문자열, 안전범위) 사용.
 - 추가 실컬럼(테이블별): `madi_schedules.child_id`, `madi_portfolios.child_id`/`parent_visible`, `madi_assessments.user_id`
 - 학부모 격리는 `data->>childId` 또는 `child_id` 컬럼으로 (RLS/프록시가 강제 — [ARCHITECTURE.md](./ARCHITECTURE.md) 참조)
 - ✅ `madi_activities`는 **flat 컬럼** 테이블 (제네릭 `data` JSONB 아님) — 코드에서 `a.diagnosis`, `a.tags`, `a.center_id` 등 필드를 직접 접근하고, `saveActivities`가 평탄 POST, `loadActivitiesFromSupa`가 raw 행 그대로 사용하며 현재 동작 중임. 제네릭 목록에서 제외해야 함.

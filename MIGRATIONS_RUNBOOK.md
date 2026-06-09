@@ -9,7 +9,7 @@ Supabase 신규 프로젝트 셋업 또는 기존 프로젝트 동기화 시 아
   - `pg_cron` (daily_digest_setup.sql 에서 필요)
   - `uuid-ossp` 또는 `pgcrypto` (UUID 생성, 보통 기본 활성)
 
-### 0-A. 코어 테이블 DDL — ⚠️ **신규(빈) 환경에서만**, 추정본
+### 0-A. 코어 테이블 DDL — ⚠️ **신규(빈) 환경에서만**, 부분 실측본
 
 ```
 supabase/core_tables_ddl_inferred.sql
@@ -17,7 +17,10 @@ supabase/core_tables_ddl_inferred.sql
 
 - 코어 임상 5개 테이블(`madi_children`/`sessions`/`schedules`/`assessments`/`iep_history`)의
   `CREATE TABLE IF NOT EXISTS` 정의. **레포에 코어 DDL 이 없어** 신규 환경 재현용으로 추가.
-- ⚠️ **추정본이다.** SCHEMA.md + 코드 사용 패턴으로 역설계한 것이며 타입·제약 보장 불가.
+- ✅ **`id` 컬럼 타입은 실측 확정: 5개 테이블 모두 `numeric`** (2026-06-10 라이브 검증 —
+  당초 `text` 추정이 틀렸고, 이 오류가 세션 id 정밀도 충돌 HIGH 버그 진단에서 드러남.
+  상세·함의는 [SCHEMA.md](./SCHEMA.md) 임상 테이블 절 참조).
+- ⚠️ **id 외 나머지는 추정이다.** SCHEMA.md + 코드 사용 패턴으로 역설계한 것이며 NOT NULL·DEFAULT·제약 보장 불가.
   - **운영/기존 DB**: 이미 테이블이 존재 → `IF NOT EXISTS` 가 no-op, **실행해도 무해**(데이터 불변).
   - **실측 교체 필수**: `supabase db dump --schema-only --project-ref ujxdhafzjyrglaclarwe`
     로 실제 DDL 을 받아 이 파일을 실측본으로 교체한 뒤 신규 환경에 사용할 것.
