@@ -2,7 +2,6 @@ export const meta = {
   name: 'madi-full-audit',
   description: '아이마디 APP 전수점검 — 보안·DB·코드·UX·권한 9개 정적 도메인 + 라이브 프로브 병렬 감사',
   phases: [
-    { title: '사전 스카우트', detail: 'Pre-Scout: 파일 목록·도메인 분류 (haiku)' },
     { title: '병렬 감사', detail: '9개 정적 도메인 + 라이브 프로브 동시 점검 (sonnet)' },
     { title: '종합 리포트', detail: '결과 취합·우선순위 분류·개선 로드맵 (opus) + audit-reports/ 박제' },
   ],
@@ -46,35 +45,10 @@ madi-board-notice.js(게시판 공지), madi-board.js(라운지·자료실), mad
 madi-parent-pages.js(학부모 서브페이지), madi-quick.js(빠른기록), madi-vocab.js(임상어휘사전)
 `
 
-// ── PHASE 1: 사전 스카우트 ─────────────────────────────────────────────────
-phase('사전 스카우트')
-
-const scout = await agent(
-  `${CTX}
-
-## 임무: Pre-Scout (분류만, 수정 없음)
-프로젝트 루트의 madi-*.js, index.html, admin.html, sw.js 파일들을 읽고
-아래 JSON 형식으로 도메인별 파일 배정표를 반환하라.
-각 도메인에 담당 파일 목록을 배정한다 (중복 허용).
-
-{
-  "security": ["..."],
-  "db_schema": ["..."],
-  "convention": ["..."],
-  "role_auth": ["..."],
-  "error_handling": ["..."],
-  "performance": ["..."],
-  "ui_ux": ["..."],
-  "edge_function": ["..."],
-  "pwa_sw": ["..."],
-  "summary": "파일 수, 총 라인 수 추정, 주요 특이사항"
-}`,
-  { label: 'pre-scout', phase: '사전 스카우트', model: 'haiku' }
-)
-
-log('Pre-Scout 완료 → 9개 도메인 병렬 감사 시작')
-
-// ── PHASE 2: 9개 도메인 병렬 감사 ─────────────────────────────────────────
+// ── PHASE 1: 9개 정적 도메인 + 라이브 프로브 병렬 감사 ─────────────────────
+//   (구 Pre-Scout 단계 제거 — 2026-06-10: scout 결과가 어느 도메인 에이전트에도
+//    전달되지 않는 죽은 단계였고, 도메인별 담당 파일이 아래에 하드코딩돼 분류가 무용.
+//    파일이 크게 늘어 동적 배정이 필요해지면 그때 scout 를 도메인 브리핑에 실제 연결할 것.)
 phase('병렬 감사')
 
 const FINDING_SCHEMA = {
