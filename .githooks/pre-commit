@@ -56,7 +56,8 @@ fi
 # ── 2-4. XSS 린트 우회(suppression) 증식 감시 (비차단 경고) ──────
 #   eslint-disable no-unsanitized 가 늘수록 린트 게이트 보증이 줄어든다.
 #   신규 추가분만 디프에서 세어 경고 — 각 라인에 사유 주석을 남길 것.
-NEW_SUPP=$(git diff --cached -U0 | grep -c '^+.*eslint-disable.*no-unsanitized' || true)
+#   대상은 운영 코드(madi-*.js·html)만 — 훅/문서가 이 문자열을 인용해도 자기-매칭하지 않게.
+NEW_SUPP=$(git diff --cached -U0 -- 'madi-*.js' '*.html' | grep -c '^+.*eslint-disable.*no-unsanitized' || true)
 if [ "${NEW_SUPP:-0}" -gt 0 ]; then
   echo "[pre-commit] ⚠️ no-unsanitized suppression ${NEW_SUPP}건 신규 추가 — 사유 주석 필수, 가능하면 escHtml 경유로 재설계 검토"
 fi
