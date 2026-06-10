@@ -46,6 +46,21 @@ if [ -n "$ASSET_CHANGED" ] && [ -f "$TOPLEVEL/tools/check-load-order.js" ]; then
   node "$TOPLEVEL/tools/check-load-order.js"
 fi
 
+# ── 2-3. 스키마 사본 드리프트 차단 (SCHEMA.md 가 유일 정본) ──────
+#   문서/브리핑에 컬럼 나열 사본 감지 시 커밋 차단 — 손사본 드리프트가
+#   에이전트 오탐을 유발한 2026-06-10 전수감사 발견의 박제.
+if [ -f "$TOPLEVEL/tools/check-schema-drift.js" ]; then
+  node "$TOPLEVEL/tools/check-schema-drift.js"
+fi
+
+# ── 2-4. XSS 린트 우회(suppression) 증식 감시 (비차단 경고) ──────
+#   eslint-disable no-unsanitized 가 늘수록 린트 게이트 보증이 줄어든다.
+#   신규 추가분만 디프에서 세어 경고 — 각 라인에 사유 주석을 남길 것.
+NEW_SUPP=$(git diff --cached -U0 | grep -c '^+.*eslint-disable.*no-unsanitized' || true)
+if [ "${NEW_SUPP:-0}" -gt 0 ]; then
+  echo "[pre-commit] ⚠️ no-unsanitized suppression ${NEW_SUPP}건 신규 추가 — 사유 주석 필수, 가능하면 escHtml 경유로 재설계 검토"
+fi
+
 # ── 3. ESLint — 스테이징된 madi-*.js 만 (XSS 1차 방어선) ───────
 STAGED_JS=$(echo "$STAGED" | grep -E '^madi-.*\.js$' || true)
 if [ -n "$STAGED_JS" ] && command -v npx >/dev/null 2>&1; then

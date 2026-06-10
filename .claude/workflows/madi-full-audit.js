@@ -1,10 +1,10 @@
 export const meta = {
   name: 'madi-full-audit',
-  description: '아이마디 APP 전수점검 — 보안·DB·코드·UX·권한 9개 도메인 병렬 감사',
+  description: '아이마디 APP 전수점검 — 보안·DB·코드·UX·권한 9개 정적 도메인 + 라이브 프로브 병렬 감사',
   phases: [
     { title: '사전 스카우트', detail: 'Pre-Scout: 파일 목록·도메인 분류 (haiku)' },
-    { title: '병렬 감사', detail: '9개 도메인 동시 점검 (sonnet)' },
-    { title: '종합 리포트', detail: '결과 취합·우선순위 분류·개선 로드맵 (opus)' },
+    { title: '병렬 감사', detail: '9개 정적 도메인 + 라이브 프로브 동시 점검 (sonnet)' },
+    { title: '종합 리포트', detail: '결과 취합·우선순위 분류·개선 로드맵 (opus) + audit-reports/ 박제' },
   ],
 }
 
@@ -35,16 +35,15 @@ const CTX = `
 - teacher: 선생님
 - parent: 학부모
 
-## 파일 목록
-madi-01.js(공통 유틸), madi-01-auth.js(인증), madi-01-app.js(DB로드·학부모 UI),
-madi-02.js(세션기록), madi-03.js(홈·네비), madi-03-dashboard.js(대시보드),
-madi-04.js(아동관리), madi-05.js(아동상세), madi-06.js(성장기록), madi-07.js(IEP),
-madi-08.js(AI기능), madi-09.js(학부모포털), madi-10.js(스케줄·캘린더),
-madi-11.js(표준화검사), madi-12.js(감통평가·권한·PWA·IndexedDB),
-madi-12-chat.js(AI비서·음성), madi-13.js(리포트·계획),
-madi-14.js(게시판 공지), madi-14-board.js(게시판 라운지·자료실),
-madi-15.js(학부모 홈), madi-15-pages.js(학부모 서브페이지),
-madi-16.js(빠른기록), madi-vocab.js(임상어휘사전)
+## 파일 목록 (실명 — 구명칭 madi-01~16 은 폐기됨, 2026-06-10 정정)
+madi-core.js(공통 유틸·supaFetch), madi-pii.js(AI 가명화 SSOT), madi-auth.js(인증),
+madi-app.js(DB로드·학부모 UI·showError), madi-session.js(세션기록), madi-home.js(홈·네비·공지),
+madi-dashboard.js(페르소나 대시보드), madi-children.js(아동관리), madi-child-detail.js(아동상세),
+madi-growth.js(성장기록), madi-iep.js(IEP), madi-ai.js(AI기능), madi-parent.js(학부모포털),
+madi-schedule.js(스케줄·캘린더), madi-assessment.js(표준화검사), madi-system.js(감통·권한·PWA),
+madi-deploy.js(GitHub 배포·폴백SW), madi-chat.js(AI비서·음성), madi-report.js(리포트·계획),
+madi-board-notice.js(게시판 공지), madi-board.js(라운지·자료실), madi-parent-home.js(학부모 홈),
+madi-parent-pages.js(학부모 서브페이지), madi-quick.js(빠른기록), madi-vocab.js(임상어휘사전)
 `
 
 // ── PHASE 1: 사전 스카우트 ─────────────────────────────────────────────────
@@ -221,7 +220,7 @@ const domainResults = await parallel([
     `${CTX}
 
 ## 임무: 성능·중복 점검
-담당 파일: madi-01.js(supaCache), madi-01-app.js, madi-03.js, madi-04.js, madi-05.js, madi-10.js
+담당 파일: madi-core.js(supaCache), madi-app.js, madi-home.js, madi-children.js, madi-child-detail.js, madi-schedule.js
 
 점검 항목:
 1. supaCache를 사용해야 하는 반복 호출에서 캐시 미사용
@@ -241,7 +240,7 @@ const domainResults = await parallel([
     `${CTX}
 
 ## 임무: UI·UX 점검
-담당 파일: index.html, admin.html, madi.css, madi-03-dashboard.js, madi-15.js, madi-15-pages.js, madi-16.js
+담당 파일: index.html, admin.html, madi.css, madi-dashboard.js, madi-parent-home.js, madi-parent-pages.js, madi-quick.js
 
 점검 항목:
 1. 다크모드(dark class) 미지원 컴포넌트 (배경·텍스트 색상 하드코딩)
@@ -262,7 +261,7 @@ const domainResults = await parallel([
     `${CTX}
 
 ## 임무: Edge Function 점검
-담당 파일: supabase/functions/ 디렉토리 전체, madi-01.js (EDGE_URL 상수)
+담당 파일: supabase/functions/ 디렉토리 전체, madi-core.js (EDGE_URL 상수)
 
 점검 항목:
 1. 각 Edge Function의 CORS 헤더 설정 (Access-Control-Allow-Origin)
@@ -283,7 +282,7 @@ const domainResults = await parallel([
     `${CTX}
 
 ## 임무: PWA·Service Worker·IndexedDB 점검
-담당 파일: sw.js, madi-12.js, madi-15-pages.js (푸시), index.html (manifest)
+담당 파일: sw.js, madi-system.js, madi-deploy.js(폴백 SW), madi-parent-pages.js (푸시), index.html (manifest)
 
 점검 항목:
 1. sw.js CACHE_VERSION이 파일 변경 시 갱신되는 메커니즘 확인
@@ -299,10 +298,31 @@ const domainResults = await parallel([
     { label: 'PWA·SW·IndexedDB', phase: '병렬 감사', schema: FINDING_SCHEMA }
   ),
 
+  // ⑩ 라이브 프로브 (읽기 전용 — 정적 감사의 사각지대)
+  //   근거: 2026-06-09 세션 id 정밀도 충돌(HIGH)은 정적 9도메인이 구조적으로
+  //   못 잡았고 라이브 데이터를 직접 읽어서만 드러났다. 그 기법을 도메인으로 박제.
+  () => agent(
+    `${CTX}
+
+## 임무: 라이브 프로브 (Live Probe — 읽기 전용)
+정적 코드 감사가 못 잡는 결함(라이브 DB 무결성·SCHEMA.md↔실DB 불일치·Edge 계약 깨짐)을
+실제 운영 API 를 읽기 전용으로 호출해 점검한다. **쓰기(POST/PATCH/DELETE) 절대 금지.**
+
+수행 순서:
+1. Bash 로 \`node tests/live-probe.js\` 실행. 자격증명은 환경변수 MADI_PROBE_USER/MADI_PROBE_PW
+   — 미설정이면 스크립트가 SKIP 을 출력한다. SKIP 이면 "자격증명 미설정으로 라이브 프로브 생략"
+   을 INFO finding 1건으로 보고하고 종료(추측으로 채우지 말 것).
+2. 출력의 ❌ 항목은 HIGH 후보, ⚠️ 항목은 MEDIUM/LOW 후보로 각각 finding 변환
+   (심각도는 실제 영향을 추론해 판정하고 근거를 description 에 포함).
+3. 프로브 결과와 SCHEMA.md 를 대조해 문서↔실DB 불일치가 보이면 별도 finding.
+주의: 토큰·비밀번호·아동 실명 등 민감값을 finding 에 절대 남기지 말 것.`,
+    { label: '라이브 프로브', phase: '병렬 감사', schema: FINDING_SCHEMA }
+  ),
+
 ])
 
 const validResults = domainResults.filter(Boolean)
-log(`병렬 감사 완료: ${validResults.length}/9 도메인 결과 수집`)
+log(`병렬 감사 완료: ${validResults.length}/10 도메인 결과 수집`)
 
 // ── PHASE 3: 종합 리포트 ──────────────────────────────────────────────────
 phase('종합 리포트')
@@ -317,7 +337,7 @@ const report = await agent(
   `${CTX}
 
 ## 임무: 종합 감사 리포트 작성
-아래 9개 도메인의 감사 결과를 종합하여 한국어 리포트를 작성한다.
+아래 도메인별(정적 9 + 라이브 프로브) 감사 결과를 종합하여 한국어 리포트를 작성한다.
 
 ## 입력 데이터
 ${JSON.stringify(validResults, null, 2)}
@@ -355,12 +375,28 @@ ${JSON.stringify(validResults, null, 2)}
   { label: '종합 리포트', phase: '종합 리포트', model: 'opus' }
 )
 
+// ── 리포트 아티팩트 박제 — 감사 이력을 레포에 버전 관리 (임시파일 휘발 방지) ──
+const savedPath = await agent(
+  `아래 감사 리포트를 레포 아티팩트로 저장하라.
+1. Bash 로 오늘 날짜 확인: date +%F
+2. audit-reports/ 디렉토리가 없으면 생성 후, audit-reports/<YYYY-MM-DD>-full-audit.md 로 Write.
+   같은 날짜 파일이 이미 있으면 -2, -3 순번을 붙여 절대 덮어쓰지 말 것.
+3. 파일 맨 위에 "# 전수감사 리포트 (<날짜>)" 헤더와 발견 요약 1줄을 추가.
+4. 최종 텍스트로 저장한 파일 경로 문자열만 반환 (다른 말 없이).
+
+--- 리포트 본문 ---
+${report}`,
+  { label: '리포트 박제', phase: '종합 리포트', model: 'haiku' }
+)
+log(`리포트 박제: ${savedPath}`)
+
 return {
   total_findings: allFindings.length,
   critical: criticalCount,
   high: highCount,
   medium: allFindings.filter(function(f) { return f.severity === 'MEDIUM' }).length,
   low_info: allFindings.filter(function(f) { return f.severity === 'LOW' || f.severity === 'INFO' }).length,
+  report_file: savedPath,
   domain_results: validResults,
   report: report,
 }
