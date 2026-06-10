@@ -88,16 +88,13 @@
 - 반드시 supaFetch() 경유 (직접 fetch + anon key 금지)
 - 패턴: supaFetch('table?col=eq.val', 'GET').then(function(rows){...}).catch(function(e){ showToast('⚠️ '+e.message); })
 
-[DB 스키마 핵심 — 존재하지 않는 컬럼 select 시 PostgREST 400 반환]
-- madi_users       : id, username, name, password, role, center_id, color, permissions,
-                     status, prog_types(JSONB), totp_secret, totp_enabled, locked_until
-- madi_centers     : id  (center_id로 사용)
-- madi_settings    : key, value  ⚠️ center_id 컬럼 없음 — 전역 테이블
-- madi_portfolios  : id, child_id, center_id, parent_visible, month, content, data, created_at
-- madi_notifications: id, user_id, center_id, type, title, body, link, read_at, created_at
-- madi_audit_log   : id, actor_id, actor_name, action, table_name, record_id, child_id, changed_cols, occurred_at
-- madi_push_settings: center_id, enabled, push_time, message_title, message_body, last_sent_date
-- madi_rate_limits : key(PK), count, window_start, hour_count, hour_start, updated_at
+[DB 스키마 — 정본은 SCHEMA.md 하나뿐, 여기 표 복붙 금지]
+- 컬럼 존재·이름 검증은 SCHEMA.md 를 Read 해서 대조할 것.
+  (과거 이 블록의 사본이 정본과 갈라져 actor_name/record_id/status 오기로
+  오탐을 유발 — 2026-06-10 전수감사 적발, 사본 제거.)
+- 함정 2개만 박제: madi_users 에 status 컬럼 없음(POST 주입 시 400) ·
+  madi_audit_log 는 actor_role·row_id (actor_name·record_id 아님).
+- madi_settings 은 전역 테이블(center_id 컬럼 없음).
 
 [UI 패턴]
 - 성공: showToast('✅ 저장됨')   오류: showToast('⚠️ 메시지')

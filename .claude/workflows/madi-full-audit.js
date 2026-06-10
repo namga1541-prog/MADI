@@ -24,17 +24,10 @@ const CTX = `
 - console.log 운영 코드 추가 금지
 - Supabase anon key 소스 하드코딩 금지
 
-## DB 스키마 (검증된 컬럼만 사용 가능)
-- madi_users: id, username, name, password, role, center_id, color, permissions, password_changed_at, status, session_revoked_at, failed_login_count, last_failed_at, locked_until, totp_secret, totp_enabled, totp_enrolled_at, prog_types
-- madi_parent_children: parent_user_id, child_id, center_id
-- madi_centers: id
-- madi_notifications: id, user_id, center_id, type, title, body, link, read_at, created_at
-- madi_audit_log: id, actor_id, actor_name, action, table_name, record_id, child_id, changed_cols, occurred_at
-- madi_portfolios: id, child_id, center_id, parent_visible, created_by, created_by_name, opened_by, opened_at, month, content, data, created_at
-- madi_rate_limits: key, count, window_start, hour_count, hour_start, updated_at
-- madi_push_subscriptions: id, user_id, endpoint, p256dh, auth, created_at
-- madi_push_settings: center_id, enabled, push_time, message_title, message_body, last_sent_date
-- madi_settings: key, value (center_id 컬럼 없음)
+## DB 스키마 — 정본은 SCHEMA.md 하나뿐 (여기 표 복붙 금지)
+- 컬럼 존재·이름 검증은 반드시 SCHEMA.md 를 Read 해서 대조할 것.
+  (과거 이 브리핑의 사본이 정본과 갈라져 actor_name/record_id/status 오기로 오탐을 유발 — 2026-06-10 전수감사에서 적발돼 사본 제거.)
+- 함정 2개만 박제: madi_users 에 status 컬럼 없음(POST 주입 시 400) · madi_audit_log 는 actor_role·row_id (actor_name·record_id 아님).
 
 ## 역할 체계
 - superadmin: 플랫폼 전체 관리자 (username: dinosau)

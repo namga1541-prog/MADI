@@ -22,6 +22,8 @@
 | `madi_audit_log` | `id`, `occurred_at`, `actor_id`, `actor_role`, `action`, `table_name`, `row_id`, `center_id`, `child_id`, `changed_cols`(text[]), `client_ip`, `user_agent` |
 | `madi_portfolios` | `id`, `child_id`, `center_id`, `parent_visible`, `created_by`, `created_by_name`, `opened_by`, `opened_at`, `month`, `content`, `data`, `created_at` |
 | `madi_rate_limits` | `key`(PK), `count`, `window_start`, `hour_count`, `hour_start`, `updated_at` |
+| `madi_programs` | `id`(number), `center_id`, `category`, `name`, `prog_type`, `method`, `price`(number), `is_active`(bool), `created_at` — **flat 컬럼** 테이블 (2026-06-10 라이브 실측 등재. 읽기 전체 허용·쓰기 admin 이상 — Edge ADMIN_WRITE_TABLES) |
+| `madi_licenses` | ⚠️ **존재 미확인** — Edge 화이트리스트(ADMIN_ONLY_TABLES)에 등재돼 있고 admin.html 라이선스 UI가 사용하나, admin 전용 게이트라 비admin 계정 프로브 불가(403). 추정 정의는 인계문서(마디_인계문서_2026-05-10.md) SQL. **admin 계정으로 존재 확인 후 이 행을 실측으로 교체할 것** — 미존재면 라이선스 발급·활성화 기능 전체가 400/404 로 실패함 |
 | `madi_push_subscriptions` | `id`, `user_id`, `endpoint`, `p256dh`, `auth`, `center_id`, `created_at` |
 | `madi_push_settings` | `center_id`, `enabled`, `push_time`, `message_title`, `message_body`, `last_sent_date` |
 | `madi_settings` | `key`(PK), `value` — **전역 테이블, center_id 컬럼 없음** |
