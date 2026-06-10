@@ -1287,9 +1287,9 @@ var scheduleDB = [];
 
 function loadAdminData() {
   return Promise.all([
-    _supaFetchAll('madi_children?'  + centerFilter() + '&select=id,data&order=id.asc'),
-    _supaFetchAll('madi_sessions?'  + centerFilter() + '&select=id,data&order=id.asc'),
-    _supaFetchAll('madi_schedules?' + centerFilter() + '&select=id,data&order=id.asc')
+    _supaFetchAll('madi_children?'  + centerFilter() + '&select=id::text,data&order=id.asc'),
+    _supaFetchAll('madi_sessions?'  + centerFilter() + '&select=id::text,data&order=id.asc'),
+    _supaFetchAll('madi_schedules?' + centerFilter() + '&select=id::text,data&order=id.asc')
   ]).then(function(results) {
     function safeMap(arr) {
       if (!Array.isArray(arr)) return [];
@@ -2656,7 +2656,7 @@ function saveUserPerms(){
 // ── 학부모 ──
 var _parentChildList = [];
 function populateParentChildSelect() {
-  supaFetch('madi_children?' + centerFilter() + '&select=id,data,center_id&order=id.asc', 'GET')
+  supaFetch('madi_children?' + centerFilter() + '&select=id::text,data,center_id&order=id.asc', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows)) return;
       _parentChildList = rows.map(function(r) {
