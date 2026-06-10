@@ -2097,6 +2097,136 @@ body.dark-mode .dp-p-voucher-val,
 body.dark-mode .dp-p-next-day-num,
 body.dark-mode .dp-p-next-time { color:var(--text); }
 
+/* === dp-* 다크모드 보완 — 전수감사 MEDIUM (감사 M-dp-2) ===
+   하드코딩 색 보유 62개 클래스 중 기존 오버라이드 누락분 일괄 추가.
+   라이트모드 규칙은 일절 건드리지 않고 dark-mode 오버라이드만 추가. */
+
+/* ── 1. 그리드·패널 보조 배경 ── */
+body.dark-mode .dp-kpi-grid { background:#0f172a; }
+
+/* ── 2. KPI 델타 색상 (상승/주의/중립) ── */
+body.dark-mode .dp-kpi-delta.up   { color:#34d399; }  /* #15803d → 다크 그린 */
+body.dark-mode .dp-kpi-delta.warn { color:#fbbf24; }  /* #a16207 → 다크 앰버 */
+body.dark-mode .dp-kpi-delta      { color:var(--text2); } /* 기본(#94a3b8) 유지 — 순서상 마지막 */
+
+/* ── 3. KPI 아이콘 카드 색상 배지 배경 ── */
+body.dark-mode .dp-kic-blue   { background:rgba(59,130,246,0.18); }
+body.dark-mode .dp-kic-green  { background:rgba(16,185,129,0.18); }
+body.dark-mode .dp-kic-purple { background:rgba(139,92,246,0.18); }
+body.dark-mode .dp-kic-rose   { background:rgba(244,63,94,0.15); }
+body.dark-mode .dp-kic-amber  { background:rgba(245,158,11,0.18); }
+
+/* ── 4. 인사말·서브 텍스트 ── */
+body.dark-mode .dp-greeting   { color:var(--text2); }
+body.dark-mode .dp-panel-sub  { color:var(--text2); }
+
+/* ── 5. 빈 상태 ── */
+body.dark-mode .dp-empty { color:var(--text2); }
+
+/* ── 6. 일별 요약 ── */
+body.dark-mode .dp-day-num   { color:var(--mint); }
+body.dark-mode .dp-day-right { color:var(--text2); }
+
+/* ── 7. 타임라인 메타 ── */
+body.dark-mode .dp-tl-meta { color:var(--text2); }
+
+/* ── 8. 주간 레이블 ── */
+body.dark-mode .dp-week-label { color:var(--text2); }
+
+/* ── 9. 메시지 행 ── */
+body.dark-mode .dp-msg-time    { color:var(--text2); }
+body.dark-mode .dp-msg-preview { color:var(--text2); }
+
+/* ── 10. 아동 메타 ── */
+body.dark-mode .dp-child-meta { color:var(--text2); }
+
+/* ── 11. 테이블 행·메타 ── */
+body.dark-mode .dp-trow        { color:var(--text2); }
+body.dark-mode .dp-tmeta       { color:var(--text2); }
+body.dark-mode .dp-tstat-label { color:var(--text2); }
+body.dark-mode .dp-tstat-num.warn { color:#fbbf24; } /* #a16207 */
+
+/* ── 12. 변화 트래커 ── */
+body.dark-mode .dp-change-label  { color:var(--text2); }
+body.dark-mode .dp-change-detail { color:var(--text2); }
+body.dark-mode .dp-change-num              { color:var(--text2); }
+body.dark-mode .dp-change-num.up           { color:#34d399; }
+body.dark-mode .dp-change-num.down,
+body.dark-mode .dp-change-num.blue         { color:#60a5fa; }
+body.dark-mode .dp-change-tag              { background:#1e293b; color:var(--text2); }
+body.dark-mode .dp-change-tag.green        { background:rgba(16,185,129,0.18); color:#34d399; }
+body.dark-mode .dp-change-tag.blue         { background:rgba(59,130,246,0.18); color:#60a5fa; }
+body.dark-mode .dp-change-tag.amber        { background:rgba(245,158,11,0.18); color:#fbbf24; }
+
+/* ── 13. 차트 범례·축 ── */
+body.dark-mode .dp-chart-x   { color:var(--text2); }
+body.dark-mode .dp-chart-leg { color:var(--text2); }
+body.dark-mode .dp-chart-leg.green { color:#34d399; }
+
+/* ── 14. 알림 배지 배경 ── */
+body.dark-mode .dp-alert-warn { background:rgba(245,158,11,0.15); }
+body.dark-mode .dp-alert-info { background:rgba(59,130,246,0.15); }
+body.dark-mode .dp-alert-ok   { background:#0f172a; }
+body.dark-mode .dp-alert-text { color:var(--text2); }
+body.dark-mode .dp-alert-time { color:var(--text2); }
+
+/* ── 15. 긴급 알림 배너 ── */
+body.dark-mode .dp-urgent-title  { color:#fbbf24; }
+body.dark-mode .dp-urgent-text   { color:#fcd34d; }
+body.dark-mode .dp-urgent-action { background:rgba(245,158,11,0.18); }
+
+/* ── 16. 수익 카드 (dp-rev-*) — 이미 흰색/rgba 텍스트이나 배경색 변화 후 재검토 ── */
+/* dp-rev 자체는 그라디언트 배경 위 흰 텍스트 → 다크도 동일 유지(재정의 불필요) */
+/* dp-rev-sub-meta의 #fcd34d는 강조색이므로 다크에서도 유지 */
+body.dark-mode .dp-rev-tag { background:rgba(252,211,77,0.15); }
+
+/* ── 17. 학부모 포털 (dp-p-*) 누락분 ── */
+body.dark-mode .dp-p-greeting        { color:var(--text2); }
+body.dark-mode .dp-p-title           { color:var(--text); }  /* 혹시 누락된 경우 보완 */
+body.dark-mode .dp-p-sub             { color:var(--text2); }
+body.dark-mode .dp-p-sub.accent      { color:#f9a8d4; }       /* #be185d 핑크 → 연한 핑크 */
+
+body.dark-mode .dp-p-hero-next-label   { color:#f9a8d4; }     /* #be185d */
+body.dark-mode .dp-p-hero-next-date    { color:var(--text2); }
+body.dark-mode .dp-p-hero-next-teacher { color:var(--text2); }
+
+body.dark-mode .dp-p-sess-date     { background:rgba(190,24,93,0.12); }
+body.dark-mode .dp-p-sess-date-num { color:#f9a8d4; }
+body.dark-mode .dp-p-sess-date-day { color:#fda4af; }
+body.dark-mode .dp-p-sess-desc     { color:var(--text2); }
+
+body.dark-mode .dp-p-msg           { background:#1e293b; border-color:var(--border); }
+body.dark-mode .dp-p-msg-time      { color:var(--text2); }
+
+body.dark-mode .dp-p-chart-label   { color:var(--text2); }
+body.dark-mode .dp-p-chart-x       { color:var(--text2); }
+
+body.dark-mode .dp-p-act-check     { border-color:#f9a8d4; background:#f9a8d4; }
+
+body.dark-mode .dp-p-voucher-label { color:var(--text2); }
+body.dark-mode .dp-p-voucher-foot  { color:var(--text2); }
+
+body.dark-mode .dp-p-next-day-mo   { color:var(--text2); }
+body.dark-mode .dp-p-next-teacher  { color:var(--text2); }
+
+body.dark-mode .dp-p-link          { color:#f9a8d4; }
+body.dark-mode .dp-p-link:hover    { color:#fda4af; }
+
+/* ── 18. KPI 라벨 ── */
+body.dark-mode .dp-kpi-label { color:var(--text2); }
+
+/* ── 19. 수익 카드 텍스트 (dp-rev-*) — 그라디언트 배경 위 화이트 텍스트.
+         다크모드에서도 그라디언트 배경은 유지되므로 흰색 텍스트 그대로 명시. ── */
+body.dark-mode .dp-rev           { color:#fff; }
+body.dark-mode .dp-rev-label     { color:rgba(255,255,255,0.8); }
+body.dark-mode .dp-rev-num       { color:#fff; }
+body.dark-mode .dp-rev-meta      { color:rgba(255,255,255,0.75); }
+body.dark-mode .dp-rev-sub-label { color:rgba(255,255,255,0.8); }
+body.dark-mode .dp-rev-sub-num   { color:#fff; }
+body.dark-mode .dp-rev-sub-meta  { color:rgba(255,255,255,0.7); }
+
+/* ── END dp-* 다크모드 보완 (감사 M-dp-2) ── */
+
 /* ═══════════════════════════════════════════════════════════
    보고서 페이지 PC 레이아웃 (panel1 세션 / panel3 평가 / panel5 리포트 / panelSI 감통)
    - .content-wide: 860 → 1280 최대폭 확장 (PC 가로 활용)

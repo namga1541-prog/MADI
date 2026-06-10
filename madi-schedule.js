@@ -919,36 +919,42 @@ function execSchedDelete(id, future) {
     : [s];
   var toDeleteIds = toDeleteItems.map(function(x){ return x.id; });
   var snapshot = toDeleteItems.map(function(x){ return Object.assign({}, x); });
-  var failedIds = [];
-  // 서버 DELETE 모두 시도 후 실패한 id는 로컬에서도 복원 (서버/로컬 불일치 방지)
-  Promise.all(toDeleteIds.map(function(did){
-    return supaFetch('madi_schedules?id=eq.' + encodeURIComponent(did) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE')
-      .catch(function(e){ if (window.console && console.warn) console.warn('[madi-10 스케줄 삭제 실패] id=' + did, e && e.message); failedIds.push(did); });
-  })).then(function(){
-    scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1 || failedIds.indexOf(x.id) !== -1; });
-    // 실패한 항목은 snapshot에서 다시 복원
-    if (failedIds.length > 0) {
-      snapshot.forEach(function(item){
-        if (failedIds.indexOf(item.id) !== -1) {
-          if (!scheduleDB.find(function(x){ return x.id === item.id; })) scheduleDB.push(item);
-        }
-      });
-    }
-    saveSchedule(); renderSchedView();
-    var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
-    var okCount = toDeleteIds.length - failedIds.length;
-    if (failedIds.length > 0) {
-      showToast('⚠️ ' + okCount + '개 삭제, ' + failedIds.length + '개 실패 (네트워크 확인)');
-    } else {
-      showToast('🗑️ ' + (cn ? cn + ' ' : '') + okCount + '개 일정 삭제됨', {
+  // 서버 DELETE — 개별 N건 대신 id=in.(...) 단일 배치 요청으로 네트워크 비용 절감.
+  // center_id 필터를 AND 조건으로 유지해 RLS 보강.
+  var batchUrl = 'madi_schedules?id=in.(' + toDeleteIds.map(encodeURIComponent).join(',')
+    + ')&center_id=eq.' + encodeURIComponent(currentUser.center_id);
+  supaFetch(batchUrl, 'DELETE')
+    .then(function(){
+      scheduleDB = scheduleDB.filter(function(x){ return toDeleteIds.indexOf(x.id) === -1; });
+      // 서버 DELETE 완료 후 — saveSchedule() 전체 업서트 불필요:
+      //   삭제된 행을 재업서트하면 고아 행 재생성 + lost-update 위험.
+      //   markMyChange: 폴링이 내 변경을 30초간 skip(보존 필수).
+      //   safeSetItem(cn3_*): cn3_ 키는 PII 보안상 no-op.
+      markMyChange();
+      safeSetItem('cn3_schedule', JSON.stringify(scheduleDB));
+      renderSchedView();
+      var cn = (childDB.find(function(c){ return c.id === s.childId; }) || {}).name || '';
+      showToast('🗑️ ' + (cn ? cn + ' ' : '') + toDeleteIds.length + '개 일정 삭제됨', {
         undo: function(){
-          snapshot.forEach(function(item){ scheduleDB.push(item); });
-          saveSchedule(); renderSchedView();
-          showToast('↩️ 일정이 복원되었습니다');
+          // 서버부터 복원(on_conflict=id 업서트) — 서버 행은 이미 DELETE 됐으므로
+          // 로컬만 되살리면 markMyChange 30초 창이 지난 뒤 폴링이 복원분을 다시 지운다.
+          var cid = getCenterId();
+          var restoreRows = snapshot.map(function(item){ return { id: item.id, center_id: cid, data: item }; });
+          supaFetch('madi_schedules?on_conflict=id', 'POST', restoreRows)
+            .then(function(){
+              snapshot.forEach(function(item){ scheduleDB.push(item); });
+              markMyChange();
+              safeSetItem('cn3_schedule', JSON.stringify(scheduleDB));
+              renderSchedView();
+              showToast('↩️ 일정이 복원되었습니다');
+            })
+            .catch(function(e){ showError(e, '일정 복원'); });
         }
       });
-    }
-  }).catch(function(e){ showToast('⚠️ 일정 삭제 중 오류가 발생했습니다.'); });
+    }).catch(function(e){
+      if (window.console && console.warn) console.warn('[madi-10 스케줄 배치 삭제 실패]', e && e.message);
+      showToast('⚠️ 일정 삭제 중 오류가 발생했습니다.');
+    });
 }
 
 function saveEditSched(id) {

@@ -380,8 +380,18 @@ function deleteChild(id) {
       scheduleDB   = scheduleDB.filter(function(s) { return s.childId !== id; });
       assessmentDB = assessmentDB.filter(function(a) { return a.childId !== id; });
       if (typeof iepDB !== 'undefined') iepDB = iepDB.filter(function(r){ return r.childId !== id; });
-      saveChildren(); saveSessions(); saveSchedule(); saveAssess();
-      if (typeof saveIEP === 'function') saveIEP();
+      // 서버 DELETE 완료 후 — 전체 업서트(saveXxx) 불필요: 삭제된 행을 재업서트하면
+      // 고아 행 재생성 + lost-update 위험이 있으므로, markMyChange+미러 갱신만 수행.
+      //   markMyChange: 폴링 동기화가 내 변경을 30초간 skip하게 함 (보존 필수).
+      //   _optionsCacheKey: saveChildren()의 before 부수효과 — 아동 셀렉트 옵션 캐시 무효화.
+      //   safeSetItem(cn3_*): cn3_ 키는 PII 보안상 no-op이므로 실질 효과 없음(형식 보전).
+      markMyChange();
+      _optionsCacheKey = null;
+      safeSetItem('cn3_children', JSON.stringify(childDB));
+      safeSetItem('cn3_sessions', JSON.stringify(sessionDB));
+      safeSetItem('cn3_schedule', JSON.stringify(scheduleDB));
+      safeSetItem('cn3_assess',   JSON.stringify(assessmentDB));
+      if (typeof iepDB !== 'undefined') safeSetItem('cn3_iep', JSON.stringify(iepDB));
       renderChildGrid();
       showToast('🗑️ 삭제 완료 (세션·일정·포트폴리오·관찰기록 포함)');
       supaFetch('madi_audit_log', 'POST', {
@@ -438,13 +448,34 @@ function renderChildGrid() {
   if (!c) return;
   updateHeaderClock(); // 헤더 시계+다음 세션 동시 갱신
 
+  // ── 담당 아동 Set 선계산 (O(S+Sch)) ────────────────────────────────
+  // isMyChild()는 sessionDB/scheduleDB 전체를 매번 순회하므로
+  // renderChildGrid 진입 시 1회만 순회해 Set을 만들고 이후 조회는 O(1).
+  // admin/superadmin은 전체 담당이므로 Set 생성 생략.
+  var viewAll = canDo('viewOtherChildren');
+  var myChildIds = null; // null = 전체 허용(admin/superadmin)
+  if (!viewAll && currentUser) {
+    myChildIds = {};
+    if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+      var myName = currentUser.name;
+      (typeof sessionDB  !== 'undefined' ? sessionDB  : []).forEach(function(s) {
+        if (s.teacher === myName) myChildIds[s.childId] = true;
+      });
+      (typeof scheduleDB !== 'undefined' ? scheduleDB : []).forEach(function(s) {
+        if (s.teacher === myName) myChildIds[s.childId] = true;
+      });
+    }
+  }
+  // 담당 여부 O(1) 조회 헬퍼
+  function _isMine(childId) {
+    if (myChildIds === null) return true; // admin/superadmin
+    return myChildIds[childId] === true;
+  }
+
   // 상태별 뱃지 카운트 업데이트 (권한에 따라 본인 아동만)
-  var visibleForBadge = canDo('viewOtherChildren')
-    ? childDB
-    : childDB.filter(function(c){ return isMyChild(c.id); });
   ['등록','대기','종결'].forEach(function(s){
     var el = document.getElementById('badge_' + s);
-    if (el) el.textContent = visibleForBadge.filter(function(c){ return (c.status||'등록') === s; }).length;
+    if (el) el.textContent = childDB.filter(function(ch){ return _isMine(ch.id) && (ch.status||'등록') === s; }).length;
   });
 
   if (childDB.length === 0) {
@@ -464,8 +495,8 @@ function renderChildGrid() {
   var list = childDB.filter(function(child) {
     var childStatus = child.status || '등록';
     if (childStatus !== _childStatusFilter) return false;
-    // viewOtherChildren 권한 OFF인 선생님은 본인 담당 아동만
-    if (!canDo('viewOtherChildren') && !isMyChild(child.id)) return false;
+    // viewOtherChildren 권한 OFF인 선생님은 본인 담당 아동만 (미리 만든 Set 사용)
+    if (!_isMine(child.id)) return false;
     if (!q) return true;
     return child.name.toLowerCase().indexOf(q) > -1
       || (child.phone || '').replace(/-/g,'').indexOf(q.replace(/-/g,'')) > -1;

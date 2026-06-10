@@ -41,6 +41,28 @@ function _supaFetchAll(basePath) {
   return _page(0);
 }
 
+// _supaFetchAll 로 로드한 컬렉션의 렌더스킵 시그니처 — 페이지별 supaFetch GET 캐시 해시를 연결한다.
+//   _supaFetchAll 의 페이지 경로 규칙(basePath + sep + 'limit=PAGE&offset=N')을 그대로 재현해
+//   캐시에 보관된 해시(_supaCacheHashOf)를 offset 0,1000,... 순으로 잇는다.
+//   한 페이지라도 캐시 미스면 null 반환 → 호출부가 보수적으로 렌더(스킵 금지)하게 한다.
+//   ⚠️ _supaFetchAll 의 PAGE/경로 조합이 바뀌면 이 함수도 함께 고쳐야 한다(시그니처 정합).
+function _bpCacheSig(basePath) {
+  var PAGE = 1000;
+  var sep = basePath.indexOf('?') > -1 ? '&' : '?';
+  var parts = [], offset = 0;
+  for (;;) {
+    var h = _supaCacheHashOf(basePath + sep + 'limit=' + PAGE + '&offset=' + offset);
+    if (h === null) {
+      // offset 0 미스 = 컬렉션 전체 캐시 미스 → null. offset>0 미스 = 정상 종료(마지막 페이지 다음).
+      if (offset === 0) return null;
+      break;
+    }
+    parts.push(h);
+    offset += PAGE;
+  }
+  return parts.join(',');
+}
+
 function loadDBFromSupabase(silent) {
   // 학부모 계정은 이 함수로 데이터를 로드하지 않음.
   // madi_sessions 이 PARENT_BLOCKED_TABLES 에 포함되어 있어 Edge Function 이 403 을 반환하고
@@ -53,11 +75,15 @@ function loadDBFromSupabase(silent) {
   // 세션: 최근 90일, 일정: 최근 30일~미래 전체 (캘린더는 미래 일정 필요)
   var d90 = _isoDaysAgo(90);
   var d30 = _isoDaysAgo(30);
+  var _bpCh  = 'madi_children?'    + centerFilter() + '&select=id,data&order=id.asc';
+  var _bpSe  = 'madi_sessions?'    + centerFilter() + '&data->>date=gte.' + d90 + '&select=id::text,data&order=id.asc';
+  var _bpSch = 'madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc';
+  var _bpAs  = 'madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc';
   Promise.all([
-    _supaFetchAll('madi_children?'    + centerFilter() + '&select=id,data&order=id.asc'),
-    _supaFetchAll('madi_sessions?'    + centerFilter() + '&data->>date=gte.' + d90 + '&select=id::text,data&order=id.asc'),
-    _supaFetchAll('madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc'),
-    _supaFetchAll('madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc')
+    _supaFetchAll(_bpCh),
+    _supaFetchAll(_bpSe),
+    _supaFetchAll(_bpSch),
+    _supaFetchAll(_bpAs)
   ]).then(function(results) {
     var supaCh = _normalizeRows(results[0]), supaSe = _normalizeRows(results[1]), supaSch = _normalizeRows(results[2]), supaAs = _normalizeRows(results[3]);
     childDB = supaCh; sessionDB = supaSe; scheduleDB = supaSch; assessmentDB = supaAs;
@@ -72,9 +98,11 @@ function loadDBFromSupabase(silent) {
     // 폴링(silent) 무변경 시 전체 풀렌더 스킵 — H6. 4개 컬렉션 JSON 해시를 직전 로드와 비교해
     //   동일하면 renderChildGrid 등(innerHTML 통째 교체 + reflow)을 건너뛴다. GET 5분 캐시라 폴링은
     //   대부분 동일 데이터인데도 30초마다 DOM 전체를 재구축하던 비용 제거. 비-silent(최초·수동 로드)는 항상 렌더.
-    var _newSig = _hashStr(JSON.stringify(supaCh)) + '|' + _hashStr(JSON.stringify(supaSe))
-                + '|' + _hashStr(JSON.stringify(supaSch)) + '|' + _hashStr(JSON.stringify(supaAs));
-    var _renderSkip = (silent && window._lastDataSig === _newSig);
+    //   해시는 supaFetch GET 캐시가 set 시점에 1회 계산해 보관 → 여기선 페이지별 보관 해시만 연결(재직렬화 0).
+    //   _bpCacheSig 가 캐시 미스(예: noCache·캐시퇴출)를 만나면 null 을 돌려주고, 그 경우는 비교 불가이므로
+    //   반드시 렌더(스킵 안 함) — 기존 "변경 시 렌더" 의미를 보수적으로 유지.
+    var _newSig = _bpCacheSig(_bpCh) + '|' + _bpCacheSig(_bpSe) + '|' + _bpCacheSig(_bpSch) + '|' + _bpCacheSig(_bpAs);
+    var _renderSkip = (silent && window._lastDataSig === _newSig && _newSig.indexOf('null') === -1);
     window._lastDataSig = _newSig;
     if (!_renderSkip) {
       // 폴링(silent) 재렌더 전 .open 카드 id 목록 보존 → 재렌더 후 복원.
@@ -438,14 +466,25 @@ function showToast(msg, opts) {
     setTimeout(function() { var b = document.getElementById('toastUndoBtn'); if (b) b.onclick = function(e) { e.stopPropagation(); opts.undo(); el.classList.remove('show'); toastLocked = false; }; }, 0);
   } else { el.textContent = msg; el.style.pointerEvents = 'auto'; }
   el.onclick = function() { el.classList.remove('show'); clearTimeout(toastTimer); clearTimeout(toastForceTimer); toastTimer = null; toastForceTimer = null; toastLocked = false; };
+  // duration 미명시 호출은 메시지 길이에 비례해 가산(긴 showError 문장이 너무 빨리 사라지던 UX M).
+  //   기본 3000ms + 글자수×40, 7000ms 상한. ❌/⚠️ 경고는 최소 4000ms 보장. duration 명시 호출은 존중.
+  var duration;
+  if (opts.duration) duration = opts.duration;
+  else if (opts.undo) duration = 5000;
+  else {
+    var _m = String(msg == null ? '' : msg);
+    duration = Math.min(7000, 3000 + _m.length * 40);
+    // 경고/오류(❌·⚠️ 로 시작)는 최소 4000ms — 멀티코드포인트 이모지라 indexOf===0 로 판별.
+    if ((_m.indexOf('❌') === 0 || _m.indexOf('⚠️') === 0) && duration < 4000) duration = 4000;
+  }
   var wasShowing = el.classList.contains('show'); el.classList.add('show');
   if (!wasShowing) {
     clearTimeout(toastForceTimer);
-    var maxDuration = opts.lock ? (opts.duration || 8000) : 5000;
+    // 강제 종료 타이머는 표시 duration 보다 먼저 꺼지면 안 됨 — 길이 가산된 duration 을 하한으로.
+    var maxDuration = opts.lock ? (opts.duration || 8000) : Math.max(5000, duration);
     toastForceTimer = setTimeout(function() { el.classList.remove('show'); toastLocked = false; toastForceTimer = null; }, maxDuration);
   }
   clearTimeout(toastTimer);
-  var duration = opts.duration || (opts.undo ? 5000 : 2500);
   if (opts.lock) toastLocked = true;
   toastTimer = setTimeout(function() { el.classList.remove('show'); toastLocked = false; }, duration);
 }

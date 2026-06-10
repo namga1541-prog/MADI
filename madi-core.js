@@ -227,18 +227,34 @@ function safeCmp(a, b, dir) {
 // 효과: 탭 이동·재방문 시 중복 페치 제거 (notices/lounge/portfolio 등)
 var _supaCache = {};
 var SUPA_CACHE_TTL = 5 * 60 * 1000;
-function _supaCacheClone(v) {
-  // jsonb 데이터는 caller가 변형하므로 (예: var d=r.data; d.id=r.id;) 매 반환 시 복사
-  return v === null || typeof v !== 'object' ? v : JSON.parse(JSON.stringify(v));
+// 경량 문자열 해시(djb2) — 폴링 변경 시그니처용. 32bit unsigned. madi-app.js 의 _hashStr 과 동일식.
+//   캐시 set 시점에 1회 계산해 보관 → 히트마다 재직렬화/재해싱 비용 제거(성능 M).
+function _supaCacheDjb2(s) {
+  var h = 5381, i = s.length;
+  while (i) { h = (h * 33) ^ s.charCodeAt(--i); }
+  return h >>> 0;
 }
 function _supaCacheGet(path) {
   var c = _supaCache[path];
   if (!c) return null;
   if (Date.now() - c.ts > SUPA_CACHE_TTL) { delete _supaCache[path]; return null; }
-  return _supaCacheClone(c.data);
+  // 보관된 JSON 문자열을 parse 해 독립 사본 반환 — caller(_normalizeRows 등)가 반환 행을 변형(d.id=r.id)하므로
+  //   공유 반환은 캐시 오염 위험. 비-object(텍스트 응답 등)는 원본 그대로.
+  return c.json === null ? c.data : JSON.parse(c.json);
 }
 function _supaCacheSet(path, data) {
-  _supaCache[path] = { data: _supaCacheClone(data), ts: Date.now() };
+  // object 응답만 문자열화/해싱(딥클론 대체). 비-object 는 불변값이므로 원본 보관.
+  var isObj = data !== null && typeof data === 'object';
+  var json = isObj ? JSON.stringify(data) : null;
+  _supaCache[path] = { data: isObj ? null : data, json: json, hash: isObj ? _supaCacheDjb2(json) : 0, ts: Date.now() };
+}
+// 보관된 경로별 해시 노출 — 렌더스킵 시그니처 구성용. 미스/TTL만료면 null.
+//   반환 형태(supaFetch rows)는 절대 노출하지 않고 해시만 반환.
+function _supaCacheHashOf(path) {
+  var c = _supaCache[path];
+  if (!c) return null;
+  if (Date.now() - c.ts > SUPA_CACHE_TTL) return null;
+  return c.hash;
 }
 function supaCacheInvalidate(pathOrTable) {
   var table = String(pathOrTable || '').split('?')[0];
