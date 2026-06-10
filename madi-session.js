@@ -266,12 +266,11 @@ function setupGlobalErrorHandler() {
       message: maskPII(e.message),
       source: src
     });
-    // 디버깅 편의: 30초에 1회 (이전 5분에서 단축) — 진단 완료 후 다시 늘릴 것
-    if (!window._lastErrorToast || Date.now() - window._lastErrorToast > 30000) {
+    // 5분에 1회 — 원문 대신 친화 문구(테이블명·컬럼명·기술 원문 미노출)
+    if (!window._lastErrorToast || Date.now() - window._lastErrorToast > 300000) {
       window._lastErrorToast = Date.now();
       try {
-        var shortMsg = (e.message || '').slice(0, 70);
-        showToast('⚠️ 오류: ' + shortMsg, { duration: 7000 });
+        showToast('⚠️ 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', { duration: 5000 });
       } catch (e2) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     }
   });
@@ -279,10 +278,10 @@ function setupGlobalErrorHandler() {
     var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
     if (window.console && console.error) console.error('[Unhandled Promise]', maskPII(msg));
     pushErrorLog({ ts: Date.now(), message: 'Promise: ' + maskPII(msg), source: 'unhandledrejection' });
-    if (!window._lastErrorToast || Date.now() - window._lastErrorToast > 30000) {
+    if (!window._lastErrorToast || Date.now() - window._lastErrorToast > 300000) {
       window._lastErrorToast = Date.now();
       try {
-        showToast('⚠️ 비동기 오류: ' + maskPII(msg).slice(0, 80), { duration: 7000 });
+        showToast('⚠️ 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', { duration: 5000 });
       } catch (e2) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     }
   });

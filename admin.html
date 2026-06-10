@@ -81,7 +81,9 @@
       display:flex; gap:2px; padding:10px 14px 0;
       background:white; border-bottom:1px solid var(--border,#e2e8f0);
       position:sticky; top:60px; z-index:100;
+      overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
     }
+    .svc-subtab-bar::-webkit-scrollbar { display:none; }
     .svc-subtab-btn {
       flex:1; text-align:center;
       padding:10px 20px; border:none; background:transparent;
@@ -112,6 +114,9 @@
     .admin-main { flex:1; min-width:0; }
     @media (max-width:600px) {
       .admin-sidenav { display:none; }
+    }
+    @media (max-width:480px) {
+      .svc-subtab-btn { padding:10px 8px; font-size:13px; }
     }
     /* ── 탭 바 ── */
     .admin-tab-bar {

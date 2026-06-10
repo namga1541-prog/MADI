@@ -693,8 +693,13 @@ function buildChatContext() {
     return scheduleDB.some(function(s) { return s.childId === c.id && s.teacher === _myName; })
       || sessionDB.some(function(s) { return s.childId === c.id && s.teacher === _myName; });
   });
-  // 담당 아동이 없으면 (신규 선생님 등) 전체 표시
-  if (!_isAdminCtx && visibleChildren.length === 0) visibleChildren = childDB;
+  // 담당 아동이 없으면 (신규 선생님 등): viewOtherChildren 권한 있을 때만 전체 표시
+  if (!_isAdminCtx && visibleChildren.length === 0) {
+    if (canDo('viewOtherChildren')) {
+      visibleChildren = childDB;
+    }
+    // viewOtherChildren=false 인 선생님은 빈 배열 유지 → 아동 컨텍스트 없이 진행
+  }
 
   lines.push('👶 등록 아동: ' + visibleChildren.length + '명' + (!_isAdminCtx ? ' (담당)' : ''));
 

@@ -140,6 +140,7 @@ var SW_LINES = [
   '  var isHTML = e.request.destination === "document" || url.pathname.endsWith(".html") || url.pathname === "/" || url.pathname.endsWith("/");',
   '  if (isHTML) { e.respondWith(networkFirst(e.request, true, e)); return; }',
   '  if (SWR_HOSTS.indexOf(url.hostname) !== -1) { e.respondWith(staleWhileRevalidate(e.request, e)); return; }',
+  '  if (url.pathname.endsWith(".js") || url.pathname.endsWith(".css")) { e.respondWith(networkFirst(e.request, false, e)); return; }',
   '  e.respondWith(staleWhileRevalidate(e.request, e));',
   '});',
   'function _scopeUrl(rel) {',

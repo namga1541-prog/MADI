@@ -5,6 +5,7 @@ var AI_PROCESSING_NOTICE = '<div style="font-size:11px;color:var(--text2,#888);l
 
 function generateReport() {
   if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
   var childId = String(document.getElementById('reportChild').value || '');
   var period = document.getElementById('reportPeriod').value;
@@ -243,6 +244,7 @@ function toggleReportEdit() {
 // ─────── 장단기계획(IEP) 자동 생성 ───────
 function generateIEP() {
   if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
   var childId = String(document.getElementById('iepChild').value || '');
   if (!childId) { showToast('아동을 선택해주세요.'); return; }

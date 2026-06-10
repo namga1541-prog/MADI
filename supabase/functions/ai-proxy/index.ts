@@ -65,6 +65,28 @@ Deno.serve(async (req: Request) => {
     )
   }
 
+  // ── teacher useAI 권한 서버 강제 (SEC-PERM) ──────────────────────────────
+  // role=teacher 이고 permissions.useAI === false 인 경우 403 반환.
+  // 기본값은 클라이언트 canDo 와 동일: permissions 미설정(null) 또는 키 없음 → 허용,
+  // 명시적 false 일 때만 차단. admin/superadmin/parent 는 이 블록에서 건너뜀.
+  if (String(user.role) === 'teacher') {
+    const userRes = await fetchWithTimeout(
+      SUPA_URL + '/rest/v1/madi_users?id=eq.' + encodeURIComponent(String(user.sub)) + '&select=permissions',
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } },
+      8000
+    )
+    if (userRes.ok) {
+      const userRows = await userRes.json() as Array<{ permissions?: Record<string, unknown> | null }>
+      const perms = userRows && userRows[0] ? userRows[0].permissions : null
+      // 명시적 false 만 차단 (null/undefined/키 없음 → 기본값 true → 허용)
+      if (perms !== null && perms !== undefined && perms.useAI === false) {
+        return new Response(JSON.stringify({ error: 'AI 사용 권한이 없습니다. 센터 관리자에게 문의하세요.' }), { status: 403, headers: CORS })
+      }
+    }
+    // DB 조회 실패(일시 오류·네트워크) 시 fail-open — 권한 미확인보다 가용성 우선.
+    // (명시적 차단 설정이 없는 한 기본값 허용이므로 fail-open 이 안전한 방향)
+  }
+
   // ── Anthropic API 키 조회 ──────────────────────────────────────────────
   // 우선순위 1: 환경변수 ANTHROPIC_API_KEY (마디 통합 키 — 권장)
   //   → admin 권한자도 키 값을 볼 수 없음. 내부자 위협 모델링 후속 (2026-05-24).

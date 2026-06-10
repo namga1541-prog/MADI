@@ -999,8 +999,13 @@ function submitVocabFeedback() {
     changed_cols: [JSON.stringify({ type: type, wrong: wrong, correct: correct, context: context })]
   };
 
-  // madi_audit_log는 RLS로 직접 INSERT 차단됨 → 실패를 무시하고 UI만 처리
-  supaFetch('madi_audit_log', 'POST', [payload]).catch(function() {});
-  closeVocabFeedbackModal();
-  showToast('📝 접수되었습니다. 검토 후 어휘 사전에 반영됩니다.', { duration: 4000 });
+  // Edge Function /api 가 vocab_feedback action 화이트리스트 처리 → 성공/실패 분기
+  supaFetch('madi_audit_log', 'POST', [payload]).then(function() {
+    closeVocabFeedbackModal();
+    showToast('📝 접수되었습니다. 검토 후 어휘 사전에 반영됩니다.', { duration: 4000 });
+  }).catch(function(err) {
+    if (btn) { btn.disabled = false; btn.textContent = '제출'; }
+    showToast('⚠️ 접수 실패 — 다시 시도해주세요');
+    showError(err, '어휘 피드백 제출');
+  });
 }

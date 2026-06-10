@@ -342,7 +342,11 @@ function showLogoutMenu() {
 
 function doLogout() {
   if (!currentUser) { showLoginScreen(); return; }
-  showConfirm(currentUser.name + '님, 로그아웃 하시겠습니까?', function() {
+  // 오프라인 쓰기 큐 미전송분은 로그아웃 시 폐기됨 — 사전 고지 (취소하면 온라인 자동 flush 가 이어받음)
+  var _oqN = (typeof _offlineQueue !== 'undefined' && _offlineQueue.length) ? _offlineQueue.length : 0;
+  var _logoutMsg = currentUser.name + '님, 로그아웃 하시겠습니까?'
+    + (_oqN ? ' (⚠️ 미전송 기록 ' + _oqN + '건이 폐기됩니다 — 취소 후 온라인 상태로 잠시 기다리면 자동 저장됩니다)' : '');
+  showConfirm(_logoutMsg, function() {
     // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
     fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
     // iOS Safari 폴백 토큰도 정리 (clearToken() 이 sessionStorage 도 삭제하지만 명시적으로도)
@@ -351,6 +355,11 @@ function doLogout() {
     // 보안: supaFetch 메모리 캐시 전체 클리어 — 다른 사용자에게 잔여 PII 노출 방지
     if (typeof supaCacheClearAll === 'function') supaCacheClearAll();
     // 공유 기기 보호: 다음 사용자가 이전 사용자의 PII 를 보지 못하도록 모든 캐시 제거
+    // 오프라인 쓰기 큐(_madiOQ) 폐기 — PII 잔존 차단. 여기서 flush 를 시도하면 안 됨:
+    // 로그아웃 후 401 → 일시실패 분류 → _oqSave() 가 키를 PII 째로 되살림(재기록 레이스).
+    // 인메모리 배열을 비워야 진행 중 flush 의 _oqSave() 도 빈 배열만 기록한다.
+    if (typeof _offlineQueue !== 'undefined' && _offlineQueue.length) _offlineQueue.length = 0;
+    try { localStorage.removeItem('_madiOQ'); } catch(_e){}
     var _localKeys = [
       'madi_user', 'madi_last_id',
       'cn3_children', 'cn3_sessions', 'cn3_schedule',

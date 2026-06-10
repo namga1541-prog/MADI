@@ -55,7 +55,8 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Rate Limit: 사용자별 분당 3회 / 시간당 5회 ──
-  const rl = await checkRateLimit(`pwchange:${String(user.sub)}`, SUPA_URL, SUPA_KEY, 3, 5)
+  // failClosed: RPC 장애 시에도 분당 상한을 유지 — 탈취 세션으로 현재 비번 무제한 추측 방지
+  const rl = await checkRateLimit(`pwchange:${String(user.sub)}`, SUPA_URL, SUPA_KEY, 3, 5, { failClosed: true })
   if (!rl.allowed) {
     return new Response(
       JSON.stringify({ error: `비밀번호 변경 시도가 너무 많습니다. ${rl.retryAfter}초 후 다시 시도해주세요.` }),

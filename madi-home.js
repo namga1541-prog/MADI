@@ -651,6 +651,7 @@ var _bannerNotices = [];
 var _bannerIdx = 0;
 var _bannerTimer = null;
 var _bannerClosed = false;
+var _lastNoticesJson = null; // 폴링 중복 렌더 방지 — loadActivitiesFromSupa/_lastActivitiesJson 과 동일 패턴
 
 // 배너 슬라이드 타이머 단일 진입점 — 항상 기존 타이머 정리 후 1개만 생성(중복 등록·경쟁 조건 방지, M-10)
 function _startBannerTimer() {
@@ -664,7 +665,12 @@ function _startBannerTimer() {
 }
 
 function startNoticeBanner(notices) {
-  _bannerNotices = (notices || []).filter(function(n){ return n.title; });
+  var newNotices = (notices || []).filter(function(n){ return n.title; });
+  var newJson = JSON.stringify(newNotices.map(function(n){ return n.id + n.title + n.notice_type; }));
+  var oldJson = JSON.stringify(_bannerNotices.map(function(n){ return n.id + n.title + n.notice_type; }));
+  var listChanged = (newJson !== oldJson);
+
+  _bannerNotices = newNotices;
   if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = null; }
   if (!_bannerNotices.length) {
     var banner = document.getElementById('noticeBanner');
@@ -683,7 +689,8 @@ function startNoticeBanner(notices) {
 
   if (homeActive || calActive) {
     banner.style.display = 'block';
-    _bannerIdx = 0;
+    // 목록이 실제 바뀐 경우에만 인덱스를 첫 슬라이드로 리셋 — 그 외엔 현재 슬라이드 유지
+    if (listChanged) _bannerIdx = 0;
     _renderBannerSlide();
     _startBannerTimer();
   } else {
@@ -730,11 +737,17 @@ function loadNotices() {
     if (listEl) listEl.innerHTML = '<div class="empty"><p>로그인 후 확인하세요.</p></div>';
     return;
   }
-  if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div>';
+  // 최초 로드(noticeDB 비어있는 상태)에서만 "불러오는 중..." 플레이스홀더 표시
+  if (listEl && !noticeDB.length) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">불러오는 중...</div>';
   var centerId = encodeURIComponent(currentUser.center_id || '');
   return supaFetch('madi_notices?center_id=eq.' + centerId + '&order=pinned.desc,created_at.desc&limit=50', 'GET')
     .then(function(data) {
-      noticeDB = Array.isArray(data) ? data : [];
+      var fresh = Array.isArray(data) ? data : [];
+      var freshJson = JSON.stringify(fresh);
+      // 동일 데이터면 렌더·배너 리셋 전부 스킵 (30초 폴링 중복 방지)
+      if (freshJson === _lastNoticesJson) return;
+      _lastNoticesJson = freshJson;
+      noticeDB = fresh;
       if (listEl) renderNoticeList();
       startNoticeBanner(noticeDB);
     })

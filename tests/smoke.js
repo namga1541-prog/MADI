@@ -378,6 +378,35 @@ if (!weekDoneCount) {
 }
 
 // ──────────────────────────────────
+// SW_LINES ↔ sw.js 드리프트 박제 (madi-deploy.js 폴백 SW)
+// ──────────────────────────────────
+section('SW_LINES ↔ sw.js 드리프트 박제');
+var fs = require('fs');
+var path = require('path');
+var _root = path.resolve(__dirname, '..');
+var _deploySrc = '';
+var _swSrc = '';
+try { _deploySrc = fs.readFileSync(path.join(_root, 'madi-deploy.js'), 'utf8'); } catch(e) {}
+try { _swSrc = fs.readFileSync(path.join(_root, 'sw.js'), 'utf8'); } catch(e) {}
+// SW_LINES 영역: var SW_LINES = [...] 사이의 텍스트만 추출
+// SW_LINES 배열 내부에 ']' 이 포함되므로 var SW_CODE 경계로 추출
+var _swLinesMatch = _deploySrc.match(/var SW_LINES\s*=\s*\[([\s\S]*?)\n\];\s*\nvar SW_CODE/);
+var _swLinesText = _swLinesMatch ? _swLinesMatch[1] : '';
+// 핵심 마커 1: .js/.css network-first 분기 (따옴표 방식 무관 공통 부분)
+var _marker1 = 'pathname.endsWith(';
+var _marker1b = '.css';
+assert('SW_LINES: .js/.css network-first 분기 존재', _swLinesText.indexOf(_marker1) !== -1 && _swLinesText.indexOf(_marker1b) !== -1);
+assert('sw.js: .js/.css network-first 분기 존재', _swSrc.indexOf(_marker1) !== -1 && _swSrc.indexOf(_marker1b) !== -1);
+// 핵심 마커 2: networkFirst 함수 존재
+var _marker2 = 'function networkFirst(';
+assert('SW_LINES: networkFirst 함수 정의 존재', _swLinesText.indexOf(_marker2) !== -1);
+assert('sw.js: networkFirst 함수 정의 존재', _swSrc.indexOf(_marker2) !== -1);
+// 핵심 마커 3: isHTML network-first 분기
+var _marker3 = 'networkFirst(e.request, true, e)';
+assert('SW_LINES: HTML network-first 분기 존재', _swLinesText.indexOf(_marker3) !== -1);
+assert('sw.js: HTML network-first 분기 존재', _swSrc.indexOf(_marker3) !== -1);
+
+// ──────────────────────────────────
 // 결과 출력
 // ──────────────────────────────────
 console.log('\n' + '═'.repeat(40));
