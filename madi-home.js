@@ -900,7 +900,7 @@ function updateSettingsUI() {
 
 // ── 글자 크기 ──
 function setFontSize(size) {
-  localStorage.setItem('madi_font_size', size);
+  safeSetItem('madi_font_size', size);
   document.body.classList.remove('font-small','font-large');
   if (size === 'small') document.body.classList.add('font-small');
   if (size === 'large') document.body.classList.add('font-large');
@@ -934,9 +934,9 @@ function toggleWakeLock() {
 
 // ── 진동 피드백 ──
 function toggleHaptic() {
-  var current = localStorage.getItem('madi_haptic') !== '0';
+  var current = safeGetItem('madi_haptic', '1') !== '0';
   var next = !current;
-  localStorage.setItem('madi_haptic', next ? '1' : '0');
+  safeSetItem('madi_haptic', next ? '1' : '0');
   if (next && navigator.vibrate) navigator.vibrate([20, 40, 20]);
   showToast(next ? '📳 진동 피드백 켜짐' : '📳 진동 피드백 꺼짐');
   updateSettingsUI();
@@ -944,7 +944,7 @@ function toggleHaptic() {
 
 // ── 시작 탭 ──
 function setStartTab(val) {
-  localStorage.setItem('madi_start_tab', val);
+  safeSetItem('madi_start_tab', val);
   var names = ['캘린더','아동 관리','보고서','성장기록'];
   showToast('🏁 시작 탭: ' + (names[parseInt(val,10)] || '캘린더'));
 }
