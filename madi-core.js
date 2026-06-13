@@ -460,7 +460,7 @@ function ensureChart() {
 function centerFilter() {
   if (currentUser && currentUser.role === 'superadmin') return 'center_id=not.is.null';
   var cid = getCenterId();
-  return cid ? 'center_id=eq.' + cid : 'center_id=eq.INVALID';
+  return cid ? 'center_id=eq.' + encodeURIComponent(cid) : 'center_id=eq.INVALID';
 }
 
 // ─────── 글로벌 에러 모니터링 ───────

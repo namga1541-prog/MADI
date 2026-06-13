@@ -360,10 +360,11 @@ function deleteChild(id) {
   var iepIds   = (typeof iepDB !== 'undefined' ? iepDB : []).filter(function(r){ return r.childId === id; }).map(function(r){ return r.id; });
   var assIds   = assessmentDB.filter(function(a){ return a.childId === id; }).map(function(a){ return a.id; });
   // 연결 데이터 먼저 삭제 → 아동 레코드 마지막 삭제 (고아 레코드 방지)
-  var p1 = sessIds.length  > 0 ? supaFetch('madi_sessions?id=in.('    + sessIds.join(',')  + ')', 'DELETE') : Promise.resolve();
-  var p2 = schedIds.length > 0 ? supaFetch('madi_schedules?id=in.('   + schedIds.join(',') + ')', 'DELETE') : Promise.resolve();
-  var p3 = iepIds.length   > 0 ? supaFetch('madi_iep_history?id=in.(' + iepIds.join(',')   + ')', 'DELETE') : Promise.resolve();
-  var p4 = assIds.length   > 0 ? supaFetch('madi_assessments?id=in.(' + assIds.join(',')   + ')', 'DELETE') : Promise.resolve();
+  // id 들도 인코딩 후 join — 'in.()' 필터값에 대해서도 "모든 필터값은 URL 인코딩" 불변식 유지(향후 id 출처 변경 대비)
+  var p1 = sessIds.length  > 0 ? supaFetch('madi_sessions?id=in.('    + sessIds.map(encodeURIComponent).join(',')  + ')', 'DELETE') : Promise.resolve();
+  var p2 = schedIds.length > 0 ? supaFetch('madi_schedules?id=in.('   + schedIds.map(encodeURIComponent).join(',') + ')', 'DELETE') : Promise.resolve();
+  var p3 = iepIds.length   > 0 ? supaFetch('madi_iep_history?id=in.(' + iepIds.map(encodeURIComponent).join(',')   + ')', 'DELETE') : Promise.resolve();
+  var p4 = assIds.length   > 0 ? supaFetch('madi_assessments?id=in.(' + assIds.map(encodeURIComponent).join(',')   + ')', 'DELETE') : Promise.resolve();
   // 부수 PII 테이블(child_id 컬럼)도 파기 — 잊혀질 권리 이행, 고아 PII 잔존 방지.
   //   ID 미수집(인메모리 미보유) 테이블이라 child_id=eq 직접 DELETE. 미존재 시 no-op(무해).
   var p5 = supaFetch('madi_parent_children?child_id=eq.'     + encodeURIComponent(id), 'DELETE');

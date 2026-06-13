@@ -53,6 +53,14 @@ if [ -f "$TOPLEVEL/tools/check-schema-drift.js" ]; then
   node "$TOPLEVEL/tools/check-schema-drift.js"
 fi
 
+# ── 2-3b. SW_LINES(madi-deploy.js) ↔ sw.js 로직 동등성 차단 ──────
+#   폴백 SW 가 실제 sw.js 의 손사본이라 한쪽만 고치면 폴백 경로가 stale 로직을 배포한다.
+#   sw.js 또는 madi-deploy.js 가 스테이징된 커밋에서만 검사(스키마 드리프트와 동일 취지).
+SW_SRC_CHANGED=$(echo "$STAGED" | grep -E '^(sw\.js|madi-deploy\.js)$' || true)
+if [ -n "$SW_SRC_CHANGED" ] && [ -f "$TOPLEVEL/tools/check-sw-sync.js" ]; then
+  node "$TOPLEVEL/tools/check-sw-sync.js"
+fi
+
 # ── 2-4. XSS 린트 우회(suppression) 증식 감시 (비차단 경고) ──────
 #   eslint-disable no-unsanitized 가 늘수록 린트 게이트 보증이 줄어든다.
 #   신규 추가분만 디프에서 세어 경고 — 각 라인에 사유 주석을 남길 것.

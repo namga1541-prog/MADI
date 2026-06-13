@@ -3,14 +3,15 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (180)
+## 전역 변수 (182)
 
 - `var AI_PROCESSING_NOTICE = '<div style="font-size:11px;color:var(--text2,#888);line-height` — madi-ai.js:2
 - `var _lastIepJson = null, _lastActivitiesJson = null;` — madi-app.js:303
 - `var toastTimer = null, toastForceTimer = null, toastLocked = false;` — madi-app.js:456
 - `var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtm` — madi-app.js:458
-- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:527
-- `var _clientIdCounter = 0;` — madi-app.js:686
+- `var _clockSchedCache = { day: '', sig: -1, list: [] };` — madi-app.js:512
+- `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:542
+- `var _clientIdCounter = 0;` — madi-app.js:701
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -56,11 +57,11 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var phonemeData = {}; // { 'ㅅ': {initial:70, medial:40, final:30}, ... }` — madi-child-detail.js:100
 - `var COMMON_PHONEMES = ['ㅅ','ㄹ','ㄷ','ㄴ','ㅈ','ㅊ','ㅆ','ㅉ','ㅎ','ㄱ','ㅋ','ㅌ','ㅍ','ㅂ'];` — madi-child-detail.js:102
 - `var _addChildLock = false;` — madi-child-detail.js:307
-- `var _searchDebounced = debounce(function() { renderChildGrid(); }, 250);` — madi-child-detail.js:759
-- `var _childStatusFilter = '등록';` — madi-child-detail.js:765
-- `var _bulkMode = false;` — madi-child-detail.js:768
-- `var _bulkSelected = {}; // { childId: true }` — madi-child-detail.js:769
-- `var _currentVisibleIds = []; // renderChildGrid에서 채워짐` — madi-child-detail.js:770
+- `var _searchDebounced = debounce(function() { renderChildGrid(); }, 250);` — madi-child-detail.js:760
+- `var _childStatusFilter = '등록';` — madi-child-detail.js:766
+- `var _bulkMode = false;` — madi-child-detail.js:769
+- `var _bulkSelected = {}; // { childId: true }` — madi-child-detail.js:770
+- `var _currentVisibleIds = []; // renderChildGrid에서 채워짐` — madi-child-detail.js:771
 - `var _VOUCHER_BADGE_MAP = {` — madi-children.js:72
 - `var _staffTrendChart = null;` — madi-children.js:545
 - `var MODEL_HAIKU = 'claude-haiku-4-5-20251001';` — madi-core.js:2
@@ -94,9 +95,9 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var GITHUB_FILE = 'index.html';` — madi-deploy.js:69
 - `var GITHUB_SW = 'sw.js';` — madi-deploy.js:70
 - `var _swNow = nowKST();` — madi-deploy.js:75
-- `var SW_BUILD = 'madi-v5-' + ymd(_swNow).replace(/-/g,'')` — madi-deploy.js:76
-- `var SW_LINES = [` — madi-deploy.js:79
-- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-deploy.js:182
+- `var SW_BUILD = 'madi-v5-' + ymd(_swNow).replace(/-/g,'')` — madi-deploy.js:78
+- `var SW_LINES = [` — madi-deploy.js:82
+- `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-deploy.js:185
 - `var _bcEscHandler = null;` — madi-growth.js:1
 - `var VOUCHER_KINDS = ['발달재활바우처','우리아이심리지원서비스바우처','꿈E든카드바우처','나래사랑카드바우처'];` — madi-growth.js:413
 - `var _showDischargedInSession = false;` — madi-growth.js:691
@@ -150,14 +151,15 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SP2_PATTERNS = [` — madi-report.js:53
 - `var SP2_LEVELS = ['또래보다 매우 적음', '또래보다 적음', '또래와 유사', '또래보다 많음', '또래보다 매우 많음'];` — madi-report.js:62
 - `var _schedModalRelease = null;` — madi-schedule.js:2
-- `var schedView = 'month';` — madi-schedule.js:136
-- `var schedCurrentDate = new Date();` — madi-schedule.js:137
-- `var _schedTeacherFilter = '전체';` — madi-schedule.js:168
-- `var _weekViewMode = 'therapist';` — madi-schedule.js:169
-- `var _weekDupOnly = false;` — madi-schedule.js:170
-- `var _lastTeacherBarKey = '';` — madi-schedule.js:171
-- `var _teacherList = [];` — madi-schedule.js:208
-- `var _schedModalDate = null;` — madi-schedule.js:573
+- `var _childByIdCache = null;` — madi-schedule.js:8
+- `var schedView = 'month';` — madi-schedule.js:152
+- `var schedCurrentDate = new Date();` — madi-schedule.js:153
+- `var _schedTeacherFilter = '전체';` — madi-schedule.js:184
+- `var _weekViewMode = 'therapist';` — madi-schedule.js:185
+- `var _weekDupOnly = false;` — madi-schedule.js:186
+- `var _lastTeacherBarKey = '';` — madi-schedule.js:187
+- `var _teacherList = [];` — madi-schedule.js:224
+- `var _schedModalDate = null;` — madi-schedule.js:585
 - `var ERROR_LOG_MAX = 100;` — madi-session.js:63
 - `var apiUsage = { calls: 0, inputTokens: 0, outputTokens: 0, byModel: {} };` — madi-session.js:64
 - `var BACKUP_DB_NAME = 'madi_backup_db';` — madi-session.js:291
@@ -267,24 +269,24 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `vibrate` — madi-app.js:498
 - `toggleDarkMode` — madi-app.js:499
 - `loadDarkMode` — madi-app.js:505
-- `updateHeaderClock` — madi-app.js:512
-- `startHeaderClock` — madi-app.js:528
-- `fetchWithRetry` — madi-app.js:539
-- `doFetch` — madi-app.js:543
-- `setupNetworkMonitor` — madi-app.js:556
-- `showOfflineBanner` — madi-app.js:557
-- `hideOfflineBanner` — madi-app.js:563
-- `applyParentUI` — madi-app.js:569
-- `_initParentSidebar` — madi-app.js:594
-- `resetParentUI` — madi-app.js:634
-- `toggleMoreMenu` — madi-app.js:660
-- `closeMoreMenu` — madi-app.js:661
-- `getRoleFlags` — madi-app.js:668
-- `validatePasswordStrength` — madi-app.js:674
-  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L680
-- `generateClientId` — madi-app.js:687
-- `applyUserUI` — madi-app.js:692
-- `updateKbOffset` — madi-app.js:723
+- `updateHeaderClock` — madi-app.js:513
+- `startHeaderClock` — madi-app.js:543
+- `fetchWithRetry` — madi-app.js:554
+- `doFetch` — madi-app.js:558
+- `setupNetworkMonitor` — madi-app.js:571
+- `showOfflineBanner` — madi-app.js:572
+- `hideOfflineBanner` — madi-app.js:578
+- `applyParentUI` — madi-app.js:584
+- `_initParentSidebar` — madi-app.js:609
+- `resetParentUI` — madi-app.js:649
+- `toggleMoreMenu` — madi-app.js:675
+- `closeMoreMenu` — madi-app.js:676
+- `getRoleFlags` — madi-app.js:683
+- `validatePasswordStrength` — madi-app.js:689
+  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L695
+- `generateClientId` — madi-app.js:702
+- `applyUserUI` — madi-app.js:707
+- `updateKbOffset` — madi-app.js:738
 
 ## madi-assessment.js (27함수)
 - `calcLivingAge` — madi-assessment.js:3
@@ -513,22 +515,22 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `getClosedDuration` — madi-child-detail.js:324
 - `getVoucherUsed` — madi-child-detail.js:339
 - `deleteChild` — madi-child-detail.js:349
-- `closeChild` — madi-child-detail.js:415
-- `reopenChild` — madi-child-detail.js:431
-- `renderChildGrid` — madi-child-detail.js:446
-  ▸ _담당 아동 Set 선계산 (O(S+Sch))_ — L451
-- `_isMine` — madi-child-detail.js:470
-- `getPageNumbers` — madi-child-detail.js:737
-- `goToChildPage` — madi-child-detail.js:753
-- `onChildSearchInput` — madi-child-detail.js:760
-  ▸ _아동 일괄 처리 모드_ — L767
-- `toggleBulkMode` — madi-child-detail.js:772
-- `bulkToggleSelect` — madi-child-detail.js:787
-- `bulkSelectAllVisible` — madi-child-detail.js:802
-- `updateBulkCountLabel` — madi-child-detail.js:819
-- `bulkChangeStatus` — madi-child-detail.js:825
-- `applyBulkStatus` — madi-child-detail.js:842
-  ▸ _일괄 종결일 입력 모달_ — L868
+- `closeChild` — madi-child-detail.js:416
+- `reopenChild` — madi-child-detail.js:432
+- `renderChildGrid` — madi-child-detail.js:447
+  ▸ _담당 아동 Set 선계산 (O(S+Sch))_ — L452
+- `_isMine` — madi-child-detail.js:471
+- `getPageNumbers` — madi-child-detail.js:738
+- `goToChildPage` — madi-child-detail.js:754
+- `onChildSearchInput` — madi-child-detail.js:761
+  ▸ _아동 일괄 처리 모드_ — L768
+- `toggleBulkMode` — madi-child-detail.js:773
+- `bulkToggleSelect` — madi-child-detail.js:788
+- `bulkSelectAllVisible` — madi-child-detail.js:803
+- `updateBulkCountLabel` — madi-child-detail.js:820
+- `bulkChangeStatus` — madi-child-detail.js:826
+- `applyBulkStatus` — madi-child-detail.js:843
+  ▸ _일괄 종결일 입력 모달_ — L869
 
 ## madi-children.js (15함수)
 - `renderServiceStats` — madi-children.js:1
@@ -548,7 +550,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `renderStaffStats` — madi-children.js:562
 - `showStaffTrendFromCard` — madi-children.js:673
 - `showStaffTrend` — madi-children.js:678
-  ▸ _입력 모드_ — L761
+  ▸ _입력 모드_ — L768
 
 ## madi-core.js (52함수)
   ▸ _상수_ — L1
@@ -653,17 +655,17 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_loadFolderHandle` — madi-deploy.js:35
 - `getMadiFolderHandle` — madi-deploy.js:47
   ▸ _GitHub 자동 배포_ — L66
-  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L184
-- `_cleanupLegacyGithubToken` — madi-deploy.js:189
-- `deployFileViaProxy` — madi-deploy.js:202
-  ▸ _배포 대상 파일 자동 스캔_ — L226
-- `scanMadiFiles` — madi-deploy.js:229
-- `next` — madi-deploy.js:233
-  ▸ _파일 내용 → Git blob SHA-1 계산_ — L256
-- `gitBlobSha` — madi-deploy.js:259
-- `pollGithubPagesBuild` — madi-deploy.js:274
-- `poll` — madi-deploy.js:278
-- `deployToGitHub` — madi-deploy.js:313
+  ▸ _GitHub 배포 — Edge Function 프록시 방식_ — L187
+- `_cleanupLegacyGithubToken` — madi-deploy.js:192
+- `deployFileViaProxy` — madi-deploy.js:205
+  ▸ _배포 대상 파일 자동 스캔_ — L229
+- `scanMadiFiles` — madi-deploy.js:232
+- `next` — madi-deploy.js:236
+  ▸ _파일 내용 → Git blob SHA-1 계산_ — L259
+- `gitBlobSha` — madi-deploy.js:262
+- `pollGithubPagesBuild` — madi-deploy.js:277
+- `poll` — madi-deploy.js:281
+- `deployToGitHub` — madi-deploy.js:316
 
 ## madi-growth.js (28함수)
 - `openBulkClosedDateModal` — madi-growth.js:2
@@ -999,58 +1001,60 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _K-DST 발달수준 색상 시각화_ — L508
 - `updateKdstLevelColor` — madi-report.js:510
 
-## madi-schedule.js (43함수)
-  ▸ _생년월일 숫자 입력 처리_ — L4
-- `formatBirthInput` — madi-schedule.js:5
-- `parseBirth` — madi-schedule.js:9
-- `calcAgeFromBirth` — madi-schedule.js:21
-  ▸ _미작성 세션 알림_ — L36
-- `getUnwrittenSessions` — madi-schedule.js:37
-- `renderUnwrittenAlert` — madi-schedule.js:56
-- `toggleUwBody` — madi-schedule.js:99
-- `toggleUwTeacher` — madi-schedule.js:107
-- `quickFillSession` — madi-schedule.js:116
-  ▸ _스케줄_ — L135
-- `setSchedView` — madi-schedule.js:139
-- `moveSchedPeriod` — madi-schedule.js:157
-- `renderTeacherFilter` — madi-schedule.js:173
-- `setTeacherFilter` — madi-schedule.js:197
-- `switchToDay` — madi-schedule.js:203
-- `buildTeacherOptions` — madi-schedule.js:210
-- `loadTeacherList` — madi-schedule.js:219
-- `renderSchedView` — madi-schedule.js:228
-- `renderMonthGrid` — madi-schedule.js:234
-- `toLocal` — madi-schedule.js:243
-- `toggleWeekViewMode` — madi-schedule.js:294
-- `renderWeekGrid` — madi-schedule.js:299
-  ▸ _일일 뷰_ — L391
-- `renderDayGrid` — madi-schedule.js:392
-  ▸ _모바일: 치료사별 카드 리스트_ — L420
-  ▸ _PC: 기존 테이블_ — L457
-- `renderSessionListForPeriod` — madi-schedule.js:533
-- `openSchedModalForChild` — madi-schedule.js:576
-- `openSchedModal` — madi-schedule.js:592
-- `autoCalcEndTime` — madi-schedule.js:638
-- `toggleRepeatOpt` — madi-schedule.js:652
-- `toggleDayChip` — madi-schedule.js:675
-- `closeSchedModal` — madi-schedule.js:676
-- `saveSchedFromModal` — madi-schedule.js:681
-- `openEditSchedModal` — madi-schedule.js:745
-- `goToSessionFromSched` — madi-schedule.js:784
-- `renderWeekGridByChild` — madi-schedule.js:805
-- `confirmSchedDelete` — madi-schedule.js:868
-- `execSchedDeleteChoice` — madi-schedule.js:901
-- `execSchedDelete` — madi-schedule.js:910
-- `saveEditSched` — madi-schedule.js:960
-  ▸ _일정 내보내기_ — L986
-- `openScheduleExportModal` — madi-schedule.js:987
-- `fmt` — madi-schedule.js:996
-- `closeScheduleExportModal` — madi-schedule.js:1019
-- `_getExportRows` — madi-schedule.js:1024
-- `exportSchedule` — madi-schedule.js:1054
-- `_printSchedule` — madi-schedule.js:1086
-- `_exportScheduleRtf` — madi-schedule.js:1121
-  ▸ _표준화 검사_ — L1141
+## madi-schedule.js (45함수)
+- `_schedChildById` — madi-schedule.js:9
+- `_clear` — madi-schedule.js:14
+  ▸ _생년월일 숫자 입력 처리_ — L20
+- `formatBirthInput` — madi-schedule.js:21
+- `parseBirth` — madi-schedule.js:25
+- `calcAgeFromBirth` — madi-schedule.js:37
+  ▸ _미작성 세션 알림_ — L52
+- `getUnwrittenSessions` — madi-schedule.js:53
+- `renderUnwrittenAlert` — madi-schedule.js:72
+- `toggleUwBody` — madi-schedule.js:115
+- `toggleUwTeacher` — madi-schedule.js:123
+- `quickFillSession` — madi-schedule.js:132
+  ▸ _스케줄_ — L151
+- `setSchedView` — madi-schedule.js:155
+- `moveSchedPeriod` — madi-schedule.js:173
+- `renderTeacherFilter` — madi-schedule.js:189
+- `setTeacherFilter` — madi-schedule.js:213
+- `switchToDay` — madi-schedule.js:219
+- `buildTeacherOptions` — madi-schedule.js:226
+- `loadTeacherList` — madi-schedule.js:235
+- `renderSchedView` — madi-schedule.js:244
+- `renderMonthGrid` — madi-schedule.js:250
+- `toLocal` — madi-schedule.js:259
+- `toggleWeekViewMode` — madi-schedule.js:309
+- `renderWeekGrid` — madi-schedule.js:314
+  ▸ _일일 뷰_ — L405
+- `renderDayGrid` — madi-schedule.js:406
+  ▸ _모바일: 치료사별 카드 리스트_ — L433
+  ▸ _PC: 기존 테이블_ — L470
+- `renderSessionListForPeriod` — madi-schedule.js:546
+- `openSchedModalForChild` — madi-schedule.js:588
+- `openSchedModal` — madi-schedule.js:604
+- `autoCalcEndTime` — madi-schedule.js:650
+- `toggleRepeatOpt` — madi-schedule.js:664
+- `toggleDayChip` — madi-schedule.js:687
+- `closeSchedModal` — madi-schedule.js:688
+- `saveSchedFromModal` — madi-schedule.js:693
+- `openEditSchedModal` — madi-schedule.js:757
+- `goToSessionFromSched` — madi-schedule.js:796
+- `renderWeekGridByChild` — madi-schedule.js:817
+- `confirmSchedDelete` — madi-schedule.js:880
+- `execSchedDeleteChoice` — madi-schedule.js:913
+- `execSchedDelete` — madi-schedule.js:922
+- `saveEditSched` — madi-schedule.js:972
+  ▸ _일정 내보내기_ — L998
+- `openScheduleExportModal` — madi-schedule.js:999
+- `fmt` — madi-schedule.js:1008
+- `closeScheduleExportModal` — madi-schedule.js:1031
+- `_getExportRows` — madi-schedule.js:1036
+- `exportSchedule` — madi-schedule.js:1066
+- `_printSchedule` — madi-schedule.js:1098
+- `_exportScheduleRtf` — madi-schedule.js:1133
+  ▸ _표준화 검사_ — L1153
 
 ## madi-session.js (43함수)
   ▸ _보안: API 키 마스킹 / 토글_ — L1

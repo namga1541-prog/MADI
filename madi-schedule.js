@@ -1,6 +1,22 @@
 // 일정 모달 A11y release 핸들러
 var _schedModalRelease = null;
 
+// childId→child 룩업 맵 — 월/주/일 뷰 렌더가 각자 재구축하던 것을 공유.
+//   캐시는 "현재 동기 실행 틱" 한정: 다음 마이크로태스크에서 무효화하므로
+//   childDB 가 바뀔 수 있는 다음 틱엔 반드시 재빌드된다(스테일 불가능 — JS 단일스레드라
+//   동일 틱 내 childDB 변이는 없음). 뷰 전환 등 연쇄 렌더의 중복 빌드만 제거.
+var _childByIdCache = null;
+function _schedChildById() {
+  if (_childByIdCache) return _childByIdCache;
+  var m = {};
+  for (var i = 0; i < childDB.length; i++) m[childDB[i].id] = childDB[i];
+  _childByIdCache = m;
+  var _clear = function(){ _childByIdCache = null; };
+  if (typeof queueMicrotask === 'function') queueMicrotask(_clear);
+  else Promise.resolve().then(_clear);
+  return m;
+}
+
 // ─────── 생년월일 숫자 입력 처리 ───────
 function formatBirthInput(el) {
   el.value = el.value.replace(/[^0-9]/g, '').slice(0, 8);
@@ -253,8 +269,7 @@ function renderMonthGrid() {
     cells.push({ date: toLocal(new Date(year, month + 1, cells.length - firstDay - lastDate + 1)), other: true });
   }
   renderTeacherFilter();
-  var childById = {};
-  childDB.forEach(function(c) { childById[c.id] = c; });
+  var childById = _schedChildById();
   // date→일정배열 맵 1회 구축 — 셀당 scheduleDB 전체 스캔 O(42×N) 제거
   var schedByDate = {};
   scheduleDB.forEach(function(s) {
@@ -331,8 +346,7 @@ function renderWeekGrid() {
     '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='therapist'?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='child'&&!_weekDupOnly?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=true;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekDupOnly?'background:#f97316;color:#fff;font-weight:700;border-color:#f97316;':'background:#fff;color:#64748b;') + '">🔴 중복 수업만</button>';
-  var childById = {};
-  childDB.forEach(function(c) { childById[c.id] = c; });
+  var childById = _schedChildById();
   var allWeekScheds = scheduleDB.filter(function(s) { return weekDates.some(function(w){ return w.str === s.date; }); });
   var weekScheds = _schedTeacherFilter === '전체' ? allWeekScheds
     : allWeekScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
@@ -396,8 +410,7 @@ function renderDayGrid() {
   var lbl = document.getElementById('schedNavLabel');
   if (lbl) lbl.textContent = (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dayNames[d.getDay()] + ')';
   renderTeacherFilter();
-  var childById = {};
-  childDB.forEach(function(c) { childById[c.id] = c; });
+  var childById = _schedChildById();
 
   var allScheds = scheduleDB.filter(function(s) { return s.date === dateStr; })
     .sort(function(a, b) {
@@ -533,8 +546,7 @@ function renderDayGrid() {
 function renderSessionListForPeriod(dates) {
   var el = document.getElementById('weekSessionList');
   if (!el) return;
-  var childById = {};
-  childDB.forEach(function(c) { childById[c.id] = c; });
+  var childById = _schedChildById();
   var all = [];
   var targetDates = dates || [];
   if (!dates) {

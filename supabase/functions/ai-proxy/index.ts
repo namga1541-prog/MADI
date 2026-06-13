@@ -88,26 +88,10 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Anthropic API 키 조회 ──────────────────────────────────────────────
-  // 우선순위 1: 환경변수 ANTHROPIC_API_KEY (마디 통합 키 — 권장)
-  //   → admin 권한자도 키 값을 볼 수 없음. 내부자 위협 모델링 후속 (2026-05-24).
-  // 우선순위 2: madi_settings.api_key (구 방식 fallback — 단계적 폐기 예정)
-  //   → 환경변수 미설정 환경(개발·테스트)에서만 사용.
-  let apiKey: string | null = Deno.env.get('ANTHROPIC_API_KEY') || null
-  if (!apiKey) {
-    const settingsRes = await fetchWithTimeout(
-      SUPA_URL + '/rest/v1/madi_settings?key=eq.api_key&select=value&limit=1',
-      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } },
-      8000
-    )
-    // 조회 실패(5xx·타임아웃·네트워크) 시 .json() 미처리 throw 로 500 백지 응답 방지 —
-    // apiKey=null 로 두고 아래 402 분기에 합류시킨다(친화 메시지로 안내).
-    if (!settingsRes.ok) {
-      apiKey = null
-    } else {
-      const settings = await settingsRes.json()
-      apiKey = Array.isArray(settings) && settings[0] ? settings[0].value : null
-    }
-  }
+  //   ANTHROPIC_API_KEY Edge secret 만 사용 — admin 권한자도 키 값을 볼 수 없음(내부자 위협 차단).
+  //   과거 madi_settings.api_key 평문 폴백은 제거(2026-06-13): 테넌트(admin) 읽기 가능 테이블에
+  //   평문 LLM 키를 두던 노출면 제거. 개발·테스트 환경도 동일하게 ANTHROPIC_API_KEY 를 설정해야 한다.
+  const apiKey: string | null = Deno.env.get('ANTHROPIC_API_KEY') || null
 
   if (!apiKey || !apiKey.startsWith('sk-ant')) {
     return new Response(

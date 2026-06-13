@@ -659,7 +659,7 @@ function renderDashboardAdmin() {
     +   '<div class="dp-panel-body">'
     +     '<div class="dp-chart">'
     +       '<div class="dp-chart-grid"><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div></div>'
-    +       '<svg class="dp-chart-svg" viewBox="0 0 ' + chartW + ' ' + chartH + '" preserveAspectRatio="none">'
+    +       '<svg class="dp-chart-svg" role="img" aria-label="이번 달 일별 세션 추이 그래프. 실제 누적 ' + thisMonthSessions.length + '회, 계획 ' + thisMonthSched.length + '회." viewBox="0 0 ' + chartW + ' ' + chartH + '" preserveAspectRatio="none">'
     +         '<defs><linearGradient id="dpGradActual" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f3b66" stop-opacity="0.2"/><stop offset="100%" stop-color="#0f3b66" stop-opacity="0"/></linearGradient></defs>'
     +         '<polyline points="' + planPts.join(' ') + '" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,4"/>'
     +         '<polygon points="' + realArea.join(' ') + '" fill="url(#dpGradActual)"/>'

@@ -73,9 +73,12 @@ var GITHUB_SW    = 'sw.js';
 // 평상시 배포는 폴더의 실제 sw.js 파일을 직접 업로드하며, 이 상수는 다음 두 경우에만 사용:
 //   ① 배포 중 폴더에서 sw.js 를 못 읽을 때 폴백, ② ./sw.js 등록 실패 시 Blob URL 폴백(initPWA).
 var _swNow = nowKST();
+// 실제 sw.js(pre-commit)와 동일하게 초(%S)까지 포함 — 분 단위면 같은 분 커밋·재로드 시
+//   폴백 캐시명이 충돌해 activate 단계의 옛 캐시 정리가 무력화될 수 있다.
 var SW_BUILD = 'madi-v5-' + ymd(_swNow).replace(/-/g,'')
              + '-' + String(_swNow.getHours()).padStart(2,'0')
-             + String(_swNow.getMinutes()).padStart(2,'0');
+             + String(_swNow.getMinutes()).padStart(2,'0')
+             + String(_swNow.getSeconds()).padStart(2,'0');
 var SW_LINES = [
   'var CACHE_NAME = "' + SW_BUILD + '";',
   'var SKIP_HOSTS = ["api.anthropic.com","googleapis.com"];',

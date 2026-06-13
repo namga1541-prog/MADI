@@ -683,14 +683,21 @@ function showStaffTrend(teacher) {
   var sessions = typeof sessionDB !== 'undefined' ? sessionDB : [];
   var now = new Date();
 
+  // 이 선생님 세션을 1회만 순회해 'YYYY-MM'→건수 집계 (기존 6회 × O(N) 필터 → O(N))
+  var byYm = {};
+  for (var si = 0; si < sessions.length; si++) {
+    var s = sessions[si];
+    if (s.teacher !== teacher) continue;
+    var key = (s.date || '').slice(0, 7);
+    if (key) byYm[key] = (byYm[key] || 0) + 1;
+  }
   // 최근 6개월 레이블 + 데이터
   var labels = [], data = [];
   for (var i = 5; i >= 0; i--) {
     var d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
     var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     labels.push((d.getMonth() + 1) + '월');
-    var cnt = sessions.filter(function(s) { return s.teacher === teacher && (s.date||'').startsWith(ym); }).length;
-    data.push(cnt);
+    data.push(byYm[ym] || 0);
   }
 
   title.textContent = teacher + ' 선생님 · 최근 6개월 세션 추이';

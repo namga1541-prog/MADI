@@ -509,16 +509,31 @@ function loadDarkMode() {
   // var saved; try { saved = localStorage.getItem('madi_dark'); } catch (_e) { saved = null; }
   // if (saved === '1') { document.body.classList.add('dark-mode'); var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', '#020617'); }
 }
+var _clockSchedCache = { day: '', sig: -1, list: [] };
 function updateHeaderClock() {
   var timeEl = document.getElementById('clockTime'), nextEl = document.getElementById('clockNext');
   if (!timeEl || !nextEl) return;
   var now = nowKST(); timeEl.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   var today = ymd(now), nowMin = now.getHours()*60+now.getMinutes();
-  var upcoming = (typeof scheduleDB !== 'undefined' ? scheduleDB : [])
-    .filter(function(s){ if (s.date !== today || !s.startTime) return false; var p = s.startTime.split(':'); if (!p || p.length < 2) return false; return parseInt(p[0])*60+parseInt(p[1]) >= nowMin; })
-    .sort(function(a,b){ return safeCmp(a.startTime, b.startTime); });
-  if (upcoming.length > 0) {
-    var next = upcoming[0], child = (typeof childDB !== 'undefined' ? childDB : []).find(function(c){ return c.id === next.childId; });
+  var allSched = (typeof scheduleDB !== 'undefined' ? scheduleDB : []);
+  // 오늘 일정(startTime 보유)만 1회 필터·정렬해 캐시 — 날짜 또는 일정 건수 변화 시에만 재구축.
+  //   1분/포커스마다 scheduleDB(최대 수천 행) 전체를 재필터·재정렬하던 비용 제거.
+  //   (헤더 시계는 보조 표시라, 건수 불변 in-place 시간편집은 다음 갱신에 자연 반영된다.)
+  if (_clockSchedCache.day !== today || _clockSchedCache.sig !== allSched.length) {
+    _clockSchedCache.day = today;
+    _clockSchedCache.sig = allSched.length;
+    _clockSchedCache.list = allSched
+      .filter(function(s){ if (s.date !== today || !s.startTime) return false; var p = s.startTime.split(':'); return p && p.length >= 2; })
+      .sort(function(a,b){ return safeCmp(a.startTime, b.startTime); });
+  }
+  // 캐시된 오늘 정렬목록에서 현재시각 이후 첫 일정만 선형 탐색
+  var next = null;
+  for (var i = 0; i < _clockSchedCache.list.length; i++) {
+    var s = _clockSchedCache.list[i], sp = s.startTime.split(':');
+    if (parseInt(sp[0])*60+parseInt(sp[1]) >= nowMin) { next = s; break; }
+  }
+  if (next) {
+    var child = (typeof childDB !== 'undefined' ? childDB : []).find(function(c){ return c.id === next.childId; });
     var p = next.startTime.split(':'); if (!p || p.length < 2) { nextEl.textContent = ''; return; }
     var name = child ? child.name : '?', diff = (parseInt(p[0])*60+parseInt(p[1]))-nowMin;
     nextEl.textContent = diff === 0 ? '🔔 '+name+' 지금' : diff < 60 ? '⏱️ '+name+' '+diff+'분 후' : '📅 '+name+' '+next.startTime;

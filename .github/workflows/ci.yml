@@ -23,3 +23,28 @@ jobs:
         run: node tests/smoke.js
       - name: 재발 버그 패턴 검사 (권고)
         run: node tools/check-patterns.js
+      - name: SW_LINES ↔ sw.js 로직 동등성
+        run: node tools/check-sw-sync.js
+      # 로컬 pre-commit 훅 우회(웹 커밋·--no-verify) 백스톱:
+      #   정적 자산(.js/.css/.html)이 변경된 push 인데 sw.js CACHE_NAME 이 그대로면 실패.
+      #   캐시 무효화 누락으로 디바이스에 새 코드가 영영 도달하지 않는 사고를 CI 에서 잡는다.
+      - name: 정적 자산 변경 시 CACHE_NAME 갱신 강제
+        if: github.event_name == 'push'
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "이전 커밋 SHA 없음(첫 push/force-push) — 검사 생략"; exit 0
+          fi
+          CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}")
+          ASSET=$(echo "$CHANGED" | grep -E '\.(js|css|html)$' || true)
+          if [ -z "$ASSET" ]; then
+            echo "정적 자산 변경 없음 — 검사 생략"; exit 0
+          fi
+          OLD=$(git show "$BEFORE:sw.js" 2>/dev/null | grep -oE 'madi-v5-[0-9]{8}-[0-9]+' | head -1)
+          NEW=$(grep -oE 'madi-v5-[0-9]{8}-[0-9]+' sw.js | head -1)
+          echo "정적 자산 변경됨. CACHE_NAME old=$OLD new=$NEW"
+          if [ "$OLD" = "$NEW" ]; then
+            echo "::error::정적 자산(.js/.css/.html)이 변경됐으나 sw.js CACHE_NAME 미갱신 — pre-commit 훅 미설치/우회 의심. CACHE_NAME 을 bump 하세요."
+            exit 1
+          fi
+          echo "CACHE_NAME 갱신 확인 ✓"
