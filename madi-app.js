@@ -114,7 +114,7 @@ function loadDBFromSupabase(silent) {
           if (el.id) _openIds.push(el.id);  // id="cc_<childId>" 패턴
         });
       }
-      if (typeof renderChildGrid === 'function') renderChildGrid(); if (typeof populateChildSelects === 'function') populateChildSelects(); if (typeof renderGoalRows === 'function') renderGoalRows(); if (typeof renderSessionList === 'function') renderSessionList(); if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert(); if (typeof renderStaffCard === 'function') renderStaffCard();
+      if (typeof renderChildGrid === 'function') renderChildGrid(); if (typeof populateChildSelects === 'function') populateChildSelects(); if (typeof renderGoalRows === 'function') renderGoalRows(); if (typeof renderSessionList === 'function') renderSessionList(); if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert();
       // .open 카드 복원
       if (_openIds.length) {
         _openIds.forEach(function(id) {

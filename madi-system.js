@@ -115,109 +115,11 @@ function savePermissions() {
     }).catch(function() { showToast('❌ 저장 실패'); });
 }
 
-// ─────── 선생님 계정 관리 (관리자 전용) ───────
-function renderStaffCard() {
-  // TODO: staffCard UI가 HTML에 없어 비활성 상태 (admin.html에 #staffCard, #staffList, #deployCard 요소 없음)
-  var card = document.getElementById('staffCard');
-  var deployCard = document.getElementById('deployCard');
-  if (!card) return;
-  var isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
-  var isSuperAdmin = currentUser && currentUser.role === 'superadmin';
-  card.style.display = isAdmin ? 'block' : 'none';
-  // 배포 카드는 superadmin 전용 (admin/teacher/parent 모두에게 숨김)
-  if (deployCard) deployCard.style.display = isSuperAdmin ? 'block' : 'none';
-  if (!isAdmin) return;
-  supaFetch('madi_users?' + centerFilter() + '&select=id,username,name,role,color,prog_types&order=role.desc,name.asc')
-    .then(function(users) {
-      if (!Array.isArray(users)) return;
-      var html = '';
-      users.forEach(function(u) {
-        var safeColor = escHtml(u.color || '#0ea5a0');
-        var safeId = escHtml(String(u.id));
-        var safeName = escHtml(u.name || '');
-        var safeRole = escHtml(u.role || '');
-        // onclick 속성 내 작은따옴표 이스케이프 (작은따옴표가 JS 문자열을 깨는 것 방지)
-        var onclickName = safeName.replace(/'/g, '&#39;');
-        var onclickRole = safeRole.replace(/'/g, '&#39;');
-        html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;">'
-          + '<div style="width:34px;height:34px;border-radius:50%;background:' + safeColor + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">' + (u.name || '?').slice(0,1) + '</div>'
-          + '<div style="flex:1;"><div style="font-size:14px;font-weight:700;">' + safeName + '</div>'
-          + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(u.username || '') + ' · ' + (u.role==='admin'?'👑 관리자':'👩‍⚕️ 선생님') + '</div></div>'
-          + (u.id !== currentUser.id
-            ? '<div style="display:flex;gap:6px;">'
-              + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;color:var(--mint);border-color:var(--mint);" onclick="openPermModal(\'' + safeId + '\',\'' + onclickName + '\',\'' + onclickRole + '\')">\uad8c\ud55c</button>'
-              + '<button class="btn-del" onclick="deleteStaff(\'' + safeId + '\',\'' + onclickName + '\')">\uc0ad\uc81c</button>'
-              + '</div>'
-            : '<span style="font-size:11px;color:var(--mint);">나</span>')
-          + '</div>';
-      });
-      var staffList = document.getElementById('staffList');
-      if (!staffList) return;
-      // eslint-disable-next-line no-unsanitized/property
-      staffList.innerHTML = html || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">등록된 계정 없음</div>';
-    }).catch(function() {
-      showToast('⚠️ 직원 목록을 불러오지 못했습니다.');
-    });
-}
-
-function saveNewStaff(btn) {
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
-  var modal    = btn.closest('.sched-modal-overlay');
-  if (!modal) { showToast('⚠️ 입력 폼을 찾을 수 없습니다'); return; }
-  // querySelector null-safe (모달 마크업 변경·조건부 렌더 대비, M-6)
-  var name     = ((modal.querySelector('#newStaffName') || {}).value || '').trim();
-  var username = ((modal.querySelector('#newStaffId')   || {}).value || '').trim();
-  var password = ((modal.querySelector('#newStaffPw')   || {}).value || '').trim();
-  var role     = (modal.querySelector('#newStaffRole')  || {}).value || '';
-  var errEl    = modal.querySelector('#addStaffError');
-  if (!name || !username || !password) { if(errEl) errEl.textContent = '모든 항목을 입력해주세요.'; return; }
-  var color = TEACHER_COLORS[Math.floor(Math.random() * TEACHER_COLORS.length)];
-  if (errEl) errEl.textContent = '';
-  hashPassword(password).then(function(hashed) {
-    return supaFetch('madi_users', 'POST', [{
-      username: username, password: hashed, name: name,
-      role: role, color: color, center_id: getCenterId()
-    }]);
-  }).then(function(r) {
-    if (r && r[0] && r[0].id) {
-      _teacherList = [];
-      modal.remove();
-      renderStaffCard();
-      loadStaffMgmtList();
-      showToast('✅ ' + escHtml(name) + ' 계정 추가 완료!');
-    } else {
-      if (errEl) errEl.textContent = '추가 실패 (아이디 중복일 수 있음)';
-    }
-  }).catch(function(e){ if(errEl) errEl.textContent = '서버 오류: ' + (e.message||''); });
-}
-
-function deleteStaff(id, name) {
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 권한 없음'); return; }
-  showDeleteConfirm(
-    '이용자를 삭제하시겠습니까?',
-    '데이터가 완전히 삭제되고 복구할 수 없음을 확인하였습니다.',
-    '삭제확인',
-    function() {
-      var _centerFilter = currentUser.center_id ? '&center_id=eq.' + encodeURIComponent(currentUser.center_id) : '';
-      var _deletedUserId = id;
-      supaFetch('madi_users?id=eq.' + encodeURIComponent(id) + _centerFilter, 'DELETE').then(function() {
-        _teacherList = [];
-        renderStaffCard();
-        showToast('🗑️ ' + escHtml(name) + ' 계정 삭제됨');
-        supaFetch('madi_audit_log', 'POST', {
-          actor_id: currentUser.id,
-          actor_role: currentUser.role,
-          action: 'DELETE_STAFF',
-          table_name: 'madi_users',
-          row_id: _deletedUserId,
-          center_id: currentUser.center_id
-        }).catch(function(){});  // 감사 로그 실패가 주 기능을 막으면 안 됨
-      }).catch(function() {
-        showToast('❌ 계정 삭제에 실패했습니다. 다시 시도해주세요.');
-      });
-    }
-  );
-}
+// ─────── 선생님 계정 관리 ───────
+//   #staffCard 기반 구현(renderStaffCard/saveNewStaff/deleteStaff)은 제거됨(2026-06-13):
+//   해당 DOM(#staffCard/#staffList/#newStaffRole)이 HTML 에 없던 미연결 중복이었다.
+//   활성 경로: loadStaffMgmtList(목록)·removeStaffAccount(삭제, DELETE_STAFF 감사)·
+//   openPermModal/savePermissions(권한 편집 — 위 정의, 활성).
 
 // ─────── 폴링 방식 동기화 (보안 강화 — Realtime 대체) ───────
 var _pollTimer = null;

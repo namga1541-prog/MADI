@@ -169,12 +169,12 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _permUserId = null;` — madi-system.js:2
 - `var _permData = {};` — madi-system.js:3
 - `var PERM_LIST = [` — madi-system.js:5
-- `var _pollTimer = null;` — madi-system.js:223
-- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:224
-- `var _myChangeTs = 0;` — madi-system.js:225
-- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:226
-- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:227
-- `var _pwaPrompt = null;` — madi-system.js:359
+- `var _pollTimer = null;` — madi-system.js:125
+- `var _pollInterval = 30000; // 30초마다 갱신 (기존 10초 → 3배 감소, Supabase API 호출 절감)` — madi-system.js:126
+- `var _myChangeTs = 0;` — madi-system.js:127
+- `var _lastActivityTs = Date.now(); // 사용자 마지막 활동 시각 (유휴 시 폴링 스킵)` — madi-system.js:128
+- `var _IDLE_THRESHOLD = 5 * 60 * 1000; // 5분 비활성 시 폴링 중단` — madi-system.js:129
+- `var _pwaPrompt = null;` — madi-system.js:261
 - `var SLP_VOCAB_BLOCKED_PARENT = {` — madi-vocab.js:17
 - `var SLP_VOCAB_BLOCKED_ALL = {` — madi-vocab.js:71
 - `var SLP_VOCAB_ENCOURAGED = {` — madi-vocab.js:96
@@ -1107,36 +1107,33 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `parseJSON` — madi-session.js:802
   ▸ _센터 API 키 관리 (선택지 2)_ — L861
 
-## madi-system.js (19함수)
+## madi-system.js (16함수)
   ▸ _권한 설정 모달_ — L1
 - `openPermModal` — madi-system.js:13
 - `updatePermToggle` — madi-system.js:68
 - `savePermissions` — madi-system.js:78
-  ▸ _선생님 계정 관리 (관리자 전용)_ — L118
-- `renderStaffCard` — madi-system.js:119
-- `saveNewStaff` — madi-system.js:163
-- `deleteStaff` — madi-system.js:194
-  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L222
-- `initRealtime` — madi-system.js:237
-- `markMyChange` — madi-system.js:251
-- `stopRealtime` — madi-system.js:253
-  ▸ _초기화_ — L276
-- `init` — madi-system.js:277
-  ▸ _PWA 지원_ — L358
-- `initPWA` — madi-system.js:361
-  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L367
-- `_swApplyUpdate` — madi-system.js:376
-- `_swDirty` — madi-system.js:383
-- `_swShowUpdateBanner` — madi-system.js:395
-- `_onVis` — madi-system.js:424
-- `_pwaShouldShowBanner` — madi-system.js:492
-- `showPWABanner` — madi-system.js:503
-- `hidePWABanner` — madi-system.js:534
-- `triggerPWAInstall` — madi-system.js:548
-  ▸ _뒤로가기 버튼 탭 연동 + 모달 닫힘_ — L562
-  ▸ _─_ — L584
-  ▸ _─_ — L586
-  ▸ _모듈 초기화_ — L588
+  ▸ _선생님 계정 관리_ — L118
+  ▸ _폴링 방식 동기화 (보안 강화 — Realtime 대체)_ — L124
+- `initRealtime` — madi-system.js:139
+- `markMyChange` — madi-system.js:153
+- `stopRealtime` — madi-system.js:155
+  ▸ _초기화_ — L178
+- `init` — madi-system.js:179
+  ▸ _PWA 지원_ — L260
+- `initPWA` — madi-system.js:263
+  ▸ _SW 업데이트 시 자동 새로고침 (설치형 PWA 포함)_ — L269
+- `_swApplyUpdate` — madi-system.js:278
+- `_swDirty` — madi-system.js:285
+- `_swShowUpdateBanner` — madi-system.js:297
+- `_onVis` — madi-system.js:326
+- `_pwaShouldShowBanner` — madi-system.js:394
+- `showPWABanner` — madi-system.js:405
+- `hidePWABanner` — madi-system.js:436
+- `triggerPWAInstall` — madi-system.js:450
+  ▸ _뒤로가기 버튼 탭 연동 + 모달 닫힘_ — L464
+  ▸ _─_ — L486
+  ▸ _─_ — L488
+  ▸ _모듈 초기화_ — L490
 
 ## madi-vocab.js (4함수)
   ▸ _한자어 → 일상어 (학부모 대상 문서에서만 적용)_ — L16
