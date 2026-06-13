@@ -48,7 +48,16 @@ function onInviteCodeInput() {
   }, 500);
 }
 
+// ⛔ 자가가입(초대코드) 비활성 — 계정 생성은 원장(admin)의 '직원추가' 경로로만 한다.
+//   공개 /api 는 미인증 401 이라 자가가입 흐름이 동작하지 않고(2026-06-13 라이브 확인),
+//   공개 가입 엔드포인트를 새로 열지 않기로 결정(대장님). 모든 '시작하기' CTA 를 도입 상담으로 우회.
+//   ▶ 재개 방법: 공개 /signup Edge Function 추가 후 이 함수 본문을 _showSignupScreenForm() 호출로 교체.
 function showSignupScreen() {
+  showToast('가입은 센터 관리자를 통해 진행됩니다. 도입 문의를 남겨주세요 📩');
+  try { window.location.href = 'mailto:namga1541@gmail.com?subject=' + encodeURIComponent('아이마디 도입 상담 요청'); } catch (_e) { /* 메일 클라이언트 없음 — 토스트로 안내됨 */ }
+}
+// 자가가입 폼(초대코드 입력) — 재개 대비 보존. 현재 미사용. 공개 /signup 엔드포인트 추가 후 showSignupScreen 에서 호출.
+function _showSignupScreenForm() {
   hideLanding(); var _ls = document.getElementById('loginScreen'); if (_ls) _ls.style.display = 'none'; var _ss2 = document.getElementById('signupScreen'); if (_ss2) _ss2.style.display = 'flex';
   ['signupInviteCode','signupName','signupUsername','signupPassword','signupPasswordConfirm'].forEach(function(id){ var el = document.getElementById(id); if (el) el.value = ''; });
   var _se = document.getElementById('signupError'); if (_se) _se.textContent = '';

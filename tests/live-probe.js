@@ -121,7 +121,24 @@ post('/login', { username: USER, password: PW }).then(function (r) {
     else ok('P6 미래날짜 placeholder 세션 없음');
   });
 
-  return Promise.all([p2, p3, p4, p5, p6]).then(finish);
+  // P7: board 댓글 image_url 컬럼 실측 — board_image_columns_fix.sql 운영 적용 여부 확정(보류 #2)
+  //   컬럼 존재 시 200, 부재 시 PostgREST 400(column does not exist).
+  var p7 = apiGet('madi_lounge_comments?select=image_url&limit=1', t).then(function (r) {
+    if (r.status === 200) ok('P7 madi_lounge_comments.image_url 존재 — board_image_columns_fix.sql 적용 확인(보류#2 해소)');
+    else if (r.status === 400) bad('P7 image_url 컬럼 부재 — board_image_columns_fix.sql 미적용, 댓글 이미지 저장 실패(MIGRATIONS_RUNBOOK 순서대로 적용 필요)');
+    else warnLog('P7 madi_lounge_comments image_url 판정 불가 (' + r.status + ')');
+  });
+
+  // P8: totp_last_step 컬럼 실측 — 부재 시 TOTP replay 방지가 조용히 비활성(totp/index.ts:228-240)
+  //   madi_users 는 admin-only 테이블이라 admin 자격증명 필요. 200=컬럼 존재, 400=부재.
+  var p8 = apiGet('madi_users?select=totp_last_step&limit=1', t).then(function (r) {
+    if (r.status === 200) ok('P8 madi_users.totp_last_step 존재 — TOTP replay 방지 활성');
+    else if (r.status === 400) warnLog('P8 totp_last_step 컬럼 부재 — TOTP replay 방지 비활성 상태(마이그레이션 적용 권장)');
+    else if (r.status === 403) warnLog('P8 madi_users 403 — admin 자격증명으로 재실행해야 totp_last_step 판정 가능');
+    else warnLog('P8 totp_last_step 판정 불가 (' + r.status + ')');
+  });
+
+  return Promise.all([p2, p3, p4, p5, p6, p7, p8]).then(finish);
 }).catch(function (e) {
   bad('프로브 실행 오류: ' + e.message);
   finish();

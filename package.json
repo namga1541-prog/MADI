@@ -8,6 +8,7 @@
     "lint": "eslint \"madi-*.js\" --max-warnings=0",
     "lint:fix": "eslint \"madi-*.js\" --fix",
     "check": "eslint \"madi-*.js\" --max-warnings=0 && node tests/smoke.js && node tools/check-patterns.js && node tools/check-sw-sync.js",
+    "probe": "node tests/live-probe.js",
     "funcindex": "node tools/gen-functions.js",
     "setup": "git config core.hooksPath .githooks && node tools/gen-functions.js && echo setup done: hooksPath=.githooks",
     "deploy:fn": "node tools/deploy-fn.js"

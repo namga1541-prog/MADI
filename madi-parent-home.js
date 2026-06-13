@@ -380,50 +380,8 @@ function _renderParentNextSchedule(upcoming) {
 }
 
 // 이번 주 세션 기록 (최근 7일)
-function _renderParentWeekSessions(sessions) {
-  var el = document.getElementById('parentWeekDetails');
-  var rangeEl = document.getElementById('parentWeekRange');
-  if (!el) return;
-
-  // 히어로 통계 갱신
-  _renderParentHeroStats(sessions);
-
-  var today = new Date(getTodayKST());
-  var weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  var weekAgoStr = ymd(weekAgo);   // toISOString(UTC) 금지 — KST 새벽 하루 어긋남 방지
-  var weekSessions = sessions.filter(function(s){ return s.date >= weekAgoStr; })
-    .sort(function(a,b){ return a.date < b.date ? 1 : -1; });
-
-  if (rangeEl) {
-    var fmt = function(d){ return (d.getMonth()+1) + '/' + d.getDate(); };
-    rangeEl.textContent = fmt(weekAgo) + ' ~ ' + fmt(today) + ' · ' + weekSessions.length + '회 진행';
-  }
-
-  if (weekSessions.length === 0) {
-    el.innerHTML = '<div class="dp-empty">이번 주 진행된 세션이 없습니다</div>';
-    return;
-  }
-  // eslint-disable-next-line no-unsanitized/property
-  el.innerHTML = weekSessions.slice(0,4).map(function(s){
-    var dt = new Date(s.date);
-    var wd = ['일','월','화','수','목','금','토'];
-    var note = (s.aiNote || s.note || s.parentNote || '').toString();
-    var preview = note.slice(0, 100);
-    var goal = s.goal || s.title || '세션 진행';
-    return ''
-      + '<div class="dp-p-sess" role="button" tabindex="0" aria-label="세션 기록 보기" onclick="switchParentTab(\'report\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">'
-      +   '<div class="dp-p-sess-date">'
-      +     '<div class="dp-p-sess-date-num">' + dt.getDate() + '</div>'
-      +     '<div class="dp-p-sess-date-day">' + wd[dt.getDay()] + '요일</div>'
-      +   '</div>'
-      +   '<div class="dp-p-sess-content">'
-      +     '<div class="dp-p-sess-title">' + escHtml(goal) + '</div>'
-      +     (preview ? '<div class="dp-p-sess-desc">' + escHtml(preview) + (note.length > 100 ? '...' : '') + '</div>' : '')
-      +   '</div>'
-      + '</div>';
-  }).join('');
-}
+// (_renderParentWeekSessions 제거 — 어느 경로에서도 호출되지 않던 데드코드, 2026-06-13.
+//  활성 주간 렌더는 다른 경로가 담당하며, 공용 헬퍼 _renderParentHeroStats 는 그대로 사용 중.)
 
 // TODO: madi_lounge_posts에 수신자 컬럼 추가 후 재활성화 필요 — 현재 보안상 비활성
 // (수신자 컬럼 없이 center_id 전체 조회 시 다른 학부모에게 보낸 private_admin 글까지 노출됨)
