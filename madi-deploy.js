@@ -66,7 +66,6 @@ function getMadiFolderHandle() {
 // ─────── GitHub 자동 배포 ───────
 var GITHUB_OWNER = 'namga1541-prog';
 var GITHUB_REPO  = 'MADI';
-var GITHUB_FILE  = 'index.html';
 var GITHUB_SW    = 'sw.js';
 
 // 인라인 SW 폴백 — 실제 sw.js 와 동기화 유지 (캐시명·SWR·푸시·notificationclick·offline·민감경로 차단).

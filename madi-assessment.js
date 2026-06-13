@@ -640,18 +640,6 @@ function copyAssessInterp() {
   }
 }
 
-// ── 저장 + 바로 보고서 생성 ──
-function addAndReport() {
-  var childId = String(document.getElementById('assessChild').value || '');
-  if (!childId) { showToast('아동을 선택해주세요.'); return; }
-  addAssessment();
-  // 저장 후 보고서 생성 (저장 완료 대기)
-  setTimeout(function() { generateAssessReport(); }, 100);
-  // 스크롤 이동
-  var reportCard = document.getElementById('assessReportResult');
-  if (reportCard) reportCard.scrollIntoView({ behavior: 'smooth' });
-}
-
 var ASSESS_SCHEMA = {
   'REVT': [
     {key:'receptiveRaw', label:'수용어휘 원점수', type:'num'},

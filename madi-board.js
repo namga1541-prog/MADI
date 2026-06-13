@@ -43,13 +43,6 @@ function filterLoungePosts(posts, user) {
   });
 }
 
-// visibility 표시 메타 (라벨/아이콘/색상)
-function visibilityMeta(vis) {
-  if (vis === 'private_super') return { label: '1:1 슈퍼관리자', icon: '🔒', color: '#8b5cf6', bg: '#ede9fe' };
-  if (vis === 'private_admin') return { label: '1:1 센터장', icon: '🔒', color: '#0ea5a0', bg: '#e0f7f6' };
-  return { label: '고객센터', icon: '📢', color: '#3b82f6', bg: '#dbeafe' };
-}
-
 // 라운지 글 목록의 image_urls[] 를 서명 URL 로 일괄 치환(폴백 유지) 후 done()
 function _signLoungePostImages(posts, done) {
   if (typeof signBoardImages !== 'function') { done(); return; }

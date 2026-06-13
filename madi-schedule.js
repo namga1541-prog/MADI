@@ -306,11 +306,6 @@ function renderMonthGrid() {
   renderSessionListForPeriod();
 }
 
-function toggleWeekViewMode() {
-  _weekViewMode = (_weekViewMode === 'therapist') ? 'child' : 'therapist';
-  renderWeekGrid();
-}
-
 function renderWeekGrid() {
   var d = schedCurrentDate;
   var dow = d.getDay();

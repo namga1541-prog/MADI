@@ -56,8 +56,6 @@ function nowKST()      { return toKST(new Date()); }
 function ymd(d)        { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function getTodayKST() { return ymd(nowKST()); }
 function getMonthKST() { return getTodayKST().slice(0, 7); }
-/** 'YYYY-MM-DD' → 'YYYY년 M월 D일' (한국 표기) */
-function fmtDateKR(s) { if (!s) return ''; var p = s.split('-'); if (!p || p.length < 3) return s; return p[0] + '년 ' + parseInt(p[1]) + '월 ' + parseInt(p[2]) + '일'; }
 
 // 코드에서 canDo() 로 검사하는 모든 권한 키의 기본값. 여기에 없는 키는 fail-closed(차단).
 var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, deleteAssessment:true, editChild:true };
