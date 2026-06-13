@@ -364,6 +364,16 @@ Deno.serve(async (req: Request) => {
         // GET 등 운영자 조회는 이 프록시로는 불허(직접 DB/별도 경로). POST 만 수용.
         return new Response(JSON.stringify({ error: '감사 로그는 기록(POST)만 가능합니다' }), { status: 403, headers: CORS })
       }
+      // ★ 학부모 제한 — 이 분기는 parent default-deny 게이트(아래)보다 먼저 실행되므로,
+      //   parent JWT 가 임의의 화이트리스트 action(DELETE_CHILD/UPDATE_PERMISSIONS 등)을 기록해
+      //   감사 로그를 위조·스팸하는 우회를 여기서 차단한다. 학부모의 정당한 용도는
+      //   _reportClientError 의 'client_error' 뿐이므로 그 외 action 은 거부.
+      if (user.role === 'parent') {
+        const _pAction = (body && typeof body === 'object') ? String((body as Record<string, unknown>).action || '') : ''
+        if (_pAction !== 'client_error') {
+          return new Response(JSON.stringify({ error: '학부모는 해당 감사 이벤트를 기록할 수 없습니다' }), { status: 403, headers: CORS })
+        }
+      }
       const auditRes = await insertClientAudit(SUPA_URL, SUPA_KEY, user, body)
       // insertClientAudit 의 최소 헤더에 CORS 를 합쳐 반환
       const merged: Record<string, string> = { ...CORS, 'Content-Type': 'application/json' }

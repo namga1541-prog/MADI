@@ -56,7 +56,8 @@ Deno.serve(async (req: Request) => {
 
   // rate limit — 센터 전체 학부모에게 푸시를 발송하는 비용성·외부망(FCM/APNs) 작업.
   //   관리자당 분 3회/시 10회 보수적 상한으로 푸시 폭주·게이트웨이 차단을 방지(탈취 세션 포함).
-  const _rl = await checkRateLimit('notifytest:' + String(user.sub), SUPA_URL, SUPA_KEY, 3, 10);
+  //   RPC 장애 시 fail-closed — 상한이 사라져 센터 전체 푸시가 무제한 발송되는 것을 막는다.
+  const _rl = await checkRateLimit('notifytest:' + String(user.sub), SUPA_URL, SUPA_KEY, 3, 10, { failClosed: true });
   if (!_rl.allowed) {
     return new Response(JSON.stringify({ ok: false, reason: '너무 자주 요청했습니다. 잠시 후 다시 시도해 주세요.', retryAfter: _rl.retryAfter }), { status: 429, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }

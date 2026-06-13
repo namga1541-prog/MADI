@@ -124,7 +124,8 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 1-c. Rate Limit: 사용자별 분당 20·시간당 100 (Storage 남용 방지) ──
-  const rl = await checkRateLimit('upload:' + String(user.sub), SUPABASE_URL, SERVICE_KEY, 20, 100)
+  //   RPC 장애 시 fail-closed — 상한이 사라져 무제한 5MB Storage 쓰기가 허용되는 것을 막는다.
+  const rl = await checkRateLimit('upload:' + String(user.sub), SUPABASE_URL, SERVICE_KEY, 20, 100, { failClosed: true })
   if (!rl.allowed) {
     return new Response(JSON.stringify({ error: '업로드 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' }), {
       status: 429,

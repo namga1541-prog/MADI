@@ -435,10 +435,11 @@ function generateSIReport() {
       btn.textContent = '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)';
     })
     .catch(function(e) {
+      if (window.console && console.warn) console.warn('[AI 감통 보고서]', e);
       /* eslint-disable-next-line no-unsanitized/property */
       result.innerHTML = '<div style="color:#ef4444;padding:12px;border:1px solid #fca5a5;border-radius:10px;">'
         + '<div style="font-weight:700;margin-bottom:8px;">❌ 보고서 생성 실패</div>'
-        + '<div style="font-size:12px;margin-bottom:10px;">' + escHtml(e.message||'알 수 없는 오류') + '</div>'
+        + '<div style="font-size:12px;margin-bottom:10px;">' + escHtml(_userErrMsg(e, 'AI 보고서 생성')) + '</div>'
         + '<button onclick="generateSIReport()" class="btn" style="font-size:12px;padding:6px 14px;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;font-weight:700;">🔄 다시 시도</button>'
         + '</div>';
       btn.dataset.busy = ''; btn.disabled = false;

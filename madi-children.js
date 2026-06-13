@@ -754,7 +754,7 @@ function showStaffTrend(teacher) {
     });
     wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }).catch(function(e) {
-    if (typeof showToast === 'function') showToast('⚠️ ' + (e && e.message ? e.message : '차트 로드 실패'));
+    if (typeof showError === 'function') showError(e, '차트 로드');
   });
 }
 

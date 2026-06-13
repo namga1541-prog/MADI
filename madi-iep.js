@@ -153,6 +153,7 @@ function saveSessionAI() {
 
 // ─────── 기능 2: 가정 활동 추천 AI ───────
 function suggestHomeActivities(sessionId) {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
   var session = sessionDB.find(function(s) { return s.id === sessionId; });
   if (!session) return;
@@ -574,7 +575,8 @@ function renderChart() {
         }
       });
     }).catch(function(e) {
-      wrap.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>' + escHtml(e && e.message || '차트 로드 실패') + '</p></div>';
+      if (window.console && console.warn) console.warn('[차트 로드]', e);
+      wrap.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>' + escHtml(_userErrMsg(e, '차트 로드')) + '</p></div>';
     });
   }
 
@@ -718,7 +720,7 @@ function renderPhonemeChart(childId) {
       }
     });
   }).catch(function(e) {
-    if (typeof showToast === 'function') showToast('⚠️ ' + (e && e.message ? e.message : '차트 로드 실패'));
+    if (typeof showError === 'function') showError(e, '차트 로드');
   });
 
   // 최신 매트릭스 테이블 (가장 최근 세션 기준)
@@ -780,6 +782,7 @@ function setPhonemePos(pos) {
 }
 
 function detectStagnation(btnEl) {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
   var childId = String(document.getElementById('chartChild').value);
   if (!childId) { showToast('아동을 선택해주세요.'); return; }

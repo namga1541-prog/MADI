@@ -752,7 +752,8 @@ function loadNotices() {
       startNoticeBanner(noticeDB);
     })
     .catch(function(e) {
-      if (listEl) listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + escHtml(e.message||'') + '</small></p></div>';
+      if (window.console && console.warn) console.warn('[공지 로드]', e);
+      if (listEl) listEl.innerHTML = '<div class="empty"><p>공지 테이블이 아직 없거나 오류가 발생했습니다.<br><small>' + escHtml(_userErrMsg(e, '공지 로드')) + '</small></p></div>';
     });
 }
 function renderNoticeList() {
