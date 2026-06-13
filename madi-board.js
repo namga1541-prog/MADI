@@ -173,7 +173,7 @@ function renderLoungeUI() {
 }
 
 function renderInquiryCard(post, user) {
-  var isMine    = user && post.author_id === user.id;
+  var isMine    = !!(user && String(post.author_id) === String(user.id));
   var canDelete = (user && (user.role === 'superadmin' || isMine));
 
   // 수신자 배지
@@ -587,7 +587,7 @@ function _renderLibraryUI(posts) {
     listHtml = '<div class="empty"><div class="empty-icon">📭</div><p>등록된 자료가 없습니다.</p></div>';
   } else {
     listHtml = filtered.map(function(p) {
-      var isMine = !!(user && p.author_id === user.id);
+      var isMine = !!(user && String(p.author_id) === String(user.id));
       var canDel = user.role === 'superadmin' || isMine;
       var imgs = [];
       if (p.images) {
@@ -715,7 +715,7 @@ function deleteLibraryPost(id) {
 
 function _isMyPost(post) {
   if (!currentUser || !post || !post.author_id) return false;
-  return post.author_id === currentUser.id;
+  return String(post.author_id) === String(currentUser.id);  // ID 문자열 불변식 — 숫자/문자 혼용 시 === 오판 방지
 }
 
 // 공통 글 수정 모달

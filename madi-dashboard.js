@@ -141,8 +141,8 @@ function renderDashboardTeacher() {
   //   작성됨 처리되어 작성률이 과대평가되던 문제 방지
   var _doneConsumed = {};
   var weekDone = weekSchedDue.filter(function(s){
-    for (var di = 0; di < _sessions.length; di++) {
-      var ss = _sessions[di];
+    for (var di = 0; di < mySession.length; di++) {
+      var ss = mySession[di];
       if (_doneConsumed[di]) continue;
       if (ss.childId === s.childId && ss.date === s.date) { _doneConsumed[di] = true; return true; }
     }

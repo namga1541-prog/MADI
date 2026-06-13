@@ -237,7 +237,7 @@ function scanMadiFiles(folderHandle) {
       if (result.done) return;
       var entry = result.value;
       if (entry.kind === 'file') {
-        if (/^madi-\d+\.js$/.test(entry.name)) jsFiles.push(entry.name);
+        if (/^madi-[\w-]+\.js$/.test(entry.name)) jsFiles.push(entry.name);
         else if (entry.name === 'madi.css') hasCss = true;
       }
       return next();
@@ -248,7 +248,7 @@ function scanMadiFiles(folderHandle) {
     jsFiles.sort(function(a, b) {
       var na = a.match(/\d+/) ? parseInt(a.match(/\d+/)[0], 10) : 0;
       var nb = b.match(/\d+/) ? parseInt(b.match(/\d+/)[0], 10) : 0;
-      return na - nb;
+      return (na - nb) || a.localeCompare(b);  // 숫자형 우선, 이름형은 알파벳 (업로드 순서는 런타임 무관)
     });
     if (hasCss) jsFiles.push('madi.css');
     return jsFiles;

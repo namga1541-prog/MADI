@@ -588,7 +588,7 @@ function downloadIEPPDFById(id) {
 function deleteIEPRecord(id) {
   showConfirm('이 장단기계획(IEP) 기록을 삭제할까요?', function() {
     var r = iepDB.find(function(x){ return x.id === id; });
-    var childId = r ? r.childId : 0;
+    var childId = r ? r.childId : '';
     iepDB = iepDB.filter(function(x){ return x.id !== id; });
     saveIEP();
     supaFetch('madi_iep_history?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE').catch(function(e) {
@@ -602,7 +602,12 @@ function deleteIEPRecord(id) {
         // 복원은 saveIEP 와 동일한 제네릭 래핑({id,center_id,data})으로 — 평탄 필드를 그대로
         //   POST 하면 madi_iep_history 에 없는 컬럼이라 400(42703)으로 복원이 항상 실패하던 버그 수정.
         supaFetch('madi_iep_history', 'POST', [{ id: r.id, center_id: currentUser.center_id, data: r }])
-          .then(function() { if (typeof loadIEP === 'function') loadIEP(); renderIEPHistory(childId); showToast('↩️ 복원됨'); })
+          .then(function() {
+            // 메모리 동기화: 삭제로 빠졌던 r 을 다시 넣고 렌더(기존 loadIEP 는 존재하지 않는 함수라 동기화 누락 버그).
+            if (!iepDB.some(function(x){ return x.id === r.id; })) iepDB.push(r);
+            renderIEPHistory(childId);
+            showToast('↩️ 복원됨');
+          })
           .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });
       }
     });

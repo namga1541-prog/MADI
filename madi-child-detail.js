@@ -309,8 +309,11 @@ var _addChildLock = false;
 // 치료 기간 계산 헬퍼
 function getTreatDuration(startDate) {
   if (!startDate) return '';
-  var start = new Date(startDate);
-  var today = new Date();
+  // 로컬(KST) 자정 기준으로 양쪽을 맞춰 일수 차이를 정확히 — start(UTC자정) vs new Date()(현재시각)
+  //   혼용 시 KST 새벽 00:00~08:59 에 '치료 N일째'가 1일 적게 표시되던 문제 방지.
+  var start = new Date(String(startDate).slice(0, 10) + 'T00:00:00');
+  if (isNaN(start.getTime())) return '';
+  var today = new Date(); today.setHours(0, 0, 0, 0);
   var diffMs = today - start;
   if (diffMs < 0) return '';
   var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));

@@ -288,14 +288,16 @@ function refreshChildAges() {
     }
   });
 }
+/** @returns {Promise<boolean>} 복원 경로 Promise.all 이 완료를 기다리도록 Promise 반환(저장 미완 중 orphan 삭제 방지) */
 function saveIEP() {
-  if (!currentUser || currentUser.role === 'parent') return;
+  if (!currentUser || currentUser.role === 'parent') return Promise.resolve(false);
   safeSetItem('cn3_iep', JSON.stringify(iepDB));
   var cid = getCenterId(), rows = iepDB.map(function(r){ return { id: r.id, center_id: cid, data: r }; });
-  if (rows.length === 0) return;
-  supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).catch(function(e){
+  if (rows.length === 0) return Promise.resolve(true);
+  return supaFetch('madi_iep_history?on_conflict=id', 'POST', rows).then(function(){ return true; }).catch(function(e){
     if(window.console&&console.warn)console.warn('[madi-01 saveIEP]',e&&e.message);
     showToast('⚠️ IEP 저장 중 오류가 발생했습니다');
+    return false;
   });
 }
 // 무변경 폴링(30초)에서 IEP/활동 DOM 통째 재구축 방지 — 직전 직렬화 결과와 동일하면 render 생략.
@@ -313,10 +315,11 @@ function loadIEPFromSupa() {
       }
     }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message);});
 }
+/** @returns {Promise<boolean>} 복원 경로 Promise.all 동기화를 위해 Promise 반환 */
 function saveActivities() {
   safeSetItem('cn3_activities', JSON.stringify(activityDB));
   var cid = getCenterId(), rows = activityDB.map(function(a){ return Object.assign({}, a, { center_id: cid }); });
-  supaFetch('madi_activities?on_conflict=id', 'POST', rows).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message); showToast('⚠️ ' + _userErrMsg(e, '활동 저장'));});
+  return supaFetch('madi_activities?on_conflict=id', 'POST', rows).then(function(){ return true; }).catch(function(e){if(window.console&&console.warn)console.warn('[silent madi-01]',e&&e.message); showToast('⚠️ ' + _userErrMsg(e, '활동 저장')); return false;});
 }
 function loadActivitiesFromSupa() {
   _supaFetchAll('madi_activities?' + centerFilter() + '&order=id.asc')

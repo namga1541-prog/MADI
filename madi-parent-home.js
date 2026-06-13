@@ -313,6 +313,8 @@ function _renderParentRecentPortfolios(childId) {
     + '&center_id=eq.' + encodeURIComponent(_portfolioCenterId)
     + '&order=month.desc&limit=4', 'GET')
     .then(function(rows) {
+      // 자녀 전환 후 도착한 stale 응답 폐기 — 이전 자녀 포트폴리오가 현재 자녀 화면에 렌더되는 것 방지
+      if (String(window._parentChildId) !== String(childId)) return;
       if (!Array.isArray(rows)) rows = [];
       window._parentPortfolioCount = rows.length;
       // 통계 영역도 갱신 (포트폴리오 권 수 반영)

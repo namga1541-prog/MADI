@@ -572,19 +572,19 @@ function renderStaffStats() {
     ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
   }
 
-  // 해당 월 선생님 목록 수집 (세션+스케줄 모두에서)
+  var monthSessions  = sessions.filter(function(s)  { return (s.date||'').startsWith(ym); });
+  var monthSchedules = schedules.filter(function(s) { return (s.date||'').startsWith(ym); });
+
+  // 해당 월 선생님 목록 수집 — 선택 월의 세션/스케줄에서만(전체 DB 수집 시 무활동 월에도 0% 카드가 떠 혼란)
   var teacherSet = {};
-  sessions.forEach(function(s)  { if (s.teacher) teacherSet[s.teacher] = true; });
-  schedules.forEach(function(s) { if (s.teacher) teacherSet[s.teacher] = true; });
+  monthSessions.forEach(function(s)  { if (s.teacher) teacherSet[s.teacher] = true; });
+  monthSchedules.forEach(function(s) { if (s.teacher) teacherSet[s.teacher] = true; });
   var teachers = Object.keys(teacherSet).sort();
 
   if (!teachers.length) {
-    listEl.innerHTML = '<div class="empty"><div class="empty-icon">👩‍🏫</div><p>등록된 선생님 데이터가 없습니다.</p></div>';
+    listEl.innerHTML = '<div class="empty"><div class="empty-icon">👩‍🏫</div><p>이 달에 기록된 선생님 데이터가 없습니다.</p></div>';
     return;
   }
-
-  var monthSessions  = sessions.filter(function(s)  { return (s.date||'').startsWith(ym); });
-  var monthSchedules = schedules.filter(function(s) { return (s.date||'').startsWith(ym); });
 
   // 아바타 색상 팔레트 (이름 해시 기반 안정적 분배)
   var avatarPalette = [

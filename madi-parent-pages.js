@@ -707,7 +707,7 @@ function _renderParentObsForm(container, childId, centerId) {
     +   '<label for="parentObsTextarea" style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">오늘 가정에서 관찰한 내용</label>'
     +   '<textarea id="parentObsTextarea" aria-label="오늘 가정에서 관찰한 내용" class="form-input" rows="4" placeholder="예: 오늘 밥을 먹으면서 \'엄마\' 라는 말을 두 번 했어요. 새로운 단어를 따라 하려는 모습을 보였습니다." style="resize:vertical;min-height:90px;margin-bottom:0;"></textarea>'
     + '</div>'
-    + '<button id="parentObsSendBtn" onclick="submitParentObservation(\'' + childId + '\',\'' + centerId + '\')" '
+    + '<button id="parentObsSendBtn" onclick="submitParentObservation(\'' + jsArg(String(childId)) + '\',\'' + jsArg(String(centerId)) + '\')" '
     +   'style="width:100%;padding:11px;background:var(--mint);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">전송하기</button>'
     + '</div>'
     + '<div id="parentObsList" style="margin-bottom:12px;"><div class="loading"><div class="spinner"></div><p>불러오는 중...</p></div></div>';
