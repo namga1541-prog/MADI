@@ -12,18 +12,7 @@ function saveCenterApiKey() {
   showToast('ℹ️ AI는 마디 통합 키로 제공되어 별도 키 입력이 필요 없습니다');
 }
 
-function toggleCenterKeyVisibility() {
-  var input = document.getElementById('centerApiKeyInput');
-  var btn = document.getElementById('centerKeyEye');
-  if (!input || !btn) return;
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '🙈';
-  } else {
-    input.type = 'password';
-    btn.textContent = '👁️';
-  }
-}
+function toggleCenterKeyVisibility() { /* no-op — per-center 키 입력 UI 폐지(중앙 통합 키) */ }
 
 // ─────── 센터 관리 ───────
 // 초대 코드 만료 상태 표시 헬퍼

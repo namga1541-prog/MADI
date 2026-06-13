@@ -100,20 +100,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _bcEscHandler = null;` — madi-growth.js:1
 - `var VOUCHER_KINDS = ['발달재활바우처','우리아이심리지원서비스바우처','꿈E든카드바우처','나래사랑카드바우처'];` — madi-growth.js:413
 - `var _showDischargedInSession = false;` — madi-growth.js:691
-- `var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','p` — madi-home.js:390
-- `var TAB_PANEL_MAP = ['panel2','panel0','panelReport','panelPortfolio','panelService','pane` — madi-home.js:392
-- `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':` — madi-home.js:419
-- `var currentReportTab = 'session';` — madi-home.js:552
-- `var currentPortfolioTab = 'trend';` — madi-home.js:582
-- `var _bannerNotices = [];` — madi-home.js:609
-- `var _bannerIdx = 0;` — madi-home.js:610
-- `var _bannerTimer = null;` — madi-home.js:611
-- `var _bannerClosed = false;` — madi-home.js:612
-- `var _lastNoticesJson = null; // 폴링 중복 렌더 방지 — loadActivitiesFromSupa/_lastActivitiesJson 과` — madi-home.js:613
-- `var noticeDB = [];` — madi-home.js:692
-- `var _wakeLock = null;` — madi-home.js:864
-- `var _pwaInstallPrompt = null;` — madi-home.js:865
-- `var _pwaGuideRelease = null;` — madi-home.js:984
+- `var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','p` — madi-home.js:379
+- `var TAB_PANEL_MAP = ['panel2','panel0','panelReport','panelPortfolio','panelService','pane` — madi-home.js:381
+- `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':` — madi-home.js:408
+- `var currentReportTab = 'session';` — madi-home.js:541
+- `var currentPortfolioTab = 'trend';` — madi-home.js:571
+- `var _bannerNotices = [];` — madi-home.js:598
+- `var _bannerIdx = 0;` — madi-home.js:599
+- `var _bannerTimer = null;` — madi-home.js:600
+- `var _bannerClosed = false;` — madi-home.js:601
+- `var _lastNoticesJson = null; // 폴링 중복 렌더 방지 — loadActivitiesFromSupa/_lastActivitiesJson 과` — madi-home.js:602
+- `var noticeDB = [];` — madi-home.js:681
+- `var _wakeLock = null;` — madi-home.js:853
+- `var _pwaInstallPrompt = null;` — madi-home.js:854
+- `var _pwaGuideRelease = null;` — madi-home.js:973
 - `var _sessionSaveBusy = false; // 더블탭 중복 저장 방지` — madi-iep.js:9
 - `var sessionListExpanded = false;` — madi-iep.js:250
 - `var _dcmCallback = null;` — madi-iep.js:392
@@ -701,72 +701,72 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `loadCenterApiKey` — madi-home.js:8
 - `saveCenterApiKey` — madi-home.js:11
 - `toggleCenterKeyVisibility` — madi-home.js:15
-  ▸ _센터 관리_ — L28
-- `formatInviteExpiry` — madi-home.js:30
-- `loadCenterInfo` — madi-home.js:43
-- `copyInviteCode` — madi-home.js:66
-- `regenInviteCode` — madi-home.js:79
-- `addStaffAccount` — madi-home.js:117
-- `loadStaffMgmtList` — madi-home.js:160
-- `removeStaffAccountFromBtn` — madi-home.js:192
-- `openPermModalFromBtn` — madi-home.js:196
-- `removeStaffAccount` — madi-home.js:201
-  ▸ _관리자 페이지 이동 (TASK-008: admin.html 분리)_ — L221
-- `goToAdmin` — madi-home.js:222
-- `applyRoleUI` — madi-home.js:230
-- `getApiKeyOrAlert` — madi-home.js:247
-  ▸ _탭 전환_ — L251
-  ▸ _새 탭 구조 (7개)_ — L252
-  ▸ _홈 대시보드_ — L255
-- `showDashboard` — madi-home.js:256
-  ▸ _대시보드 라우터_ — L285
-- `renderDashboard` — madi-home.js:288
-  ▸ _레거시 (이전 단일 디자인) — fallback 보존_ — L320
-- `renderDashboardLegacy` — madi-home.js:321
-  ▸ _사이드바 active 동기화_ — L394
-- `syncSidebarActive` — madi-home.js:395
-  ▸ _사이드바 토글 (상태 localStorage 저장)_ — L401
-- `toggleSidebar` — madi-home.js:402
-- `restoreSidebarState` — madi-home.js:409
-  ▸ _Breadcrumb 업데이트_ — L418
-- `updateBreadcrumb` — madi-home.js:420
-- `updateSidebarAdminVisibility` — madi-home.js:429
-- `switchTab` — madi-home.js:440
-  ▸ _보고서 서브탭_ — L551
-- `switchReportTab` — madi-home.js:553
-  ▸ _포트폴리오 서브탭_ — L581
-- `switchPortfolioTab` — madi-home.js:583
-  ▸ _공지 배너_ — L608
-- `_startBannerTimer` — madi-home.js:616
-- `startNoticeBanner` — madi-home.js:626
-- `_renderBannerSlide` — madi-home.js:660
-- `closeNoticeBanner` — madi-home.js:684
-  ▸ _공지사항_ — L691
-- `loadNotices` — madi-home.js:693
-- `renderNoticeList` — madi-home.js:718
-- `saveNotice` — madi-home.js:750
-- `fanoutNoticeNotifications` — madi-home.js:778
-- `fanoutSessionNotification` — madi-home.js:804
-- `deleteNotice` — madi-home.js:843
-  ▸ _서비스관리_ — L860
-- `initUserSettings` — madi-home.js:868
-- `updateSettingsUI` — madi-home.js:873
-  ▸ _글자 크기_ — L912
-- `setFontSize` — madi-home.js:913
-  ▸ _화면 항상 켜짐_ — L923
-- `toggleWakeLock` — madi-home.js:924
-  ▸ _진동 피드백_ — L946
-- `toggleHaptic` — madi-home.js:947
-  ▸ _시작 탭_ — L956
-- `setStartTab` — madi-home.js:957
-  ▸ _PWA 홈 화면 추가_ — L963
-- `showPWAInstall` — madi-home.js:964
-- `closePWAGuide` — madi-home.js:985
-  ▸ _비밀번호 변경_ — L991
-- `changeMyPassword` — madi-home.js:992
-- `setResult` — madi-home.js:998
-  ▸ _─_ — L1027
-  ▸ _─_ — L1031
+  ▸ _센터 관리_ — L17
+- `formatInviteExpiry` — madi-home.js:19
+- `loadCenterInfo` — madi-home.js:32
+- `copyInviteCode` — madi-home.js:55
+- `regenInviteCode` — madi-home.js:68
+- `addStaffAccount` — madi-home.js:106
+- `loadStaffMgmtList` — madi-home.js:149
+- `removeStaffAccountFromBtn` — madi-home.js:181
+- `openPermModalFromBtn` — madi-home.js:185
+- `removeStaffAccount` — madi-home.js:190
+  ▸ _관리자 페이지 이동 (TASK-008: admin.html 분리)_ — L210
+- `goToAdmin` — madi-home.js:211
+- `applyRoleUI` — madi-home.js:219
+- `getApiKeyOrAlert` — madi-home.js:236
+  ▸ _탭 전환_ — L240
+  ▸ _새 탭 구조 (7개)_ — L241
+  ▸ _홈 대시보드_ — L244
+- `showDashboard` — madi-home.js:245
+  ▸ _대시보드 라우터_ — L274
+- `renderDashboard` — madi-home.js:277
+  ▸ _레거시 (이전 단일 디자인) — fallback 보존_ — L309
+- `renderDashboardLegacy` — madi-home.js:310
+  ▸ _사이드바 active 동기화_ — L383
+- `syncSidebarActive` — madi-home.js:384
+  ▸ _사이드바 토글 (상태 localStorage 저장)_ — L390
+- `toggleSidebar` — madi-home.js:391
+- `restoreSidebarState` — madi-home.js:398
+  ▸ _Breadcrumb 업데이트_ — L407
+- `updateBreadcrumb` — madi-home.js:409
+- `updateSidebarAdminVisibility` — madi-home.js:418
+- `switchTab` — madi-home.js:429
+  ▸ _보고서 서브탭_ — L540
+- `switchReportTab` — madi-home.js:542
+  ▸ _포트폴리오 서브탭_ — L570
+- `switchPortfolioTab` — madi-home.js:572
+  ▸ _공지 배너_ — L597
+- `_startBannerTimer` — madi-home.js:605
+- `startNoticeBanner` — madi-home.js:615
+- `_renderBannerSlide` — madi-home.js:649
+- `closeNoticeBanner` — madi-home.js:673
+  ▸ _공지사항_ — L680
+- `loadNotices` — madi-home.js:682
+- `renderNoticeList` — madi-home.js:707
+- `saveNotice` — madi-home.js:739
+- `fanoutNoticeNotifications` — madi-home.js:767
+- `fanoutSessionNotification` — madi-home.js:793
+- `deleteNotice` — madi-home.js:832
+  ▸ _서비스관리_ — L849
+- `initUserSettings` — madi-home.js:857
+- `updateSettingsUI` — madi-home.js:862
+  ▸ _글자 크기_ — L901
+- `setFontSize` — madi-home.js:902
+  ▸ _화면 항상 켜짐_ — L912
+- `toggleWakeLock` — madi-home.js:913
+  ▸ _진동 피드백_ — L935
+- `toggleHaptic` — madi-home.js:936
+  ▸ _시작 탭_ — L945
+- `setStartTab` — madi-home.js:946
+  ▸ _PWA 홈 화면 추가_ — L952
+- `showPWAInstall` — madi-home.js:953
+- `closePWAGuide` — madi-home.js:974
+  ▸ _비밀번호 변경_ — L980
+- `changeMyPassword` — madi-home.js:981
+- `setResult` — madi-home.js:987
+  ▸ _─_ — L1016
+  ▸ _─_ — L1020
 
 ## madi-icons.js (6함수)
 - `mdIcon` — madi-icons.js:60

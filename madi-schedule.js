@@ -355,7 +355,7 @@ function renderWeekGrid() {
   // (날짜|치료사)→정렬된 일정 배열 1회 구축 — 셀당 weekScheds 전체 필터(O(치료사수·7·N)) 제거
   var weekByCell = {};
   weekScheds.forEach(function(s) {
-    var k = s.date + '|' + (s.therapist || s.teacher || '');
+    var k = s.date + '\x1f' + (s.therapist || s.teacher || '');
     (weekByCell[k] || (weekByCell[k] = [])).push(s);
   });
   Object.keys(weekByCell).forEach(function(k) {
@@ -379,7 +379,7 @@ function renderWeekGrid() {
       var color = getTeacherColor(t);
       html += '<tr><td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:' + color + ';background:' + color + '10;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">' + escHtml(t) + '</td>';
       weekDates.forEach(function(w) {
-        var cells = weekByCell[w.str + '|' + t] || [];
+        var cells = weekByCell[w.str + '\x1f' + t] || [];
         if (cells.length === 0) {
           html += '<td style="padding:4px;border:1px solid #e2e8f0;height:44px;"></td>';
         } else {
@@ -829,7 +829,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   // (날짜|childId)→정렬된 일정 배열 1회 구축 — dup 판정·셀 루프의 중첩 필터(O(아동수·7·N)) 제거
   var childByCell = {};
   weekScheds.forEach(function(s) {
-    var k = s.date + '|' + s.childId;
+    var k = s.date + '\x1f' + s.childId;
     (childByCell[k] || (childByCell[k] = [])).push(s);
   });
   Object.keys(childByCell).forEach(function(k) {
@@ -837,7 +837,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   });
   if (_weekDupOnly) {
     childIds = childIds.filter(function(cid){
-      return weekDates.some(function(w){ return (childByCell[w.str + '|' + cid] || []).length >= 2; });
+      return weekDates.some(function(w){ return (childByCell[w.str + '\x1f' + cid] || []).length >= 2; });
     });
   }
   childIds.sort(function(a, b){
@@ -867,7 +867,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
     html += '<tr><td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:' + ccolor + ';background:' + ccolor + '10;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">'
       + cname + (cage ? '<br><span style="font-size:9px;font-weight:400;color:var(--text2);">' + cage + '</span>' : '') + '</td>';
     weekDates.forEach(function(w) {
-      var daySched = childByCell[w.str + '|' + childId] || [];
+      var daySched = childByCell[w.str + '\x1f' + childId] || [];
       if (daySched.length === 0) {
         html += '<td style="padding:4px;border:1px solid #e2e8f0;height:40px;"></td>';
       } else {
