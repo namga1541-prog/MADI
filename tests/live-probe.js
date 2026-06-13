@@ -138,7 +138,17 @@ post('/login', { username: USER, password: PW }).then(function (r) {
     else warnLog('P8 totp_last_step 판정 불가 (' + r.status + ')');
   });
 
-  return Promise.all([p2, p3, p4, p5, p6, p7, p8]).then(finish);
+  // P9: madi_settings.api_key 평문 키 잔존 확인 — ai-proxy 는 중앙 통합 키만 사용(폴백 제거).
+  //   테넌트 읽기 가능 테이블에 평문 sk-ant 키가 남아 있으면 노출면. (oneoff_null_settings_api_key.sql)
+  var p9 = apiGet('madi_settings?key=eq.api_key&select=value', t).then(function (r) {
+    if (r.status !== 200) { warnLog('P9 madi_settings api_key 판정 불가 (' + r.status + ', admin 자격증명 필요)'); return; }
+    var rows; try { rows = JSON.parse(r.body); } catch (e) { rows = []; }
+    var v = rows && rows[0] && rows[0].value;
+    if (!v) ok('P9 madi_settings.api_key 평문 키 없음(정리 완료 또는 미설정)');
+    else bad('P9 madi_settings.api_key 평문 키 잔존 — oneoff_null_settings_api_key.sql 적용 필요(노출면)');
+  });
+
+  return Promise.all([p2, p3, p4, p5, p6, p7, p8, p9]).then(finish);
 }).catch(function (e) {
   bad('프로브 실행 오류: ' + e.message);
   finish();
