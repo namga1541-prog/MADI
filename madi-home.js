@@ -1,57 +1,15 @@
 // 센터 AI 키 보유 여부 플래그 — 평문 키는 클라이언트에 저장하지 않음.
 // 실제 AI 호출은 서버 ai-proxy Edge Function 이 키를 보유하므로 클라이언트엔 키 값이 불필요.
 // (cowork High #4 / 전수점검 H-1: window._madiApiKey 평문 노출 제거)
-function loadCenterApiKey(showFeedback) {
-  // madi_settings 는 서버 ADMIN_ONLY — teacher 는 GET 403. admin/superadmin 만 조회한다.
-  //   teacher 가 호출하면 매 로그인마다 403 토스트가 떠 UX 를 해치므로 역할 게이트로 조기 반환.
-  //   teacher 의 AI 사용 가부는 useAI 권한으로 판정(서버 ai-proxy 가 키 유무 최종 판정).
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
-    return Promise.resolve();
-  }
-  return supaFetch('madi_settings?key=eq.api_key&select=value', 'GET')
-    .then(function(rows) {
-      var hasKey = !!(rows && rows.length > 0 && rows[0].value);
-      if (!hasKey) {
-        if (showFeedback) showToast('ℹ️ Supabase에 저장된 키 없음');
-        return;
-      }
-      if (showFeedback) showToast('✅ 센터 AI 키 확인됨');
-      // 관리자 설정 탭: 평문 입력란은 채우지 않고(새 키 입력 시에만 사용) 마스킹 상태만 표시.
-      var statusEl = document.getElementById('centerKeyStatus');
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 센터 AI 키가 설정되어 있습니다</span>';
-    })
-    .catch(function(err) {
-      // admin 도 일시 오류 가능 — 평문 키 미보유 상태이므로 조용히 무시(토스트 없음).
-      if (window.console && console.warn) console.warn('[센터 키 확인]', err && err.message);
-    });
+// AI 기능은 중앙 '마디 통합 키'(ai-proxy 의 ANTHROPIC_API_KEY Edge secret)로 제공된다.
+//   per-center 평문 키 입력/저장은 폐지(2026-06-13): ai-proxy 가 madi_settings.api_key 를
+//   더 이상 읽지 않으므로 키 입력은 무효이며 평문 노출 통로일 뿐이다(불필요한 settings SELECT 감사도 제거).
+//   호출부 호환을 위해 함수명은 보존하되 no-op 으로 둔다.
+function loadCenterApiKey() {
+  return Promise.resolve();  // 중앙 통합 키 운영 — 센터별 키 조회 불필요
 }
-
 function saveCenterApiKey() {
-  // 역할 가드 — UI 는 admin 전용이나 함수 직접 호출(콘솔) 차단. 서버 RLS 가 1차 방어.
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
-    showToast('⚠️ API 키 설정 권한이 없습니다'); return;
-  }
-  var key = (document.getElementById('centerApiKeyInput') || {}).value || '';
-  key = key.trim();
-  if (!key.startsWith('sk-ant')) {
-    showToast('❌ 유효한 Anthropic API 키를 입력해주세요 (sk-ant-로 시작)');
-    return;
-  }
-  var statusEl = document.getElementById('centerKeyStatus');
-  if (statusEl) statusEl.innerHTML = '<span style="color:var(--text2);">저장 중...</span>';
-
-  supaFetch('madi_settings?on_conflict=key', 'POST', [{ key: 'api_key', value: key }])
-    .then(function() {
-      // 보안(H-1): 평문 키를 window/DOM 에 저장하지 않음. 입력란을 비워 잔여 노출 제거.
-      var _inEl = document.getElementById('centerApiKeyInput');
-      if (_inEl) _inEl.value = '';
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">✅ 저장 완료: ' + escHtml(maskApiKey(key)) + '</span>';
-      showToast('✅ 센터 AI 키 저장됨 — 모든 선생님이 자동으로 사용합니다');
-    })
-    .catch(function(err) {
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--red);">❌ ' + escHtml(_userErrMsg(err, 'API 키 저장')) + '</span>';
-      showToast('❌ 저장 실패');
-    });
+  showToast('ℹ️ AI는 마디 통합 키로 제공되어 별도 키 입력이 필요 없습니다');
 }
 
 function toggleCenterKeyVisibility() {
@@ -216,7 +174,12 @@ function loadStaffMgmtList() {
           + '<span style="font-size:11px;color:var(--text2);margin-left:6px;">@' + escHtml(u.username) + '</span>'
           + '<span style="font-size:10px;margin-left:6px;padding:2px 7px;border-radius:10px;background:' + (u.role==='admin'?'var(--mint2)':'#f1f5f9') + ';color:' + (u.role==='admin'?'var(--mint)':'var(--text2)') + ';">' + (u.role==='admin'?'관리자':'선생님') + '</span>'
           + '</div>'
-          + (!isSelf ? '<button class="btn-del" data-uid="' + escHtml(String(u.id)) + '" data-uname="' + escHtml(u.name) + '" onclick="removeStaffAccountFromBtn(this)" style="font-size:11px;padding:5px 10px;">삭제</button>' : '<span style="font-size:11px;color:var(--text2);">나</span>')
+          + (!isSelf
+            ? '<span style="display:inline-flex;gap:6px;">'
+              + '<button class="btn-ghost" data-uid="' + escHtml(String(u.id)) + '" data-uname="' + escHtml(u.name) + '" data-urole="' + escHtml(u.role || '') + '" onclick="openPermModalFromBtn(this)" style="font-size:11px;padding:5px 10px;color:var(--mint);border-color:var(--mint);">권한</button>'
+              + '<button class="btn-del" data-uid="' + escHtml(String(u.id)) + '" data-uname="' + escHtml(u.name) + '" onclick="removeStaffAccountFromBtn(this)" style="font-size:11px;padding:5px 10px;">삭제</button>'
+              + '</span>'
+            : '<span style="font-size:11px;color:var(--text2);">나</span>')
           + '</div>';
       }).join('');
       // eslint-disable-next-line no-unsanitized/property
@@ -230,6 +193,10 @@ function removeStaffAccountFromBtn(btn) {
   // C5 원칙: onclick 인라인 사용자 데이터 → data 속성 + 헬퍼로 분리
   removeStaffAccount(btn.dataset.uid, btn.dataset.uname);
 }
+function openPermModalFromBtn(btn) {
+  // 선생님별 권한 편집 모달 — openPermModal(madi-system.js)은 admin/superadmin 만 통과.
+  openPermModal(btn.dataset.uid, btn.dataset.uname, btn.dataset.urole);
+}
 
 function removeStaffAccount(id, name) {
   showConfirm(name + ' 선생님 계정을 삭제할까요?', function() {
@@ -238,6 +205,12 @@ function removeStaffAccount(id, name) {
         showToast('🗑️ ' + name + ' 계정 삭제됨');
         // 일정 모달 담당 선생님 드롭다운 캐시 무효화 — 삭제된 선생님 즉시 제거(H-6)
         if (typeof _teacherList !== 'undefined') _teacherList = [];
+        // PIPA 감사 — 직원 계정 삭제 기록(fire-and-forget). 서버가 actor/center 를 JWT 로 강제.
+        supaFetch('madi_audit_log', 'POST', {
+          actor_id: currentUser.id, actor_role: currentUser.role,
+          action: 'DELETE_STAFF', table_name: 'madi_users',
+          row_id: id, center_id: currentUser.center_id
+        }).catch(function(){});
         loadStaffMgmtList();
       }).catch(function(err) {
         showToast('❌ ' + _userErrMsg(err, '삭제'));
