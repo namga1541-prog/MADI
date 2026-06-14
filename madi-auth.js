@@ -98,11 +98,11 @@ function doSignup() {
   btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '확인 중...';
   supaFetch('madi_centers?invite_code=eq.' + encodeURIComponent(inviteCode) + '&select=id,name,invite_expires_at', 'GET')
     .then(function(centers) {
-      if (!Array.isArray(centers) || centers.length === 0) throw new Error('유효하지 않은 초대 코드입니다.');
+      if (!Array.isArray(centers) || centers.length === 0) throw Object.assign(new Error('유효하지 않은 초대 코드입니다.'), { _uf: true });
       var center = centers[0];
-      if (center.invite_expires_at) { var exp = new Date(center.invite_expires_at); if (!isNaN(exp.getTime()) && exp - new Date() < 0) throw new Error('만료된 초대 코드입니다. 관리자에게 새 코드를 요청해주세요.'); }
+      if (center.invite_expires_at) { var exp = new Date(center.invite_expires_at); if (!isNaN(exp.getTime()) && exp - new Date() < 0) throw Object.assign(new Error('만료된 초대 코드입니다. 관리자에게 새 코드를 요청해주세요.'), { _uf: true }); }
       return supaFetch('madi_users?username=eq.' + encodeURIComponent(username) + '&select=id', 'GET')
-        .then(function(rows) { if (Array.isArray(rows) && rows.length > 0) throw new Error('이미 사용 중인 아이디입니다.'); return center; });
+        .then(function(rows) { if (Array.isArray(rows) && rows.length > 0) throw Object.assign(new Error('이미 사용 중인 아이디입니다.'), { _uf: true }); return center; });
     })
     .then(function(center) {
       return hashPassword(pw).then(function(hashed) {
@@ -153,7 +153,7 @@ function doSignup() {
         showToast('✅ 가입 완료! 비밀번호를 입력해 로그인해주세요');
       });
     })
-    .catch(function(err) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '✨ 가입하기'; errEl.textContent = '❌ ' + (err.message || '가입에 실패했습니다.'); });
+    .catch(function(err) { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '✨ 가입하기'; errEl.textContent = '❌ ' + ((err && err._uf) ? err.message : _userErrMsg(err, '가입')); });
 }
 
 function doLogin(_totpCode) {

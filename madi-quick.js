@@ -358,7 +358,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +       '<div style="font-size:18px;font-weight:800;color:var(--text);">🧒 ' + escHtml(name) + (age ? ' <span style="font-size:13px;color:var(--text2);font-weight:600;">(' + escHtml(age) + ')</span>' : '') + '</div>'
     +       '<div style="font-size:12px;color:var(--text2);margin-top:3px;">' + escHtml(sched.date) + ' · ' + escHtml(sched.startTime || sched.time || '') + (sched.duration ? ' · ' + escHtml(String(sched.duration || '')) + '분' : '') + (diag ? ' · ' + escHtml(diag) : '') + '</div>'
     +     '</div>'
-    +     '<button type="button" class="btn" onclick="closeQuickForm()" style="padding:7px 12px;font-size:12px;background:var(--card-bg);border:1px solid var(--border);color:var(--text);">✕ 닫기</button>'
+    +     '<button type="button" class="btn" onclick="closeQuickForm()" style="padding:7px 12px;font-size:12px;min-height:48px;background:var(--card-bg);border:1px solid var(--border);color:var(--text);">✕ 닫기</button>'
     +   '</div>'
 
     // 받아쓰기 + 한 줄 요약 입력
@@ -426,7 +426,7 @@ function _quickPhotoHtml() {
     return ''
       + '<div style="position:relative;display:inline-block;border:1px solid var(--border);border-radius:10px;overflow:hidden;">'
       +   '<img src="' + escHtml(_quickPhotoDataUrl) + '" alt="첨부 사진" loading="lazy" style="max-width:200px;max-height:160px;display:block;">'
-      +   '<button type="button" onclick="quickRemovePhoto()" aria-label="사진 삭제" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;width:32px;height:32px;border-radius:16px;cursor:pointer;font-size:14px;line-height:1;">✕</button>'
+      +   '<button type="button" onclick="quickRemovePhoto()" aria-label="사진 삭제" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;width:44px;height:44px;border-radius:22px;cursor:pointer;font-size:14px;line-height:1;">✕</button>'
       + '</div>';
   }
   return ''

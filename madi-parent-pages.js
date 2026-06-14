@@ -443,7 +443,7 @@ function parentLookup() {
     .catch(function(e) {
       btn.disabled = false;
       btn.textContent = '🔍 내 아이 찾기';
-      errEl.textContent = '❌ 네트워크 오류: ' + (e.message || '');
+      errEl.textContent = '❌ ' + _userErrMsg(e, '조회');
     });
 }
 
@@ -526,7 +526,7 @@ function parentSignup() {
     .catch(function(e) {
       btn.disabled = false;
       btn.textContent = '✨ 가입 완료';
-      errEl.textContent = '❌ 네트워크 오류: ' + (e.message || '');
+      errEl.textContent = '❌ ' + _userErrMsg(e, '가입');
     });
 }
 

@@ -683,7 +683,7 @@ function renderChildGrid() {
     if (q) {
       // 검색어 있고 결과 없음
       html = '<div class="empty" style="grid-column:1/-1"><p>검색 결과가 없습니다.</p></div>';
-    } else if (!canDo('viewOtherChildren') && currentUser && currentUser.role !== 'admin') {
+    } else if (!canDo('viewOtherChildren') && currentUser && !isAdminRole(currentUser.role)) {
       // 권한 OFF + 담당 아동 없음
       html = '<div class="empty" style="grid-column:1/-1;padding:30px 16px;">'
         + '<div class="empty-icon" style="font-size:48px;">👀</div>'

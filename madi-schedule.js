@@ -342,7 +342,10 @@ function renderWeekGrid() {
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='child'&&!_weekDupOnly?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=true;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekDupOnly?'background:#f97316;color:#fff;font-weight:700;border-color:#f97316;':'background:#fff;color:#64748b;') + '">🔴 중복 수업만</button>';
   var childById = _schedChildById();
-  var allWeekScheds = scheduleDB.filter(function(s) { return weekDates.some(function(w){ return w.str === s.date; }); });
+  // 주간 날짜 룩업맵 1회 구축 — 일정마다 weekDates 7칸 선형탐색(O(N×7)) 제거
+  var _weekDateSet = {};
+  weekDates.forEach(function(w){ _weekDateSet[w.str] = true; });
+  var allWeekScheds = scheduleDB.filter(function(s) { return !!_weekDateSet[s.date]; });
   var weekScheds = _schedTeacherFilter === '전체' ? allWeekScheds
     : allWeekScheds.filter(function(s){ return (s.therapist||s.teacher) === _schedTeacherFilter; });
   var therapists = [];
@@ -823,9 +826,8 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   wgEl.style.display = 'block'; wgEl.style.width = '100%';
   var childIds = [];
   weekScheds.forEach(function(s){ if (s.childId && childIds.indexOf(s.childId) < 0) childIds.push(s.childId); });
-  // 아동 룩업 맵 1회 구축 — sort 비교자·행 루프의 childDB.find() O(n) 스캔 제거(M-8)
-  var _wbChildById = {};
-  childDB.forEach(function(c){ _wbChildById[c.id] = c; });
+  // 아동 룩업 맵 재사용 — renderWeekGrid 가 방금 채운 _schedChildById() 캐시(중복 빌드 제거, M-8)
+  var _wbChildById = _schedChildById();
   // (날짜|childId)→정렬된 일정 배열 1회 구축 — dup 판정·셀 루프의 중첩 필터(O(아동수·7·N)) 제거
   var childByCell = {};
   weekScheds.forEach(function(s) {

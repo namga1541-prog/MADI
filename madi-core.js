@@ -50,6 +50,15 @@ function escJs(str) {
 //   ※ 신규 코드는 인라인 핸들러 대신 data-action 위임(파일 하단) 권장 — JS 문자열 맥락 자체를 없앤다.
 function jsArg(str) { return escHtml(escJs(str)); }
 
+// 클릭 가능한 비-버튼 요소(div 등)를 키보드·스크린리더 접근 가능하게 만드는 속성 문자열.
+//   onclick 만 가진 div 는 Tab 포커스·Enter/Space 활성화·SR 음독이 불가하다. 이 헬퍼가
+//   role="button" tabindex="0" aria-label + Enter/Space→click(onkeydown) 을 한 번에 부여한다.
+//   사용: '<div class="x" ' + a11yClick('세션 기록 작성') + ' onclick="...">'  (onclick 은 그대로 유지)
+function a11yClick(label) {
+  return 'role="button" tabindex="0" aria-label="' + escHtml(label || '') + '"'
+    + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}"';
+}
+
 /* ── KST(UTC+9) 날짜 유틸: 실행 환경 타임존과 무관하게 동작 ── */
 function toKST(d)      { return new Date(d.getTime() + d.getTimezoneOffset() * 60000 + 9 * 3600000); }
 function nowKST()      { return toKST(new Date()); }

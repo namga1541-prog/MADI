@@ -66,6 +66,12 @@ function _signLoungePostImages(posts, done) {
 function loadLoungePosts() {
   var ui = document.getElementById('bdPanel_lounge');
   if (!ui) return;
+  // superadmin이 아닌데 center_id 가 없으면 안전 차단 — renderLibrary 와 동일 가드.
+  //   (가드 없이 진행하면 비-superadmin 인데 center 필터가 누락돼 전 센터 글을 로드)
+  if (currentUser && currentUser.role !== 'superadmin' && !currentUser.center_id) {
+    ui.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>센터 정보가 없어 고객센터 글을 불러올 수 없습니다.</p></div>';
+    return;
+  }
   ui.innerHTML = '<div class="loading"><div class="spinner"></div><p>고객센터 글을 불러오는 중...</p></div>';
 
   // superadmin은 전체 센터 조회, admin/teacher는 자기 센터만 (RLS 이중 방어)

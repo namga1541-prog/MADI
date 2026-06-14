@@ -149,6 +149,11 @@ function addStaffAccount() {
 function loadStaffMgmtList() {
   var el = document.getElementById('staffMgmtList');
   if (!el) return;
+  // 역할 재검증(클라 일관성) — superadmin/admin 만. 서버가 권위적으로 강제하지만 진입부 가드 통일.
+  if (!currentUser || !isAdminRole(currentUser.role)) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">권한이 없습니다.</div>';
+    return;
+  }
   supaFetch('madi_users?' + centerFilter() + '&select=id,username,name,role,color,prog_types&order=name.asc', 'GET')
     .then(function(rows) {
       if (!rows || rows.length === 0) {
@@ -188,6 +193,8 @@ function openPermModalFromBtn(btn) {
 }
 
 function removeStaffAccount(id, name) {
+  // 역할 재검증(클라 일관성) — superadmin/admin 만. 서버 DELETE 도 권한 강제.
+  if (!currentUser || !isAdminRole(currentUser.role)) { showToast('⚠️ 권한이 없습니다'); return; }
   showConfirm(name + ' 선생님 계정을 삭제할까요?', function() {
     supaFetch('madi_users?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE')
       .then(function() {
