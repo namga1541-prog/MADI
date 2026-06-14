@@ -1164,6 +1164,16 @@
       .lp-bento { grid-template-columns:1fr; }
       .lp-bento-hero, .lp-bento-wide { grid-column:span 1; }
     }
+    /* 일관성 패스 — 이모지 제거 후 민트 단일 액센트로 통일 */
+    .lp-bento-kicker { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#7fe7e1; margin-bottom:10px; }
+    .lp-pain-card::before { content:""; display:block; width:34px; height:4px; border-radius:2px; background:linear-gradient(90deg,#0ea5a0,#22c9c3); margin:0 auto 16px; }
+    .lp-ai-kicker { display:inline-block; font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#22c9c3; background:rgba(34,201,195,0.12); padding:5px 13px; border-radius:20px; margin-bottom:14px; }
+    .lp-ai-item b::before { content:"\2713  "; color:#22c9c3; font-weight:900; }
+    .lp-security-card h4::before { content:"\2713  "; color:#0ea5a0; font-weight:900; }
+    .lp-role-admin { border-top-color:#0ea5a0; }
+    .lp-role-parent { border-top-color:#0ea5a0; }
+    .lp-role-card { border-radius:18px; }
+    .lp-flow-card { border-radius:18px; }
     /* Webflow 스타일 히어로 — 중앙 초대형 헤드라인 + 소프트 그라데이션 + 하단 카드 */
     .lp-hero-wf { display:block; flex:none; padding:0; position:relative; overflow:hidden; background:linear-gradient(180deg,#ffffff 0%,#eaf6f6 55%,#cfe9ea 100%); }
     .lp-hero-wf::before { content:""; position:absolute; inset:0; background:radial-gradient(ellipse 60% 45% at 50% 4%,rgba(34,201,195,0.12),transparent 60%); pointer-events:none; }
@@ -1301,8 +1311,8 @@
     .lp-role-card li { font-size:12.5px; color:#475569; padding:5px 0; padding-left:18px; position:relative; }
     .lp-role-card li::before { content:"✓"; position:absolute; left:0; color:var(--mint); font-weight:700; }
     .lp-role-teacher { border-top:4px solid #0ea5a0; }
-    .lp-role-admin   { border-top:4px solid #f59e0b; }
-    .lp-role-parent  { border-top:4px solid #8b5cf6; }
+    .lp-role-admin   { border-top:4px solid #0ea5a0; }
+    .lp-role-parent  { border-top:4px solid #0ea5a0; }
 
     /* ⑥ 사용 흐름 */
     .lp-section-flow { background:white; }
