@@ -1112,7 +1112,7 @@
     /* 히어로 신뢰 배지 */
     .lp-hero-trust { display:flex; align-items:center; justify-content:center; gap:9px; flex-wrap:wrap; margin-top:22px; }
     .lp-hero-trust span { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#475569; background:rgba(255,255,255,0.72); border:1px solid rgba(15,41,66,0.08); border-radius:10px; padding:7px 12px; }
-    .lp-hero-trust b { font-style:normal; font-weight:400; }
+    .lp-hero-trust b { font-style:normal; font-weight:900; color:#0ea5a0; }
     /* 히어로 제품 프리뷰 카드 */
     .lp-hero-preview { margin:36px auto 0; width:100%; max-width:460px; background:#fff; border:1px solid rgba(15,41,66,0.07); border-radius:18px; padding:16px; box-shadow:0 40px 70px -30px rgba(15,41,66,0.32), 0 14px 30px -12px rgba(15,41,66,0.14); text-align:left; }
     .lp-hp-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
@@ -1177,7 +1177,7 @@
     .lp-wf-card h4 { font-size:14.5px; font-weight:800; color:#0f2942; margin:0 0 4px; }
     .lp-wf-card > p { font-size:12px; color:#64748b; line-height:1.5; margin:0 0 12px; }
     .lp-wf-new { font-size:9px; font-weight:800; color:#0e8a86; background:#e0f7f6; padding:2px 6px; border-radius:5px; vertical-align:middle; }
-    .lp-wf-thumb { height:66px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:24px; }
+    .lp-wf-thumb { height:66px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:24px; background:linear-gradient(135deg,#eafaf8,#c3efe9); }
     .lp-wf-thumb-chart { align-items:flex-end; gap:5px; padding:10px; }
     .lp-wf-thumb-chart span { flex:1; display:block; background:#fff; opacity:0.85; border-radius:3px; }
     @media(max-width:760px){
