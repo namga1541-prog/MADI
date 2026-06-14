@@ -180,6 +180,16 @@
 ════════════════════════════════════ -->
 <div id="landingScreen" style="display:none;">
 
+  <!-- 민트 라인 아이콘 스프라이트 (인라인 SVG · 의존성 없음) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3 L13.6 9.2 L20 12 L13.6 14.8 L12 21 L10.4 14.8 L4 12 L10.4 9.2 Z"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11 a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><polyline points="4 4 4 20 20 20"/><polyline points="7.5 14 11 10 14 12.5 18.5 6.5"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.3"/><path d="M2.5 19.5 a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.6"/><path d="M16 14.2 a5.5 5.5 0 0 1 5.5 5.3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 L19.5 6 V11 C19.5 16 16 19.4 12 21 C8 19.4 4.5 16 4.5 11 V6 Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 20 a7 7 0 0 1 14 0"/></symbol>
+  </svg>
+
   <!-- ═══════════════ 상단 네비게이션 ═══════════════ -->
   <nav class="lp-nav">
     <div class="lp-nav-logo">
@@ -264,7 +274,7 @@
         <div class="lp-bento-tile lp-bento-hero">
           <div class="lp-bento-glow"></div>
           <div class="lp-bento-hero-in">
-            <div class="lp-bento-kicker">핵심 기능</div>
+            <div class="lp-ico"><svg class="lp-ico-svg is-fill"><use href="#i-sparkle"/></svg></div>
             <h3>AI 보고서 · IEP 자동 작성</h3>
             <p>세션 기록만 있으면 장단기계획·평가 해석·상담 초안까지 AI가. 전문가는 검토만 하면 됩니다.</p>
             <div class="lp-bento-hero-mock">
@@ -277,24 +287,28 @@
 
         <!-- 받아쓰기 -->
         <div class="lp-bento-tile">
+          <div class="lp-ico"><svg class="lp-ico-svg"><use href="#i-mic"/></svg></div>
           <h4>받아쓰기 세션 기록</h4>
           <p>말하면 기록이 자동 정리됩니다</p>
         </div>
 
         <!-- 발달 추이 -->
         <div class="lp-bento-tile">
+          <div class="lp-ico"><svg class="lp-ico-svg"><use href="#i-chart"/></svg></div>
           <h4>발달 추이 통계</h4>
           <p>정체기 자동 감지로 빠른 개입</p>
         </div>
 
         <!-- 학부모 포털 (와이드 타일) -->
         <div class="lp-bento-tile lp-bento-wide">
+          <div class="lp-ico"><svg class="lp-ico-svg"><use href="#i-users"/></svg></div>
           <h4>학부모 포털</h4>
           <p>발달 기록·포트폴리오를 학부모가 한눈에 — 상담 자료 준비가 한순간에 끝납니다.</p>
         </div>
 
         <!-- 보안 -->
         <div class="lp-bento-tile">
+          <div class="lp-ico"><svg class="lp-ico-svg"><use href="#i-shield"/></svg></div>
           <h4>보안 · 가명화</h4>
           <p>PIPA 기반 다층 방어 설계</p>
         </div>
@@ -487,6 +501,7 @@
       <p class="lp-section-sub">선생님·센터장·학부모가 같은 데이터를 각자의 화면에서 봅니다.</p>
       <div class="lp-role-grid">
         <div class="lp-role-card lp-role-teacher">
+          <div class="lp-ico"><svg class="lp-ico-svg"><use href="#i-user"/></svg></div>
           <h3>선생님</h3>
           <p>세션 기록 · 활동 카탈로그 · AI 보고서로 수업 준비와 행정을 한 화면에서.</p>
           <ul>
@@ -496,6 +511,7 @@
           </ul>
         </div>
         <div class="lp-role-card lp-role-admin">
+          <div class="lp-ico"><svg class="lp-ico-svg"><use href="#i-chart"/></svg></div>
           <h3>센터장</h3>
           <p>일정·정산·선생님 관리·통계까지. 센터 운영을 한눈에 통제하세요.</p>
           <ul>
@@ -505,6 +521,7 @@
           </ul>
         </div>
         <div class="lp-role-card lp-role-parent">
+          <div class="lp-ico"><svg class="lp-ico-svg"><use href="#i-users"/></svg></div>
           <h3>학부모</h3>
           <p>아이의 세션 기록과 성장 추이를 언제든 확인. 가정 연계가 자연스럽게.</p>
           <ul>

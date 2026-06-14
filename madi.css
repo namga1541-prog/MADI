@@ -1174,6 +1174,15 @@
     .lp-role-parent { border-top-color:#0ea5a0; }
     .lp-role-card { border-radius:18px; }
     .lp-flow-card { border-radius:18px; }
+    /* 민트 라인 아이콘 칩 */
+    .lp-ico { width:46px; height:46px; border-radius:13px; background:#d4f3f0; display:flex; align-items:center; justify-content:center; margin-bottom:13px; }
+    .lp-ico-svg { width:24px; height:24px; fill:none; stroke:#0e8a86; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .lp-ico-svg.is-fill { fill:#0e8a86; stroke:none; }
+    .lp-bento-hero .lp-ico { background:rgba(34,201,195,0.18); }
+    .lp-bento-hero .lp-ico-svg { stroke:#7fe7e1; }
+    .lp-bento-hero .lp-ico-svg.is-fill { fill:#7fe7e1; }
+    .lp-role-card .lp-ico { width:52px; height:52px; border-radius:15px; }
+    .lp-role-card .lp-ico-svg { width:27px; height:27px; }
     /* Webflow 스타일 히어로 — 중앙 초대형 헤드라인 + 소프트 그라데이션 + 하단 카드 */
     .lp-hero-wf { display:block; flex:none; padding:0; position:relative; overflow:hidden; background:linear-gradient(180deg,#ffffff 0%,#eaf6f6 55%,#cfe9ea 100%); }
     .lp-hero-wf::before { content:""; position:absolute; inset:0; background:radial-gradient(ellipse 60% 45% at 50% 4%,rgba(34,201,195,0.12),transparent 60%); pointer-events:none; }
