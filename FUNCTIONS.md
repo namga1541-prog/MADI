@@ -212,14 +212,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `monthBlock` — madi-ai.js:530
 - `downloadIEPPDFById` — madi-ai.js:578
 - `deleteIEPRecord` — madi-ai.js:588
-- `downloadIEPPDF` — madi-ai.js:617
-- `monthSection` — madi-ai.js:625
-  ▸ _W5: 활동 자료 카탈로그_ — L665
-  ▸ _W8: 효과 통계 대시보드_ — L666
-- `renderEffectStats` — madi-ai.js:667
-- `avgGoalScore` — madi-ai.js:699
-- `statCard` — madi-ai.js:719
-  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L774
+- `downloadIEPPDF` — madi-ai.js:622
+- `monthSection` — madi-ai.js:630
+  ▸ _W5: 활동 자료 카탈로그_ — L670
+  ▸ _W8: 효과 통계 대시보드_ — L671
+- `renderEffectStats` — madi-ai.js:672
+- `avgGoalScore` — madi-ai.js:704
+- `statCard` — madi-ai.js:724
+  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L779
 
 ## madi-app.js (58함수)
   ▸ _Supabase DB 로드 / 저장_ — L11

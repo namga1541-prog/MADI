@@ -589,28 +589,33 @@ function deleteIEPRecord(id) {
   showConfirm('이 장단기계획(IEP) 기록을 삭제할까요?', function() {
     var r = iepDB.find(function(x){ return x.id === id; });
     var childId = r ? r.childId : '';
-    iepDB = iepDB.filter(function(x){ return x.id !== id; });
-    saveIEP();
-    supaFetch('madi_iep_history?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE').catch(function(e) {
-      if(window.console&&console.warn)console.warn('[madi-08 deleteIEP]',e&&e.message);
-      showToast('❌ 장단기계획 삭제 실패 — 다시 시도해주세요');
-    });
-    renderIEPHistory(childId);
-    showToast('🗑️ 장단기계획(IEP) 기록 삭제됨', {
-      undo: function() {
-        if (!r) return;
-        // 복원은 saveIEP 와 동일한 제네릭 래핑({id,center_id,data})으로 — 평탄 필드를 그대로
-        //   POST 하면 madi_iep_history 에 없는 컬럼이라 400(42703)으로 복원이 항상 실패하던 버그 수정.
-        supaFetch('madi_iep_history', 'POST', [{ id: r.id, center_id: currentUser.center_id, data: r }])
-          .then(function() {
-            // 메모리 동기화: 삭제로 빠졌던 r 을 다시 넣고 렌더(기존 loadIEP 는 존재하지 않는 함수라 동기화 누락 버그).
-            if (!iepDB.some(function(x){ return x.id === r.id; })) iepDB.push(r);
-            renderIEPHistory(childId);
-            showToast('↩️ 복원됨');
-          })
-          .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });
-      }
-    });
+    // 서버 DELETE 를 게이트로 — 성공 시에만 메모리 제거·렌더·토스트(낙관적 처리 시 실패하면
+    //   서버 행이 남아 다음 loadDBFromSupabase 때 삭제 기록이 되살아나는 '유령 부활' 방지).
+    //   자매 경로 deleteAssessment 와 동일한 표준 패턴.
+    supaFetch('madi_iep_history?id=eq.' + encodeURIComponent(id) + '&center_id=eq.' + encodeURIComponent(currentUser.center_id), 'DELETE')
+      .then(function() {
+        iepDB = iepDB.filter(function(x){ return x.id !== id; });
+        renderIEPHistory(childId);
+        showToast('🗑️ 장단기계획(IEP) 기록 삭제됨', {
+          undo: function() {
+            if (!r) return;
+            // 복원은 saveIEP 와 동일한 제네릭 래핑({id,center_id,data})으로 — 평탄 필드를 그대로
+            //   POST 하면 madi_iep_history 에 없는 컬럼이라 400(42703)으로 복원이 항상 실패하던 버그 수정.
+            supaFetch('madi_iep_history', 'POST', [{ id: r.id, center_id: currentUser.center_id, data: r }])
+              .then(function() {
+                // 메모리 동기화: 삭제로 빠졌던 r 을 다시 넣고 렌더(기존 loadIEP 는 존재하지 않는 함수라 동기화 누락 버그).
+                if (!iepDB.some(function(x){ return x.id === r.id; })) iepDB.push(r);
+                renderIEPHistory(childId);
+                showToast('↩️ 복원됨');
+              })
+              .catch(function() { showToast('❌ 복원 실패 — 다시 시도해주세요'); });
+          }
+        });
+      })
+      .catch(function(e) {
+        if(window.console&&console.warn)console.warn('[madi-08 deleteIEP]',e&&e.message);
+        showToast('❌ 장단기계획 삭제 실패 — 다시 시도해주세요');
+      });
   });
 }
 
