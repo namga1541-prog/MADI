@@ -1308,6 +1308,45 @@
     .lp-mock-btn-sec { padding:7px 14px; font-size:11.5px; font-weight:700; border:1px solid #cbd5e1; background:white; color:#475569; border-radius:7px; cursor:default; }
     .lp-mock-btn-pri { padding:7px 14px; font-size:11.5px; font-weight:700; border:none; background:linear-gradient(135deg,#0ea5a0,#22c9c3); color:white; border-radius:7px; cursor:default; box-shadow:0 2px 8px rgba(14,165,160,0.25); }
 
+    /* ④-B 실제 화면 — 캘린더 / 포트폴리오 */
+    .lp-section-screens { background:linear-gradient(180deg,#ffffff 0%,#f1f8f7 100%); }
+
+    /* 캘린더 목업 */
+    .lp-cal { background:white; border-radius:10px; padding:12px; border:1px solid #e8f5f4; margin-bottom:10px; }
+    .lp-cal-head { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; }
+    .lp-cal-head span { text-align:center; font-size:10px; font-weight:800; color:#94a3b8; padding:2px 0; }
+    .lp-cal-head span:first-child { color:#fca5a5; }
+    .lp-cal-head span:last-child { color:#93c5fd; }
+    .lp-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .lp-cal-cell { aspect-ratio:1/1; border-radius:6px; background:#f8fafc; border:1px solid #eef2f6; padding:4px 4px 3px; display:flex; flex-direction:column; }
+    .lp-cal-cell.is-empty { background:transparent; border:none; }
+    .lp-cal-date { font-size:9.5px; font-weight:700; color:#64748b; line-height:1; }
+    .lp-cal-cell.is-today { background:#e0f7f6; border-color:var(--mint); }
+    .lp-cal-cell.is-today .lp-cal-date { color:#0ea5a0; font-weight:900; }
+    .lp-cal-evs { display:flex; flex-direction:column; gap:2px; margin-top:auto; }
+    .lp-cal-ev { height:4px; border-radius:2px; }
+    .lp-ev-a   { background:#22c9c3; }
+    .lp-ev-b   { background:#6366f1; }
+    .lp-ev-c   { background:#f59e0b; }
+    .lp-ev-off { background:#cbd5e1; }
+    .lp-cal-legend { display:flex; flex-wrap:wrap; gap:8px 16px; padding:2px 2px 0; }
+    .lp-cal-legend span { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:#475569; }
+    .lp-cal-lg { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+    /* 포트폴리오 목업 */
+    .lp-pf-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .lp-pf-tile { background:white; border-radius:9px; overflow:hidden; border:1px solid #e8f5f4; box-shadow:0 1px 3px rgba(0,0,0,0.03); }
+    .lp-pf-thumb { height:54px; }
+    .lp-pf-t1 { background:linear-gradient(135deg,#5eead4,#2dd4bf); }
+    .lp-pf-t2 { background:linear-gradient(135deg,#99f6e4,#5eead4); }
+    .lp-pf-t3 { background:linear-gradient(135deg,#a7f3d0,#6ee7d7); }
+    .lp-pf-t4 { background:linear-gradient(160deg,#7dd3fc,#22d3ee); }
+    .lp-pf-t5 { background:linear-gradient(135deg,#67e8f9,#22d3ee); }
+    .lp-pf-t6 { background:linear-gradient(135deg,#5eead4,#34d399); }
+    .lp-pf-cap { padding:6px 9px 9px; }
+    .lp-pf-cap b { display:block; font-size:11px; font-weight:700; color:#0f2942; line-height:1.35; margin-bottom:2px; }
+    .lp-pf-cap span { font-size:10px; color:#94a3b8; }
+
     /* ⑤ 역할 카드 */
     .lp-section-roles { background:#fafdfc; }
     .lp-role-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
