@@ -303,11 +303,11 @@ function actAddSchedule(a) {
     repeat: 'none'
   };
   scheduleDB.push(newSched);
-  saveOneSchedule(newSched);  // 단건 upsert (H2)
   if (typeof renderSchedView === 'function') renderSchedView();
   if (typeof renderUnwrittenAlert === 'function') renderUnwrittenAlert();
   var teacherTxt = teacherName ? ' [' + teacherName + ']' : '';
-  showToast('✅ ' + child.name + ' 일정 추가 (' + a.date + ' ' + a.startTime + ')' + teacherTxt);
+  saveOneSchedule(newSched) // 단건 upsert (H2)
+    .then(function(ok){ if (ok) showToast('✅ ' + child.name + ' 일정 추가 (' + a.date + ' ' + a.startTime + ')' + teacherTxt); }); // 성공 시에만(M-7)
 }
 
 function actOpenSessionForChild(a) {

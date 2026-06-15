@@ -76,9 +76,10 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 1. JWT 인증 ──
-  // MADI_JWT_SECRET 으로 통일 (다른 5개 Edge Function 과 동일)
-  // JWT_SECRET 은 하위 호환을 위해 fallback 으로만 사용
-  const JWT_SECRET   = Deno.env.get('MADI_JWT_SECRET') ?? Deno.env.get('JWT_SECRET') ?? ''
+  // MADI_JWT_SECRET 단일 (다른 8개 Edge Function 과 동일) — 로그인 토큰 서명도 이 키이므로
+  //   반드시 설정돼 있다. 과거 JWT_SECRET 폴백은 MADI_JWT_SECRET 가 항상 우선해 발동되지 않는
+  //   죽은 코드라 제거(M-9). 빈 시크릿은 아래 fail-closed 검사가 차단.
+  const JWT_SECRET   = Deno.env.get('MADI_JWT_SECRET') ?? ''
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 

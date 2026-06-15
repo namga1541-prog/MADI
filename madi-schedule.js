@@ -754,10 +754,15 @@ function saveSchedFromModal() {
     entries.push({ id: generateClientId(), childId: childId, date: date,
       startTime: startTime, duration: duration, endTime: endTime, note: note, teacher: teacher.trim() });
   }
-  entries.forEach(function(e){ scheduleDB.push(e); saveOneSchedule(e); });
+  entries.forEach(function(e){ scheduleDB.push(e); });
+  markMyChange();
+  safeSetItem('cn3_schedule', JSON.stringify(scheduleDB)); // 로컬 미러
+  // 신규 일정만 50개 배치로 upsert(M-6) — 반복일정 다건을 개별 POST 하던 N회 라운드트립·부분실패 제거.
+  var _cid = getCenterId();
+  _saveRowsBatched('madi_schedules', entries.map(function(x){ return { id: x.id, center_id: _cid, data: x }; }), '일정')
+    .then(function(ok){ if (ok) showToast('✅ ' + entries.length + '개 일정 추가!'); }); // 성공 시에만 성공 토스트(M-7)
   if (_saveBtn) delete _saveBtn.dataset.busy;
   closeSchedModal(); renderSchedView(); renderUnwrittenAlert();
-  showToast('✅ ' + entries.length + '개 일정 추가!');
 }
 
 function openEditSchedModal(id) {
@@ -1002,10 +1007,10 @@ function saveEditSched(id) {
     endTime = String(Math.floor(mins/60)%24).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
   }
   scheduleDB[idx] = Object.assign({}, scheduleDB[idx], { date:date, startTime:start, duration:dur, endTime:endTime, teacher:teacher, note:note });
-  saveOneSchedule(scheduleDB[idx]);  // 단건 upsert (H2)
   var ol = document.getElementById('editSchedOverlay'); if (ol) ol.remove();
   renderSchedView();
-  showToast('✅ 일정 수정 완료!');
+  saveOneSchedule(scheduleDB[idx]) // 단건 upsert (H2)
+    .then(function(ok){ if (ok) showToast('✅ 일정 수정 완료!'); }); // 성공 시에만(M-7) — 실패는 _saveOneRow 가 ❌ 토스트
 }
 
 // ─────── 일정 내보내기 ───────

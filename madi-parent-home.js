@@ -793,7 +793,7 @@ function _showParentOnboarding() {
     + '일정과 월간 포트폴리오를 확인하실 수 있습니다.<br><br>'
     + '연결이 완료되면 알림으로 안내드립니다. 😊'
     + '</div>'
-    + '<div style="background:#f0fdfa;border-radius:10px;padding:12px 16px;font-size:12px;color:#0f766e;">'
+    + '<div class="pp-box-mint" style="border-radius:10px;padding:12px 16px;font-size:12px;">'
     + '📞 연결이 늦어지는 경우 담당 센터에 문의해주세요.'
     + '</div>';
   var content = homePanel.querySelector('.dp-parent') || homePanel;

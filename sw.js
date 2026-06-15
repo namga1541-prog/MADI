@@ -1,4 +1,4 @@
-var CACHE_NAME = "madi-v5-20260616-074403";
+var CACHE_NAME = "madi-v5-20260616-082100";
 // 외부 API · 인증 응답은 캐시하지 않는다 (민감 응답 보호)
 var SKIP_HOSTS = ["api.anthropic.com","googleapis.com"];
 // 경로 기반 차단 — Supabase Edge Function 및 REST/Storage/Auth 응답
@@ -36,6 +36,14 @@ function networkFirst(req, isHTML, e) {
       var clone = res.clone();
       var cacheWrite = caches.open(CACHE_NAME).then(function(c) { return c.put(req, clone); });
       if (e) e.waitUntil(cacheWrite);
+      // offline.html lazy-prime(M-10): 첫 설치 때 네트워크 실패로 미캐시됐어도 온라인 복귀 후
+      //   첫 성공 fetch 에서 한 번 보강. 이미 캐시돼 있으면 재요청하지 않음.
+      var prime = caches.open(CACHE_NAME).then(function(c) {
+        return c.match(OFFLINE_URL).then(function(hit) {
+          if (!hit) return c.add(new Request(OFFLINE_URL, { cache: "reload" })).catch(function(){});
+        });
+      });
+      if (e) e.waitUntil(prime);
     }
     return res;
   }).catch(function() {

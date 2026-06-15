@@ -40,6 +40,7 @@ function _loadFolderHandle() {
       req.onsuccess = function() { resolve(req.result || null); };
       req.onerror = function() { resolve(null); };
       tx.oncomplete = function() { db.close(); };
+      tx.onerror = function() { db.close(); resolve(null); }; // 트랜잭션 오류 시 hang 방지(M-10) — req.onerror/onabort 미발화 경로 보강
       tx.onabort = function() { db.close(); resolve(null); };
     });
   });
@@ -105,6 +106,14 @@ var SW_LINES = [
   '      var clone = res.clone();',
   '      var cacheWrite = caches.open(CACHE_NAME).then(function(c) { return c.put(req, clone); });',
   '      if (e) e.waitUntil(cacheWrite);',
+  '      // offline.html lazy-prime(M-10): 첫 설치 때 네트워크 실패로 미캐시됐어도 온라인 복귀 후',
+  '      //   첫 성공 fetch 에서 한 번 보강. 이미 캐시돼 있으면 재요청하지 않음.',
+  '      var prime = caches.open(CACHE_NAME).then(function(c) {',
+  '        return c.match(OFFLINE_URL).then(function(hit) {',
+  '          if (!hit) return c.add(new Request(OFFLINE_URL, { cache: "reload" })).catch(function(){});',
+  '        });',
+  '      });',
+  '      if (e) e.waitUntil(prime);',
   '    }',
   '    return res;',
   '  }).catch(function() {',

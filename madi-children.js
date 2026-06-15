@@ -108,8 +108,8 @@ function changeSchedStatus(schedId, newStatus) {
   var sc = scheduleDB.find(function(s){ return String(s.id) === String(schedId); });
   if (!sc) return;
   sc.status = newStatus;
-  saveOneSchedule(sc);  // 단건 upsert (H2)
-  showToast('상태가 변경됐습니다.');
+  saveOneSchedule(sc) // 단건 upsert (H2)
+    .then(function(ok){ if (ok) showToast('상태가 변경됐습니다.'); }); // 성공 시에만(M-7) — 실패는 _saveOneRow 가 ❌ 토스트
 }
 
 // 월별 정산/서비스 공통 전처리 — renderMonthlyService/renderSettlement/exportSettlementExcel 가

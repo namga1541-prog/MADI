@@ -221,6 +221,23 @@
     body.dark-mode .psb-btn:hover { background: var(--navy); }
     body.dark-mode .psb-btn.active { background: rgba(14,165,160,0.2); color: var(--mint); }
 
+    /* 학부모 포털 컬러 박스 — 다크모드 대응(M-3/M-4). 인라인 하드코딩 색을 클래스로 분리해
+       다크에서 눈부심 없이 톤 다운. 레이아웃(padding/radius/font)은 인라인 유지, 색만 여기서. */
+    .pp-box-green { background:linear-gradient(135deg,#f0fdf4,#dcfce7); }
+    .pp-box-green .pp-box-title { color:#15803d; }
+    .pp-box-green .pp-box-body  { color:#166534; }
+    .pp-box-amber { background:linear-gradient(135deg,#fef3c7,#fde68a); }
+    .pp-box-amber .pp-box-title { color:#b45309; }
+    .pp-box-amber .pp-box-body  { color:#78350f; }
+    .pp-box-mint  { background:#f0fdfa; color:#0f766e; }
+    body.dark-mode .pp-box-green { background:#064e3b; }
+    body.dark-mode .pp-box-green .pp-box-title { color:#6ee7b7; }
+    body.dark-mode .pp-box-green .pp-box-body  { color:#a7f3d0; }
+    body.dark-mode .pp-box-amber { background:#3f320d; }
+    body.dark-mode .pp-box-amber .pp-box-title { color:#fcd34d; }
+    body.dark-mode .pp-box-amber .pp-box-body  { color:#fde68a; }
+    body.dark-mode .pp-box-mint  { background:#134e4a; color:#5eead4; }
+
 
     /* ─── 메인 스타일 (구 Block B) ───
        2026-05-23: 중복 Block A (~830줄) 삭제 완료.

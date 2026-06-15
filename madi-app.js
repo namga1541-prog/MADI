@@ -181,13 +181,20 @@ function _saveCollection(o) {
   if (o.db.length === 0) return Promise.resolve(true);
   var cid = getCenterId();
   var mapRow = o.mapRow || function(x) { return { id: x.id, center_id: cid, data: x }; };
-  var rows = o.db.map(mapRow), batches = [];
+  return _saveRowsBatched(o.table, o.db.map(mapRow), o.label);
+}
+// 임의 row 배열을 50개씩 나눠 순차 upsert — _saveCollection 과 신규 다건 추가(반복일정 saveSchedules)가
+// 공유하는 배치 헬퍼(M-6). 항목마다 개별 POST(N회 라운드트립·부분실패) 대신 배치로 묶는다.
+// @returns {Promise<boolean>} 모든 배치 성공 시 true, 실패 시 친화 토스트 후 false.
+function _saveRowsBatched(table, rows, label) {
+  if (!rows || rows.length === 0) return Promise.resolve(true);
+  var batches = [];
   for (var i = 0; i < rows.length; i += 50) batches.push(rows.slice(i, i + 50));
   return batches.reduce(function(p, batch) {
-    return p.then(function() { return supaFetch(o.table + '?on_conflict=id', 'POST', batch); });
+    return p.then(function() { return supaFetch(table + '?on_conflict=id', 'POST', batch); });
   }, Promise.resolve())
     .then(function() { return true; })
-    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, o.label)); return false; });
+    .catch(function(e) { showToast('❌ ' + getSaveErrMsg(e, label)); return false; });
 }
 /** @returns {Promise<boolean>} */
 function saveChildren() {

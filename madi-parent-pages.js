@@ -134,9 +134,9 @@ function _renderParentPortfolioCard(row) {
       + '</ul></div>';
   }
   if (ai.parentMessage) {
-    bodyHtml += '<div style="margin-bottom:8px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;padding:10px 12px;">'
-      + '<div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:4px;">💛 보호자님께</div>'
-      + '<div style="font-size:13px;line-height:1.75;color:#78350f;">' + escHtml(ai.parentMessage) + '</div></div>';
+    bodyHtml += '<div class="pp-box-amber" style="margin-bottom:8px;border-radius:10px;padding:10px 12px;">'
+      + '<div class="pp-box-title" style="font-size:12px;font-weight:700;margin-bottom:4px;">💛 보호자님께</div>'
+      + '<div class="pp-box-body" style="font-size:13px;line-height:1.75;">' + escHtml(ai.parentMessage) + '</div></div>';
   }
   if (ai.nextMonthPlan) {
     bodyHtml += '<div style="margin-bottom:4px;"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">🗓️ 다음 달 방향</div>'
@@ -796,9 +796,9 @@ function _renderParentObsCard(row) {
   var replyHtml = '';
   if (hasReply) {
     replyHtml =
-      '<div style="margin-top:10px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:10px;padding:10px 12px;">'
-      + '<div style="font-size:11px;font-weight:700;color:#15803d;margin-bottom:4px;">👩‍⚕️ 선생님 답글 · ' + escHtml(replyDate) + '</div>'
-      + '<div style="font-size:13px;line-height:1.7;color:#166534;">' + escHtml(row.teacher_reply) + '</div>'
+      '<div class="pp-box-green" style="margin-top:10px;border-radius:10px;padding:10px 12px;">'
+      + '<div class="pp-box-title" style="font-size:11px;font-weight:700;margin-bottom:4px;">👩‍⚕️ 선생님 답글 · ' + escHtml(replyDate) + '</div>'
+      + '<div class="pp-box-body" style="font-size:13px;line-height:1.7;">' + escHtml(row.teacher_reply) + '</div>'
       + '</div>';
   } else {
     replyHtml =
