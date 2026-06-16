@@ -26,7 +26,7 @@
 | `madi_licenses` | ⚠️ **존재 미확인** — Edge 화이트리스트(ADMIN_ONLY_TABLES)에 등재돼 있고 admin.html 라이선스 UI가 사용하나, admin 전용 게이트라 비admin 계정 프로브 불가(403). 추정 정의는 인계문서(마디_인계문서_2026-05-10.md) SQL. **admin 계정으로 존재 확인 후 이 행을 실측으로 교체할 것** — 미존재면 라이선스 발급·활성화 기능 전체가 400/404 로 실패함 |
 | `madi_push_subscriptions` | `id`, `user_id`, `endpoint`, `p256dh`, `auth`, `center_id`, `created_at` |
 | `madi_push_settings` | `center_id`, `enabled`, `push_time`, `message_title`, `message_body`, `last_sent_date` |
-| `madi_settings` | `key`(PK), `value` — **전역 테이블, center_id 컬럼 없음** |
+| `madi_settings` | `key`(PK), `value` — **전역 테이블, center_id 컬럼 없음**. ⚠️ 의도적 cross-tenant read 허용(M-8, 2026-06-16 결정): 센터 격리가 없어 어떤 센터 admin도 전 센터 설정을 조회 가능. 현재 저장 설정은 민감도가 낮아 보류. **센터별로 분리돼야 하는 민감 설정을 추가할 때는 반드시 center_id 격리(컬럼 또는 key prefix) + Edge 필터를 먼저 설계할 것** — 이 표를 보고 격리를 가정하지 말 것 |
 | `madi_lounge_posts` | `id`, `center_id`, `author_id`, `author_name`, `author_role`, `title`, `content`, `images`, `image_urls`, `note`, `visibility`, `created_at` |
 | `madi_lounge_comments` | `id`, `post_id`, `center_id`, `author_id`, `author_name`, `author_role`, `content`, `image_url`, `created_at` — `image_url`·`author_role` 은 `board_image_columns_fix.sql`(2026-05-30)로 추가 |
 | `madi_error_logs` | `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` |
