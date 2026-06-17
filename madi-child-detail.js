@@ -43,7 +43,7 @@ function toggleVoiceInput() {
     area.value = (area.value + ' ' + newText).trim();
   };
   recognition.onerror = function(ev) {
-    showToast('음성 인식 오류: ' + ev.error);
+    showToast(voiceErrMsg(ev.error));
     isRecording = false;
     btn.classList.remove('recording');
     btn.textContent = '🎤 음성 입력 시작';
@@ -406,7 +406,7 @@ function deleteChild(id) {
         row_id: id,
         center_id: currentUser.center_id,
         child_id: id
-      }).catch(function(){});
+      }).catch(function(e){ if(window.console&&console.warn)console.warn('[audit_log DELETE_CHILD]',e&&e.message); });
     })
     .catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-05 deleteChild]',e&&e.message);

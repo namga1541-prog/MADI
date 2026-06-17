@@ -249,6 +249,19 @@ function showError(err, action) {
   console.warn('[' + (action || 'error') + ']', err);
   showToast('⚠️ ' + _userErrMsg(err, action || '요청'));
 }
+// 음성 인식 SpeechRecognition.onerror 의 영문 코드를 사용자 친화 한국어로 변환 (SSOT — chat·child-detail 공용)
+function voiceErrMsg(code) {
+  switch (code) {
+    case 'not-allowed':
+    case 'service-not-allowed': return '🎤 마이크 권한이 차단되어 있습니다. 브라우저 설정에서 허용해주세요';
+    case 'no-speech':           return '🎤 음성이 감지되지 않았습니다. 다시 시도해주세요';
+    case 'audio-capture':       return '🎤 마이크를 찾을 수 없습니다. 장치 연결을 확인해주세요';
+    case 'network':             return '🎤 네트워크 오류로 음성 인식에 실패했습니다';
+    case 'aborted':             return '🎤 음성 입력이 중단되었습니다';
+    case 'language-not-supported': return '🎤 해당 언어는 음성 인식을 지원하지 않습니다';
+    default:                    return '🎤 음성 인식에 실패했습니다. 다시 시도해주세요';
+  }
+}
 /** @returns {Promise<boolean>} */
 function saveSessions() {
   return _saveCollection({ db: sessionDB, lsKey: 'cn3_sessions', table: 'madi_sessions', label: '세션' });

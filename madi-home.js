@@ -206,7 +206,7 @@ function removeStaffAccount(id, name) {
           actor_id: currentUser.id, actor_role: currentUser.role,
           action: 'DELETE_STAFF', table_name: 'madi_users',
           row_id: id, center_id: currentUser.center_id
-        }).catch(function(){});
+        }).catch(function(e){ if(window.console&&console.warn)console.warn('[audit_log DELETE_STAFF]',e&&e.message); });
         loadStaffMgmtList();
       }).catch(function(err) {
         showToast('❌ ' + _userErrMsg(err, '삭제'));

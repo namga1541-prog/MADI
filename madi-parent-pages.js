@@ -196,7 +196,8 @@ function loadParentNotifications() {
       var list = Array.isArray(rows) ? rows : [];
       renderParentNotifList(list);
     })
-    .catch(function() {
+    .catch(function(e) {
+      if(window.console&&console.warn)console.warn('[loadParentNotifications]',e&&e.message);
       var card = document.getElementById('parentNotifCard');
       if (card) card.style.display = 'none';
     });

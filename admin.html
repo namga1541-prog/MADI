@@ -2666,6 +2666,7 @@ function selectParentChild(id, name, centerId) {
 var _lastCreatedParent = null;
 
 function createParentAccount() {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 관리자만 가능합니다'); return; }
   var childId  = document.getElementById('parentInviteChild').value;
   var childTxt = document.getElementById('parentChildSearchInput').value;
   var name     = (document.getElementById('parentNewName').value || '').trim();
@@ -2743,6 +2744,11 @@ function loadParentList() {
   var el = document.getElementById('parentUserList');
   if (!el) return;
   var cid = getCenterId();
+  // center_id 누락(세션 부분 소실 등) 시 superadmin 만 전체 조회 허용 — admin 의 cross-center 노출 차단
+  if (!cid && !(currentUser && currentUser.role === 'superadmin')) {
+    el.innerHTML = '<div style="color:var(--red);font-size:13px;padding:10px;">센터 정보를 확인할 수 없습니다. 다시 로그인해주세요.</div>';
+    return;
+  }
   var query = cid
     ? 'madi_users?center_id=eq.' + encodeURIComponent(cid) + '&role=eq.parent&order=id.desc'
     : 'madi_users?role=eq.parent&order=id.desc';
@@ -2768,6 +2774,7 @@ function loadParentList() {
 }
 
 function deleteParentAccount(userId, name) {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) { showToast('⚠️ 관리자만 가능합니다'); return; }
   showConfirm('학부모 [' + name + '] 계정을 삭제하시겠습니까?\n계정, 자녀 연결, 알림 구독, 관찰기록, 알림이 모두 삭제됩니다.', function() {
     supaFetch('madi_parent_children?parent_user_id=eq.' + encodeURIComponent(userId), 'DELETE')
       .then(function() {

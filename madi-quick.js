@@ -56,7 +56,11 @@ function _quickLoadDraft(schedId) {
       return null;
     }
     return d;
-  } catch (e) { return null; }
+  } catch (e) {
+    // 손상된 드래프트(JSON.parse 실패)는 영구 잔류 방지 위해 제거 — 매 로드 실패 반복 차단
+    try { sessionStorage.removeItem(_quickDraftKey(schedId)); } catch (e2) { /* silent */ }
+    return null;
+  }
 }
 
 function _quickClearDraft(schedId) {

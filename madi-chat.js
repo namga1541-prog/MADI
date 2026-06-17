@@ -510,7 +510,7 @@ function toggleChatVoiceInput() {
     autoResizeChat(input);
   };
   chatRecognition.onerror = function(ev) {
-    showToast('음성 인식 오류: ' + ev.error);
+    showToast(voiceErrMsg(ev.error));
     resetChatMicBtn();
   };
   chatRecognition.onend = function() { resetChatMicBtn(); };

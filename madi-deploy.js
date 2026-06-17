@@ -470,6 +470,11 @@ function deployToGitHub() {
         .catch(function() { return SW_CODE; })
         .then(function(swContent) {
           if (!swContent) swContent = SW_CODE;
+          // 인앱 배포는 git pre-commit 훅(CACHE_NAME 자동 bump)을 거치지 않아 stale 가능 →
+          // 업로드 직전 CACHE_NAME 을 새 타임스탬프로 교체해 디바이스 캐시 갱신 보장. 포맷 불일치 시 원본 유지(무손상).
+          var _d = new Date(), _p = function(n){ return (n < 10 ? '0' : '') + n; };
+          var _ver = 'madi-v5-' + _d.getFullYear() + _p(_d.getMonth() + 1) + _p(_d.getDate()) + '-' + _p(_d.getHours()) + _p(_d.getMinutes()) + _p(_d.getSeconds());
+          swContent = swContent.replace(/(CACHE_NAME\s*=\s*)["'][^"']*["']/, '$1"' + _ver + '"');
           return deployFileViaProxy(GITHUB_SW, swContent, '마디 SW 업데이트 — ' + commitTime);
         });
     })
@@ -482,7 +487,7 @@ function deployToGitHub() {
       // 다음 배포 시 SHA 비교를 위해 모든 파일의 SHA 저장 (변경되지 않은 파일도 포함)
       try {
         if (FILES_TO_UPLOAD.allShas) {
-          localStorage.setItem('madi_deploy_shas', JSON.stringify(FILES_TO_UPLOAD.allShas));
+          safeSetItem('madi_deploy_shas', JSON.stringify(FILES_TO_UPLOAD.allShas));
         }
       } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
       // GitHub Pages 빌드 상태 자동 폴링 (5초 후 시작)

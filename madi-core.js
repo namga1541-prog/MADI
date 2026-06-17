@@ -75,6 +75,8 @@ var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, de
 function canDo(perm) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin' || currentUser.role === 'superadmin') return true;
+  // 학부모는 임상 권한(세션·검사·아동편집·AI) 대상이 아님 — 명시 차단(fail-closed, 서버도 RLS/Edge 로 강제)
+  if (currentUser.role === 'parent') return false;
   var p = currentUser.permissions || {};
   // 사용자 permissions 에 명시되면 그 값(false 면 차단), 아니면 기본값을 따른다.
   // DEFAULT_PERMS 에 정의되지 않은 키(오타 등)는 fail-closed — 미정의 키가 무방비 허용되지 않도록(H-2).
@@ -480,6 +482,16 @@ function centerFilter() {
 var _errReportCount = 0;
 var _ERR_REPORT_MAX  = 5; // 세션당 최대 5건 — DB 폭주 방지
 
+// 에러 메시지·스택을 audit_log 에 영구 기록하기 전 민감값 마스킹 (이메일·JWT·API키·전화)
+function _scrubErrPII(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]')
+    .replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, '[jwt]')
+    .replace(/sk-ant-[\w-]+/g, '[key]')
+    .replace(/\b\d{10,11}\b/g, '[phone]');
+}
+
 function _reportClientError(msg, src, lineno, colno, err) {
   // 세션 한도 초과 / 로그인 전 / 서드파티 스크립트 에러는 무시
   if (_errReportCount >= _ERR_REPORT_MAX) return;
@@ -498,8 +510,8 @@ function _reportClientError(msg, src, lineno, colno, err) {
     action:       'client_error',
     table_name:   (src || location.pathname).slice(0, 200),
     changed_cols: [JSON.stringify({
-      message: m.slice(0, 500),
-      stack:   (err && err.stack) ? String(err.stack).slice(0, 1000) : '',
+      message: _scrubErrPII(m).slice(0, 500),
+      stack:   (err && err.stack) ? _scrubErrPII(err.stack).slice(0, 1000) : '',
       line:    lineno || 0,
       col:     colno  || 0,
       ua:      navigator.userAgent.slice(0, 200),

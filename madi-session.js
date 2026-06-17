@@ -456,7 +456,7 @@ function autoBackup() {
     return putBackup(record)
       .then(pruneOldBackups)
       .then(function() {
-        localStorage.setItem('madi_last_backup', dateKey);
+        safeSetItem('madi_last_backup', dateKey);
         if (window.console && console.debug) console.debug('[자동 백업] ' + dateKey + ' 저장됨 (' + Math.round(snapshot.size/1024) + 'KB)');
         return true;
       });

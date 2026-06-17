@@ -381,9 +381,9 @@ function editSessionDate(id) {
     },
     onOk: function(newDate) {
       s.date = newDate;
-      saveOneSession(s);  // 단건 upsert (H2)
-      renderSessionList();
-      showToast('✅ 날짜 수정 완료!');
+      renderSessionList();  // 날짜는 메모리+localStorage 에 이미 반영 — 서버 결과와 무관하게 즉시 갱신
+      // 성공 시에만 ✅ — 실패 시 saveOneSession 이 ❌ 토스트를 이미 표시(거짓 성공 방지, 37번 패턴과 동일)
+      saveOneSession(s).then(function(ok) { if (ok) showToast('✅ 날짜 수정 완료!'); });
     }
   });
 }

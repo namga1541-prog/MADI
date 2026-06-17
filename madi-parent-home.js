@@ -697,6 +697,8 @@ function _redrawParentVoucherPanel() {
         _redrawParentVoucherPanel();
       })
       .catch(function(err) {
+        // 네트워크 오류를 '0회 사용'으로 오표시하지 않도록 로깅 — 값은 미상이나 패널은 폴백 렌더
+        if(window.console&&console.warn)console.warn('[parentVoucherUsed]',err&&err.message);
         window._parentVoucherUsed = 0;
         _redrawParentVoucherPanel();
       });
@@ -751,7 +753,7 @@ function _toggleParentActivity(el, storeKey, idx) {
   try {
     var s = JSON.parse(localStorage.getItem(storeKey) || '{}') || {};
     if (isDone) delete s[idx]; else s[idx] = true;
-    localStorage.setItem(storeKey, JSON.stringify(s));
+    safeSetItem(storeKey, JSON.stringify(s));
   } catch(e) { /* 저장 실패 — UI 만 토글 */ }
 }
 
