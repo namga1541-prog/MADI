@@ -103,7 +103,7 @@ const domainResults = await parallel([
 8. 클라이언트 측 역할 검증만으로 접근 제한하는 경우 (서버 RLS 없이)
 
 각 발견사항마다 파일명, 심각도(CRITICAL/HIGH/MEDIUM/LOW/INFO), 설명, 권고사항을 기록.`,
-    { label: '보안 감사', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: '보안 감사', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ② DB 스키마 일관성
@@ -123,7 +123,7 @@ const domainResults = await parallel([
 6. 컬럼 타입 불일치 (prog_types는 JSONB — 문자열로 다루면 버그)
 
 각 발견사항마다 파일명, 심각도, 잘못된 컬럼명, 올바른 컬럼명, 권고사항 기록.`,
-    { label: 'DB 스키마 일관성', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: 'DB 스키마 일관성', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ③ 코딩 컨벤션
@@ -145,7 +145,7 @@ const domainResults = await parallel([
 9. 중복 함수 정의 (같은 이름 함수가 여러 파일에)
 
 각 발견사항마다 파일명, 심각도, 설명, 권고사항 기록.`,
-    { label: '코딩 컨벤션', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: '코딩 컨벤션', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ④ 역할·권한 분기
@@ -165,7 +165,7 @@ const domainResults = await parallel([
 7. permissions JSONB 체크가 불완전한 경우
 
 각 발견사항마다 파일명, 심각도, 설명, 권고사항 기록.`,
-    { label: '역할·권한 분기', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: '역할·권한 분기', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ⑤ 에러 핸들링
@@ -186,7 +186,7 @@ const domainResults = await parallel([
 8. 네트워크 오류 시 UI가 로딩 상태로 멈추는 패턴
 
 각 발견사항마다 파일명, 심각도, 설명, 권고사항 기록.`,
-    { label: '에러 핸들링', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: '에러 핸들링', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ⑥ 성능·중복
@@ -206,7 +206,7 @@ const domainResults = await parallel([
 7. 동기적으로 실행되어 UI를 블록하는 무거운 연산
 
 각 발견사항마다 파일명, 심각도, 설명, 권고사항 기록.`,
-    { label: '성능·중복', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: '성능·중복', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ⑦ UI·UX
@@ -227,7 +227,7 @@ const domainResults = await parallel([
 8. 대시보드 역할별 렌더 분기(Teacher/Admin)가 빠진 케이스
 
 각 발견사항마다 파일명, 심각도, 설명, 권고사항 기록.`,
-    { label: 'UI·UX', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: 'UI·UX', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ⑧ Edge Function
@@ -248,7 +248,7 @@ const domainResults = await parallel([
 8. EDGE_URL 상수가 올바른 Supabase 프로젝트 URL인지
 
 각 발견사항마다 파일명/함수명, 심각도, 설명, 권고사항 기록.`,
-    { label: 'Edge Function', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: 'Edge Function', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ⑨ PWA·Service Worker·IndexedDB
@@ -269,7 +269,7 @@ const domainResults = await parallel([
 8. 백그라운드 동기화(Background Sync) 사용 시 실패 처리
 
 각 발견사항마다 파일명, 심각도, 설명, 권고사항 기록.`,
-    { label: 'PWA·SW·IndexedDB', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: 'PWA·SW·IndexedDB', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
   // ⑩ 라이브 프로브 (읽기 전용 — 정적 감사의 사각지대)
@@ -290,7 +290,7 @@ const domainResults = await parallel([
    (심각도는 실제 영향을 추론해 판정하고 근거를 description 에 포함).
 3. 프로브 결과와 SCHEMA.md 를 대조해 문서↔실DB 불일치가 보이면 별도 finding.
 주의: 토큰·비밀번호·아동 실명 등 민감값을 finding 에 절대 남기지 말 것.`,
-    { label: '라이브 프로브', phase: '병렬 감사', schema: FINDING_SCHEMA }
+    { label: '라이브 프로브', phase: '병렬 감사', schema: FINDING_SCHEMA, model: 'sonnet' }
   ),
 
 ])
