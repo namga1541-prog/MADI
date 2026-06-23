@@ -974,6 +974,15 @@ function escHtml(str) {
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
 }
+// onclick JS 인자는 반드시 jsArg(=escHtml(escJs(x))) — escHtml 단독 사용 시 브라우저가
+// HTML 속성을 디코딩한 후 JS 엔진에 넘겨 작은따옴표 탈출 XSS 가능(저장형 XSS 실증).
+function escJs(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"')
+    .replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/ /g,'\\u2028').replace(/ /g,'\\u2029');
+}
+function jsArg(str) { return escHtml(escJs(str)); }
 
 // 서버 원문(PostgREST 테이블·컬럼·제약조건명) 노출 차단용 친화 메시지 변환기.
 //   admin.html 은 madi-app.js(_userErrMsg)를 로드하지 않는 독립 페이지라 자체 사본 유지.
@@ -2640,7 +2649,7 @@ function filterParentChildList(q) {
     drop.innerHTML = '<div style="padding:12px 14px;color:#94a3b8;text-align:center;font-size:13px;">검색 결과 없음</div>';
   } else {
     drop.innerHTML = filtered.slice(0,30).map(function(c) {
-      return '<div onclick="selectParentChild(\'' + escHtml(String(c.id)) + '\',\'' + escHtml(c.name) + '\',\'' + escHtml(c.center_id) + '\')" '
+      return '<div onclick="selectParentChild(\'' + jsArg(String(c.id)) + '\',\'' + jsArg(c.name) + '\',\'' + jsArg(String(c.center_id||'')) + '\')" '
         + 'style="padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#1e293b;" '
         + 'onmouseover="this.style.background=\'#e0f7f6\'" onmouseout="this.style.background=\'\'">'
         + escHtml(c.name) + (c.birth ? ' <span style="color:#94a3b8;font-size:11px;">(' + escHtml(c.birth) + ')</span>' : '')
@@ -2766,7 +2775,7 @@ function loadParentList() {
           + '<div style="font-size:11px;color:var(--text2);">@' + escHtml(r.username) + '</div>'
           + '</div>'
           + '<span style="font-size:11px;background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:8px;font-weight:700;">학부모</span>'
-          + '<button onclick="deleteParentAccount(' + r.id + ',\'' + escHtml(r.name || r.username) + '\')" '
+          + '<button onclick="deleteParentAccount(' + jsArg(String(r.id)) + ',\'' + jsArg(r.name || r.username) + '\')" '
           + 'style="margin-left:6px;padding:4px 10px;font-size:11px;border:1px solid #fca5a5;background:#fff;color:#ef4444;border-radius:6px;cursor:pointer;">삭제</button>'
           + '</div>';
       }).join('');

@@ -77,8 +77,8 @@ function loadDBFromSupabase(silent) {
   var d30 = _isoDaysAgo(30);
   var _bpCh  = 'madi_children?'    + centerFilter() + '&select=id,data&order=id.asc';
   var _bpSe  = 'madi_sessions?'    + centerFilter() + '&data->>date=gte.' + d90 + '&select=id::text,data&order=id.asc';
-  var _bpSch = 'madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id,data&order=id.asc';
-  var _bpAs  = 'madi_assessments?' + centerFilter() + '&select=id,data&order=id.asc';
+  var _bpSch = 'madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id::text,data&order=id.asc';
+  var _bpAs  = 'madi_assessments?' + centerFilter() + '&select=id::text,data&order=id.asc';
   Promise.all([
     _supaFetchAll(_bpCh),
     _supaFetchAll(_bpSe),
@@ -143,7 +143,7 @@ function _loadOlderHistory(d90, d30) {
   window._olderHistoryLoaded = true;
   Promise.all([
     _supaFetchAll('madi_sessions?'  + centerFilter() + '&data->>date=lt.' + d90 + '&select=id::text,data&order=id.desc'),
-    _supaFetchAll('madi_schedules?' + centerFilter() + '&data->>date=lt.' + d30 + '&select=id,data&order=id.desc')
+    _supaFetchAll('madi_schedules?' + centerFilter() + '&data->>date=lt.' + d30 + '&select=id::text,data&order=id.desc')
   ]).then(function(results) {
     var oldSe  = _normalizeRows(results[0]);
     var oldSch = _normalizeRows(results[1]);

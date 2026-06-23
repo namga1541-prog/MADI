@@ -631,17 +631,18 @@ function _redrawParentVoucherPanel() {
   // 바우처
   var vLimit = parseInt(d.voucherLimit || 0, 10);
   if (vLimit > 0) {
-    var vUsed = window._parentVoucherUsed != null ? window._parentVoucherUsed : 0;
-    var pct = vLimit > 0 ? Math.min(100, Math.round(vUsed / vLimit * 100)) : 0;
+    var vUsed = window._parentVoucherUsed;
+    var vUsedStr = vUsed != null ? String(vUsed) : '--';
+    var pct = (vUsed != null && vLimit > 0) ? Math.min(100, Math.round(vUsed / vLimit * 100)) : 0;
     var vType = d.voucherType || '바우처';
     html += ''
       + '<div class="dp-p-voucher">'
       +   '<div class="dp-p-voucher-top">'
       +     '<div class="dp-p-voucher-label">' + escHtml(vType) + '</div>'
-      +     '<div class="dp-p-voucher-val"><b>' + vUsed + '</b> / ' + vLimit + ' 회</div>'
+      +     '<div class="dp-p-voucher-val"><b>' + vUsedStr + '</b> / ' + vLimit + ' 회</div>'
       +   '</div>'
       +   '<div class="dp-p-voucher-prog"><div class="dp-p-voucher-prog-bar" style="width:' + pct + '%;"></div></div>'
-      +   '<div class="dp-p-voucher-foot"><span>사용 ' + vUsed + '회</span><span>잔여 ' + (vLimit - vUsed) + '회</span></div>'
+      +   '<div class="dp-p-voucher-foot"><span>사용 ' + vUsedStr + '회</span><span>잔여 ' + (vUsed != null ? (vLimit - vUsed) : '--') + '회</span></div>'
       + '</div>';
   } else {
     html += '<div class="dp-p-voucher" style="text-align:center;color:#94a3b8;font-size:12px;">바우처 정보가 등록되어 있지 않아요.<br>담당 센터에 문의해 주세요.</div>';
@@ -699,7 +700,6 @@ function _redrawParentVoucherPanel() {
       .catch(function(err) {
         // 네트워크 오류를 '0회 사용'으로 오표시하지 않도록 로깅 — 값은 미상이나 패널은 폴백 렌더
         if(window.console&&console.warn)console.warn('[parentVoucherUsed]',err&&err.message);
-        window._parentVoucherUsed = 0;
         _redrawParentVoucherPanel();
       });
   }

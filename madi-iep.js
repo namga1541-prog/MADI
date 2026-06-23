@@ -8,7 +8,7 @@ function _isMySession(s) {
 // ─────── 세션 저장 ───────
 var _sessionSaveBusy = false; // 더블탭 중복 저장 방지
 function saveSession(aiNote) {
-  if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 세션 기록 권한이 없습니다'); return; }
+  if (!currentUser || !isStaffRole(currentUser.role)) { showToast('⚠️ 세션 기록 권한이 없습니다'); return; }
   var elChild = document.getElementById('sessionChild');
   if (!elChild) return;
   var elDate = document.getElementById('sessionDate');

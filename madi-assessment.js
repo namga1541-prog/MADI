@@ -1049,7 +1049,7 @@ function generateAssessReport() {
       // 임상 표준 용어 통일: "중지화"→"파열음화" 등 (audience: clinical)
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');
       raw = restoreName(raw, child.name);  // 가명 ○○ → 실명 복원 (H1)
-      var cn = escHtml(child.name);
+      var cn = jsArg(child.name);
       // eslint-disable-next-line no-unsanitized/property
       result.innerHTML = '<div id="assessReportText" contenteditable="false" class="report-box"'
         + ' style="white-space:pre-wrap;outline:none;cursor:text;transition:border 0.2s,background 0.2s;">'
