@@ -642,7 +642,7 @@ function _subscribePush(reg) {
           // POST 실패 시 브라우저 구독만 남으면 서버와 불일치 → 구독 해제 후 상태 동기화 + 명확한 재시도 안내(M-24)
           if (window.console && console.warn) console.warn('[푸시 구독 저장]', e && e.message);
           showToast('⚠️ 알림 저장에 실패했습니다. 잠시 후 \'알림 받기\'를 다시 눌러주세요.');
-          sub.unsubscribe().catch(function() {});
+          sub.unsubscribe().catch(function(ue) { if(window.console&&console.warn)console.warn('[push unsubscribe]',ue&&ue.message); loadParentPushToggle(); });
           loadParentPushToggle();
         });
     }).catch(function() {

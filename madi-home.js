@@ -445,6 +445,7 @@ function switchTab(idx) {
   }
   // admin 전용 탭(4: 서비스관리, 5: 관리자설정) 권한 가드
   if ((idx === 4 || idx === 5) && currentUser && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+    showToast('⚠️ 관리자 전용 탭입니다');
     return;
   }
   // 모든 패널 숨기기

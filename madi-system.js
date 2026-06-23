@@ -281,13 +281,19 @@ function initPWA() {
       _swReloaded = true;
       window.location.reload();
     }
-    // 작성 중(값이 있는 textarea)인지 — 자동 reload 로 인한 세션기록·평가 입력 유실 방지용.
-    //   검색창 등은 대부분 input 이라 textarea 만 보면 오판이 적다.
+    // 작성 중(값이 있는 입력 필드)인지 — 자동 reload 로 인한 세션기록·평가 입력 유실 방지용.
     function _swDirty() {
+      if (window._sessionSaveBusy) return true;
       var tas = document.querySelectorAll('textarea');
       for (var i = 0; i < tas.length; i++) {
         var t = tas[i];
         if (t.offsetParent !== null && t.value && t.value.trim()) return true;
+      }
+      // 검색창을 제외한 중요 단일 입력 필드도 체크
+      var importantIds = ['sessionMemo','aiInput','quickNote','aiInputText'];
+      for (var j = 0; j < importantIds.length; j++) {
+        var el = document.getElementById(importantIds[j]);
+        if (el && el.offsetParent !== null && el.value && el.value.trim()) return true;
       }
       return false;
     }
