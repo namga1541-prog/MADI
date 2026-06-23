@@ -3,7 +3,7 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (181)
+## 전역 변수 (180)
 
 - `var AI_PROCESSING_NOTICE = '<div style="font-size:11px;color:var(--text2,#888);line-height` — madi-ai.js:2
 - `var _lastIepJson = null, _lastActivitiesJson = null;` — madi-app.js:325
@@ -21,9 +21,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SELSI_PCT_TABLE = {` — madi-assessment.js:240
 - `var UTAP_NORMS = {` — madi-assessment.js:277
 - `var SYNCOMP_NORMS = {` — madi-assessment.js:298
-- `var LANGSOLVE_NORMS = {` — madi-assessment.js:309
-- `var _assessInterpPlain = '';` — madi-assessment.js:549
-- `var ASSESS_SCHEMA = {` — madi-assessment.js:643
+- `var _assessInterpPlain = '';` — madi-assessment.js:537
+- `var ASSESS_SCHEMA = {` — madi-assessment.js:631
 - `var PRIVACY_POLICY_VERSION = '2026-06-07';` — madi-auth.js:16
 - `var _inviteCheckTimer = null;` — madi-auth.js:30
 - `var _loungePostImages = []; // 글 작성 폼 첨부 File 객체 배열 (최대 3장)` — madi-board-notice.js:2
@@ -41,7 +40,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _libraryFiles = []; // 자료 첨부 File 객체 배열 (최대 5개)` — madi-board.js:492
 - `var libraryPostsDB = []; // 자료실 데이터 캐시 (editLibraryPost에서 참조)` — madi-board.js:493
 - `var LIBRARY_CATEGORIES = ['조음·음운', '언어발달', '유창성', '인지·학습', '부모교육', '평가도구', '기타'];` — madi-board.js:495
-- `var NOTICE_TYPE_OPTS = [` — madi-board.js:830
+- `var NOTICE_TYPE_OPTS = [` — madi-board.js:831
 - `var chatHistory = [];` — madi-chat.js:7
 - `var chatOpen = false;` — madi-chat.js:8
 - `var chatWaiting = false;` — madi-chat.js:9
@@ -304,39 +303,38 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `getSELSIAgeKey` — madi-assessment.js:257
   ▸ _U-TAP 자음정확도 규준 (부록2, 강정태1998)_ — L275
 - `judgeUTAP` — madi-assessment.js:285
-  ▸ _언어문제해결력검사 백분위 (연령별)_ — L307
-- `lookupSynComp` — madi-assessment.js:320
-  ▸ _생활연령 파싱 (age 문자열 → 개월수)_ — L333
-- `parseAgeToMonths` — madi-assessment.js:336
-  ▸ _통합 자동 계산 함수_ — L347
-- `autoCalcAssessScores` — madi-assessment.js:348
-- `setField` — madi-assessment.js:371
-  ▸ _PRES_ — L377
-  ▸ _SELSI_ — L391
-  ▸ _REVT_ — L421
-  ▸ _구문의미이해력검사_ — L445
-  ▸ _U-TAP 자음정확도 판정_ — L454
-  ▸ _언어문제해결력검사 (PFA 탭에 일시 대응)_ — L469
-- `_resetAutoCalcBtn` — madi-assessment.js:502
-  ▸ _중증도 자동 판정_ — L548
-- `getSeverityLabel` — madi-assessment.js:551
-- `renderSeveritySummary` — madi-assessment.js:560
-- `copyAssessInterp` — madi-assessment.js:630
-- `renderAssessFields` — madi-assessment.js:714
-- `getAssessFieldValues` — madi-assessment.js:750
-- `addAssessment` — madi-assessment.js:762
-  ▸ _검사명 변경 시: 이전 입력 자동저장 → 필드 다시 그리기_ — L805
-- `onAssessTypeChange` — madi-assessment.js:806
-- `formatAssessScores` — madi-assessment.js:811
-- `renderAssessmentList` — madi-assessment.js:830
-- `deleteAssessment` — madi-assessment.js:851
-- `generateAssessReport` — madi-assessment.js:888
-  ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L896
-  ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L946
-  ▸ _부모 교육 자료_ — L1076
-- `generateParentEdu` — madi-assessment.js:1077
-- `printParentEdu` — madi-assessment.js:1130
-  ▸ _데이터 이전_ — L1157
+- `lookupSynComp` — madi-assessment.js:308
+  ▸ _생활연령 파싱 (age 문자열 → 개월수)_ — L321
+- `parseAgeToMonths` — madi-assessment.js:324
+  ▸ _통합 자동 계산 함수_ — L335
+- `autoCalcAssessScores` — madi-assessment.js:336
+- `setField` — madi-assessment.js:359
+  ▸ _PRES_ — L365
+  ▸ _SELSI_ — L379
+  ▸ _REVT_ — L409
+  ▸ _구문의미이해력검사_ — L433
+  ▸ _U-TAP 자음정확도 판정_ — L442
+  ▸ _언어문제해결력검사 (PFA 탭에 일시 대응)_ — L457
+- `_resetAutoCalcBtn` — madi-assessment.js:490
+  ▸ _중증도 자동 판정_ — L536
+- `getSeverityLabel` — madi-assessment.js:539
+- `renderSeveritySummary` — madi-assessment.js:548
+- `copyAssessInterp` — madi-assessment.js:618
+- `renderAssessFields` — madi-assessment.js:702
+- `getAssessFieldValues` — madi-assessment.js:738
+- `addAssessment` — madi-assessment.js:750
+  ▸ _검사명 변경 시: 이전 입력 자동저장 → 필드 다시 그리기_ — L793
+- `onAssessTypeChange` — madi-assessment.js:794
+- `formatAssessScores` — madi-assessment.js:799
+- `renderAssessmentList` — madi-assessment.js:818
+- `deleteAssessment` — madi-assessment.js:839
+- `generateAssessReport` — madi-assessment.js:876
+  ▸ _자동저장: 현재 입력된 검사 결과가 있으면 먼저 저장_ — L884
+  ▸ _배경정보 4개 필드 통합 (각 라벨과 함께 정리)_ — L934
+  ▸ _부모 교육 자료_ — L1064
+- `generateParentEdu` — madi-assessment.js:1065
+- `printParentEdu` — madi-assessment.js:1118
+  ▸ _데이터 이전_ — L1145
 
 ## madi-auth.js (23함수)
 - `showLanding` — madi-auth.js:18
@@ -422,22 +420,22 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `setLibCat` — madi-board.js:638
 - `onLibFilesChange` — madi-board.js:643
 - `saveLibraryPost` — madi-board.js:664
-- `deleteLibraryPost` — madi-board.js:705
-- `_isMyPost` — madi-board.js:722
-- `openPostEditModal` — madi-board.js:737
-- `_close` — madi-board.js:793
-- `_onKey` — madi-board.js:797
-  ▸ _마디 공지 수정_ — L836
-- `editGlobalNotice` — madi-board.js:837
-  ▸ _센터 공지 수정_ — L862
-- `editCenterNotice` — madi-board.js:863
-  ▸ _고객센터(라운지) 수정 — visibility 는 변경 안 함_ — L888
-- `editLoungePost` — madi-board.js:889
-  ▸ _자료실 수정 — note (카테고리) 도 함께 수정_ — L911
-- `editLibraryPost` — madi-board.js:912
-- `openVocabFeedback` — madi-board.js:947
-- `closeVocabFeedbackModal` — madi-board.js:969
-- `submitVocabFeedback` — madi-board.js:974
+- `deleteLibraryPost` — madi-board.js:706
+- `_isMyPost` — madi-board.js:723
+- `openPostEditModal` — madi-board.js:738
+- `_close` — madi-board.js:794
+- `_onKey` — madi-board.js:798
+  ▸ _마디 공지 수정_ — L837
+- `editGlobalNotice` — madi-board.js:838
+  ▸ _센터 공지 수정_ — L863
+- `editCenterNotice` — madi-board.js:864
+  ▸ _고객센터(라운지) 수정 — visibility 는 변경 안 함_ — L889
+- `editLoungePost` — madi-board.js:890
+  ▸ _자료실 수정 — note (카테고리) 도 함께 수정_ — L912
+- `editLibraryPost` — madi-board.js:913
+- `openVocabFeedback` — madi-board.js:948
+- `closeVocabFeedbackModal` — madi-board.js:970
+- `submitVocabFeedback` — madi-board.js:975
 
 ## madi-chat.js (38함수)
   ▸ _플로팅 AI 비서_ — L6

@@ -426,7 +426,7 @@ function renderComments(postId) {
 }
 
 function saveComment(postId) {
-  if (currentUser && currentUser.role === 'parent') { showToast('⚠️ 접근 권한이 없습니다.'); return; }
+  if (!currentUser || !isStaffRole(currentUser.role)) { showToast('⚠️ 접근 권한이 없습니다.'); return; }
   var inputEl = document.getElementById('newComment_' + postId);
   if (!inputEl) return;
   var content = (inputEl.value || '').trim();
@@ -663,9 +663,10 @@ function onLibFilesChange(input) {
 
 function saveLibraryPost() {
   var _su = currentUser || {};
-  if (!_su.id || (_su.role !== 'admin' && _su.role !== 'teacher' && _su.role !== 'superadmin')) {
+  if (!_su.id || !isStaffRole(_su.role)) {
     showToast('⚠️ 권한이 없습니다'); return;
   }
+  if (!_su.center_id && _su.role !== 'superadmin') { showToast('⚠️ 센터 정보를 확인해주세요'); return; }
   var titleEl   = document.getElementById('libTitle');
   var contentEl = document.getElementById('libContent');
   var catEl     = document.getElementById('libCategory');
