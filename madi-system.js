@@ -60,7 +60,8 @@ function openPermModal(userId, userName, role) {
       + (isAdmin ? '<button class="btn-ghost" onclick="this.closest(\'.sched-modal-overlay\').remove()" style="width:100%;margin-top:16px;">닫기</button>' : '')
       + '</div>';
     document.body.appendChild(overlay);
-  }).catch(function() {
+  }).catch(function(e) {
+    if(window.console&&console.warn)console.warn('[loadPermPanel]',e&&e.message);
     showToast('⚠️ 권한 정보를 불러오지 못했습니다.');
   });
 }
@@ -103,7 +104,7 @@ function savePermissions() {
       showToast('✅ 권한 저장 완료');
       var _permOverlay = document.querySelector('.sched-modal-overlay');
       if (_permOverlay) _permOverlay.remove();
-      supaFetch('madi_audit_log', 'POST', {
+      supaFetch('madi_audit_log', 'POST', [{
         actor_id: currentUser.id,
         actor_role: currentUser.role,
         action: 'UPDATE_PERMISSIONS',
@@ -111,7 +112,7 @@ function savePermissions() {
         row_id: _savedPermUserId,
         center_id: currentUser.center_id,
         changed_cols: ['permissions', 'role']
-      }).catch(function(){});  // 감사 로그 실패가 주 기능을 막으면 안 됨
+      }]).catch(function(){});  // 감사 로그 실패가 주 기능을 막으면 안 됨
     }).catch(function() { showToast('❌ 저장 실패'); });
 }
 

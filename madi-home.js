@@ -202,11 +202,11 @@ function removeStaffAccount(id, name) {
         // 일정 모달 담당 선생님 드롭다운 캐시 무효화 — 삭제된 선생님 즉시 제거(H-6)
         if (typeof _teacherList !== 'undefined') _teacherList = [];
         // PIPA 감사 — 직원 계정 삭제 기록(fire-and-forget). 서버가 actor/center 를 JWT 로 강제.
-        supaFetch('madi_audit_log', 'POST', {
+        supaFetch('madi_audit_log', 'POST', [{
           actor_id: currentUser.id, actor_role: currentUser.role,
           action: 'DELETE_STAFF', table_name: 'madi_users',
           row_id: id, center_id: currentUser.center_id
-        }).catch(function(e){ if(window.console&&console.warn)console.warn('[audit_log DELETE_STAFF]',e&&e.message); });
+        }]).catch(function(e){ if(window.console&&console.warn)console.warn('[audit_log DELETE_STAFF]',e&&e.message); });
         loadStaffMgmtList();
       }).catch(function(err) {
         showToast('❌ ' + _userErrMsg(err, '삭제'));
@@ -523,13 +523,11 @@ function switchTab(idx) {
     populateChildSelects();
   }
   if (idx === 2) {
-    // 보고서
-    populateChildSelects();
+    // 보고서 — populateChildSelects는 switchReportTab 내부에서 호출
     switchReportTab(currentReportTab || 'session');
   }
   if (idx === 3) {
-    // 포트폴리오
-    populateChildSelects();
+    // 포트폴리오 — populateChildSelects는 switchPortfolioTab 내부에서 호출
     switchPortfolioTab(currentPortfolioTab || 'trend');
   }
   if (idx === 4) {
@@ -766,6 +764,7 @@ function saveNotice() {
     loadNotices();
     fanoutNoticeNotifications(saved, title, ntype);
   }).catch(function(e) {
+    if(window.console&&console.warn)console.warn('[addNotice]',e&&e.message);
     showToast('❌ 저장에 실패했습니다.');
   });
 }
@@ -1015,7 +1014,8 @@ function changeMyPassword() {
     var _npEl  = document.getElementById('newPassword');  if (_npEl)  _npEl.value  = '';
     var _np2El = document.getElementById('newPassword2'); if (_np2El) _np2El.value = '';
   })
-  .catch(function() {
+  .catch(function(e) {
+    if(window.console&&console.warn)console.warn('[changePassword]',e&&e.message);
     setResult('<span style="color:var(--red);">❌ 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</span>');
   });
 }

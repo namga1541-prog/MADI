@@ -933,7 +933,8 @@ function execSchedDeleteChoice(id) {
   var future = opt && opt.value === 'future';
   var ol1 = document.getElementById('editSchedOverlay');
   var ol2 = document.getElementById('delSchedOverlay');
-  if (ol1) ol1.remove(); if (ol2) ol2.remove();
+  if (ol1) ol1.remove();
+  if (ol2) { ol2.remove(); document.removeEventListener('keydown', window._delEsc); window._delEsc = null; }
   execSchedDelete(id, future);
 }
 

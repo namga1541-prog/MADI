@@ -580,7 +580,8 @@ function renderPortfolioHistory(childId) {
           + '</div>';
       }).join('');
     })
-    .catch(function() {
+    .catch(function(e) {
+      if(window.console&&console.warn)console.warn('[parentPortfolioHistory]',e&&e.message);
       box.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:10px;">불러오기 실패</div>';
     });
 }
@@ -596,7 +597,7 @@ function deletePortfolio(portfolioId) {
         var childId   = childIdEl ? String(childIdEl.value || '') : '';
         if (childId) renderPortfolioHistory(childId);
       })
-      .catch(function() { showToast('❌ 삭제 실패'); });
+      .catch(function(e) { if(window.console&&console.warn)console.warn('[deletePortfolio]',e&&e.message); showToast('❌ 삭제 실패'); });
   });
 }
 

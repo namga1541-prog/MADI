@@ -398,7 +398,7 @@ function deleteChild(id) {
       if (typeof iepDB !== 'undefined') safeSetItem('cn3_iep', JSON.stringify(iepDB));
       renderChildGrid();
       showToast('🗑️ 삭제 완료 (세션·일정·포트폴리오·관찰기록 포함)');
-      supaFetch('madi_audit_log', 'POST', {
+      supaFetch('madi_audit_log', 'POST', [{
         actor_id: currentUser.id,
         actor_role: currentUser.role,
         action: 'DELETE_CHILD',
@@ -406,7 +406,7 @@ function deleteChild(id) {
         row_id: id,
         center_id: currentUser.center_id,
         child_id: id
-      }).catch(function(e){ if(window.console&&console.warn)console.warn('[audit_log DELETE_CHILD]',e&&e.message); });
+      }]).catch(function(e){ if(window.console&&console.warn)console.warn('[audit_log DELETE_CHILD]',e&&e.message); });
     })
     .catch(function(e) {
       if(window.console&&console.warn)console.warn('[madi-05 deleteChild]',e&&e.message);

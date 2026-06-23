@@ -48,7 +48,7 @@ function loadParentSched() {
             + (teacher ? '<div style="font-size:12px;color:var(--text2);">👩‍⚕️ ' + escHtml(teacher) + ' 선생님</div>' : '')
             + '</div>';
         }).join('');
-      }).catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
+      }).catch(function(e) { if(window.console&&console.warn)console.warn('[parentSchedule]',e&&e.message); el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
   }, function() {
     el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
   });
@@ -178,7 +178,7 @@ function loadParentNotice() {
             + '<div style="font-size:11px;color:var(--text2);margin-top:8px;">' + escHtml(d.created_at||r.created_at||'').slice(0,10) + '</div>'
             + '</div>';
         }).join('');
-      }).catch(function() { el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
+      }).catch(function(e) { if(window.console&&console.warn)console.warn('[parentPortfolio]',e&&e.message); el.innerHTML = '<div class="empty"><p>불러오기 실패</p></div>'; });
   }, function() {
     el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p></div>';
   });
@@ -781,7 +781,8 @@ function _loadParentObsList(childId, centerId) {
     listEl.innerHTML =
       '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">내가 보낸 최근 기록</div>'
       + rows.map(_renderParentObsCard).join('');
-  }).catch(function() {
+  }).catch(function(e) {
+    if(window.console&&console.warn)console.warn('[parentObsList]',e&&e.message);
     // eslint-disable-next-line no-unsanitized/property
     listEl.innerHTML = '<div class="empty"><p style="font-size:12px;color:var(--text2);">목록을 불러오지 못했습니다</p></div>';
   });

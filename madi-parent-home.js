@@ -349,7 +349,8 @@ function _renderParentRecentPortfolios(childId) {
           + '</div>';
       }).join('');
     })
-    .catch(function(){
+    .catch(function(e){
+      if(window.console&&console.warn)console.warn('[parentPortfolioCount]',e&&e.message);
       el.innerHTML = '<div class="dp-empty">불러오기 실패</div>';
       window._parentPortfolioCount = 0;
       _renderParentHeroStats();
