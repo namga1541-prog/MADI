@@ -32,6 +32,7 @@
 - Edge Function **`api` 프록시(supabase/functions/api/index.ts)가 service_role 로 PostgREST 호출 → RLS 우회**. 따라서 **프록시 자체가 모든 격리를 강제**:
   - **모든 비-superadmin 역할(admin·teacher 포함)에 `center_id=eq.<본인센터>` 강제 주입** (GET/POST/PATCH/DELETE). → 클라 쿼리에 center_id 없어도 **타 센터 침범 불가**.
   - 학부모: center_id + 본인 자녀 child_id(in) + `parent_visible=true` 강제, 쓰기 차단 테이블 화이트리스트.
+  - **teacher `viewOtherChildren=false`(M-1, 2026-06-24)**: 담당 아동(본인 session·schedule 의 childId 합집합, `computeTeacherChildIds`)으로 READ 격리. JWT `permissions` claim 으로 판정 — 기본값 true 교사·구토큰은 무동작(현행 센터 전체 조회). 스키마 변경 없이 `isMyChild`(madi-core.js) 규칙 미러링.
   - 전역 테이블(center_id 없음): `author_id`/`user_id` 소유자 검증(IDOR 방지).
   - `requireFreshSession()` (_shared/auth.ts): 토큰 iat 가 `session_revoked_at`/`password_changed_at` 보다 과거면 거부 → **강제 로그아웃·비번변경 즉시 무효화**.
 - **결론**: "클라에 center_id 필터 없음 / 세션 무효화 안 함" 류 지적은 **서버를 안 본 오탐**일 가능성 큼. RLS 백업본은 `parent_isolation_rls.sql` 등 `*.sql`.
