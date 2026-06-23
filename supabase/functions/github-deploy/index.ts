@@ -32,7 +32,7 @@ import {
 // GitHub API 외부 호출 타임아웃 (2-B): 무기한 매달림 방지.
 const GITHUB_TIMEOUT_MS = 30000
 
-// github-deploy CORS: 기존과 동일 (null Origin 허용, authorization/content-type 헤더)
+// github-deploy CORS: null Origin 거부 (allowNullOrigin 미설정=false), authorization/content-type 헤더 허용
 function makeCORS(origin: string | null): Record<string, string> {
   return makeBaseCORS(origin, { headers: 'authorization, content-type' })
 }

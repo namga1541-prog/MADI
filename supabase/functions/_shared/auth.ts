@@ -21,7 +21,7 @@ export function fetchWithTimeout(url: string | URL, init: RequestInit, ms: numbe
 
 // ── CORS ─────────────────────────────────────────────────────────────────
 // 'null' Origin 허용 여부는 함수별로 다르므로 옵션으로 분리.
-// - login / api / change-password / ai-proxy: file:// 로컬 실행 지원 위해 allowNullOrigin=true 로 명시
+// - change-password / ai-proxy: file:// 로컬 실행 지원 위해 allowNullOrigin=true 로 명시 (login·api 는 false)
 // - upload-image / parent-auth: sandboxed iframe CSRF 차단 위해 기본값 false (미설정 시 차단)
 // ★ 기본값 변경: allowNullOrigin 미설정 → false (fail-closed). null Origin 허용이 필요한 함수만 명시적으로 true 전달.
 export function makeCORS(

@@ -403,7 +403,7 @@ function _quickFormHtml(sched, name, age, diag, existing) {
     +     '</div>'
     +     '<label class="switch" style="position:relative;display:inline-block;width:50px;height:28px;">'
     +       '<input type="checkbox" id="quickParentVisible" aria-label="학부모에게 이 기록 공개" ' + (parentVisible ? 'checked' : '') + ' style="opacity:0;width:0;height:0;">'
-    +       '<span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:14px;transition:.3s;"></span>'
+    +       '<span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--input-border);border-radius:14px;transition:.3s;"></span>'
     +     '</label>'
     +   '</div>'
 

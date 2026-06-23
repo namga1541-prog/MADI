@@ -648,7 +648,7 @@ function _initParentSidebar() {
     _appLayout.insertBefore(sb, _appLayout.firstChild);
     sb.setAttribute('style',
       'width:68px;display:flex;flex-direction:column;align-items:center;' +
-      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
+      'padding:12px 0;gap:2px;background:var(--card-bg);border-right:1px solid var(--border);' +
       'flex-shrink:0;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,0.06);align-self:stretch;overflow-y:auto;'
     );
   } else {
@@ -658,12 +658,12 @@ function _initParentSidebar() {
     sb.setAttribute('style',
       'position:fixed !important;left:0 !important;top:' + _topPx + 'px !important;bottom:0 !important;' +
       'width:68px;display:flex !important;flex-direction:column;align-items:center;' +
-      'padding:12px 0;gap:2px;background:white;border-right:1px solid #e2e8f0;' +
+      'padding:12px 0;gap:2px;background:var(--card-bg);border-right:1px solid var(--border);' +
       'z-index:9000;box-shadow:2px 0 8px rgba(0,0,0,0.06);'
     );
   }
   var _btnStyle = 'display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;' +
-    'padding:10px 4px;border:none;background:none;border-radius:10px;cursor:pointer;color:#64748b;font-family:inherit;';
+    'padding:10px 4px;border:none;background:none;border-radius:10px;cursor:pointer;color:var(--text2);font-family:inherit;';
   sb.querySelectorAll('button').forEach(function(btn) { btn.style.cssText = _btnStyle; });
   sb.querySelectorAll('.psb-icon').forEach(function(el) { el.style.cssText = 'font-size:20px;line-height:1;'; });
   sb.querySelectorAll('.psb-label').forEach(function(el) { el.style.cssText = 'font-size:10px;font-weight:700;'; });

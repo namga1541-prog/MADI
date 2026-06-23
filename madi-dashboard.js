@@ -193,7 +193,7 @@ function renderDashboardTeacher() {
   var html = ''
     + '<div class="dp-head">'
     +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner())
-    +     '<span class="dp-freshness" style="color:#94a3b8;">' + (freshness ? ' · ' + escHtml(freshness) : '') + '</span>'
+    +     '<span class="dp-freshness" style="color:var(--text2);">' + (freshness ? ' · ' + escHtml(freshness) : '') + '</span>'
     +   '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
@@ -528,14 +528,14 @@ function renderDashboardAdmin() {
   var subText = '이번 달 세션 <b>' + thisMonthSessions.length + '건</b> 완료'
     + (thisMonthSched.length ? ' · 월 계획 <b>' + thisMonthSched.length + '건</b>' : '')
     + (_progressPct != null ? ' · 진도율 <b>' + _progressPct + '%</b>' : '')
-    + (pendingSched.length > 0 ? ' · 미작성 <b style="color:#a16207;">' + pendingSched.length + '건</b>' : '');
+    + (pendingSched.length > 0 ? ' · 미작성 <b style="color:var(--amber);">' + pendingSched.length + '건</b>' : '');
 
   var freshness = _dpFreshnessLabel();
   var html = ''
     + '<div class="dp-head">'
     +   '<div class="dp-greeting">' + escHtml(_dpTodayBanner())
-    +     (role === 'superadmin' ? ' · <span style="color:#d97706;font-weight:700;">전체 센터 집계</span>' : '')
-    +     '<span class="dp-freshness" style="color:#94a3b8;">' + (freshness ? ' · ' + escHtml(freshness) : '') + '</span>'
+    +     (role === 'superadmin' ? ' · <span style="color:var(--amber);font-weight:700;">전체 센터 집계</span>' : '')
+    +     '<span class="dp-freshness" style="color:var(--text2);">' + (freshness ? ' · ' + escHtml(freshness) : '') + '</span>'
     +   '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
@@ -781,22 +781,22 @@ function renderDashboardAdmin() {
     +   '</div>'
     +   '<div class="dp-panel-body">'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:none;cursor:pointer;" ' + a11yClick('세션 기록 작성') + ' onclick="switchTab(2)">'
-    +       '<div class="dp-tl-av dp-av-2" style="background:#fef3c7;color:#a16207;">📝</div>'
+    +       '<div class="dp-tl-av dp-kic-amber">📝</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">' + (pendingSched.length ? '미작성 세션 ' + pendingSched.length + '건 작성' : '세션 기록 작성') + '</div><div class="dp-tl-meta">' + (pendingSched.length ? '이번 달 미작성 — 우선 처리 권장' : '대기 건 없음') + '</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('선생님 라운지·메시지') + ' onclick="switchTab(7)">'
-    +       '<div class="dp-tl-av dp-av-6" style="background:#dbeafe;color:#1e40af;">💬</div>'
+    +       '<div class="dp-tl-av dp-kic-blue">💬</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">선생님 라운지·메시지</div><div class="dp-tl-meta">미작성 리마인드 / 공지 전송</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('선생님 관리·초대') + ' onclick="goToAdmin(\'service\')">'
-    +       '<div class="dp-tl-av dp-av-1" style="background:#dcfce7;color:#15803d;">➕</div>'
+    +       '<div class="dp-tl-av dp-kic-green">➕</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">선생님 관리·초대</div><div class="dp-tl-meta">관리자 콘솔에서 권한 설정</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('월간 보고서·포트폴리오') + ' onclick="switchTab(2)">'
-    +       '<div class="dp-tl-av dp-av-3" style="background:#ede9fe;color:#6d28d9;">📤</div>'
+    +       '<div class="dp-tl-av dp-kic-purple">📤</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">월간 보고서·포트폴리오</div><div class="dp-tl-meta">' + (todayDate.getMonth()+1) + '월 성과 출력</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'

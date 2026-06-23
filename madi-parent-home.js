@@ -139,7 +139,7 @@ function renderParentChildSwitcher() {
   arr.forEach(function(c, i){
     var active = (i === (window._parentActiveIdx || 0));
     html += '<button data-idx="' + i + '" onclick="setActiveParentChild(this.getAttribute(\'data-idx\'))" '
-      + 'style="padding:8px 14px;min-height:40px;border-radius:16px;border:1.5px solid ' + (active ? 'var(--mint)' : 'var(--border)') + ';'
+      + 'style="padding:8px 14px;min-height:44px;border-radius:16px;border:1.5px solid ' + (active ? 'var(--mint)' : 'var(--border)') + ';'
       + 'background:' + (active ? 'var(--mint)' : 'var(--card-bg)') + ';color:' + (active ? 'white' : 'var(--text)') + ';'
       + 'font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">'
       + escHtml(c.name || ('자녀 ' + (i + 1))) + '</button>';
