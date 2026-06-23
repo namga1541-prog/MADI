@@ -67,10 +67,10 @@ function getTodayKST() { return ymd(nowKST()); }
 function getMonthKST() { return getTodayKST().slice(0, 7); }
 
 // 코드에서 canDo() 로 검사하는 모든 권한 키의 기본값. 여기에 없는 키는 fail-closed(차단).
-// ⚠️ viewOtherChildren 은 UI 편의 필터일 뿐 서버 강제 경계가 아니다(M-1). madi_children 에
-//    담당교사 컬럼(assigned_teacher_id)이 없어, 같은 센터 teacher 가 /api 를 직접 호출하면
-//    센터 내 전 아동을 조회할 수 있다(센터 간 격리는 서버가 보장). 임상 PII 격리를 서버에서
-//    강제하려면 컬럼 신설 + api/index.ts teacher 스코프 필터가 필요(다자녀·이관 설계 선행).
+// ✅ viewOtherChildren 서버 강제됨(M-1, 2026-06-24). api/index.ts 가 viewOtherChildren===false 인
+//    teacher 의 READ 를 담당 아동(본인 session·schedule 의 childId 합집합)으로 격리한다. JWT 의
+//    permissions claim 으로 판정 — 스키마 변경 없이 isMyChild 와 동일 규칙으로 다대다(공동치료) 표현.
+//    기본값 true 인 교사는 종전대로 센터 전체 조회(센터 간 격리는 항상 서버 보장).
 var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, deleteAssessment:true, editChild:true };
 function canDo(perm) {
   if (!currentUser) return false;

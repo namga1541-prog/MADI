@@ -254,6 +254,47 @@ const PARENT_VISIBLE_GATED_TABLES = [
   'madi_portfolios'
 ]
 
+// ★ M-1: viewOtherChildren=false 인 teacher 에게 담당 아동만 노출할 child-scope 테이블.
+//   madi_children 은 id, 나머지는 data->>childId / child_id 컬럼으로 격리(학부모 필터와 동일 구조).
+const TEACHER_CHILD_SCOPED = [
+  'madi_children', 'madi_sessions', 'madi_schedules',
+  'madi_assessments', 'madi_iep_history', 'madi_portfolios'
+]
+
+// ★ M-1: teacher 가 담당하는 아동 child_id 집합을 서버에서 권위 계산.
+//   클라이언트 isMyChild(madi-core.js) 와 동일 규칙 — 본인이 teacher(이름) 또는 teacher_id 로
+//   기록된 session·schedule 의 childId 합집합. 스키마 변경 없이 다대다(공동치료)를 자연 표현한다.
+//   best-effort: 개별 쿼리 실패는 해당 분의 child 만 누락(과다노출 아닌 과소노출=fail-closed 방향).
+async function computeTeacherChildIds(
+  supaUrl: string, supaKey: string, centerId: string, name: string, sub: string,
+): Promise<string[]> {
+  const ids = new Set<string>()
+  const H = { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+  async function collect(table: string, jsonCol: string, val: string) {
+    if (!val) return
+    try {
+      const r = await fetch(
+        supaUrl + '/rest/v1/' + table
+          + '?center_id=eq.' + encodeURIComponent(centerId)
+          + '&' + jsonCol + '=eq.' + encodeURIComponent(val)
+          + '&select=data',
+        { headers: H }
+      )
+      if (!r.ok) return
+      const rows = await r.json() as Array<{ data?: Record<string, unknown> }>
+      for (const row of rows) {
+        const cid = (row && row.data) ? row.data.childId : undefined
+        if (cid != null && cid !== '') ids.add(String(cid))
+      }
+    } catch (_) { /* best-effort: 누락은 fail-closed 방향이라 안전 */ }
+  }
+  await collect('madi_sessions',  'data->>teacher',    name)
+  await collect('madi_sessions',  'data->>teacher_id', sub)
+  await collect('madi_schedules', 'data->>teacher',    name)
+  await collect('madi_schedules', 'data->>teacher_id', sub)
+  return Array.from(ids)
+}
+
 Deno.serve(async (req: Request) => {
   const CORS = makeCORS(req.headers.get('origin'))
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -841,6 +882,29 @@ Deno.serve(async (req: Request) => {
       }
       if (!method || method === 'GET') {
         finalPath = path + (path.includes('?') ? '&' : '?') + 'center_id=eq.' + centerId
+
+        // ★ M-1: viewOtherChildren 서버 강제 (담당 아동 PII 격리).
+        //   teacher 의 permissions.viewOtherChildren === false 일 때만, 담당 아동(본인 session·
+        //   schedule 의 childId 합집합) 으로 READ 를 좁힌다. 기본값 true·claim 부재(구토큰)·집합
+        //   계산은 현행 동작(센터 전체) 또는 빈 집합으로 처리 → 일반 교사·구토큰은 무동작(no-op).
+        const _perms = (user.permissions && typeof user.permissions === 'object')
+          ? user.permissions as Record<string, unknown> : null
+        if (_perms && _perms.viewOtherChildren === false && TEACHER_CHILD_SCOPED.includes(tableName)) {
+          const allowed = await computeTeacherChildIds(
+            SUPA_URL, SUPA_KEY, centerId, String(user.name || ''), String(user.sub)
+          )
+          // 빈 집합이면 PostgREST in.() 파싱 오류 방지 + fail-closed 위해 매칭 불가 sentinel 사용.
+          const inList = allowed.length
+            ? allowed.map(function (c) { return encodeURIComponent(c) }).join(',')
+            : '__madi_none__'
+          if (tableName === 'madi_children') {
+            finalPath += '&id=in.(' + inList + ')'
+          } else if (PARENT_CHILD_FILTER_TABLES.includes(tableName)) {
+            finalPath += '&data->>childId=in.(' + inList + ')'
+          } else if (PARENT_CHILD_COLUMN_TABLES.includes(tableName)) {
+            finalPath += '&child_id=in.(' + inList + ')'
+          }
+        }
       } else if (method === 'POST') {
         if (Array.isArray(body)) {
           for (const row of body) {

@@ -255,6 +255,9 @@ Deno.serve(async (req: Request) => {
     name:      user.name,
     role:      user.role,
     center_id: user.center_id,
+    // ★ M-1: viewOtherChildren 서버 강제용. api/index.ts 가 teacher 의 담당 아동 격리 판단에 사용.
+    //   구토큰(이 claim 부재)은 api 에서 미제약(현행 동작)으로 안전 degrade → 재로그인 시 강제 적용.
+    permissions: (user.permissions && typeof user.permissions === 'object') ? user.permissions : {},
     iat,
     exp,
   }
