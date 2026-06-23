@@ -2846,3 +2846,18 @@ body.dark-mode .skeleton {
   margin-right: 12px;
 }
 
+/* ── 접근성: 동작 줄이기(prefers-reduced-motion) 전역 강제 ──
+   기존엔 사이드바 transition 만 껐다(L256). 전정장애·멀미 민감 사용자가 OS에서 "동작 줄이기"를
+   켜도 모달 슬라이드·hover transform·스켈레톤 펄스 등 나머지 모션이 그대로 재생됐다.
+   여기서 앱 전역의 animation/transition 을 사실상 즉시 완료(0.01ms)시켜 모션 멀미를 차단한다.
+   - spinner/skeleton 등 로딩 표시는 정적 상태로 남아 기능(로딩 중 신호)은 유지됨.
+   - duration 0(완전 제거) 대신 0.01ms 로 두어 transitionend/animationend 콜백 의존 로직 보존. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
