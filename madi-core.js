@@ -524,7 +524,7 @@ function _reportClientError(msg, src, lineno, colno, err) {
       method:      'POST',
       credentials: 'include',
       headers:     { 'Content-Type': 'application/json' },
-      body:        JSON.stringify({ path: 'madi_audit_log', method: 'POST', body: payload })
+      body:        JSON.stringify({ path: 'madi_audit_log', method: 'POST', body: [payload] })
     }).catch(function() { /* silent: 리포팅 실패는 조용히 무시 */ });
   } catch (e) { /* silent */ }
 }

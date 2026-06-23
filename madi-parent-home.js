@@ -409,7 +409,7 @@ function _loadParentAssessments(childId, centerId, sessionsFallback) {
       // 2차 필터 (server 우회 방어선)
       var mine = rows.filter(function(a){
         var d = a.data || a;
-        return String(d.childId || d.child_id || a.child_id) === String(childId);
+        return String(d.childId || d.child_id) === String(childId);
       }).map(function(a){
         var d = a.data || a;
         // scores: {언어이해:75, 표현언어:68, ...} 또는 단일 score

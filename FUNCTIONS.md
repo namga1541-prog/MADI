@@ -158,7 +158,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _weekDupOnly = false;` — madi-schedule.js:186
 - `var _lastTeacherBarKey = '';` — madi-schedule.js:187
 - `var _teacherList = [];` — madi-schedule.js:224
-- `var _schedModalDate = null;` — madi-schedule.js:591
+- `var _schedModalDate = null;` — madi-schedule.js:599
 - `var ERROR_LOG_MAX = 100;` — madi-session.js:63
 - `var apiUsage = { calls: 0, inputTokens: 0, outputTokens: 0, byModel: {} };` — madi-session.js:64
 - `var BACKUP_DB_NAME = 'madi_backup_db';` — madi-session.js:291
@@ -1029,29 +1029,29 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _모바일: 치료사별 카드 리스트_ — L439
   ▸ _PC: 기존 테이블_ — L476
 - `renderSessionListForPeriod` — madi-schedule.js:552
-- `openSchedModalForChild` — madi-schedule.js:594
-- `openSchedModal` — madi-schedule.js:610
-- `autoCalcEndTime` — madi-schedule.js:656
-- `toggleRepeatOpt` — madi-schedule.js:670
-- `toggleDayChip` — madi-schedule.js:693
-- `closeSchedModal` — madi-schedule.js:694
-- `saveSchedFromModal` — madi-schedule.js:699
-- `openEditSchedModal` — madi-schedule.js:768
-- `goToSessionFromSched` — madi-schedule.js:807
-- `renderWeekGridByChild` — madi-schedule.js:828
-- `confirmSchedDelete` — madi-schedule.js:898
-- `execSchedDeleteChoice` — madi-schedule.js:931
-- `execSchedDelete` — madi-schedule.js:941
-- `saveEditSched` — madi-schedule.js:991
-  ▸ _일정 내보내기_ — L1017
-- `openScheduleExportModal` — madi-schedule.js:1018
-- `fmt` — madi-schedule.js:1027
-- `closeScheduleExportModal` — madi-schedule.js:1050
-- `_getExportRows` — madi-schedule.js:1055
-- `exportSchedule` — madi-schedule.js:1085
-- `_printSchedule` — madi-schedule.js:1117
-- `_exportScheduleRtf` — madi-schedule.js:1152
-  ▸ _표준화 검사_ — L1172
+- `openSchedModalForChild` — madi-schedule.js:602
+- `openSchedModal` — madi-schedule.js:618
+- `autoCalcEndTime` — madi-schedule.js:664
+- `toggleRepeatOpt` — madi-schedule.js:678
+- `toggleDayChip` — madi-schedule.js:701
+- `closeSchedModal` — madi-schedule.js:702
+- `saveSchedFromModal` — madi-schedule.js:707
+- `openEditSchedModal` — madi-schedule.js:776
+- `goToSessionFromSched` — madi-schedule.js:815
+- `renderWeekGridByChild` — madi-schedule.js:836
+- `confirmSchedDelete` — madi-schedule.js:906
+- `execSchedDeleteChoice` — madi-schedule.js:939
+- `execSchedDelete` — madi-schedule.js:949
+- `saveEditSched` — madi-schedule.js:999
+  ▸ _일정 내보내기_ — L1025
+- `openScheduleExportModal` — madi-schedule.js:1026
+- `fmt` — madi-schedule.js:1035
+- `closeScheduleExportModal` — madi-schedule.js:1058
+- `_getExportRows` — madi-schedule.js:1063
+- `exportSchedule` — madi-schedule.js:1093
+- `_printSchedule` — madi-schedule.js:1125
+- `_exportScheduleRtf` — madi-schedule.js:1160
+  ▸ _표준화 검사_ — L1180
 
 ## madi-session.js (43함수)
   ▸ _보안: API 키 마스킹 / 토글_ — L1

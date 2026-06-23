@@ -553,7 +553,6 @@ function renderSessionListForPeriod(dates) {
   var el = document.getElementById('weekSessionList');
   if (!el) return;
   var childById = _schedChildById();
-  var all = [];
   var targetDates = dates || [];
   if (!dates) {
     var year = schedCurrentDate.getFullYear();
@@ -561,10 +560,19 @@ function renderSessionListForPeriod(dates) {
     var last = new Date(year, month+1, 0).getDate();
     for (var d = 1; d <= last; d++) targetDates.push(ymd(new Date(year, month, d)));
   }
+  // 날짜→일정 룩업 맵 + 세션 존재 Set — O(N) 전처리로 O(날짜×일정×세션) → O(일정+세션)
+  var schedByDate = {};
+  scheduleDB.forEach(function(s) {
+    if (!schedByDate[s.date]) schedByDate[s.date] = [];
+    schedByDate[s.date].push(s);
+  });
+  var sessionSet = {};
+  sessionDB.forEach(function(ss) { sessionSet[ss.childId + '|' + ss.date] = true; });
+  var all = [];
   targetDates.forEach(function(date) {
-    scheduleDB.filter(function(s){ return s.date === date; }).forEach(function(s) {
+    (schedByDate[date] || []).forEach(function(s) {
       var child = childById[s.childId];
-      var hasNote = sessionDB.some(function(ss){ return ss.childId === s.childId && ss.date === s.date; });
+      var hasNote = !!sessionSet[s.childId + '|' + date];
       all.push({ date: date, child: child, sched: s, hasNote: hasNote });
     });
   });
