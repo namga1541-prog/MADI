@@ -554,11 +554,11 @@ function generateMonthlyReport() {
   var monthS = all.filter(function(s) { return s.date && s.date.slice(0, 7) === month; });
   if (!monthS.length) { showToast('해당 월 세션 기록이 없습니다.'); return; }
 
-  // 이전 달 키 계산 (전월 대비 delta 용)
+  // 이전 달 키 계산 (전월 대비 delta 용) — Date/toISOString 미사용(KST 드리프트 회피), 순수 산술
   var ym = month.split('-');
-  var pmDate = new Date(Date.UTC(parseInt(ym[0], 10), parseInt(ym[1], 10) - 1, 1));
-  pmDate.setUTCMonth(pmDate.getUTCMonth() - 1);
-  var prevKey = pmDate.toISOString().slice(0, 7);
+  var curM = parseInt(ym[1], 10), prevY = parseInt(ym[0], 10), pM = curM - 1; // curM·pM: 1~12
+  if (pM < 1) { pM = 12; prevY -= 1; }
+  var prevKey = prevY + '-' + String(pM).padStart(2, '0');
   var prevS = all.filter(function(s) { return s.date && s.date.slice(0, 7) === prevKey; });
 
   // 목표별 첫/끝 점수 (from 은 전월 마지막 점수 우선, 없으면 이번 달 첫 점수)
