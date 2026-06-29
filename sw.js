@@ -1,4 +1,4 @@
-var CACHE_NAME = "madi-v5-20260629-180824";
+var CACHE_NAME = "madi-v5-20260629-183319";
 // 외부 API · 인증 응답은 캐시하지 않는다 (민감 응답 보호)
 var SKIP_HOSTS = ["api.anthropic.com","googleapis.com"];
 // 경로 기반 차단 — Supabase Edge Function 및 REST/Storage/Auth 응답
