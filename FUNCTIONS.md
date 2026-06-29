@@ -188,7 +188,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SLP_REPORT_SAMPLE_LANG = ''` — madi-vocab.js:440
 - `var SLP_REPORT_SAMPLE_SI = ''` — madi-vocab.js:593
 
-## madi-ai.js (29함수)
+## madi-ai.js (40함수)
 - `generateReport` — madi-ai.js:6
 - `resetBtn` — madi-ai.js:44
 - `renderReport` — madi-ai.js:70
@@ -211,21 +211,33 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `generateActivities` — madi-ai.js:406
 - `resetBtn` — madi-ai.js:454
 - `renderActivities` — madi-ai.js:474
-- `_monthBlock` — madi-ai.js:509
-- `renderIEP` — madi-ai.js:519
-- `renderIEPHistory` — madi-ai.js:623
-- `loadIEPRecord` — madi-ai.js:656
-- `renderIEPView` — madi-ai.js:666
-- `downloadIEPPDFById` — madi-ai.js:708
-- `deleteIEPRecord` — madi-ai.js:718
-- `downloadIEPPDF` — madi-ai.js:752
-- `monthSection` — madi-ai.js:760
-  ▸ _W5: 활동 자료 카탈로그_ — L801
-  ▸ _W8: 효과 통계 대시보드_ — L802
-- `renderEffectStats` — madi-ai.js:803
-- `avgGoalScore` — madi-ai.js:835
-- `statCard` — madi-ai.js:855
-  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L910
+  ▸ _월간 성장 리포트 (AI)_ — L509
+- `_monthsWithSessions` — madi-ai.js:512
+- `fillMrMonths` — madi-ai.js:521
+- `generateMonthlyReport` — madi-ai.js:541
+- `avgOf` — madi-ai.js:579
+- `resetBtn` — madi-ai.js:614
+- `fix` — madi-ai.js:618
+- `renderMonthlyReport` — madi-ai.js:638
+- `kpiCard` — madi-ai.js:643
+- `barRow` — madi-ai.js:646
+- `liRows` — madi-ai.js:650
+- `copyMrKakao` — madi-ai.js:672
+- `_monthBlock` — madi-ai.js:683
+- `renderIEP` — madi-ai.js:693
+- `renderIEPHistory` — madi-ai.js:797
+- `loadIEPRecord` — madi-ai.js:830
+- `renderIEPView` — madi-ai.js:840
+- `downloadIEPPDFById` — madi-ai.js:882
+- `deleteIEPRecord` — madi-ai.js:892
+- `downloadIEPPDF` — madi-ai.js:926
+- `monthSection` — madi-ai.js:934
+  ▸ _W5: 활동 자료 카탈로그_ — L975
+  ▸ _W8: 효과 통계 대시보드_ — L976
+- `renderEffectStats` — madi-ai.js:977
+- `avgGoalScore` — madi-ai.js:1009
+- `statCard` — madi-ai.js:1029
+  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L1084
 
 ## madi-app.js (60함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
@@ -700,11 +712,11 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _세션탭 종결 아동 포함 토글_ — L690
 - `toggleDischargedInSession` — madi-growth.js:693
 - `populateChildSelects` — madi-growth.js:705
-  ▸ _발화 샘플 분석 (MLU · TTR)_ — L823
-- `toggleSpeechPanel` — madi-growth.js:824
-- `analyzeSpeechSample` — madi-growth.js:836
-- `runSpeechAnalysis` — madi-growth.js:857
-- `appendSpeechResultToMemo` — madi-growth.js:887
+  ▸ _발화 샘플 분석 (MLU · TTR)_ — L831
+- `toggleSpeechPanel` — madi-growth.js:832
+- `analyzeSpeechSample` — madi-growth.js:844
+- `runSpeechAnalysis` — madi-growth.js:865
+- `appendSpeechResultToMemo` — madi-growth.js:895
 
 ## madi-home.js (46함수)
 - `loadCenterApiKey` — madi-home.js:8

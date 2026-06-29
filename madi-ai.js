@@ -506,6 +506,180 @@ function renderActivities(list, childName) {
     + '</div>';
 }
 
+// ── 월간 성장 리포트 (AI) ───────────────────────────────────────────────
+// 한 달치 세션을 자동 집계 — KPI·목표별 달성률 변화는 클라이언트가 정확히 계산하고,
+// AI 는 서술(총평·하이라이트·가정활동·다음달 포커스·카카오 문구)만 작성. 선생님은 검토·발송만.
+function _monthsWithSessions(childId) {
+  childId = String(childId || '');
+  var set = {};
+  sessionDB.filter(function(s) { return s.childId === childId; }).forEach(function(s) {
+    if (s.date && s.date.length >= 7) set[s.date.slice(0, 7)] = true;
+  });
+  return Object.keys(set).sort().reverse();
+}
+
+function fillMrMonths(childId) {
+  var sel = document.getElementById('mrMonth');
+  if (!sel) return;
+  childId = String(childId || '');
+  var months = childId ? _monthsWithSessions(childId) : [];
+  sel.innerHTML = '';
+  if (!months.length) {
+    var o0 = document.createElement('option');
+    o0.value = ''; o0.textContent = childId ? '세션 기록 없음' : '아동을 먼저 선택하세요';
+    sel.appendChild(o0);
+    return;
+  }
+  months.forEach(function(m) {
+    var p = m.split('-');
+    var o = document.createElement('option');
+    o.value = m; o.textContent = p[0] + '년 ' + parseInt(p[1], 10) + '월';
+    sel.appendChild(o);
+  });
+}
+
+function generateMonthlyReport() {
+  if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
+  if (!getApiKeyOrAlert()) return;
+  var childId = String((document.getElementById('mrChild') || {}).value || '');
+  var month = String((document.getElementById('mrMonth') || {}).value || '');
+  if (!childId) { showToast('아동을 선택해주세요.'); return; }
+  if (!month) { showToast('대상 월을 선택해주세요.'); return; }
+  var child = childDB.find(function(c) { return c.id === childId; });
+  if (!child) return;
+
+  var all = sessionDB.filter(function(s) { return s.childId === childId; })
+    .sort(function(a, b) { return a.date < b.date ? -1 : 1; });
+  var monthS = all.filter(function(s) { return s.date && s.date.slice(0, 7) === month; });
+  if (!monthS.length) { showToast('해당 월 세션 기록이 없습니다.'); return; }
+
+  // 이전 달 키 계산 (전월 대비 delta 용)
+  var ym = month.split('-');
+  var pmDate = new Date(Date.UTC(parseInt(ym[0], 10), parseInt(ym[1], 10) - 1, 1));
+  pmDate.setUTCMonth(pmDate.getUTCMonth() - 1);
+  var prevKey = pmDate.toISOString().slice(0, 7);
+  var prevS = all.filter(function(s) { return s.date && s.date.slice(0, 7) === prevKey; });
+
+  // 목표별 첫/끝 점수 (from 은 전월 마지막 점수 우선, 없으면 이번 달 첫 점수)
+  var goalFirst = {}, goalLast = {}, prevLast = {};
+  monthS.forEach(function(s) { (s.goals || []).forEach(function(g) {
+    if (g && g.name && g.score !== null && g.score !== undefined) {
+      if (goalFirst[g.name] === undefined) goalFirst[g.name] = parseFloat(g.score);
+      goalLast[g.name] = parseFloat(g.score);
+    }
+  }); });
+  prevS.forEach(function(s) { (s.goals || []).forEach(function(g) {
+    if (g && g.name && g.score !== null && g.score !== undefined) prevLast[g.name] = parseFloat(g.score);
+  }); });
+  var goals = Object.keys(goalLast).map(function(n) {
+    var from = (prevLast[n] !== undefined) ? prevLast[n] : goalFirst[n];
+    return { name: n, from: Math.round(from), to: Math.round(goalLast[n]) };
+  });
+  function avgOf(arr) {
+    var v = [];
+    arr.forEach(function(s) { (s.goals || []).forEach(function(g) {
+      if (g && g.score !== null && g.score !== undefined) v.push(parseFloat(g.score));
+    }); });
+    return v.length ? Math.round(v.reduce(function(a, b) { return a + b; }, 0) / v.length) : 0;
+  }
+  var avgNow = avgOf(monthS), avgPrev = avgOf(prevS);
+  var kpi = { sessions: monthS.length, avg: avgNow, delta: (avgPrev ? avgNow - avgPrev : 0),
+              improved: goals.filter(function(g) { return g.to > g.from; }).length };
+
+  var btn = document.getElementById('mrBtn'), resEl = document.getElementById('mrResult');
+  if (!btn || !resEl) return;
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = '⏳ 집계·작성 중...';
+  resEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px;">🤖 ' + escHtml(child.name) + ' ' + escHtml(month) + ' 리포트를 작성 중...</div>';
+
+  var NL = String.fromCharCode(10);
+  var goalLine = goals.map(function(g) { return g.name + ' ' + g.from + '→' + g.to + '%'; }).join(', ') || '기록된 점수 없음';
+  var memoLine = monthS.map(function(s) {
+    var g = (s.goals || []).map(function(g) { return g.name + (g.score !== null && g.score !== undefined ? g.score + '%' : ''); }).join(', ');
+    return s.date + ': [' + g + ']' + (s.memo ? ' ' + s.memo : '');
+  }).join(NL);
+  var _parentGuide = (typeof SLP_PROMPT_PARENT_GUIDE !== 'undefined') ? SLP_PROMPT_PARENT_GUIDE : '';
+  var SYSTEM = '당신은 한국 언어치료 현장의 베테랑 언어재활사입니다. 한 달간의 치료 데이터를 근거로 학부모용 월간 리포트의 서술 부분만 작성하세요. 수치(세션 수·달성률·목표 변화)는 이미 계산되어 있으니 문장만 작성합니다. 순수 JSON만:'
+    + NL + '{"summary":"이번 달 한 줄 총평(따뜻한 존댓말)","highlights":["구체적 성취 2-3개"],"homeActivities":["5분 내 실천 가능한 가정활동 2개"],"nextFocus":"다음 달 집중 방향 1문장","kakao":"카카오톡 발송용 친근한 메시지, 이모지 포함, 180자 내외"}'
+    + NL + '【언어 규칙】부모(주 양육자)가 읽습니다. 쉬운 일상 언어만 사용하고 어려운 한자어("증진","도모","정체 타개" 등)는 금지.'
+    + NL + _parentGuide + AI_NAME_RULE;
+  // 개인정보 최소화(M2): 실명 대신 가명 ○○ 전송 → 응답에서 클라이언트 복원
+  var USER = '아동: ○○ (' + child.age + ', ' + child.type + ')'
+    + NL + '대상 월: ' + month
+    + NL + '세션 ' + kpi.sessions + '회, 평균 달성률 ' + kpi.avg + '%' + (kpi.delta ? ' (전월대비 ' + (kpi.delta > 0 ? '+' : '') + kpi.delta + ')' : '')
+    + NL + '목표별 변화: ' + goalLine
+    + NL + NL + '[세션 메모]' + NL + memoLine;
+
+  function resetBtn() { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '📈 월간 리포트 생성 (AI)'; }
+  callClaude(SYSTEM, USER, 1600, getAIModel())
+    .then(function(raw) {
+      var p = parseJSON(raw) || {};
+      function fix(v) {
+        if (typeof v !== 'string') return v;
+        if (typeof sanitizeSLPOutput === 'function') v = sanitizeSLPOutput(v, 'parent');
+        return restoreName(v, child.name);
+      }
+      p.summary = fix(p.summary || '');
+      p.nextFocus = fix(p.nextFocus || '');
+      p.kakao = fix(p.kakao || '');
+      p.highlights = (Array.isArray(p.highlights) ? p.highlights : []).map(fix);
+      p.homeActivities = (Array.isArray(p.homeActivities) ? p.homeActivities : []).map(fix);
+      renderMonthlyReport(p, child.name, kpi, goals, month);
+      resetBtn();
+    })
+    .catch(function(err) {
+      if (window.console && console.warn) console.warn('[월간 리포트]', err && err.message);
+      resEl.innerHTML = '<div style="padding:12px;color:var(--red);font-size:13px;">❌ ' + escHtml(_userErrMsg(err, '월간 리포트 생성')) + '</div>';
+      resetBtn();
+    });
+}
+
+function renderMonthlyReport(p, childName, kpi, goals, month) {
+  var resEl = document.getElementById('mrResult');
+  if (!resEl) return;
+  var ym = month.split('-');
+  var monthLabel = ym[0] + '년 ' + parseInt(ym[1], 10) + '월';
+  function kpiCard(label, val, sub) {
+    return '<div style="background:#f8fafc;border-radius:10px;padding:10px 12px;flex:1;min-width:80px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">' + label + '</div><div style="font-size:20px;font-weight:700;color:var(--text);">' + val + (sub ? '<span style="font-size:11px;color:#0F6E56;font-weight:400;"> ' + sub + '</span>' : '') + '</div></div>';
+  }
+  function barRow(g) {
+    var to = Math.max(0, Math.min(100, g.to)), from = Math.max(0, Math.min(100, g.from)), d = to - from;
+    return '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--text);">' + escHtml(g.name) + '</span><span style="color:var(--text);">' + to + '% ' + (d ? '<span style="font-size:10px;color:' + (d > 0 ? '#0F6E56' : '#dc2626') + ';">(' + (d > 0 ? '+' : '') + d + ')</span>' : '') + '</span></div><div style="position:relative;height:7px;background:#eef2f7;border-radius:20px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:' + from + '%;background:#CECBF6;"></div><div style="position:absolute;left:0;top:0;bottom:0;width:' + to + '%;background:var(--mint);border-radius:20px;"></div></div></div>';
+  }
+  function liRows(arr, icon) {
+    return (arr || []).map(function(t) {
+      return '<div style="display:flex;gap:7px;margin-top:6px;"><span style="flex-shrink:0;">' + icon + '</span><span style="font-size:13px;color:var(--text2);line-height:1.5;">' + escHtml(String(t)) + '</span></div>';
+    }).join('');
+  }
+  var html = '<div style="background:white;border-radius:12px;padding:16px;box-shadow:var(--shadow);border-top:4px solid var(--mint);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-size:15px;font-weight:700;color:var(--mint);">📈 ' + monthLabel + ' 성장 리포트</div><div style="font-size:11px;color:var(--text2);">' + escHtml(String(childName || '')) + '</div></div>'
+    + AI_PROCESSING_NOTICE
+    + (p.summary ? '<div style="font-size:13px;color:var(--text);line-height:1.6;background:#f0fdfa;border-radius:8px;padding:10px 12px;margin-bottom:12px;">' + escHtml(p.summary) + '</div>' : '')
+    + '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">' + kpiCard('세션', kpi.sessions + '회') + kpiCard('평균 달성률', kpi.avg + '%', (kpi.delta ? ((kpi.delta > 0 ? '+' : '') + kpi.delta) : '')) + kpiCard('향상 목표', kpi.improved + '개') + '</div>'
+    + (goals.length ? '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">목표별 변화</div>' + goals.map(barRow).join('') : '')
+    + (p.highlights && p.highlights.length ? '<div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 2px;">이달의 하이라이트</div>' + liRows(p.highlights, '✨') : '')
+    + (p.homeActivities && p.homeActivities.length ? '<div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 2px;">가정에서 해보세요</div>' + liRows(p.homeActivities, '🏠') : '')
+    + (p.nextFocus ? '<div style="margin-top:14px;background:#f8fafc;border-radius:8px;padding:10px 12px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">다음 달 포커스</div><div style="font-size:13px;color:var(--text);line-height:1.5;">' + escHtml(p.nextFocus) + '</div></div>' : '')
+    + (p.kakao ? '<div style="margin-top:14px;"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">💛 카카오톡 발송 문구</div><div class="kakao-box" id="mrKakaoText">' + escHtml(p.kakao) + '</div><button class="copy-btn" onclick="copyMrKakao()">📋 복사</button></div>' : '')
+    + '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="document.getElementById(\'mrResult\').innerHTML=\'\'">닫기</button>'
+    + '</div>';
+  // 모든 동적값(목표명·AI 서술)은 escHtml 처리, KPI 는 클라 계산 숫자 — map 체인이라 린터 추적 불가로 disable
+  // eslint-disable-next-line no-unsanitized/property
+  resEl.innerHTML = html;
+}
+
+function copyMrKakao() {
+  var el = document.getElementById('mrKakaoText');
+  if (!el) return;
+  var text = el.textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() { showToast('📋 복사됨!'); }).catch(function() { showToast('⚠️ 클립보드 복사 실패. 직접 선택 후 복사해주세요'); });
+  } else {
+    showToast('⚠️ 이 브라우저는 자동 복사를 지원하지 않습니다');
+  }
+}
+
 function _monthBlock(month, goals) {
   if (!goals || goals.length === 0) return '';
   return '<div style="margin-bottom:8px;">'

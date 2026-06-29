@@ -1836,6 +1836,24 @@
       <button class="btn btn-primary" id="eduBtn" onclick="generateParentEdu()" style="background:var(--green);">🖨️ 부모 교육 자료 생성</button>
       <div id="eduResult" style="margin-top:12px;"></div>
     </div>
+
+    <div class="card" style="margin-top:0;border:2px solid var(--mint);">
+      <div class="card-title">
+        <div class="card-title-left" style="color:var(--mint);">📈 월간 성장 리포트</div>
+        <span style="font-size:11px;color:var(--text2);font-weight:400;">자동 집계 · 검토만</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">한 달치 세션을 <strong>자동으로 집계</strong>해 달성률 변화·하이라이트·가정활동·다음 달 포커스를 한 장으로 정리합니다. 선생님은 검토 후 발송만 하면 됩니다.</p>
+      <div class="form-group">
+        <label class="form-label" for="mrChild">아동 선택</label>
+        <select class="form-input" id="mrChild" style="margin-bottom:8px;"><option value="">아동 검색...</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="mrMonth">대상 월</label>
+        <select class="form-input" id="mrMonth" style="margin-bottom:8px;"><option value="">아동을 먼저 선택하세요</option></select>
+      </div>
+      <button class="btn" id="mrBtn" style="background:var(--mint);color:#fff;" onclick="generateMonthlyReport()">📈 월간 리포트 생성 (AI)</button>
+      <div id="mrResult" style="margin-top:12px;"></div>
+    </div>
     </div><!-- /.rep-grid-col (left) -->
 
     <div class="card" style="margin-top:0;border:2px solid var(--purple);">

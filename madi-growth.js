@@ -726,12 +726,12 @@ function populateChildSelects() {
   }
 
   ['sessionChild','chartChild','reportChild','portfolioChild','faqChild',
-   'assessChild','eduChild','iepChild','actChild','scheduleChildSel'].forEach(function(id) {
+   'assessChild','eduChild','iepChild','actChild','mrChild','scheduleChildSel'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
     var cur = el.value;
     var needsEmpty = ['sessionChild','chartChild',
-                      'reportChild','portfolioChild','faqChild','eduChild','iepChild','actChild'];
+                      'reportChild','portfolioChild','faqChild','eduChild','iepChild','actChild','mrChild'];
     // sessionChild는 종결 아동 자동 제외 — 토글 ON 시 포함 (🔒 종결 아동 포함 버튼)
     var optsHtml;
     if (id === 'sessionChild') {
@@ -807,9 +807,17 @@ function populateChildSelects() {
       if (typeof renderActGoals === 'function') renderActGoals(this.value);
     });
   }
+  // mrChild 변경 시 세션이 있는 월 목록 채움
+  var mrc = document.getElementById('mrChild');
+  if (mrc && !mrc._mrBound) {
+    mrc._mrBound = true;
+    mrc.addEventListener('change', function() {
+      if (typeof fillMrMonths === 'function') fillMrMonths(this.value);
+    });
+  }
   // 검색 셀렉트 적용
   ['sessionChild','chartChild','reportChild','portfolioChild','faqChild',
-   'assessChild','eduChild','iepChild','actChild'].forEach(function(id) {
+   'assessChild','eduChild','iepChild','actChild','mrChild'].forEach(function(id) {
     makeSearchable(id);
   });
   // assessChild는 별도 wrap에 이동
