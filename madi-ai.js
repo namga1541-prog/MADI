@@ -444,8 +444,8 @@ function generateActivities() {
     + NL + '4. 아동이 즐거워할 놀이 형태로, 연령에 맞게 구성.'
     + NL + '【언어 규칙】치료사(선생님)가 읽습니다. 군더더기 없이 실무적으로 작성하세요.'
     + AI_NAME_RULE
-    + NL + '반드시 순수 JSON 배열만 출력. 마크다운 코드블록 금지.'
-    + NL + '[{"title":"활동명","targetSkill":"겨냥 목표(짧게)","materials":"준비물","minutes":숫자,"steps":["단계1","단계2"]}]';
+    + NL + '반드시 순수 JSON 객체만 출력. 마크다운 코드블록 금지.'
+    + NL + '{"activities":[{"title":"활동명","targetSkill":"겨냥 목표(짧게)","materials":"준비물","minutes":숫자,"steps":["단계1","단계2"]}]}';
 
   var USER = '아동 정보 — 연령: ' + child.age + ', 진단: ' + child.type
     + NL + '세션 시간: ' + dur + '분'
@@ -455,7 +455,7 @@ function generateActivities() {
     btn.dataset.busy = ''; btn.disabled = false;
     btn.textContent = '✨ 오늘의 활동 추천받기 (AI)';
   }
-  callClaude(SYSTEM, USER, 1800, getAIModel())
+  callClaude(SYSTEM, USER, 1800, MODEL_HAIKU)
     .then(function(raw) {
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'therapist');
       var list = parseJSON(raw);
@@ -612,7 +612,7 @@ function generateMonthlyReport() {
     + NL + NL + '[세션 메모]' + NL + memoLine;
 
   function resetBtn() { btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '📈 월간 리포트 생성 (AI)'; }
-  callClaude(SYSTEM, USER, 1600, getAIModel())
+  callClaude(SYSTEM, USER, 1600, MODEL_HAIKU)
     .then(function(raw) {
       var p = parseJSON(raw) || {};
       function fix(v) {
