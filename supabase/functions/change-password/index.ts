@@ -31,7 +31,9 @@ async function verifyPassword(plain: string, stored: string): Promise<boolean> {
 
 // ── 메인 핸들러 ───────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
-  const CORS = makeCORS(req.headers.get('origin'), { allowNullOrigin: true })
+  // ★ [HIGH] allowNullOrigin 제거 — 운영에서 null Origin(file://·sandboxed iframe) 응답읽기 차단.
+  //   로컬 dev 는 localhost:3000 Origin 으로 허용됨(file:// 직접 실행 미지원).
+  const CORS = makeCORS(req.headers.get('origin'))
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   const JWT_SECRET = Deno.env.get('MADI_JWT_SECRET')
@@ -139,6 +141,10 @@ Deno.serve(async (req: Request) => {
     exp:       iat + 24 * 3600,
   }
   if (user.parent_child_id !== undefined) newPayload.parent_child_id = user.parent_child_id
+  // ★ M-1 회귀 차단: permissions 클레임을 새 토큰에 반드시 승계한다.
+  //   누락 시 비번 변경 직후 발급된 토큰에 permissions 가 없어 api/index.ts 의
+  //   viewOtherChildren 서버 격리(_perms 분기)가 no-op 으로 떨어져 24h 동안 담당 아동 PII 격리가 해제된다.
+  if (user.permissions !== undefined) newPayload.permissions = user.permissions
   const newToken     = await signJwt(newPayload, JWT_SECRET)
   const cookieHeader = `madi_session=${newToken}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=86400`
 

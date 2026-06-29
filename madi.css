@@ -2479,6 +2479,7 @@ body.dark-mode .quick-card.qc-todo { border-color: #7f1d1d; background: linear-g
 .quick-done-card .qdc-sub   { font-size:12px; margin-top:6px; color:#047857; }
 body.dark-mode .quick-done-card .qdc-title { color:var(--mint); }
 body.dark-mode .quick-done-card .qdc-sub   { color:#5eead4; }
+body.dark-mode .quick-card .qc-diag { background: rgba(99, 102, 241, 0.22); color: #a5b4fc; }
 
 /* 빠른기록 받아쓰기/AI 버튼 — 인라인 파스텔색 제거(다크모드 대응). recording 은 클래스 토글. */
 .qk-mic-btn { min-height:44px; padding:7px 12px; font-size:13px; font-weight:700; background:#fef3c7; border:1px solid #fcd34d; color:#92400e; }

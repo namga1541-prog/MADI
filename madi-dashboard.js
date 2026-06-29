@@ -349,7 +349,7 @@ function renderDashboardTeacher() {
     +       '<div class="dp-week-item"><div class="dp-week-num">' + weekSched.length + '</div><div class="dp-week-label">주간 일정</div></div>'
     +       '<div class="dp-week-item"><div class="dp-week-num ' + (weekPending ? '' : '') + '">' + weekPending + '</div><div class="dp-week-label">미작성</div></div>'
     +     '</div>'
-    +     (weekSchedFuture ? '<div style="margin-top:10px;font-size:11px;color:#94a3b8;text-align:center;">남은 일정 ' + weekSchedFuture + '건은 아직 작성 의무 도래 전이에요</div>' : '')
+    +     (weekSchedFuture ? '<div style="margin-top:10px;font-size:11px;color:var(--text2);text-align:center;">남은 일정 ' + weekSchedFuture + '건은 아직 작성 의무 도래 전이에요</div>' : '')
     +   '</div>'
     + '</div>';
 
@@ -660,18 +660,18 @@ function renderDashboardAdmin() {
     +     '<div class="dp-chart">'
     +       '<div class="dp-chart-grid"><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div><div class="dp-chart-grid-line"></div></div>'
     +       '<svg class="dp-chart-svg" role="img" aria-label="이번 달 일별 세션 추이 그래프. 실제 누적 ' + thisMonthSessions.length + '회, 계획 ' + thisMonthSched.length + '회." viewBox="0 0 ' + chartW + ' ' + chartH + '" preserveAspectRatio="none">'
-    +         '<defs><linearGradient id="dpGradActual" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f3b66" stop-opacity="0.2"/><stop offset="100%" stop-color="#0f3b66" stop-opacity="0"/></linearGradient></defs>'
-    +         '<polyline points="' + planPts.join(' ') + '" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,4"/>'
+    +         '<defs><linearGradient id="dpGradActual" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--mint)" stop-opacity="0.2"/><stop offset="100%" stop-color="var(--mint)" stop-opacity="0"/></linearGradient></defs>'
+    +         '<polyline points="' + planPts.join(' ') + '" fill="none" stroke="var(--text2)" stroke-width="1.5" stroke-dasharray="5,4"/>'
     +         '<polygon points="' + realArea.join(' ') + '" fill="url(#dpGradActual)"/>'
-    +         '<polyline points="' + realPts.join(' ') + '" fill="none" stroke="#0f3b66" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    +         '<polyline points="' + realPts.join(' ') + '" fill="none" stroke="var(--mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
     +       '</svg>'
     +     '</div>'
     +     '<div class="dp-chart-x">'
     +       '<span>1일</span><span>' + Math.round(daysInMonth/4) + '일</span><span>' + Math.round(daysInMonth/2) + '일</span><span>' + Math.round(daysInMonth*3/4) + '일</span><span>' + daysInMonth + '일</span>'
     +     '</div>'
     +     '<div class="dp-chart-legend">'
-    +       '<div class="dp-chart-leg"><div class="dp-chart-leg-dot" style="background:#0f3b66;"></div>실제 (누적 ' + thisMonthSessions.length + '회)</div>'
-    +       '<div class="dp-chart-leg"><div class="dp-chart-leg-dot" style="background:#94a3b8;"></div>계획 (목표 ' + thisMonthSched.length + '회)</div>'
+    +       '<div class="dp-chart-leg"><div class="dp-chart-leg-dot" style="background:var(--mint);"></div>실제 (누적 ' + thisMonthSessions.length + '회)</div>'
+    +       '<div class="dp-chart-leg"><div class="dp-chart-leg-dot" style="background:var(--text2);"></div>계획 (목표 ' + thisMonthSched.length + '회)</div>'
     +       '<div class="dp-chart-leg ok">진도율 ' + progressPct + '%</div>'
     +     '</div>'
     +   '</div>'
@@ -829,13 +829,13 @@ function _dpRenderTeacherRows(rows, placeholder) {
     + '</div>';
   var body = rows.slice(0, 10).map(function(t){
     var meta = t.inactive ? '활동 없음' : '활동 중';
-    var nameStyle = t.inactive ? 'color:#94a3b8;' : '';
+    var nameStyle = t.inactive ? 'color:var(--text2);' : '';
     return ''
       + '<div class="dp-trow">'
       +   '<div class="dp-tav ' + _dpAvatarClass(t.name) + '" style="' + (t.inactive ? 'opacity:0.55;' : '') + '">' + escHtml(_dpInitial(t.name)) + '</div>'
       +   '<div class="dp-tinfo"><div class="dp-tname" style="' + nameStyle + '">' + escHtml(t.name) + '</div><div class="dp-tmeta">' + meta + '</div></div>'
       +   '<div class="dp-tstat"><div class="dp-tstat-num">' + (t.count || 0) + '</div><div class="dp-tstat-label">명</div></div>'
-      +   '<div class="dp-tstat"><div class="dp-tstat-num">' + (t.weekSession || 0) + '<small style="color:#94a3b8;font-weight:600;">/' + (t.weekSched || 0) + '</small></div><div class="dp-tstat-label"></div></div>'
+      +   '<div class="dp-tstat"><div class="dp-tstat-num">' + (t.weekSession || 0) + '<small style="color:var(--text2);font-weight:600;">/' + (t.weekSched || 0) + '</small></div><div class="dp-tstat-label"></div></div>'
       +   '<div class="dp-tstat"><div class="dp-tstat-num ' + (t.unwritten ? 'warn' : '') + '">' + (t.unwritten || 0) + '</div><div class="dp-tstat-label">건</div></div>'
       + '</div>';
   }).join('');

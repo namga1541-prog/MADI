@@ -207,7 +207,7 @@ function _cleanupLegacyGithubToken() {
     tx.oncomplete = function() { db.close(); };
     tx.onerror    = function() { db.close(); };
     tx.onabort    = function() { db.close(); };
-  }).catch(function() {});
+  }).catch(function(e) { console.warn('[deploy] 레거시 토큰 정리 실패', e); });
 }
 
 function deployFileViaProxy(filename, textContent, commitMsg) {

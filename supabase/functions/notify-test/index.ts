@@ -14,7 +14,8 @@ import { makeCORS, getAuthToken, verifyJwt, requireFreshSession, checkRateLimit,
 
 // ── 메인 핸들러 ─────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
-  const CORS = makeCORS(req.headers.get('origin'), { allowNullOrigin: true });
+  // ★ [HIGH] allowNullOrigin 제거 — null Origin 응답읽기 차단 (localhost dev 는 유지)
+  const CORS = makeCORS(req.headers.get('origin'));
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
 
   const JWT_SECRET = Deno.env.get('MADI_JWT_SECRET');

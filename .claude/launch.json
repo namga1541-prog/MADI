@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "boim",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5400", "C:\\Users\\남재현\\Desktop\\boim-app"],
+      "port": 5400
+    },
+    {
       "name": "riskpass",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "-p", "5200", "C:\\Users\\남재현\\Desktop\\riskpass"],

@@ -707,6 +707,14 @@ function populateChildSelects() {
   var lastChild = childDB.length > 0 ? childDB[childDB.length - 1] : null;
   var cacheKey = childDB.length + ':' + (lastChild ? (lastChild.id + ':' + lastChild.name) : 'empty');
 
+  // 조기 리턴 가드 — 아동 목록(cacheKey)과 종결 토글 상태가 모두 직전 렌더와 동일하면
+  // DOM 재구성 불필요. 폴링·탭전환 다중 호출 시 불필요한 innerHTML 교체·reflow 방지.
+  // select 의 현재 선택값은 이미 DOM 에 반영되어 있으므로 조기 리턴 시에도 보존된다.
+  // _optionsCacheKey 가 null(외부 무효화)이면 HTML 재생성 필요 → 조기 리턴 금지.
+  var _populateSig = cacheKey + '|' + _showDischargedInSession;
+  if (_populateSig === _lastPopulateSig && _optionsCacheKey !== null) return;
+  _lastPopulateSig = _populateSig;
+
   // 가나다 정렬 + 옵션 HTML — 캐시 활용
   if (cacheKey !== _optionsCacheKey) {
     var sorted = childDB.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','ko'); });

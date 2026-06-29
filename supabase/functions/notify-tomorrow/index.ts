@@ -3,12 +3,10 @@
 import webpush from "npm:web-push@3.6.7";
 import { fetchWithTimeout } from '../_shared/auth.ts';
 
-const SUPA_URL   = Deno.env.get('SUPABASE_URL');
-const SUPA_KEY   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const VAPID_PUB  = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
-const VAPID_PRIV = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
-const VAPID_SUB  = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:namga1541@gmail.com';
-const CRON_SECRET = Deno.env.get('CRON_SECRET');
+// ★ C-3: env 는 모듈 최상위가 아니라 핸들러 내부에서 읽는다.
+//   Deno Deploy cold-start 시 env 가 모듈 평가 시점에 미주입되면 빈 값으로 영구 고정돼
+//   이후 모든 cron 틱이 'env 미설정'으로 실패(학부모 push 가용성 0). 핸들러 진입마다 재평가해 회피.
+//   (api/login 등 다른 9개 함수와 동일한 핸들러-내부 읽기 패턴으로 통일.)
 
 // x-cron-secret 상수시간 비교 — SHA-256 다이제스트(고정 32바이트)를 XOR 누적 비교해
 //   타이밍 사이드채널 + 길이 누출을 모두 제거한다(무인증 외부노출 cron 엔드포인트 방어).
@@ -68,6 +66,14 @@ const CORS_HEADERS = { 'Content-Type': 'application/json' };
 
 // ── 메인 ─────────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
+  // ★ C-3: env 핸들러-내부 읽기 (cold-start 미주입 영구고정 방지)
+  const SUPA_URL    = Deno.env.get('SUPABASE_URL');
+  const SUPA_KEY    = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const VAPID_PUB   = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
+  const VAPID_PRIV  = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
+  const VAPID_SUB   = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:namga1541@gmail.com';
+  const CRON_SECRET = Deno.env.get('CRON_SECRET');
+
   // ── 무인증 cron 보호 ──────────────────────────────────────────────
   // CRON_SECRET 이 설정돼 있으면 x-cron-secret 헤더 일치 요구 (외부 대량 푸시 차단).
   // 미설정 시 하위호환을 위해 통과시키되 경고 로깅 — 운영에서는 반드시 설정 권장.
@@ -136,9 +142,12 @@ Deno.serve(async (req: Request) => {
       const enc = (s: string) => encodeURIComponent(s);
 
       // ② 내일 스케줄 (data->>'date' = tomorrow)
-      interface Sched { id: number; child_id: number; data: Record<string, string> }
+      // ★ [HIGH] childId 는 JSONB(data->>childId)에서 읽는다. 실 컬럼 madi_schedules.child_id 는
+      //   클라이언트 저장흐름({id,center_id,data})상 항상 NULL → 이 컬럼으로 join 하면 학부모 알림이
+      //   조용히 0건이 된다. data.childId(클라가 실제 채우는 값)로 통일.
+      interface Sched { id: number; data: Record<string, string> }
       const scheds = await sq<Sched>(_url, _key,
-        `madi_schedules?center_id=eq.${enc(cfg.center_id)}&data->>date=eq.${tomorrowKST}&select=id,child_id,data`
+        `madi_schedules?center_id=eq.${enc(cfg.center_id)}&data->>date=eq.${tomorrowKST}&select=id,data`
       );
       if (!scheds.length) {
         // 실제 발송 시도가 없었으므로 last_sent_date 갱신하지 않음.
@@ -147,7 +156,12 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
-      const childIds = [...new Set(scheds.map(s => s.child_id))];
+      // data->>childId 는 문자열. 빈 값/누락은 제외해 in.() 파싱오류·null 매칭 방지.
+      const childIds = [...new Set(scheds.map(s => s.data?.childId).filter(c => c != null && c !== ''))];
+      if (!childIds.length) {
+        console.warn(`[push] center ${cfg.center_id}: 내일 스케줄에 childId 없음 — 미발송`);
+        continue;
+      }
 
       // ③ 학부모-자녀 연결
       // center_id 필터로 타 센터 학부모-자녀 연결 침범 방지 (IDOR 차단)
@@ -185,8 +199,8 @@ Deno.serve(async (req: Request) => {
       // 학부모 → [{name, time}] 집계 (내일 예약된 자녀 전체)
       const parentChildren: Record<string, Array<{ name: string; time: string }>> = {};
       for (const link of links) {
-        // madi_schedules.child_id=bigint, madi_parent_children.child_id=text — 문자열 비교
-        const childScheds = scheds.filter(s => String(s.child_id) === link.child_id);
+        // schedule.data.childId(문자열) vs madi_parent_children.child_id(text) — 문자열 비교
+        const childScheds = scheds.filter(s => String(s.data?.childId) === link.child_id);
         if (!childScheds.length) continue;
         const childName = nameMap[Number(link.child_id)] || '아동';
         if (!parentChildren[link.parent_user_id]) parentChildren[link.parent_user_id] = [];

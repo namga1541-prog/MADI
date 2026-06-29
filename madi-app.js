@@ -71,7 +71,7 @@ function loadDBFromSupabase(silent) {
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'parent') return;
 
   if (!silent) showToast('📡 데이터 불러오는 중...');
-  _optionsCacheKey = null;
+  _optionsCacheKey = null; _lastPopulateSig = null;
   // 세션: 최근 90일, 일정: 최근 30일~미래 전체 (캘린더는 미래 일정 필요)
   var d90 = _isoDaysAgo(90);
   var d30 = _isoDaysAgo(30);
@@ -126,7 +126,12 @@ function loadDBFromSupabase(silent) {
       if (typeof renderDashboard === 'function') renderDashboard();
     }
     loadActivitiesFromSupa(); loadIEPFromSupa();
-    setTimeout(function() { if (typeof loadNotices === 'function') loadNotices(); }, 600);
+    // notices: 갱신빈도 낮음 → 5폴링(약 2.5분)에 1번만 fetch. 비-silent(최초·수동) 및 카운터 0 도달 시 실행.
+    _noticesPollCount++;
+    if (!silent || _noticesPollCount >= 5) {
+      _noticesPollCount = 0;
+      setTimeout(function() { if (typeof loadNotices === 'function') loadNotices(); }, 600);
+    }
     // 백그라운드: 과거 데이터 추가 로드 후 머지 (사용자 인지 없이)
     setTimeout(function() { _loadOlderHistory(d90, d30); }, 1500);
   }).catch(function(e) {
@@ -199,12 +204,12 @@ function _saveRowsBatched(table, rows, label) {
 /** @returns {Promise<boolean>} */
 function saveChildren() {
   return _saveCollection({ db: childDB, lsKey: 'cn3_children', table: 'madi_children', label: '아동',
-    before: function() { _optionsCacheKey = null; } });
+    before: function() { _optionsCacheKey = null; _lastPopulateSig = null; } });
 }
 /** 아동 단건 저장 (변경 row 만 upsert) — saveChildren 의 lost-update 안전 버전. @returns {Promise<boolean>} */
 function saveOneChild(row) {
   return _saveOneRow({ db: childDB, row: row, lsKey: 'cn3_children', table: 'madi_children', label: '아동',
-    before: function() { _optionsCacheKey = null; } });
+    before: function() { _optionsCacheKey = null; _lastPopulateSig = null; } });
 }
 // ── 단건 행 저장 헬퍼 (H2 lost-update 완화) ──
 // 변경된 row 하나만 서버에 upsert + localStorage 미러 갱신. 컬렉션 통째 upsert(_saveCollection)가
@@ -479,6 +484,11 @@ function showConfirm(msg, onOk, opts) {
 var toastTimer = null, toastForceTimer = null, toastLocked = false;
 function debounce(fn, delay) { var timer = null; return function() { var ctx = this, args = arguments; clearTimeout(timer); timer = setTimeout(function() { fn.apply(ctx, args); }, delay); }; }
 var CHILD_PAGE_SIZE = 50, _childCurrentPage = 1, _optionsCacheKey = null, _optionsCacheHtml = '';
+// notices 폴링 주기 분리 — 공지는 변경빈도가 낮아 5폴링(약 2.5분)에 1번만 fetch.
+// loadActivitiesFromSupa/loadIEPFromSupa 는 별도 독립 테이블이므로 _renderSkip 과 무관하게 유지.
+var _noticesPollCount = 0;
+// populateChildSelects 중복 DOM 재구성 방지 — cacheKey+종결토글 조합이 동일하면 조기 리턴 시그니처
+var _lastPopulateSig = null;
 
 function showToast(msg, opts) {
   opts = opts || {}; if (toastLocked && !opts.force) return;

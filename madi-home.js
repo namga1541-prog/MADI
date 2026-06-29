@@ -331,7 +331,7 @@ function renderDashboardLegacy() {
   var safeChildDB    = (typeof childDB    !== 'undefined' && Array.isArray(childDB))    ? childDB    : [];
   // 오늘의 일정
   var ts=safeScheduleDB.filter(function(s){return s.date===todayStr;});
-  if(currentUser&&currentUser.role!=='admin'&&currentUser.role!=='superadmin') ts=ts.filter(function(s){return s.teacher===currentUser.name;});
+  if(currentUser&&currentUser.role!=='admin'&&currentUser.role!=='superadmin') ts=ts.filter(function(s){return s.teacher_id ? String(s.teacher_id)===String(currentUser.id) : (!!s.teacher && s.teacher===currentUser.name);});
   ts.sort(function(a,b){return (a.startTime||'')<(b.startTime||'')?-1:1;});
   var se=document.getElementById('dashTodaySched');
   var ms=document.getElementById('dashMiniStat'); if(ms) ms.textContent='오늘 일정 '+ts.length+'건';
@@ -361,7 +361,11 @@ function renderDashboardLegacy() {
   // 미작성 세션
   var uw=typeof getUnwrittenSessions==='function'?getUnwrittenSessions():[];
   if(!Array.isArray(uw)) uw=[];
-  if(currentUser&&currentUser.role!=='admin'&&currentUser.role!=='superadmin') uw=uw.filter(function(u){return u.teacher===currentUser.name;});
+  if(currentUser&&currentUser.role!=='admin'&&currentUser.role!=='superadmin') uw=uw.filter(function(u){
+    var origSched = (typeof scheduleDB !== 'undefined') ? scheduleDB.find(function(s){ return s.id === u.schedId; }) : null;
+    if (origSched && origSched.teacher_id) return String(origSched.teacher_id) === String(currentUser.id);
+    return !!u.teacher && u.teacher === currentUser.name;
+  });
   var uwEl=document.getElementById('dashUnwritten');
   if(uwEl){ if(!uw.length){uwEl.innerHTML='<div class="dash-empty">✅ 미작성 세션 없음</div>';}
   else{

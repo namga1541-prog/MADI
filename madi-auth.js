@@ -357,7 +357,7 @@ function doLogout() {
     + (_oqN ? ' (⚠️ 미전송 기록 ' + _oqN + '건이 폐기됩니다 — 취소 후 온라인 상태로 잠시 기다리면 자동 저장됩니다)' : '');
   showConfirm(_logoutMsg, function() {
     // 서버에서 httpOnly 쿠키 삭제 (fire-and-forget)
-    fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
+    fetch(EDGE_URL + '/logout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } }).catch(function(e){ console.warn('[logout] 서버 로그아웃 실패 (클라이언트 세션은 정상 정리됨)', e); });
     // iOS Safari 폴백 토큰도 정리 (clearToken() 이 sessionStorage 도 삭제하지만 명시적으로도)
     try { sessionStorage.removeItem('madi_sess'); } catch (_e) {}
     if (typeof stopRealtime === 'function') stopRealtime(); currentUser = null; clearToken();

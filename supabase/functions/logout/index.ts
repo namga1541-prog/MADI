@@ -12,7 +12,8 @@
 import { makeCORS, getAuthToken, verifyJwt, checkRateLimit } from '../_shared/auth.ts'
 
 Deno.serve(async (req: Request) => {
-  const CORS = makeCORS(req.headers.get('origin'), { allowNullOrigin: true })
+  // ★ [HIGH] allowNullOrigin 제거 — null Origin 응답읽기 차단 (localhost dev 는 유지)
+  const CORS = makeCORS(req.headers.get('origin'))
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   // 쿠키 만료 헤더 (로그아웃 자체는 항상 성공)

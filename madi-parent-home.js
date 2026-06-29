@@ -286,8 +286,8 @@ function _renderParentHeroStats(_unusedSessions) {
   var upcomingCount  = (typeof window._parentUpcomingCount === 'number')  ? window._parentUpcomingCount  : 0;
   // eslint-disable-next-line no-unsanitized/property
   statsEl.innerHTML = ''
-    + '<div class="dp-p-hero-stat"><b>' + portfolioCount + '<small style="font-size:11px;font-weight:600;color:#94a3b8;"> 권</small></b>공개 포트폴리오</div>'
-    + '<div class="dp-p-hero-stat"><b>' + upcomingCount + '<small style="font-size:11px;font-weight:600;color:#94a3b8;"> 건</small></b>다가오는 일정</div>'
+    + '<div class="dp-p-hero-stat"><b>' + portfolioCount + '<small style="font-size:11px;font-weight:600;color:var(--text2);"> 권</small></b>공개 포트폴리오</div>'
+    + '<div class="dp-p-hero-stat"><b>' + upcomingCount + '<small style="font-size:11px;font-weight:600;color:var(--text2);"> 건</small></b>다가오는 일정</div>'
     + '<div class="dp-p-hero-stat"><b class="good">↗</b>꾸준히 진행 중</div>';
 }
 
@@ -526,8 +526,8 @@ function _renderParentChartByScore(assessments) {
   html += ''
     + '<div class="dp-p-chart-sum">'
     +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num ' + (delta >= 0 ? 'good' : '') + '">' + deltaTxt + '</div><div class="dp-p-chart-label">5개월 누적</div></div>'
-    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + (current != null ? Math.round(current) : '—') + '<small style="font-size:11px;color:#94a3b8;font-weight:600;">점</small></div><div class="dp-p-chart-label">현재 평균</div></div>'
-    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + assessments.length + '<small style="font-size:11px;color:#94a3b8;font-weight:600;"> 회</small></div><div class="dp-p-chart-label">평가 누적</div></div>'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + (current != null ? Math.round(current) : '—') + '<small style="font-size:11px;color:var(--text2);font-weight:600;">점</small></div><div class="dp-p-chart-label">현재 평균</div></div>'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + assessments.length + '<small style="font-size:11px;color:var(--text2);font-weight:600;"> 회</small></div><div class="dp-p-chart-label">평가 누적</div></div>'
     + '</div>';
 
   // eslint-disable-next-line no-unsanitized/property
@@ -600,8 +600,8 @@ function _renderParentChart(sessions) {
   html += ''
     + '<div class="dp-p-chart-sum">'
     +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num good">' + deltaTxt + '</div><div class="dp-p-chart-label">전월 대비</div></div>'
-    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + thisMonth + '<small style="font-size:11px;color:#94a3b8;font-weight:600;"> 회</small></div><div class="dp-p-chart-label">이번 달</div></div>'
-    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + totalCount + '<small style="font-size:11px;color:#94a3b8;font-weight:600;"> 회</small></div><div class="dp-p-chart-label">누적 세션</div></div>'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + thisMonth + '<small style="font-size:11px;color:var(--text2);font-weight:600;"> 회</small></div><div class="dp-p-chart-label">이번 달</div></div>'
+    +   '<div class="dp-p-chart-cell"><div class="dp-p-chart-num">' + totalCount + '<small style="font-size:11px;color:var(--text2);font-weight:600;"> 회</small></div><div class="dp-p-chart-label">누적 세션</div></div>'
     + '</div>';
 
   // eslint-disable-next-line no-unsanitized/property
@@ -646,11 +646,11 @@ function _redrawParentVoucherPanel() {
       +   '<div class="dp-p-voucher-foot"><span>사용 ' + vUsedStr + '회</span><span>잔여 ' + (vUsed != null ? (vLimit - vUsed) : '--') + '회</span></div>'
       + '</div>';
   } else {
-    html += '<div class="dp-p-voucher" style="text-align:center;color:#94a3b8;font-size:12px;">바우처 정보가 등록되어 있지 않아요.<br>담당 센터에 문의해 주세요.</div>';
+    html += '<div class="dp-p-voucher" style="text-align:center;color:var(--text2);font-size:12px;">바우처 정보가 등록되어 있지 않아요.<br>담당 센터에 문의해 주세요.</div>';
   }
 
   // 다가오는 예약 (최대 3개)
-  html += '<div style="font-size:11.5px;color:#64748b;font-weight:700;letter-spacing:0.3px;margin:12px 0 8px;">📅 다가오는 예약</div>';
+  html += '<div style="font-size:11.5px;color:var(--text2);font-weight:700;letter-spacing:0.3px;margin:12px 0 8px;">📅 다가오는 예약</div>';
   if (upcoming.length === 0) {
     html += '<div class="dp-empty" style="padding:14px;">예정된 세션이 없습니다</div>';
   } else {
@@ -743,7 +743,7 @@ function _renderParentHomeActivities() {
       +     'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">' + (isDone ? '✓' : '') + '</div>'
       + '</div>';
   }).join('')
-  + '<div style="margin-top:12px;font-size:11px;color:#94a3b8;text-align:center;">담당 선생님이 곧 맞춤 활동을 제안해 드릴 예정이에요 🌱</div>';
+  + '<div style="margin-top:12px;font-size:11px;color:var(--text2);text-align:center;">담당 선생님이 곧 맞춤 활동을 제안해 드릴 예정이에요 🌱</div>';
 }
 
 // 가정 활동 체크박스 토글 — localStorage 영속화 (자녀별·주차별 분리)

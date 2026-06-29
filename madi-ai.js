@@ -189,10 +189,7 @@ function downloadAssessPDF(name) {
   var institution  = ((document.getElementById('reportInstitution') || {}).value || '').trim();
   var evaluator    = ((document.getElementById('reportEvaluator')   || {}).value || '').trim();
 
-  var win = window.open('', '_blank');
-  if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
-  // eslint-disable-next-line no-unsanitized/method
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">'
     + '<style>'
     + 'body{font-family:"Noto Sans KR",sans-serif;padding:40px 50px;color:#1e293b;line-height:1.8;max-width:800px;margin:0 auto;}'
@@ -217,9 +214,13 @@ function downloadAssessPDF(name) {
     + '</div></div>'
     + markdownToHtml(content)
     + '<div class="rpt-footer">마디아이(MadiAI) AI 보조 작성 &nbsp;|&nbsp; 출력일: ' + today + '</div>'
-    + '</body></html>');
-  win.document.close();
-  setTimeout(function() { win.print(); }, 800);
+    + '</body></html>';
+  var blob = new Blob([html], { type: 'text/html' });
+  var blobUrl = URL.createObjectURL(blob);
+  var win = window.open(blobUrl, '_blank');
+  if (!win) { URL.revokeObjectURL(blobUrl); showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
+  win.onload = function() { win.print(); };
+  setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
   showToast('📄 전문 보고서 PDF 출력 창 열림');
 }
 
@@ -367,18 +368,18 @@ function generateIEP() {
     });
 }
 
+function _monthBlock(month, goals) {
+  if (!goals || goals.length === 0) return '';
+  return '<div style="margin-bottom:8px;">'
+    + '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:4px;">' + escHtml(month) + '</div>'
+    + goals.map(function(g) {
+        return '<div style="font-size:13px;padding:5px 10px;background:#f8fafc;border-radius:7px;margin-bottom:3px;border-left:3px solid var(--purple);">• ' + escHtml(g) + '</div>';
+      }).join('')
+    + '</div>';
+}
+
 function renderIEP(p, childName) {
   var today = new Date().toLocaleDateString('ko-KR');
-
-  function monthBlock(month, goals) {
-    if (!goals || goals.length === 0) return '';
-    return '<div style="margin-bottom:8px;">'
-      + '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:4px;">' + escHtml(month) + '</div>'
-      + goals.map(function(g) {
-          return '<div style="font-size:13px;padding:5px 10px;background:#f8fafc;border-radius:7px;margin-bottom:3px;border-left:3px solid var(--purple);">• ' + escHtml(g) + '</div>';
-        }).join('')
-      + '</div>';
-  }
 
   var html = '<div style="background:white;border-radius:12px;padding:16px;box-shadow:var(--shadow);border-top:4px solid var(--purple);">'
 
@@ -409,9 +410,9 @@ function renderIEP(p, childName) {
     // 단기 목표 (월별)
     + '<div style="margin-bottom:14px;">'
     + '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px;padding-bottom:4px;border-bottom:1.5px solid var(--border);">📅 단기 목표 (월별)</div>'
-    + monthBlock('1개월차', (p.shortTermGoals || {})['1개월'])
-    + monthBlock('2개월차', (p.shortTermGoals || {})['2개월'])
-    + monthBlock('3개월차', (p.shortTermGoals || {})['3개월'])
+    + _monthBlock('1개월차', (p.shortTermGoals || {})['1개월'])
+    + _monthBlock('2개월차', (p.shortTermGoals || {})['2개월'])
+    + _monthBlock('3개월차', (p.shortTermGoals || {})['3개월'])
     + '</div>'
 
     // 부모 협력 (신규)
@@ -527,15 +528,6 @@ function loadIEPRecord(id) {
 function renderIEPView(p, childName) {
   // renderIEP와 동일한 UI지만 저장 없이 표시만
   var today = new Date().toLocaleDateString('ko-KR');
-  function monthBlock(month, goals) {
-    if (!goals || goals.length === 0) return '';
-    return '<div style="margin-bottom:8px;">'
-      + '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:4px;">' + escHtml(month) + '</div>'
-      + goals.map(function(g) {
-          return '<div style="font-size:13px;padding:5px 10px;background:#f8fafc;border-radius:7px;margin-bottom:3px;border-left:3px solid var(--purple);">• ' + escHtml(g) + '</div>';
-        }).join('')
-      + '</div>';
-  }
   var html = '<div style="background:white;border-radius:12px;padding:16px;box-shadow:var(--shadow);border-top:4px solid var(--purple);">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
     + '<div style="font-size:15px;font-weight:700;color:var(--purple);">📋 IEP 3개월 치료 계획 <span style="font-size:11px;color:var(--text2);font-weight:400;">(불러온 기록)</span></div>'
@@ -550,9 +542,9 @@ function renderIEPView(p, childName) {
     + '</div>'
     + '<div style="margin-bottom:14px;">'
     + '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px;padding-bottom:4px;border-bottom:1.5px solid var(--border);">📅 단기 목표 (월별)</div>'
-    + monthBlock('1개월차', (p.shortTermGoals || {})['1개월'])
-    + monthBlock('2개월차', (p.shortTermGoals || {})['2개월'])
-    + monthBlock('3개월차', (p.shortTermGoals || {})['3개월'])
+    + _monthBlock('1개월차', (p.shortTermGoals || {})['1개월'])
+    + _monthBlock('2개월차', (p.shortTermGoals || {})['2개월'])
+    + _monthBlock('3개월차', (p.shortTermGoals || {})['3개월'])
     + '</div>'
     + '<div style="margin-bottom:14px;">'
     + '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px;padding-bottom:4px;border-bottom:1.5px solid var(--border);">🎮 권장 치료 활동</div>'
@@ -633,10 +625,7 @@ function downloadIEPPDF(childName) {
       + goals.map(function(g) { return '<p style="margin:2px 0;padding-left:12px;">• ' + escHtml(g) + '</p>'; }).join('');
   }
 
-  var win = window.open('', '_blank');
-  if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
-  // eslint-disable-next-line no-unsanitized/method
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">'
     + '<style>'
     + 'body{font-family:"Noto Sans KR",sans-serif;padding:40px 50px;color:#1e293b;line-height:1.8;max-width:800px;margin:0 auto;}'
@@ -661,9 +650,13 @@ function downloadIEPPDF(childName) {
     + '<div>' + (p.activities || []).map(function(a) { return '<span class="chip">' + escHtml(a) + '</span>'; }).join('') + '</div>'
     + ((p.therapistNote || p.notes) ? '<div class="note">📝 <strong>치료사 참고:</strong> ' + escHtml(p.therapistNote || p.notes) + '</div>' : '')
     + '<p style="margin-top:32px;text-align:right;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:10px;">마디아이(MadiAI) AI 보조 작성 | 출력일: ' + today + '</p>'
-    + '</body></html>');
-  win.document.close();
-  setTimeout(function() { win.print(); }, 600);
+    + '</body></html>';
+  var blob = new Blob([html], { type: 'text/html' });
+  var blobUrl = URL.createObjectURL(blob);
+  var win = window.open(blobUrl, '_blank');
+  if (!win) { URL.revokeObjectURL(blobUrl); showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
+  win.onload = function() { win.print(); };
+  setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
   showToast('📄 장단기계획(IEP) PDF 출력 창 열림');
 }
 

@@ -112,7 +112,7 @@ function savePermissions() {
         row_id: _savedPermUserId,
         center_id: currentUser.center_id,
         changed_cols: ['permissions', 'role']
-      }]).catch(function(){});  // 감사 로그 실패가 주 기능을 막으면 안 됨
+      }]).catch(function(e){ console.warn('[savePermissions] 감사로그 실패', e); });  // 감사 로그 실패가 주 기능을 막으면 안 됨
     }).catch(function() { showToast('❌ 저장 실패'); });
 }
 
