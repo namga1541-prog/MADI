@@ -188,7 +188,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SLP_REPORT_SAMPLE_LANG = ''` — madi-vocab.js:440
 - `var SLP_REPORT_SAMPLE_SI = ''` — madi-vocab.js:593
 
-## madi-ai.js (24함수)
+## madi-ai.js (29함수)
 - `generateReport` — madi-ai.js:6
 - `resetBtn` — madi-ai.js:44
 - `renderReport` — madi-ai.js:70
@@ -205,21 +205,27 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _장단기계획(IEP) 자동 생성_ — L245
 - `generateIEP` — madi-ai.js:246
 - `resetIEPBtn` — madi-ai.js:335
-- `_monthBlock` — madi-ai.js:371
-- `renderIEP` — madi-ai.js:381
-- `renderIEPHistory` — madi-ai.js:485
-- `loadIEPRecord` — madi-ai.js:518
-- `renderIEPView` — madi-ai.js:528
-- `downloadIEPPDFById` — madi-ai.js:570
-- `deleteIEPRecord` — madi-ai.js:580
-- `downloadIEPPDF` — madi-ai.js:614
-- `monthSection` — madi-ai.js:622
-  ▸ _W5: 활동 자료 카탈로그_ — L663
-  ▸ _W8: 효과 통계 대시보드_ — L664
-- `renderEffectStats` — madi-ai.js:665
-- `avgGoalScore` — madi-ai.js:697
-- `statCard` — madi-ai.js:717
-  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L772
+  ▸ _오늘의 치료활동 추천 (AI)_ — L371
+- `_childCurrentGoals` — madi-ai.js:375
+- `renderActGoals` — madi-ai.js:388
+- `generateActivities` — madi-ai.js:406
+- `resetBtn` — madi-ai.js:454
+- `renderActivities` — madi-ai.js:474
+- `_monthBlock` — madi-ai.js:509
+- `renderIEP` — madi-ai.js:519
+- `renderIEPHistory` — madi-ai.js:623
+- `loadIEPRecord` — madi-ai.js:656
+- `renderIEPView` — madi-ai.js:666
+- `downloadIEPPDFById` — madi-ai.js:708
+- `deleteIEPRecord` — madi-ai.js:718
+- `downloadIEPPDF` — madi-ai.js:752
+- `monthSection` — madi-ai.js:760
+  ▸ _W5: 활동 자료 카탈로그_ — L801
+  ▸ _W8: 효과 통계 대시보드_ — L802
+- `renderEffectStats` — madi-ai.js:803
+- `avgGoalScore` — madi-ai.js:835
+- `statCard` — madi-ai.js:855
+  ▸ _W5+W8: 활동 자료 카탈로그 (검색/필터 추가)_ — L910
 
 ## madi-app.js (60함수)
   ▸ _Supabase DB 로드 / 저장_ — L11
@@ -694,11 +700,11 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _세션탭 종결 아동 포함 토글_ — L690
 - `toggleDischargedInSession` — madi-growth.js:693
 - `populateChildSelects` — madi-growth.js:705
-  ▸ _발화 샘플 분석 (MLU · TTR)_ — L815
-- `toggleSpeechPanel` — madi-growth.js:816
-- `analyzeSpeechSample` — madi-growth.js:828
-- `runSpeechAnalysis` — madi-growth.js:849
-- `appendSpeechResultToMemo` — madi-growth.js:879
+  ▸ _발화 샘플 분석 (MLU · TTR)_ — L823
+- `toggleSpeechPanel` — madi-growth.js:824
+- `analyzeSpeechSample` — madi-growth.js:836
+- `runSpeechAnalysis` — madi-growth.js:857
+- `appendSpeechResultToMemo` — madi-growth.js:887
 
 ## madi-home.js (46함수)
 - `loadCenterApiKey` — madi-home.js:8

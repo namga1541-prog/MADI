@@ -726,12 +726,12 @@ function populateChildSelects() {
   }
 
   ['sessionChild','chartChild','reportChild','portfolioChild','faqChild',
-   'assessChild','eduChild','iepChild','scheduleChildSel'].forEach(function(id) {
+   'assessChild','eduChild','iepChild','actChild','scheduleChildSel'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
     var cur = el.value;
     var needsEmpty = ['sessionChild','chartChild',
-                      'reportChild','portfolioChild','faqChild','eduChild','iepChild'];
+                      'reportChild','portfolioChild','faqChild','eduChild','iepChild','actChild'];
     // sessionChild는 종결 아동 자동 제외 — 토글 ON 시 포함 (🔒 종결 아동 포함 버튼)
     var optsHtml;
     if (id === 'sessionChild') {
@@ -799,9 +799,17 @@ function populateChildSelects() {
       renderIEPHistory(id);
     });
   }
+  // actChild 변경 시 현재 목표 자동 표시
+  var ac2 = document.getElementById('actChild');
+  if (ac2 && !ac2._actBound) {
+    ac2._actBound = true;
+    ac2.addEventListener('change', function() {
+      if (typeof renderActGoals === 'function') renderActGoals(this.value);
+    });
+  }
   // 검색 셀렉트 적용
   ['sessionChild','chartChild','reportChild','portfolioChild','faqChild',
-   'assessChild','eduChild','iepChild'].forEach(function(id) {
+   'assessChild','eduChild','iepChild','actChild'].forEach(function(id) {
     makeSearchable(id);
   });
   // assessChild는 별도 wrap에 이동

@@ -368,6 +368,144 @@ function generateIEP() {
     });
 }
 
+// ── 오늘의 치료활동 추천 (AI) ───────────────────────────────────────────
+// 아동의 '현재 목표'(child.goals + 최근 세션 목표명)를 자동 수집해, 오늘 세션에서 바로
+// 쓸 놀이 기반 활동 3가지를 준비물·단계까지 제안. 선생님 입력은 아동 선택 한 번뿐.
+// ★ PII 보호: 이름·메모를 외부 LLM 에 보내지 않는다(연령·진단·목표명·수치만 전송) → 마스킹 불필요.
+function _childCurrentGoals(childId) {
+  childId = String(childId || '');
+  var names = {};
+  var child = childDB.find(function(c) { return c.id === childId; });
+  if (child && Array.isArray(child.goals)) child.goals.forEach(function(g) { if (g) names[String(g)] = true; });
+  sessionDB
+    .filter(function(s) { return s.childId === childId; })
+    .sort(function(a, b) { return a.date < b.date ? 1 : -1; })
+    .slice(0, 6)
+    .forEach(function(s) { (s.goals || []).forEach(function(g) { if (g && g.name) names[String(g.name)] = true; }); });
+  return Object.keys(names);
+}
+
+function renderActGoals(childId) {
+  var el = document.getElementById('actGoals');
+  if (!el) return;
+  childId = String(childId || '');
+  if (!childId) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  var goals = _childCurrentGoals(childId);
+  el.style.display = 'block';
+  if (!goals.length) {
+    el.innerHTML = '🎯 등록된 목표가 없어 연령·유형 기준으로 추천합니다.';
+    return;
+  }
+  // 동적값(목표명)은 escHtml 처리, 나머지는 정적 리터럴 — map 체인이라 린터가 추적 못해 disable
+  // eslint-disable-next-line no-unsanitized/property
+  el.innerHTML = '🎯 자동으로 불러온 목표: ' + goals.map(function(g) {
+    return '<span style="display:inline-block;background:#E1F5EE;color:#0F6E56;font-size:11px;padding:2px 8px;border-radius:10px;margin:2px 3px 0 0;">' + escHtml(g) + '</span>';
+  }).join('');
+}
+
+function generateActivities() {
+  if (!currentUser || currentUser.role === 'parent') { showToast('⚠️ 권한이 없습니다.'); return; }
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
+  if (!getApiKeyOrAlert()) return;
+  var childId = String((document.getElementById('actChild') || {}).value || '');
+  if (!childId) { showToast('아동을 선택해주세요.'); return; }
+  var child = childDB.find(function(c) { return c.id === childId; });
+  if (!child) return;
+
+  var goals = _childCurrentGoals(childId);
+  var dur = String((document.getElementById('actDur') || {}).value || '40');
+
+  // 목표별 최신 달성률(수치만 — PII 아님)로 난이도 보정 힌트 제공
+  var scoreMap = {};
+  sessionDB
+    .filter(function(s) { return s.childId === childId; })
+    .sort(function(a, b) { return a.date < b.date ? -1 : 1; })
+    .forEach(function(s) { (s.goals || []).forEach(function(g) {
+      if (g && g.name && g.score !== null && g.score !== undefined) scoreMap[g.name] = g.score;
+    }); });
+  var goalLine = goals.length
+    ? goals.map(function(g) { return g + (scoreMap[g] !== undefined ? ' (최근 ' + scoreMap[g] + '%)' : ''); }).join(', ')
+    : '미설정';
+
+  var btn = document.getElementById('actBtn');
+  var resEl = document.getElementById('actResult');
+  if (!btn || !resEl) return;
+  if (btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1'; btn.disabled = true;
+  btn.textContent = '⏳ 활동 구성 중...';
+  resEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px;">🤖 ' + escHtml(child.name) + ' 목표에 맞는 오늘의 활동을 짜는 중...</div>';
+
+  var NL = String.fromCharCode(10);
+  var SYSTEM = '당신은 10년 이상 경력의 1급 언어재활사입니다. 제시된 아동의 치료 목표에 맞춰 오늘 ' + dur + '분 세션에서 바로 실행할 놀이 기반 치료활동 3가지를 제안하세요.'
+    + NL + '【원칙】'
+    + NL + '1. 각 활동은 제시된 목표 중 하나를 직접 겨냥할 것(달성률이 낮은 목표를 우선).'
+    + NL + '2. 준비물은 일반 치료실에서 흔히 구할 수 있는 것으로, 필요 없으면 "준비물 없음".'
+    + NL + '3. 진행 단계는 선생님이 바로 따라할 수 있게 2~3단계로 간결하게.'
+    + NL + '4. 아동이 즐거워할 놀이 형태로, 연령에 맞게 구성.'
+    + NL + '【언어 규칙】치료사(선생님)가 읽습니다. 군더더기 없이 실무적으로 작성하세요.'
+    + AI_NAME_RULE
+    + NL + '반드시 순수 JSON 배열만 출력. 마크다운 코드블록 금지.'
+    + NL + '[{"title":"활동명","targetSkill":"겨냥 목표(짧게)","materials":"준비물","minutes":숫자,"steps":["단계1","단계2"]}]';
+
+  var USER = '아동 정보 — 연령: ' + child.age + ', 진단: ' + child.type
+    + NL + '세션 시간: ' + dur + '분'
+    + NL + '현재 치료 목표: ' + goalLine;
+
+  function resetBtn() {
+    btn.dataset.busy = ''; btn.disabled = false;
+    btn.textContent = '✨ 오늘의 활동 추천받기 (AI)';
+  }
+  callClaude(SYSTEM, USER, 1800, getAIModel())
+    .then(function(raw) {
+      if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'therapist');
+      var list = parseJSON(raw);
+      if (!Array.isArray(list)) list = (list && Array.isArray(list.activities)) ? list.activities : [];
+      if (!list.length) throw new Error('활동 추천 파싱 실패');
+      renderActivities(list, child.name);
+      resetBtn();
+    })
+    .catch(function(err) {
+      if (window.console && console.warn) console.warn('[활동 추천]', err && err.message);
+      resEl.innerHTML = '<div style="padding:12px;color:var(--red);font-size:13px;">❌ ' + escHtml(_userErrMsg(err, '활동 추천')) + '</div>';
+      resetBtn();
+    });
+}
+
+function renderActivities(list, childName) {
+  var resEl = document.getElementById('actResult');
+  if (!resEl) return;
+  var cards = list.slice(0, 5).map(function(a) {
+    var title = escHtml(String(a.title || '활동'));
+    var skill = escHtml(String(a.targetSkill || ''));
+    var mat = escHtml(String(a.materials || '준비물 없음'));
+    var mins = (a.minutes != null && !isNaN(a.minutes)) ? (parseInt(a.minutes, 10) + '분') : '';
+    var steps = Array.isArray(a.steps) ? a.steps : [];
+    var stepHtml = steps.map(function(s, i) {
+      return '<div style="display:flex;gap:8px;margin-top:6px;"><span style="flex-shrink:0;width:18px;height:18px;border-radius:50%;background:#E1F5EE;color:#0F6E56;font-size:11px;display:flex;align-items:center;justify-content:center;">' + (i + 1) + '</span><span style="font-size:13px;color:var(--text2);line-height:1.5;">' + escHtml(String(s)) + '</span></div>';
+    }).join('');
+    return '<div style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
+      + '<div style="font-size:15px;font-weight:700;color:var(--text);">' + title + '</div>'
+      + (mins ? '<span style="font-size:12px;color:var(--text2);white-space:nowrap;">⏱ ' + mins + '</span>' : '')
+      + '</div>'
+      + (skill ? '<div style="margin-top:7px;"><span style="background:#EEEDFE;color:#3C3489;font-size:11px;padding:3px 9px;border-radius:20px;">목표 · ' + skill + '</span></div>' : '')
+      + '<div style="margin-top:10px;font-size:12px;color:var(--text2);">🧰 준비물: ' + mat + '</div>'
+      + '<div style="margin-top:8px;">' + stepHtml + '</div>'
+      + '</div>';
+  }).join('');
+  // cards 의 모든 동적값(title/skill/mat/steps/childName)은 위에서 escHtml 처리됨, AI_PROCESSING_NOTICE 는 신뢰 상수
+  // eslint-disable-next-line no-unsanitized/property
+  resEl.innerHTML = '<div style="background:white;border-radius:12px;padding:16px;box-shadow:var(--shadow);border-top:4px solid var(--mint);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+    + '<div style="font-size:15px;font-weight:700;color:var(--mint);">✨ 오늘의 추천 활동</div>'
+    + '<div style="font-size:11px;color:var(--text2);">' + escHtml(String(childName || '')) + '</div>'
+    + '</div>'
+    + AI_PROCESSING_NOTICE
+    + cards
+    + '<button class="btn-ghost" style="width:100%;margin-top:4px;" onclick="document.getElementById(\'actResult\').innerHTML=\'\'">닫기</button>'
+    + '</div>';
+}
+
 function _monthBlock(month, goals) {
   if (!goals || goals.length === 0) return '';
   return '<div style="margin-bottom:8px;">'
