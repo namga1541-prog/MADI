@@ -2865,3 +2865,32 @@ body.dark-mode .skeleton {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   ✨ 글래스모피즘 홈 대시보드 스킨 — body.glass-ui 토글 (라이트 모드 전용)
+   되돌리기: <body> 의 'glass-ui' 클래스 제거 → 즉시 원복. (백업 태그: backup-pre-glass-dashboard)
+   다크모드 미적용: 페르소나 대시보드 텍스트가 하드코딩 라이트색이라 반투명 시 가독성 저하 방지.
+   ═══════════════════════════════════════════════════════════ */
+body.glass-ui:not(.dark-mode) .dash-persona {
+  background:
+    radial-gradient(ellipse 78% 48% at 12% -4%, rgba(34,201,195,0.18), transparent 60%),
+    radial-gradient(ellipse 66% 46% at 96% 6%, rgba(139,92,246,0.13), transparent 55%),
+    radial-gradient(circle at 50% 116%, rgba(14,165,160,0.10), transparent 46%);
+}
+body.glass-ui:not(.dark-mode) .dp-kpi-grid { background:transparent; border:none; gap:12px; overflow:visible; }
+body.glass-ui:not(.dark-mode) .dp-kpi {
+  background:rgba(255,255,255,0.55);
+  -webkit-backdrop-filter:blur(12px) saturate(1.3); backdrop-filter:blur(12px) saturate(1.3);
+  border:1px solid rgba(255,255,255,0.7); border-radius:16px;
+  box-shadow:0 6px 20px rgba(15,23,42,0.06);
+}
+body.glass-ui:not(.dark-mode) .dp-panel {
+  background:rgba(255,255,255,0.6);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3); backdrop-filter:blur(14px) saturate(1.3);
+  border:1px solid rgba(255,255,255,0.7); border-radius:16px;
+  box-shadow:0 10px 30px rgba(15,23,42,0.08);
+}
+body.glass-ui:not(.dark-mode) .dp-panel-head { border-bottom-color:rgba(15,23,42,0.07); }
+body.glass-ui:not(.dark-mode) .dp-tl-card,
+body.glass-ui:not(.dark-mode) .dp-day-sum { background:rgba(255,255,255,0.5); border-color:rgba(255,255,255,0.6); }
+body.glass-ui:not(.dark-mode) .dp-urgent { -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:16px; }
+
