@@ -94,6 +94,13 @@ if [ -n "$STAGED_HTML" ]; then
   echo "[pre-commit] HTML 박제 검사 통과 ✓"
 fi
 
+# ── 4-1. 인라인 <script> 구문 검사 + 리터럴 U+2028/U+2029 차단 ────
+#   ESLint 는 madi-*.js 만 검사 → admin/index.html 인라인 스크립트 무검사 사각지대 보완.
+#   admin.html escJs 의 raw U+2028(정규식 깨짐 → 서비스관리 전 기능 먹통) 재발 방지(2026-06-29).
+if [ -n "$STAGED_HTML" ] && [ -f "$TOPLEVEL/tools/check-inline-scripts.js" ]; then
+  node "$TOPLEVEL/tools/check-inline-scripts.js"
+fi
+
 # ── 5. smoke 유닛 테스트 ──────────────────────────────────────
 if [ -f "$TOPLEVEL/tests/smoke.js" ]; then
   node "$TOPLEVEL/tests/smoke.js" >/dev/null && echo "[pre-commit] smoke 통과 ✓"
