@@ -78,7 +78,7 @@ function showPostSessionBriefing(sessionId) {
   }).join('');
 
   // eslint-disable-next-line no-unsanitized/property
-  overlay.innerHTML = '<div style="width:100%;max-width:520px;background:white;border-radius:20px 20px 0 0;padding:20px 16px 28px;box-shadow:0 -4px 24px rgba(0,0,0,0.12);">'
+  overlay.innerHTML = '<div style="width:100%;max-width:520px;background:white;border-radius:20px 20px 0 0;padding:20px 16px calc(28px + env(safe-area-inset-bottom, 0px));box-shadow:0 -4px 24px rgba(0,0,0,0.12);max-height:min(90vh,90dvh);overflow-y:auto;overscroll-behavior:contain;">'
     + '<div style="width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 16px;"></div>'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
     + '<div>'

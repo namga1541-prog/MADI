@@ -165,7 +165,7 @@ function addPhonemeRow(phoneme) {
 function makePhonemeCell(phoneme, pos) {
   var val = (phonemeData[phoneme] || {})[pos];
   return '<input class="phoneme-input' + getPhonemeClass(val) + '" '
-    + 'type="number" min="0" max="100" placeholder="—" '
+    + 'type="number" inputmode="numeric" min="0" max="100" placeholder="—" '
     + 'value="' + (val !== '' && val !== null && val !== undefined ? val : '') + '" '
     + 'oninput="onPhonemeInput(this,\'' + jsArg(phoneme) + '\',\'' + jsArg(pos) + '\')">';
 }
@@ -288,7 +288,7 @@ function renderGoalRows() {
   goalRows.forEach(function(row, i) {
     html += '<div class="goal-input-row">'
       + '<input class="goal-name-input" type="text" placeholder="목표 항목" value="' + escHtml(row.name) + '" oninput="goalRows[' + i + '].name=this.value">'
-      + '<input class="goal-score-input" type="number" min="0" max="100" placeholder="%" value="' + (row.score !== '' ? row.score : '') + '" oninput="goalRows[' + i + '].score=this.value">'
+      + '<input class="goal-score-input" type="number" inputmode="numeric" min="0" max="100" placeholder="%" value="' + (row.score !== '' ? row.score : '') + '" oninput="goalRows[' + i + '].score=this.value">'
       + '<span style="font-size:11px;color:#94a3b8">%</span>'
       + '<button onclick="removeGoalRow(' + i + ')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:0 4px;">×</button>'
       + '</div>';

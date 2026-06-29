@@ -637,6 +637,13 @@ function applyParentUI() {
   });
   if (!isMobile) _initParentSidebar();
   switchParentTab('home');
+  // 회전·리사이즈 시 탭바/사이드바 재평가 (1회만 등록)
+  if (!window._parentResizeRegistered) {
+    window._parentResizeRegistered = true;
+    window.addEventListener('resize', debounce(function() {
+      if (currentUser && currentUser.role === 'parent') applyParentUI();
+    }, 150));
+  }
 }
 
 function _initParentSidebar() {

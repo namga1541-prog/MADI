@@ -338,7 +338,7 @@ function openEditModal(id) {
     + '<div style="flex:1;"><label class="form-label">치료 시작일</label>'
     + '<input class="form-input" type="date" id="editStartDate" value="' + escHtml(child.startDate || '') + '"></div>'
     + '<div style="flex:1;"><label class="form-label">바우처 월 한도 (회)</label>'
-    + '<input class="form-input" type="number" id="editVoucherLimit" value="' + (child.voucherLimit || 0) + '" min="0" max="99" placeholder="예: 16"></div>'
+    + '<input class="form-input" type="number" inputmode="numeric" id="editVoucherLimit" value="' + (child.voucherLimit || 0) + '" min="0" max="99" placeholder="예: 16"></div>'
     + '</div>'
 
     + '<div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border);">'

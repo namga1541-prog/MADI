@@ -236,6 +236,15 @@ function _promptTotpCode(username, password, prevErr) {
     },
     onOk: function(code) { doLogin(code.trim()); }
   });
+  // 모바일 숫자 키패드 + OTP 자동완성
+  setTimeout(function() {
+    var inp = document.getElementById('ipInput');
+    if (inp) {
+      inp.setAttribute('inputmode', 'numeric');
+      inp.setAttribute('autocomplete', 'one-time-code');
+      inp.setAttribute('maxlength', '6');
+    }
+  }, 0);
 }
 
 function getMadiLogoSVG(w, h) {
@@ -496,15 +505,15 @@ function showChangePasswordModal() {
     + '<div style="font-size:17px;font-weight:700;color:var(--text,#1e293b);margin-bottom:20px;">🔑 비밀번호 변경</div>'
     + '<div style="margin-bottom:12px;">'
     + '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin-bottom:4px;">현재 비밀번호</label>'
-    + '<input type="password" id="cpCurrent" class="form-input" placeholder="현재 비밀번호 입력" style="width:100%;box-sizing:border-box;">'
+    + '<input type="password" id="cpCurrent" class="form-input" placeholder="현재 비밀번호 입력" autocomplete="current-password" style="width:100%;box-sizing:border-box;">'
     + '</div>'
     + '<div style="margin-bottom:12px;">'
     + '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin-bottom:4px;">새 비밀번호</label>'
-    + '<input type="password" id="cpNew" class="form-input" placeholder="4자 이상" style="width:100%;box-sizing:border-box;">'
+    + '<input type="password" id="cpNew" class="form-input" placeholder="4자 이상" autocomplete="new-password" style="width:100%;box-sizing:border-box;">'
     + '</div>'
     + '<div style="margin-bottom:16px;">'
     + '<label style="font-size:12px;font-weight:600;color:var(--text2,#64748b);display:block;margin-bottom:4px;">새 비밀번호 확인</label>'
-    + '<input type="password" id="cpConfirm" class="form-input" placeholder="새 비밀번호 재입력" style="width:100%;box-sizing:border-box;" onkeydown="if(event.key===\'Enter\')submitChangePassword();">'
+    + '<input type="password" id="cpConfirm" class="form-input" placeholder="새 비밀번호 재입력" autocomplete="new-password" style="width:100%;box-sizing:border-box;" onkeydown="if(event.key===\'Enter\')submitChangePassword();">'
     + '</div>'
     + '<div id="cpError" role="alert" style="font-size:12px;color:#ef4444;margin-bottom:12px;min-height:16px;word-break:break-word;"></div>'
     + '<div style="display:flex;gap:8px;">'

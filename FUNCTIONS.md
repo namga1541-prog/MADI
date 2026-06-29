@@ -13,7 +13,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _lastPopulateSig = null;` — madi-app.js:491
 - `var _clockSchedCache = { day: '', sig: -1, list: [] };` — madi-app.js:545
 - `var _clockTimer = null, _clockVcBound = false;` — madi-app.js:575
-- `var _clientIdCounter = 0;` — madi-app.js:734
+- `var _clientIdCounter = 0;` — madi-app.js:741
 - `var PRES_NORMS = {` — madi-assessment.js:62
 - `var REVT_EQ_R = {` — madi-assessment.js:109
 - `var REVT_EQ_E = {` — madi-assessment.js:127
@@ -278,16 +278,16 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `showOfflineBanner` — madi-app.js:605
 - `hideOfflineBanner` — madi-app.js:611
 - `applyParentUI` — madi-app.js:617
-- `_initParentSidebar` — madi-app.js:642
-- `resetParentUI` — madi-app.js:682
-- `toggleMoreMenu` — madi-app.js:708
-- `closeMoreMenu` — madi-app.js:709
-- `getRoleFlags` — madi-app.js:716
-- `validatePasswordStrength` — madi-app.js:722
-  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L728
-- `generateClientId` — madi-app.js:735
-- `applyUserUI` — madi-app.js:740
-- `updateKbOffset` — madi-app.js:771
+- `_initParentSidebar` — madi-app.js:649
+- `resetParentUI` — madi-app.js:689
+- `toggleMoreMenu` — madi-app.js:715
+- `closeMoreMenu` — madi-app.js:716
+- `getRoleFlags` — madi-app.js:723
+- `validatePasswordStrength` — madi-app.js:729
+  ▸ _ID 생성 유틸 (단조 카운터 — 대량 생성에도 충돌 불가)_ — L735
+- `generateClientId` — madi-app.js:742
+- `applyUserUI` — madi-app.js:747
+- `updateKbOffset` — madi-app.js:778
 
 ## madi-assessment.js (26함수)
 - `calcLivingAge` — madi-assessment.js:3
@@ -352,17 +352,17 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `doLogin` — madi-auth.js:159
   ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L173
 - `_promptTotpCode` — madi-auth.js:219
-- `getMadiLogoSVG` — madi-auth.js:241
-  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L249
-- `_initWebVitals` — madi-auth.js:254
-- `showLogoutMenu` — madi-auth.js:327
-- `doLogout` — madi-auth.js:352
-- `showLoginUpdatePopup` — madi-auth.js:416
-- `_renderLoginUpdatePopup` — madi-auth.js:434
-- `_dismiss` — madi-auth.js:466
-- `_onKey` — madi-auth.js:476
-- `showChangePasswordModal` — madi-auth.js:488
-- `submitChangePassword` — madi-auth.js:520
+- `getMadiLogoSVG` — madi-auth.js:250
+  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L258
+- `_initWebVitals` — madi-auth.js:263
+- `showLogoutMenu` — madi-auth.js:336
+- `doLogout` — madi-auth.js:361
+- `showLoginUpdatePopup` — madi-auth.js:425
+- `_renderLoginUpdatePopup` — madi-auth.js:443
+- `_dismiss` — madi-auth.js:475
+- `_onKey` — madi-auth.js:485
+- `showChangePasswordModal` — madi-auth.js:497
+- `submitChangePassword` — madi-auth.js:529
 
 ## madi-board-notice.js (25함수)
   ▸ _게시판 이미지 업로드 유틸_ — L1
@@ -831,14 +831,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_loadParentTeacherMessages` — madi-parent-home.js:391
 - `_loadParentAssessments` — madi-parent-home.js:400
 - `_renderParentChartByScore` — madi-parent-home.js:444
-- `_renderParentChart` — madi-parent-home.js:538
-- `_renderParentVoucher` — madi-parent-home.js:612
-- `_renderParentVoucherUpcoming` — madi-parent-home.js:619
-- `_redrawParentVoucherPanel` — madi-parent-home.js:624
-- `_renderParentHomeActivities` — madi-parent-home.js:710
-- `_toggleParentActivity` — madi-parent-home.js:750
-- `_calcAge` — madi-parent-home.js:762
-- `_showParentOnboarding` — madi-parent-home.js:774
+- `_renderParentChart` — madi-parent-home.js:539
+- `_renderParentVoucher` — madi-parent-home.js:614
+- `_renderParentVoucherUpcoming` — madi-parent-home.js:621
+- `_redrawParentVoucherPanel` — madi-parent-home.js:626
+- `_renderParentHomeActivities` — madi-parent-home.js:712
+- `_toggleParentActivity` — madi-parent-home.js:752
+- `_calcAge` — madi-parent-home.js:764
+- `_showParentOnboarding` — madi-parent-home.js:776
 
 ## madi-parent-pages.js (27함수)
   ▸ _일정 탭_ — L12

@@ -55,7 +55,7 @@
     body.dark-mode .card { background:var(--card-bg); border-color:var(--border); }
     body.dark-mode .toast { background:#475569; }
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; min-height:100dvh; }
 
     /* ── 헤더 ── */
     .header {
@@ -95,12 +95,12 @@
     .svc-subtab-btn.active { color:#0ea5a0; border-bottom-color:#0ea5a0; }
 
     /* ── 사이드 네비 ── */
-    .admin-layout { display:flex; min-height:calc(100vh - 60px); }
+    .admin-layout { display:flex; min-height:calc(100vh - 60px); min-height:calc(100dvh - 60px); }
     .admin-sidenav {
       width:180px; flex-shrink:0;
       background:white; border-right:1px solid var(--border,#e2e8f0);
       padding:16px 10px; display:flex; flex-direction:column; gap:4px;
-      position:sticky; top:60px; height:calc(100vh - 60px); overflow-y:auto;
+      position:sticky; top:60px; height:calc(100vh - 60px); height:calc(100dvh - 60px); overflow-y:auto;
     }
     .admin-sidenav a {
       display:flex; align-items:center; gap:8px;
@@ -524,9 +524,9 @@
       <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">➕ 새 직원 추가</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <input type="text" id="staffNewName" class="form-input" placeholder="이름 (예: 홍길동)" style="font-size:13px;">
-          <input type="text" id="staffNewUsername" class="form-input" placeholder="아이디 (영문/숫자)" style="font-size:13px;">
-          <input type="password" id="staffNewPassword" class="form-input" placeholder="비밀번호 (4자 이상)" style="font-size:13px;">
+          <input type="text" id="staffNewName" class="form-input" placeholder="이름 (예: 홍길동)" style="font-size:13px;" autocapitalize="off">
+          <input type="text" id="staffNewUsername" class="form-input" placeholder="아이디 (영문/숫자)" style="font-size:13px;" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off">
+          <input type="password" id="staffNewPassword" class="form-input" placeholder="비밀번호 (4자 이상)" style="font-size:13px;" autocomplete="new-password">
           <select id="staffNewRole" class="form-input" style="font-size:13px;">
             <option value="teacher" selected>선생님</option>
             <option value="admin" id="staffRoleAdminOpt">관리자 (센터장)</option>
@@ -576,15 +576,15 @@
       </div>
       <div class="form-group">
         <label class="form-label">학부모 이름</label>
-        <input id="parentNewName" class="form-input" placeholder="예: 홍길동 어머니" style="font-size:14px;">
+        <input type="text" id="parentNewName" class="form-input" placeholder="예: 홍길동 어머니" style="font-size:14px;" autocapitalize="off">
       </div>
       <div class="form-group">
         <label class="form-label">아이디</label>
-        <input id="parentNewUsername" class="form-input" placeholder="영문/숫자, 4자 이상" style="font-size:14px;" autocomplete="off">
+        <input type="text" id="parentNewUsername" class="form-input" placeholder="영문/숫자, 4자 이상" style="font-size:14px;" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off">
       </div>
       <div class="form-group">
         <label class="form-label">비밀번호</label>
-        <input id="parentNewPassword" class="form-input" placeholder="4자 이상" style="font-size:14px;" type="text" autocomplete="off">
+        <input id="parentNewPassword" class="form-input" placeholder="4자 이상" style="font-size:14px;" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
         <div style="font-size:11px;color:var(--text2);margin-top:4px;">학부모에게 전달할 수 있도록 평문으로 표시됩니다.</div>
       </div>
       <button class="btn btn-primary" style="background:#f59e0b;margin-bottom:12px;" onclick="createParentAccount()">👪 학부모 계정 생성</button>
@@ -733,7 +733,7 @@
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">입금액 (원)</label>
-          <input type="number" class="form-input" id="licPaid" placeholder="0" min="0">
+          <input type="number" class="form-input" id="licPaid" placeholder="0" min="0" inputmode="numeric">
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">라이선스 키</label>
