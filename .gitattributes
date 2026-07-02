@@ -1,0 +1,2 @@
+# Workflow 스크립트는 LF 고정 — CRLF(CR 제어문자)면 Workflow 승인 검증기가 거부함 (2026-07-02 실증)
+.claude/workflows/*.js text eol=lf
