@@ -860,6 +860,12 @@ function quickSave() {
           else { _showQuickCardList(); renderQuickCards(); }
         }, ok ? 500 : 1200);
       });
+    })
+    .catch(function(e) {
+      // 최상위 catch — 체인 내 동기 예외 시 저장 버튼이 '⏳ 저장 중...' 으로 영구 고착되던 문제 (2026-07-02 감사 LOW)
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 저장 → 다음 수업'; }
+      if (typeof showError === 'function') showError(e, '빠른 기록 저장');
+      else if (typeof showToast === 'function') showToast('⚠️ 저장 실패');
     });
 }
 

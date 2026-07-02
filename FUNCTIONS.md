@@ -367,20 +367,20 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_showSignupScreenForm` — madi-auth.js:60
 - `backToLoginFromSignup` — madi-auth.js:67
 - `doSignup` — madi-auth.js:69
-- `doLogin` — madi-auth.js:159
-  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L173
-- `_promptTotpCode` — madi-auth.js:220
-- `getMadiLogoSVG` — madi-auth.js:251
-  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L259
-- `_initWebVitals` — madi-auth.js:264
-- `showLogoutMenu` — madi-auth.js:337
-- `doLogout` — madi-auth.js:362
-- `showLoginUpdatePopup` — madi-auth.js:426
-- `_renderLoginUpdatePopup` — madi-auth.js:444
-- `_dismiss` — madi-auth.js:476
-- `_onKey` — madi-auth.js:486
-- `showChangePasswordModal` — madi-auth.js:498
-- `submitChangePassword` — madi-auth.js:530
+- `doLogin` — madi-auth.js:165
+  ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L179
+- `_promptTotpCode` — madi-auth.js:226
+- `getMadiLogoSVG` — madi-auth.js:257
+  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L265
+- `_initWebVitals` — madi-auth.js:270
+- `showLogoutMenu` — madi-auth.js:343
+- `doLogout` — madi-auth.js:368
+- `showLoginUpdatePopup` — madi-auth.js:432
+- `_renderLoginUpdatePopup` — madi-auth.js:450
+- `_dismiss` — madi-auth.js:482
+- `_onKey` — madi-auth.js:492
+- `showChangePasswordModal` — madi-auth.js:504
+- `submitChangePassword` — madi-auth.js:536
 
 ## madi-board-notice.js (25함수)
   ▸ _게시판 이미지 업로드 유틸_ — L1
@@ -999,7 +999,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _─_ — L758
   ▸ _─_ — L760
 - `quickSave` — madi-quick.js:761
-- `closeQuickForm` — madi-quick.js:866
+- `closeQuickForm` — madi-quick.js:872
 
 ## madi-report.js (10함수)
   ▸ _감각통합(감통) 평가 보고서_ — L1
@@ -1161,7 +1161,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `getClinicalGuideForDiagnosis` — madi-vocab.js:427
 - `getReportStyleGuide` — madi-vocab.js:707
 
-## admin.html (121함수)
+## admin.html (124함수)
 - `toKST` — admin.html:839
 - `nowKST` — admin.html:840
 - `ymd` — admin.html:841
@@ -1292,4 +1292,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `checkRlsStatus` — admin.html:3241
 - `dismissRlsBanner` — admin.html:3252
 - `deleteClientError` — admin.html:3259
-- `_v` — admin.html:3281
+- `_dirty` — admin.html:3278
+- `_apply` — admin.html:3285
+- `_banner` — admin.html:3286
+- `_v` — admin.html:3305

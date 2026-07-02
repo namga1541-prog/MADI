@@ -124,10 +124,16 @@ function doSignup() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: result.user.username, password: pw })
       })
-      .then(function(r) { return r.json(); })
+      .then(function(r) {
+        return r.json().then(function(j) {
+          // 401 등 실패 응답에도 fallback user 로 무토큰 진입하던 버그(감사 M-6) — 실패면 throw 해
+          // 아래 catch(수동 로그인 유도)로 합류한다. 가입 자체는 이미 완료된 상태.
+          if (!r.ok || !j || j.error || !j.user) throw new Error((j && j.error) || '자동 로그인 실패');
+          return j;
+        });
+      })
       .then(function(loginData) {
-        currentUser = (loginData && loginData.user) ? loginData.user
-          : { id: result.user.id, username: result.user.username, name: result.user.name, role: result.user.role, color: result.user.color, center_id: result.user.center_id, permissions: result.user.permissions };
+        currentUser = loginData.user;
         // iOS Safari 쿠키 차단 대응: 가입 직후 로그인 응답의 token 저장
         if (loginData && loginData.token) {
           if (typeof setToken === 'function') setToken(loginData.token);
