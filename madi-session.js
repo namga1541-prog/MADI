@@ -525,6 +525,8 @@ function maybeAutoBackup() {
 //                         백업 시점 그대로 되돌린다. 백업 이후 추가된 데이터가 영구 삭제될 수 있어
 //                         별도 확인 + 삭제 건수 고지 후에만 실행한다.
 function restoreFromBackup(id) {
+  // 센터 전체 upsert·DELETE 를 수반하므로 admin/superadmin 전용 (2026-07-02 감사 LOW — 현재 UI 미도달이나 재연결 대비 fail-closed)
+  if (!currentUser || !isAdminRole(currentUser.role)) { showToast('⚠️ 백업 복원은 관리자만 가능합니다'); return; }
   showConfirm('⚠️ 백업 ' + id + ' 으로 복원하시겠습니까?\n\n복원 직전 자동으로 현재 상태도 백업됩니다.', function() {
     // 1차 모드 선택: 완전 복원 여부. 기본(취소) = 머지.
     showConfirm(
@@ -550,6 +552,7 @@ function restoreFromBackup(id) {
 }
 
 function _execRestoreFromBackup(id, fullRestore) {
+  if (!currentUser || !isAdminRole(currentUser.role)) { showToast('⚠️ 백업 복원은 관리자만 가능합니다'); return; }
   // 1. 현재 상태를 안전 백업
   var safetyKey = 'safety_' + Date.now();
   var safetySnapshot = buildBackupSnapshot();

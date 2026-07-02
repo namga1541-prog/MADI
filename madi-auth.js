@@ -133,7 +133,7 @@ function doSignup() {
           if (typeof setToken === 'function') setToken(loginData.token);
           try { sessionStorage.setItem('madi_sess', loginData.token); } catch (_e) {}
         }
-        var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types };
+        var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types, permissions: currentUser.permissions };
         try { localStorage.setItem('madi_user', JSON.stringify(_toStore)); localStorage.setItem('madi_last_id', result.user.username); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
         var _scr = document.getElementById('signupScreen'); if (_scr) _scr.style.display = 'none'; hideLoginScreen();
         if (typeof applyUserUI === 'function') applyUserUI();
@@ -184,7 +184,8 @@ function doLogin(_totpCode) {
       if (typeof setToken === 'function') setToken(data.token);
       try { sessionStorage.setItem('madi_sess', data.token); } catch (_e) {}
     }
-    var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types };
+    // permissions 도 영속 — 누락 시 리로드 후 canDo() 가 DEFAULT_PERMS(전부 true) 폴백으로 권한 회수가 무효화됨 (2026-07-02 감사 H-1)
+    var _toStore = { id: currentUser.id, username: currentUser.username, name: currentUser.name, role: currentUser.role, center_id: currentUser.center_id, color: currentUser.color, prog_types: currentUser.prog_types, permissions: currentUser.permissions };
     try { localStorage.setItem('madi_user', JSON.stringify(_toStore)); localStorage.setItem('madi_last_id', un); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
     _purgeLegacyCnCache(); // 이전 사용자의 cn3_* PII 잔존 데이터 일소
     hideLoginScreen(); if (typeof applyUserUI === 'function') applyUserUI(); if (typeof applyRoleUI === 'function') applyRoleUI(); if (typeof loadCenterApiKey === 'function') loadCenterApiKey(); if (typeof loadDBFromSupabase === 'function') loadDBFromSupabase(); if (typeof initRealtime === 'function') initRealtime(); if (typeof loadCenterSessionInterval === 'function') loadCenterSessionInterval();

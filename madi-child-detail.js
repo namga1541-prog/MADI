@@ -667,7 +667,7 @@ function renderChildGrid() {
       + '<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;">'
       + '<button class="btn-ghost" onclick="event.stopPropagation();goToSession(\'' + child.id + '\')">📝 기록</button>'
       + (_childStatusFilter !== '종결' ? '<button class="btn-ghost" style="color:var(--mint);border-color:var(--mint);" onclick="event.stopPropagation();openSchedModalForChild(\'' + child.id + '\')">📅 일정</button>' : '')
-      + '<button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(\'' + child.id + '\')">✏️ 편집</button>'
+      + (canDo('editChild') ? '<button class="btn-ghost" style="color:var(--blue);border-color:var(--blue);" onclick="event.stopPropagation();openEditModal(\'' + child.id + '\')">✏️ 편집</button>' : '')
       + '<button class="btn-ghost" onclick="event.stopPropagation();openChildDetail(\'' + child.id + '\')">🔍 상세</button>'
       + (_childStatusFilter !== '종결'
           ? '<button class="btn-ghost" style="color:#f59e0b;border-color:#f59e0b;" onclick="event.stopPropagation();closeChild(\'' + child.id + '\')">🔒 종결</button>'

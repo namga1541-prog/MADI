@@ -359,6 +359,7 @@ function downloadWordDoc(name) {
 
 // ─────── 기능 5: 월간 포트폴리오 ───────
 function generatePortfolio() {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
   var portfolioChildEl = document.getElementById('portfolioChild');
   var portfolioMonthEl = document.getElementById('portfolioMonth');
@@ -716,6 +717,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
 
 // ─────── 기능 6: 자연어 검색 ───────
 function naturalSearch() {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
   var searchQueryEl = document.getElementById('searchQuery');
   if (!searchQueryEl) return;
@@ -776,6 +778,7 @@ function naturalSearch() {
 
 // ─────── 기능 7: 부모 FAQ 답변 ───────
 function generateFAQ() {
+  if (!canDo('useAI')) { showToast('⚠️ AI 기능 사용 권한이 없습니다'); return; }
   if (!getApiKeyOrAlert()) return;
   var faqChildEl = document.getElementById('faqChild');
   var faqQuestionEl = document.getElementById('faqQuestion');

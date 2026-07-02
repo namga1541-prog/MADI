@@ -259,7 +259,7 @@ function openChildDetail(id) {
     // 버튼
     + '<div style="display:flex;gap:8px;margin-top:14px;">'
     + '<button class="btn btn-primary" style="flex:1;" onclick="this.closest(\'.sched-modal-overlay\').remove();goToSession(\'' + id + '\')">📝 세션 기록</button>'
-    + '<button class="btn-ghost" style="flex:1;" onclick="this.closest(\'.sched-modal-overlay\').remove();openEditModal(\'' + id + '\')">✏️ 편집</button>'
+    + (canDo('editChild') ? '<button class="btn-ghost" style="flex:1;" onclick="this.closest(\'.sched-modal-overlay\').remove();openEditModal(\'' + id + '\')">✏️ 편집</button>' : '')
     + '</div></div>';
 
   document.body.appendChild(overlay);
@@ -294,6 +294,7 @@ function goToSession(id) {
 
 // ─────── 아동 편집 모달 ───────
 function openEditModal(id) {
+  if (typeof canDo !== 'function' || !canDo('editChild')) { showToast('⚠️ 아동 편집 권한이 없습니다.'); return; }
   var child = childDB.find(function(c) { return c.id === id; });
   if (!child) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
 
@@ -500,6 +501,7 @@ function updateEditAge() {
 }
 
 function saveEditModal(id) {
+  if (typeof canDo !== 'function' || !canDo('editChild')) { showToast('⚠️ 아동 편집 권한이 없습니다.'); return; }
   var idx = childDB.findIndex(function(c) { return c.id === id; });
   if (idx < 0) { showToast('⚠️ 아동 정보를 찾을 수 없습니다'); return; }
 

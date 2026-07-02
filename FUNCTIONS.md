@@ -99,8 +99,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var SW_LINES = [` — madi-deploy.js:82
 - `var SW_CODE = SW_LINES.join(String.fromCharCode(10));` — madi-deploy.js:193
 - `var _bcEscHandler = null;` — madi-growth.js:1
-- `var VOUCHER_KINDS = ['발달재활바우처','우리아이심리지원서비스바우처','꿈E든카드바우처','나래사랑카드바우처'];` — madi-growth.js:413
-- `var _showDischargedInSession = false;` — madi-growth.js:691
+- `var VOUCHER_KINDS = ['발달재활바우처','우리아이심리지원서비스바우처','꿈E든카드바우처','나래사랑카드바우처'];` — madi-growth.js:414
+- `var _showDischargedInSession = false;` — madi-growth.js:693
 - `var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','p` — madi-home.js:390
 - `var TAB_PANEL_MAP = ['panel2','panel0','panelReport','panelPortfolio','panelService','pane` — madi-home.js:392
 - `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':` — madi-home.js:419
@@ -165,7 +165,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var BACKUP_DB_NAME = 'madi_backup_db';` — madi-session.js:291
 - `var BACKUP_STORE = 'daily_backups';` — madi-session.js:292
 - `var BACKUP_KEEP = 7; // 7일치 보관` — madi-session.js:293
-- `var _RESTORE_TABLES = [` — madi-session.js:641
+- `var _RESTORE_TABLES = [` — madi-session.js:644
 - `var _permUserId = null;` — madi-system.js:2
 - `var _permData = {};` — madi-system.js:3
 - `var PERM_LIST = [` — madi-system.js:5
@@ -369,18 +369,18 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `doSignup` — madi-auth.js:69
 - `doLogin` — madi-auth.js:159
   ▸ _SEC6: 2FA 필요 시 6자리 입력 모달 표시_ — L173
-- `_promptTotpCode` — madi-auth.js:219
-- `getMadiLogoSVG` — madi-auth.js:250
-  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L258
-- `_initWebVitals` — madi-auth.js:263
-- `showLogoutMenu` — madi-auth.js:336
-- `doLogout` — madi-auth.js:361
-- `showLoginUpdatePopup` — madi-auth.js:425
-- `_renderLoginUpdatePopup` — madi-auth.js:443
-- `_dismiss` — madi-auth.js:475
-- `_onKey` — madi-auth.js:485
-- `showChangePasswordModal` — madi-auth.js:497
-- `submitChangePassword` — madi-auth.js:529
+- `_promptTotpCode` — madi-auth.js:220
+- `getMadiLogoSVG` — madi-auth.js:251
+  ▸ _Web Vitals 계측 (2026-05-21 최적화 효과 검증용)_ — L259
+- `_initWebVitals` — madi-auth.js:264
+- `showLogoutMenu` — madi-auth.js:337
+- `doLogout` — madi-auth.js:362
+- `showLoginUpdatePopup` — madi-auth.js:426
+- `_renderLoginUpdatePopup` — madi-auth.js:444
+- `_dismiss` — madi-auth.js:476
+- `_onKey` — madi-auth.js:486
+- `showChangePasswordModal` — madi-auth.js:498
+- `submitChangePassword` — madi-auth.js:530
 
 ## madi-board-notice.js (25함수)
   ▸ _게시판 이미지 업로드 유틸_ — L1
@@ -700,23 +700,23 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `goToSession` — madi-growth.js:268
   ▸ _아동 편집 모달_ — L295
 - `openEditModal` — madi-growth.js:296
-- `setEditPayType` — madi-growth.js:415
-- `selectEditVoucherKind` — madi-growth.js:440
-- `calcEditCopay` — madi-growth.js:453
-- `updateEditAge` — madi-growth.js:484
-- `saveEditModal` — madi-growth.js:502
-- `closeEditModal` — madi-growth.js:563
-  ▸ _검색 셀렉트 공통_ — L567
-- `updateSSDrop` — madi-growth.js:568
-- `makeSearchable` — madi-growth.js:595
-  ▸ _세션탭 종결 아동 포함 토글_ — L690
-- `toggleDischargedInSession` — madi-growth.js:693
-- `populateChildSelects` — madi-growth.js:705
-  ▸ _발화 샘플 분석 (MLU · TTR)_ — L831
-- `toggleSpeechPanel` — madi-growth.js:832
-- `analyzeSpeechSample` — madi-growth.js:844
-- `runSpeechAnalysis` — madi-growth.js:865
-- `appendSpeechResultToMemo` — madi-growth.js:895
+- `setEditPayType` — madi-growth.js:416
+- `selectEditVoucherKind` — madi-growth.js:441
+- `calcEditCopay` — madi-growth.js:454
+- `updateEditAge` — madi-growth.js:485
+- `saveEditModal` — madi-growth.js:503
+- `closeEditModal` — madi-growth.js:565
+  ▸ _검색 셀렉트 공통_ — L569
+- `updateSSDrop` — madi-growth.js:570
+- `makeSearchable` — madi-growth.js:597
+  ▸ _세션탭 종결 아동 포함 토글_ — L692
+- `toggleDischargedInSession` — madi-growth.js:695
+- `populateChildSelects` — madi-growth.js:707
+  ▸ _발화 샘플 분석 (MLU · TTR)_ — L833
+- `toggleSpeechPanel` — madi-growth.js:834
+- `analyzeSpeechSample` — madi-growth.js:846
+- `runSpeechAnalysis` — madi-growth.js:867
+- `appendSpeechResultToMemo` — madi-growth.js:897
 
 ## madi-home.js (46함수)
 - `loadCenterApiKey` — madi-home.js:8
@@ -911,28 +911,28 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `downloadWordDoc` — madi-parent.js:308
   ▸ _기능 5: 월간 포트폴리오_ — L360
 - `generatePortfolio` — madi-parent.js:361
-- `_resetPortfolioBtn` — madi-parent.js:430
-  ▸ _포트폴리오 DB 저장 (UPSERT)_ — L461
-- `_savePortfolioToDB` — madi-parent.js:463
-  ▸ _포트폴리오 가시성 토글 (선생님 OPEN/CLOSE)_ — L510
-- `togglePortfolioVisibility` — madi-parent.js:511
-  ▸ _포트폴리오 히스토리 로드·렌더_ — L539
-- `renderPortfolioHistory` — madi-parent.js:540
-  ▸ _포트폴리오 삭제_ — L589
-- `deletePortfolio` — madi-parent.js:590
-  ▸ _아동 선택 변경 시 히스토리 자동 로드_ — L604
-- `onPortfolioChildChange` — madi-parent.js:605
-- `renderPortfolio` — madi-parent.js:611
-  ▸ _기능 6: 자연어 검색_ — L717
-- `naturalSearch` — madi-parent.js:718
-- `_aliasNames` — madi-parent.js:741
-- `_restoreNames` — madi-parent.js:742
-- `_resetAskBtn` — madi-parent.js:759
-  ▸ _기능 7: 부모 FAQ 답변_ — L777
-- `generateFAQ` — madi-parent.js:778
-- `_resetFAQBtn` — madi-parent.js:818
-- `copyFAQText` — madi-parent.js:841
-  ▸ _유틸_ — L856
+- `_resetPortfolioBtn` — madi-parent.js:431
+  ▸ _포트폴리오 DB 저장 (UPSERT)_ — L462
+- `_savePortfolioToDB` — madi-parent.js:464
+  ▸ _포트폴리오 가시성 토글 (선생님 OPEN/CLOSE)_ — L511
+- `togglePortfolioVisibility` — madi-parent.js:512
+  ▸ _포트폴리오 히스토리 로드·렌더_ — L540
+- `renderPortfolioHistory` — madi-parent.js:541
+  ▸ _포트폴리오 삭제_ — L590
+- `deletePortfolio` — madi-parent.js:591
+  ▸ _아동 선택 변경 시 히스토리 자동 로드_ — L605
+- `onPortfolioChildChange` — madi-parent.js:606
+- `renderPortfolio` — madi-parent.js:612
+  ▸ _기능 6: 자연어 검색_ — L718
+- `naturalSearch` — madi-parent.js:719
+- `_aliasNames` — madi-parent.js:743
+- `_restoreNames` — madi-parent.js:744
+- `_resetAskBtn` — madi-parent.js:761
+  ▸ _기능 7: 부모 FAQ 답변_ — L779
+- `generateFAQ` — madi-parent.js:780
+- `_resetFAQBtn` — madi-parent.js:821
+- `copyFAQText` — madi-parent.js:844
+  ▸ _유틸_ — L859
 
 ## madi-pii.js (4함수)
 - `madiNameMasker` — madi-pii.js:18
@@ -1110,16 +1110,16 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `tryBackup` — madi-session.js:503
   ▸ _백업 복원_ — L520
 - `restoreFromBackup` — madi-session.js:527
-- `_execRestoreFromBackup` — madi-session.js:552
-- `applyBackup` — madi-session.js:563
-  ▸ _완전 복원: 백업에 없는 서버 행을 center_id 범위에서 삭제_ — L585
-- `_deleteOrphanServerRows` — madi-session.js:653
-- `_execOrphanDeletes` — madi-session.js:686
-- `renderBackupList` — madi-session.js:713
-- `deleteBackupConfirm` — madi-session.js:751
-- `callClaude` — madi-session.js:762
-- `parseJSON` — madi-session.js:803
-  ▸ _센터 API 키 관리 (선택지 2)_ — L862
+- `_execRestoreFromBackup` — madi-session.js:554
+- `applyBackup` — madi-session.js:566
+  ▸ _완전 복원: 백업에 없는 서버 행을 center_id 범위에서 삭제_ — L588
+- `_deleteOrphanServerRows` — madi-session.js:656
+- `_execOrphanDeletes` — madi-session.js:689
+- `renderBackupList` — madi-session.js:716
+- `deleteBackupConfirm` — madi-session.js:754
+- `callClaude` — madi-session.js:765
+- `parseJSON` — madi-session.js:806
+  ▸ _센터 API 키 관리 (선택지 2)_ — L865
 
 ## madi-system.js (16함수)
   ▸ _권한 설정 모달_ — L1
