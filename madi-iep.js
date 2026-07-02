@@ -889,10 +889,14 @@ function renderStagnationResult(p, childName, childId) {
 }
 
 function stagnationActionMeta(type, childId) {
-  var safeId = escHtml(String(childId));
+  // childId 는 따옴표 없는 JS 값 위치에 삽입되므로 escHtml 로는 JS 문법 문자(괄호·세미콜론)를 못 막음(2026-07-02 감사 M-1)
+  //   → 숫자 문자열만 통과시키고, 아니면 아동 프리필 없이 탭 전환만 수행(fail-closed).
+  var safeId = /^[0-9]+$/.test(String(childId)) ? String(childId) : null;
+  var _iepPre = safeId ? 'var el=document.getElementById("iepChild");if(el){el.value=\'' + safeId + '\';renderIEPHistory(\'' + safeId + '\');}' : '';
+  var _repPre = safeId ? 'var el=document.getElementById("reportChild");if(el)el.value=\'' + safeId + '\';' : '';
   var map = {
-    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("iepChild");if(el){el.value=' + safeId + ';renderIEPHistory(' + safeId + ');}},300);' },
-    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");var el=document.getElementById("reportChild");if(el)el.value=' + safeId + ';},300);' },
+    iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");' + _iepPre + '},300);' },
+    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");' + _repPre + '},300);' },
     activity: { icon: '🎮', color: '#10b981', btnLabel: '활동 카탈로그', onclick: 'switchTab(3);setTimeout(function(){switchPortfolioTab("ai");},200);' },
     schedule: { icon: '📅', color: '#f59e0b', btnLabel: '일정 확인', onclick: 'switchTab(0);' }
   };

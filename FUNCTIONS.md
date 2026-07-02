@@ -830,7 +830,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_resetStagnBtn` — madi-iep.js:819
 - `renderStagnationResult` — madi-iep.js:835
 - `stagnationActionMeta` — madi-iep.js:891
-  ▸ _기능 4: 부모 보고서_ — L902
+  ▸ _기능 4: 부모 보고서_ — L906
 
 ## madi-parent-home.js (21함수)
   ▸ _탭 전환_ — L9

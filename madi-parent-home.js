@@ -75,7 +75,7 @@ function getMyChildInfo(callback, onNoChild) {
       }
       // 자녀 이름까지 함께 조회 후 캐싱
       var ids = rows.map(function(r){ return encodeURIComponent(r.child_id); }).join(',');
-      return supaFetch('madi_children?id=in.(' + ids + ')&select=id,data', 'GET')
+      return supaFetch('madi_children?id=in.(' + ids + ')&select=id::text,data', 'GET')
         .then(function(children) {
           var nameMap = {};
           if (Array.isArray(children)) {

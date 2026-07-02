@@ -75,7 +75,7 @@ function loadDBFromSupabase(silent) {
   // 세션: 최근 90일, 일정: 최근 30일~미래 전체 (캘린더는 미래 일정 필요)
   var d90 = _isoDaysAgo(90);
   var d30 = _isoDaysAgo(30);
-  var _bpCh  = 'madi_children?'    + centerFilter() + '&select=id,data&order=id.asc';
+  var _bpCh  = 'madi_children?'    + centerFilter() + '&select=id::text,data&order=id.asc';
   var _bpSe  = 'madi_sessions?'    + centerFilter() + '&data->>date=gte.' + d90 + '&select=id::text,data&order=id.asc';
   var _bpSch = 'madi_schedules?'   + centerFilter() + '&data->>date=gte.' + d30 + '&select=id::text,data&order=id.asc';
   var _bpAs  = 'madi_assessments?' + centerFilter() + '&select=id::text,data&order=id.asc';
@@ -329,7 +329,7 @@ function saveIEP() {
 //   safeSetItem 용 JSON.stringify 를 그대로 시그니처로 재사용하므로 추가 직렬화 비용 0.
 var _lastIepJson = null, _lastActivitiesJson = null;
 function loadIEPFromSupa() {
-  _supaFetchAll('madi_iep_history?' + centerFilter() + '&select=id,data&order=id.desc')
+  _supaFetchAll('madi_iep_history?' + centerFilter() + '&select=id::text,data&order=id.desc')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) return;
       var parsed = rows.filter(function(r){ return r && r.data; }).map(function(r){ var d=r.data; d.id=String(r.id); return d; });

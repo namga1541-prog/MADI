@@ -708,7 +708,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
   if (p.professionalNote) fullText += '【전문 메모】\n' + p.professionalNote;
 
   html += '<div style="display:none;" id="portfolioFullText">' + escHtml(fullText) + '</div>';
-  html += '<button class="pdf-btn" onclick="downloadPDF(\'' + jsArg(child.name) + '_' + escHtml(String(month)) + '\',\'portfolioFullText\',\'' + jsArg(child.name) + ' 월간 포트폴리오 (' + escHtml(String(month)) + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
+  html += '<button class="pdf-btn" onclick="downloadPDF(\'' + jsArg(child.name) + '_' + jsArg(String(month)) + '\',\'portfolioFullText\',\'' + jsArg(child.name) + ' 월간 포트폴리오 (' + jsArg(String(month)) + ')\')">⬇️ 포트폴리오 PDF 다운로드</button>';
 
   var portfolioResultEl = document.getElementById('portfolioResult');
   // eslint-disable-next-line no-unsanitized/property

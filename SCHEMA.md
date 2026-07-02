@@ -29,7 +29,7 @@
 | `madi_settings` | `key`(PK), `value` — **전역 테이블, center_id 컬럼 없음**. ⚠️ 의도적 cross-tenant read 허용(M-8, 2026-06-16 결정): 센터 격리가 없어 어떤 센터 admin도 전 센터 설정을 조회 가능. 현재 저장 설정은 민감도가 낮아 보류. **센터별로 분리돼야 하는 민감 설정을 추가할 때는 반드시 center_id 격리(컬럼 또는 key prefix) + Edge 필터를 먼저 설계할 것** — 이 표를 보고 격리를 가정하지 말 것 |
 | `madi_lounge_posts` | `id`, `center_id`, `author_id`, `author_name`, `author_role`, `title`, `content`, `images`, `image_urls`, `note`, `visibility`, `created_at` |
 | `madi_lounge_comments` | `id`, `post_id`, `center_id`, `author_id`, `author_name`, `author_role`, `content`, `image_url`, `created_at` — `image_url`·`author_role` 은 `board_image_columns_fix.sql`(2026-05-30)로 추가 |
-| `madi_error_logs` | `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` |
+| `madi_error_logs` | `center_id`, `user_id`, `username`, `message`, `source`, `user_agent`, `url`, `ts`, `created_at` — `center_id` 는 2026-07-02 감사(M-2)에서 누락 발견·복원: 실존 교차 증거 3건(admin.html `center_id=eq.` 필터 운영 동작 · api/index.ts 가 GLOBAL_TABLES 제외라 전 POST 에 center_id 강제 주입 · 인수인계_2026-06-18.md 운영 SQL). 라이브 프로브 시 information_schema 실측으로 최종 확정 권장 |
 | `madi_parent_observations` | `id`, `parent_user_id`, `child_id`, `center_id`, `content`, `teacher_reply`, `category`(기본 'general'), `replied_at`, `replied_by`, `created_at` |
 | `madi_center_api_keys` | (마이그레이션 `migrations/add_center_api_keys.sql` 참조 — 센터별 API 키) |
 | `madi_activities` | `id`, `center_id`, `name`, `tags`(text[]), `diagnosis`, `description` 등 flat 컬럼 — **제네릭 data 래핑 아님**, `saveActivities`가 `Object.assign({},a,{center_id})`로 평탄 전송, `a.name`·`a.diagnosis`·`a.tags`로 직접 접근 |

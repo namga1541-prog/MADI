@@ -3016,7 +3016,7 @@ function loadLicenseList() {
           + '<span style="font-size:12px;color:' + statusColor + ';font-weight:700;">' + statusLabel + '</span>'
           + dDayHtml
           + '<span style="font-size:11px;color:var(--text2);margin-left:auto;">만료 ' + escHtml(exp) + '</span>'
-          + '<button onclick="copyLicenseKey(\'' + escHtml(r.license_key) + '\')"'
+          + '<button onclick="copyLicenseKey(\'' + jsArg(r.license_key) + '\')"'
             + ' style="padding:4px 10px;font-size:11px;border:1px solid var(--border);border-radius:8px;'
             + 'background:white;cursor:pointer;font-family:inherit;flex-shrink:0;">📋</button>'
           + '</div>'
@@ -3096,8 +3096,8 @@ function activateLicense() {
   var key = keyInput.value.trim().toUpperCase();
   if (key.length !== 6) { showToast('⚠️ 6자리 키를 입력해주세요'); return; }
   if (!currentUser || !currentUser.center_id) { showToast('⚠️ 센터 정보가 없습니다. 다시 로그인해주세요'); return; }
-  supaFetch('madi_licenses?license_key=eq.' + key
-    + '&center_id=eq.' + currentUser.center_id
+  supaFetch('madi_licenses?license_key=eq.' + encodeURIComponent(key)
+    + '&center_id=eq.' + encodeURIComponent(currentUser.center_id)
     + '&status=eq.pending&limit=1', 'GET')
     .then(function(rows) {
       if (!Array.isArray(rows) || rows.length === 0) {
