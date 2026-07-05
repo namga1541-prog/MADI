@@ -310,7 +310,7 @@ function initPWA() {
       // safe-area-inset-bottom: 홈인디케이터 아이폰에서 배너가 인디케이터와 겹치지 않게.
       // right:84px: 우하단 .float-btn(width 56px + right 20px + 간격)과 겹치지 않게 우측 여백 확보.
       b.style.cssText = 'position:fixed;left:16px;right:84px;bottom:calc(22px + env(safe-area-inset-bottom,0px));'
-        + 'z-index:2147483646;background:var(--mint,#0ea5a0);color:#fff;font-weight:700;'
+        + 'z-index:2147483646;background:var(--mint,#0E6B5C);color:#fff;font-weight:700;'
         + 'font-size:14px;line-height:1.3;padding:13px 16px;border-radius:16px;cursor:pointer;'
         + 'box-shadow:0 6px 22px rgba(0,0,0,0.28);text-align:center;'
         + '-webkit-tap-highlight-color:transparent;';

@@ -186,9 +186,9 @@ function renderInquiryCard(post, user) {
   var toLabel = post.visibility === 'private_super' ? '👑 슈퍼관리자' :
                 post.visibility === 'private_admin'  ? '🎯 센터장' : '📢 전체';
   var toColor = post.visibility === 'private_super' ? '#d97706' :
-                post.visibility === 'private_admin'  ? '#0ea5a0' : '#3b82f6';
+                post.visibility === 'private_admin'  ? '#0E6B5C' : '#3b82f6';
   var toBg    = post.visibility === 'private_super' ? '#fef3c7' :
-                post.visibility === 'private_admin'  ? '#e0f7f6' : '#dbeafe';
+                post.visibility === 'private_admin'  ? '#EAF3F1' : '#dbeafe';
 
   // 발신자 표시
   var fromLabel = post.author_role === 'superadmin' ? '👑 슈퍼관리자' :
@@ -775,7 +775,7 @@ function openPostEditModal(opts) {
     +   '</div>'
     +   '<div style="padding:14px 20px;border-top:1px solid var(--border,#e2e8f0);background:var(--bg,#f8fafc);display:flex;justify-content:flex-end;gap:8px;">'
     +     '<button id="peCancel" style="padding:9px 18px;border:1px solid var(--border,#cbd5e1);border-radius:8px;background:var(--card-bg,#fff);color:var(--text2,#475569);font-size:13px;font-weight:600;cursor:pointer;">취소</button>'
-    +     '<button id="peSave" style="padding:9px 18px;border:none;border-radius:8px;background:#0ea5a0;color:white;font-size:13px;font-weight:700;cursor:pointer;">💾 저장</button>'
+    +     '<button id="peSave" style="padding:9px 18px;border:none;border-radius:8px;background:#0E6B5C;color:white;font-size:13px;font-weight:700;cursor:pointer;">💾 저장</button>'
     +   '</div>'
     + '</div>';
 

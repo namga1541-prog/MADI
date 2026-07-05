@@ -572,7 +572,7 @@ function renderChildGrid() {
       + '<div style="font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:10px;">📊 종결 아동 통계</div>'
       + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">'
       + '<div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 6px;">'
-      +   '<div style="font-size:20px;font-weight:900;color:#5eead4;">' + list.length + '</div>'
+      +   '<div style="font-size:20px;font-weight:900;color:#7FDCC9;">' + list.length + '</div>'
       +   '<div style="font-size:10px;color:#94a3b8;margin-top:2px;">총 종결 아동</div>'
       + '</div>'
       + '<div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 6px;">'

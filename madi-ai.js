@@ -108,7 +108,7 @@ function downloadPDF(name, sourceId, title) {
   if (!win) { showToast('⚠️ 팝업이 차단됐습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   // eslint-disable-next-line no-unsanitized/method
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    + '<style>body{font-family:"Noto Sans KR",sans-serif;padding:40px;color:#1e293b;line-height:1.8;}'
+    + '<style>body{font-family:"Pretendard",sans-serif;padding:40px;color:#1e293b;line-height:1.8;}'
     + 'h2{color:#0f2942;margin-bottom:8px;}p{white-space:pre-wrap;font-size:14px;}'
     + '.footer{margin-top:40px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px;}'
     + '</style></head><body>'
@@ -163,11 +163,11 @@ function markdownToHtml(text) {
       if (trimmed === '') {
         html += '<div style="height:6px;"></div>';
       } else if (/^(I|II|III|IV|V|VI|VII)\./.test(trimmed)) {
-        html += '<h2 style="font-size:15px;font-weight:700;color:#0f2942;margin:20px 0 8px;border-bottom:2px solid #0ea5a0;padding-bottom:5px;">' + inlineBold(trimmed) + '</h2>';
+        html += '<h2 style="font-size:15px;font-weight:700;color:#0f2942;margin:20px 0 8px;border-bottom:2px solid #0E6B5C;padding-bottom:5px;">' + inlineBold(trimmed) + '</h2>';
       } else if (/^\d+\./.test(trimmed) && trimmed.length < 60) {
         html += '<p style="font-weight:700;font-size:14px;margin:12px 0 4px;color:#1e293b;">' + inlineBold(trimmed) + '</p>';
       } else if (/^[가-힣]\./.test(trimmed)) {
-        html += '<p style="font-weight:700;font-size:13px;margin:8px 0 4px;color:#0ea5a0;">' + inlineBold(trimmed) + '</p>';
+        html += '<p style="font-weight:700;font-size:13px;margin:8px 0 4px;color:#0E6B5C;">' + inlineBold(trimmed) + '</p>';
       } else if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
         html += '<p style="margin:3px 0;padding-left:14px;font-size:13px;line-height:1.8;">• ' + inlineBold(trimmed.slice(2)) + '</p>';
       } else {
@@ -192,11 +192,11 @@ function downloadAssessPDF(name) {
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">'
     + '<style>'
-    + 'body{font-family:"Noto Sans KR",sans-serif;padding:40px 50px;color:#1e293b;line-height:1.8;max-width:800px;margin:0 auto;}'
+    + 'body{font-family:"Pretendard",sans-serif;padding:40px 50px;color:#1e293b;line-height:1.8;max-width:800px;margin:0 auto;}'
     + '.rpt-header{text-align:center;margin-bottom:28px;padding-bottom:14px;border-bottom:3px double #0f2942;}'
     + '.rpt-title{font-size:22px;font-weight:700;color:#0f2942;margin-bottom:10px;letter-spacing:2px;}'
     + '.rpt-meta{display:flex;justify-content:space-between;font-size:13px;color:#475569;border-top:1px solid #e2e8f0;padding-top:8px;}'
-    + 'h2{font-size:15px;font-weight:700;color:#0f2942;margin:20px 0 8px;border-bottom:2px solid #0ea5a0;padding-bottom:4px;}'
+    + 'h2{font-size:15px;font-weight:700;color:#0f2942;margin:20px 0 8px;border-bottom:2px solid #0E6B5C;padding-bottom:4px;}'
     + 'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;}'
     + 'th{background:#f0fdf4;font-weight:700;color:#0f2942;border:1px solid #cbd5e1;padding:7px 10px;text-align:center;}'
     + 'td{border:1px solid #e2e8f0;padding:7px 10px;}'
@@ -940,12 +940,12 @@ function downloadIEPPDF(childName) {
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">'
     + '<style>'
-    + 'body{font-family:"Noto Sans KR",sans-serif;padding:40px 50px;color:#1e293b;line-height:1.8;max-width:800px;margin:0 auto;}'
+    + 'body{font-family:"Pretendard",sans-serif;padding:40px 50px;color:#1e293b;line-height:1.8;max-width:800px;margin:0 auto;}'
     + '.iep-title{text-align:center;font-size:20px;font-weight:700;color:#0f2942;margin-bottom:4px;}'
     + '.iep-sub{text-align:center;font-size:12px;color:#64748b;margin-bottom:20px;border-bottom:2px solid #8b5cf6;padding-bottom:12px;}'
-    + 'h3{font-size:14px;font-weight:700;color:#0f2942;margin:18px 0 6px;border-bottom:1.5px solid #0ea5a0;padding-bottom:4px;}'
+    + 'h3{font-size:14px;font-weight:700;color:#0f2942;margin:18px 0 6px;border-bottom:1.5px solid #0E6B5C;padding-bottom:4px;}'
     + 'p{margin:3px 0;font-size:13px;line-height:1.8;}'
-    + '.chip{display:inline-block;background:#e0f7f6;color:#0ea5a0;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;margin:3px 2px;}'
+    + '.chip{display:inline-block;background:#EAF3F1;color:#0E6B5C;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;margin:3px 2px;}'
     + '.long-goal{background:#f5f3ff;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-weight:600;color:#6d28d9;}'
     + '.note{background:#fffbeb;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-top:16px;}'
     + '@media print{body{padding:20px 30px;}}'

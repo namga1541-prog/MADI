@@ -130,13 +130,13 @@ function updateAIModelUI() {
   var currentLabel = document.getElementById('aiModelCurrentLabel');
   if (haikuRadio)  haikuRadio.checked  = (current === 'haiku');
   if (sonnetRadio) sonnetRadio.checked = (current === 'sonnet');
-  if (haikuLabel) { haikuLabel.style.borderColor = current === 'haiku' ? '#0ea5a0' : 'var(--border)'; haikuLabel.style.background = current === 'haiku' ? '#f0fdfa' : 'transparent'; }
+  if (haikuLabel) { haikuLabel.style.borderColor = current === 'haiku' ? '#0E6B5C' : 'var(--border)'; haikuLabel.style.background = current === 'haiku' ? '#f0fdfa' : 'transparent'; }
   if (sonnetLabel) { sonnetLabel.style.borderColor = current === 'sonnet' ? '#8b5cf6' : 'var(--border)'; sonnetLabel.style.background = current === 'sonnet' ? '#faf5ff' : 'transparent'; }
   if (currentLabel) { currentLabel.textContent = '현재: ' + (current === 'sonnet' ? '🎯 Sonnet' : '⚡ Haiku'); currentLabel.style.color = current === 'sonnet' ? '#7c3aed' : '#047857'; }
 }
 var DISORDER_EMOJI = { '언어발달장애':'🗣️','조음음운장애':'👄','유창성장애':'💬','자폐스펙트럼':'🌈','지적장애':'🧩','청각장애':'👂','기타':'📋' };
-var CHILD_COLORS = ['#0ea5a0','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];
-var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316','#06b6d4','#84cc16','#ec4899','#14b8a6','#a855f7','#eab308','#3b82f6','#f43f5e'];
+var CHILD_COLORS = ['#0E6B5C','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];
+var TEACHER_COLORS = ['#0E6B5C','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316','#06b6d4','#84cc16','#ec4899','#14b8a6','#a855f7','#eab308','#3b82f6','#f43f5e'];
 var _teacherColorMap = {};
 function getTeacherColor(name) {
   if (!name) return '#94a3b8';

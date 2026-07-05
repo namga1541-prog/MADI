@@ -525,7 +525,7 @@ function showChangePasswordModal() {
     + '<div id="cpError" role="alert" style="font-size:12px;color:#ef4444;margin-bottom:12px;min-height:16px;word-break:break-word;"></div>'
     + '<div style="display:flex;gap:8px;">'
     + '<button onclick="document.getElementById(\'changePwModal\').remove();" style="flex:1;padding:11px;border:1px solid var(--border,#e2e8f0);border-radius:10px;background:var(--card-bg,#fff);font-size:14px;cursor:pointer;color:var(--text2,#64748b);">취소</button>'
-    + '<button id="cpSubmitBtn" onclick="submitChangePassword();" style="flex:1;padding:11px;border:none;border-radius:10px;background:#0ea5a0;color:white;font-size:14px;font-weight:700;cursor:pointer;">변경</button>'
+    + '<button id="cpSubmitBtn" onclick="submitChangePassword();" style="flex:1;padding:11px;border:none;border-radius:10px;background:#0E6B5C;color:white;font-size:14px;font-weight:700;cursor:pointer;">변경</button>'
     + '</div>'
     + '</div>';
   document.body.appendChild(overlay);

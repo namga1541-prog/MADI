@@ -230,7 +230,7 @@ function suggestHomeActivities(sessionId) {
           + escHtml(String(i + 1)) + '. ' + escHtml(a.title) + '</div>'
           + (a.level ? '<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:' + escHtml(lc) + '20;color:' + escHtml(lc) + ';font-weight:700;">' + escHtml(a.level) + '</span>' : '')
           + '</div>'
-          + (a.reason ? '<div style="font-size:11px;color:#0ea5a0;margin-bottom:5px;font-weight:600;">✅ ' + escHtml(a.reason) + '</div>' : '')
+          + (a.reason ? '<div style="font-size:11px;color:#0E6B5C;margin-bottom:5px;font-weight:600;">✅ ' + escHtml(a.reason) + '</div>' : '')
           + '<div style="font-size:12px;line-height:1.65;color:var(--text);">' + escHtml(a.steps) + '</div>'
           + (a.tip ? '<div style="font-size:11px;line-height:1.5;color:var(--text2);margin-top:5px;font-style:italic;">💡 ' + escHtml(a.tip) + '</div>' : '')
           + '</div>';
@@ -536,7 +536,7 @@ function renderChart() {
   });
 
   var labels = sessions.map(function(s) { return s.date ? s.date.slice(5) : ''; });
-  var palette = ['#0ea5a0', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981'];
+  var palette = ['#0E6B5C', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981'];
   var datasets = [], gi = 0;
   for (var name in goalMap) {
     var sm = {};
@@ -656,7 +656,7 @@ function renderPhonemeChart(childId) {
 
   // 데이터셋 구성
   var labels = sessions.map(function(s) { return s.date ? s.date.slice(5) : ''; });
-  var palette = ['#db2777','#0ea5a0','#8b5cf6','#f59e0b','#3b82f6','#10b981','#ef4444'];
+  var palette = ['#db2777','#0E6B5C','#8b5cf6','#f59e0b','#3b82f6','#10b981','#ef4444'];
   var posKeys = _phonemePos === 'all'
     ? ['initial','medial','final']
     : [_phonemePos];
@@ -707,7 +707,7 @@ function renderPhonemeChart(childId) {
       options: {
         responsive: true, maintainAspectRatio: true,
         plugins: {
-          legend: { position: 'bottom', labels: { font: { size: 11, family: 'Noto Sans KR' }, boxWidth: 14 } },
+          legend: { position: 'bottom', labels: { font: { size: 11, family: 'Pretendard' }, boxWidth: 14 } },
           tooltip: { callbacks: {
             label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y + '%' : '—'); }
           }}
@@ -896,7 +896,7 @@ function stagnationActionMeta(type, childId) {
   var _repPre = safeId ? 'var el=document.getElementById("reportChild");if(el)el.value=\'' + safeId + '\';' : '';
   var map = {
     iep:      { icon: '📋', color: '#8b5cf6', btnLabel: 'IEP 생성하기', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");' + _iepPre + '},300);' },
-    report:   { icon: '📨', color: '#0ea5a0', btnLabel: '리포트 작성', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");' + _repPre + '},300);' },
+    report:   { icon: '📨', color: '#0E6B5C', btnLabel: '리포트 작성', onclick: 'switchTab(2);setTimeout(function(){switchReportTab("report");' + _repPre + '},300);' },
     activity: { icon: '🎮', color: '#10b981', btnLabel: '활동 카탈로그', onclick: 'switchTab(3);setTimeout(function(){switchPortfolioTab("ai");},200);' },
     schedule: { icon: '📅', color: '#f59e0b', btnLabel: '일정 확인', onclick: 'switchTab(0);' }
   };

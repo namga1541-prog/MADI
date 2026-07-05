@@ -747,8 +747,8 @@ function showStaffTrend(teacher) {
         datasets: [{
           label: '세션 수',
           data: data,
-          backgroundColor: 'rgba(14,165,160,0.25)',
-          borderColor: '#0ea5a0',
+          backgroundColor: 'rgba(14,107,92,0.25)',
+          borderColor: '#0E6B5C',
           borderWidth: 2,
           borderRadius: 6
         }]

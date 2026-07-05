@@ -97,7 +97,7 @@ function renderUnwrittenAlert() {
     var items = byTeacher[teacher];
     var uid = 'uw_' + teacher.replace(/[^a-zA-Z0-9\uAC00-\uD7A3]/g, '_');
     html += '<div style="margin-top:8px;">'
-      + '<div onclick="toggleUwTeacher(this)" data-uwid="' + uid + '" style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--mint2,#f0fdfa);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:var(--mint,#0ea5a0);">'
+      + '<div onclick="toggleUwTeacher(this)" data-uwid="' + uid + '" style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--mint2,#f0fdfa);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:var(--mint,#0E6B5C);">'
       + '<span>👤 ' + escHtml(teacher) + '</span>'
       + '<span style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;font-weight:400;color:var(--text2);">' + items.length + '건</span><span class="uw-t-arrow" style="font-size:11px;">▶</span></span></div>'
       + '<div id="' + uid + '" style="display:none;margin-top:2px;">';
@@ -338,8 +338,8 @@ function renderWeekGrid() {
   }
   // eslint-disable-next-line no-unsanitized/property
   toggleWrap.innerHTML =
-    '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='therapist'?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
-    + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='child'&&!_weekDupOnly?'background:#0ea5a0;color:#fff;font-weight:700;border-color:#0ea5a0;':'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
+    '<button onclick="_weekViewMode=\'therapist\';renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='therapist'?'background:#0E6B5C;color:#fff;font-weight:700;border-color:#0E6B5C;':'background:#fff;color:#64748b;') + '">👩‍⚕️ 치료사 기준</button>'
+    + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=false;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekViewMode==='child'&&!_weekDupOnly?'background:#0E6B5C;color:#fff;font-weight:700;border-color:#0E6B5C;':'background:#fff;color:#64748b;') + '">👶 아동 기준</button>'
     + '<button onclick="_weekViewMode=\'child\';_weekDupOnly=true;renderWeekGrid()" style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;' + (_weekDupOnly?'background:#f97316;color:#fff;font-weight:700;border-color:#f97316;':'background:#fff;color:#64748b;') + '">🔴 중복 수업만</button>';
   var childById = _schedChildById();
   // 주간 날짜 룩업맵 1회 구축 — 일정마다 weekDates 7칸 선형탐색(O(N×7)) 제거
@@ -373,8 +373,8 @@ function renderWeekGrid() {
     html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
     html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:60px;min-width:60px;position:sticky;left:0;z-index:3;">치료사</th>';
     weekDates.forEach(function(w) {
-      var bg = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
-      var col = w.isToday ? 'var(--mint,#0ea5a0)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
+      var bg = w.isToday ? 'var(--mint2,#EAF3F1)' : '#f8fafc';
+      var col = w.isToday ? 'var(--mint,#0E6B5C)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
       html += '<th style="padding:6px 4px;background:' + bg + ';border:1px solid #e2e8f0;color:' + col + ';font-weight:700;text-align:center;cursor:pointer;" onclick="switchToDay(\'' + w.str + '\')">' + w.dayName + '<br><span style="font-size:12px;">' + w.day + '</span></th>';
     });
     html += '</tr></thead><tbody>';
@@ -869,8 +869,8 @@ function renderWeekGridByChild(weekDates, weekScheds) {
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:500px;">';
   html += '<thead><tr><th style="padding:6px 4px;background:#f8fafc;border:1px solid #e2e8f0;font-size:10px;color:var(--text2);width:64px;min-width:64px;position:sticky;left:0;z-index:3;">아동</th>';
   weekDates.forEach(function(w) {
-    var bg  = w.isToday ? 'var(--mint2,#e0f7f6)' : '#f8fafc';
-    var col = w.isToday ? 'var(--mint,#0ea5a0)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
+    var bg  = w.isToday ? 'var(--mint2,#EAF3F1)' : '#f8fafc';
+    var col = w.isToday ? 'var(--mint,#0E6B5C)' : (w.isSun ? '#ef4444' : (w.isSat ? '#3b82f6' : 'var(--text2)'));
     html += '<th style="padding:6px 4px;background:' + bg + ';border:1px solid #e2e8f0;color:' + col + ';font-weight:700;text-align:center;cursor:pointer;" onclick="switchToDay(\'' + w.str + '\')">' + w.dayName + '<br><span style="font-size:12px;">' + w.day + '</span></th>';
   });
   html += '</tr></thead><tbody>';
@@ -878,7 +878,7 @@ function renderWeekGridByChild(weekDates, weekScheds) {
     var child = _wbChildById[childId];
     var cname = child ? escHtml(child.name) : '?';
     var cage  = child ? escHtml(child.age || '') : '';
-    var ccolor = (child && child.color) ? child.color : '#0ea5a0';
+    var ccolor = (child && child.color) ? child.color : '#0E6B5C';
     html += '<tr><td style="padding:5px 6px;border:1px solid #e2e8f0;font-weight:700;font-size:11px;color:' + ccolor + ';background:' + ccolor + '10;white-space:nowrap;vertical-align:top;position:sticky;left:0;z-index:1;">'
       + cname + (cage ? '<br><span style="font-size:9px;font-weight:400;color:var(--text2);">' + cage + '</span>' : '') + '</td>';
     weekDates.forEach(function(w) {

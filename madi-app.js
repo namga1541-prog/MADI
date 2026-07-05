@@ -494,7 +494,7 @@ function showToast(msg, opts) {
   opts = opts || {}; if (toastLocked && !opts.force) return;
   var el = document.getElementById('toast'); if (!el) return;
   if (opts.undo && typeof opts.undo === 'function') {
-    el.innerHTML = '<span>' + escHtml(msg) + '</span> <span style="display:inline-block;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.18);border-radius:14px;color:#5eead4;font-size:12px;cursor:pointer;pointer-events:auto;" id="toastUndoBtn">↩️ 실행취소</span>';
+    el.innerHTML = '<span>' + escHtml(msg) + '</span> <span style="display:inline-block;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.18);border-radius:14px;color:#7FDCC9;font-size:12px;cursor:pointer;pointer-events:auto;" id="toastUndoBtn">↩️ 실행취소</span>';
     el.style.pointerEvents = 'auto';
     setTimeout(function() { var b = document.getElementById('toastUndoBtn'); if (b) b.onclick = function(e) { e.stopPropagation(); opts.undo(); el.classList.remove('show'); toastLocked = false; }; }, 0);
   } else { el.textContent = msg; el.style.pointerEvents = 'auto'; }
@@ -532,7 +532,7 @@ function vibrate(pattern) { try { if (navigator.vibrate) navigator.vibrate(patte
 function toggleDarkMode() {
   var isDark = document.body.classList.toggle('dark-mode');
   try { localStorage.setItem('madi_dark', isDark ? '1' : '0'); } catch (_e) {}
-  var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', isDark ? '#020617' : '#0ea5a0');
+  var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', isDark ? '#020617' : '#0E6B5C');
   showToast(isDark ? '🌙 다크 모드' : '☀️ 라이트 모드');
 }
 function loadDarkMode() {

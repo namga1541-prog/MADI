@@ -26,7 +26,7 @@
   <title>마디 — 언어치료 AI · 아동 발달 관리 APP</title>
 
   <!-- PWA 메타태그 -->
-  <meta name="theme-color" content="#0ea5a0">
+  <meta name="theme-color" content="#0E6B5C">
   <meta name="description" content="언어치료 특화 AI · 아동 발달 관리 통합 앱">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -60,7 +60,7 @@
   <link rel="preload" as="script" href="./madi-auth.js">
   <link rel="preload" as="script" href="./madi-app.js">
   <link rel="preload" as="script" href="./madi-icons.js">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&amp;family=Raleway:wght@700;800&amp;display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
   <!-- Chart.js (~200KB) 도 ensureChart() lazy 로 분리 — 첫 차트 렌더 시점에만 로드 -->
   <!-- xlsx (~900KB) 는 initial bundle 에서 제외 — ensureXLSX() 가 필요 시점에 동적 로드 -->
   <!-- ⚠️ SRI 통합해시는 ★정확한 버전★에 고정해야 함. @2(메이저 범위)는 jsdelivr 패치 릴리스 시
@@ -188,6 +188,7 @@
     <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.3"/><path d="M2.5 19.5 a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.6"/><path d="M16 14.2 a5.5 5.5 0 0 1 5.5 5.3"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 L19.5 6 V11 C19.5 16 16 19.4 12 21 C8 19.4 4.5 16 4.5 11 V6 Z"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 20 a7 7 0 0 1 14 0"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
   </svg>
 
   <!-- ═══════════════ 상단 네비게이션 ═══════════════ -->
@@ -198,41 +199,35 @@
     </div>
     <div class="lp-nav-btns">
       <button class="lp-btn-login" onclick="hideLanding(); showLoginScreen();">로그인</button>
-      <button class="lp-btn-signup" onclick="hideLanding(); showSignupScreen();">✨ <span class="lp-hide-mobile">지금 </span>시작하기</button>
+      <button class="lp-btn-signup" onclick="hideLanding(); showSignupScreen();"><span class="lp-hide-mobile">지금 </span>시작하기</button>
     </div>
   </nav>
 
-  <!-- ═══════════════ ① 히어로 ═══════════════ -->
+  <!-- ═══════════════ ① 히어로 — "차트 위의 말소리" (밝은 배경 + 파형 + 받아쓰기 데모) ═══════════════ -->
   <section class="lp-hero lp-hero-wf">
-    <div class="lp-hero-wf-top">
-      <h1>선생님의 시간을<br><em>서류가 아닌 아이에게.</em></h1>
-      <p>세션 기록·IEP·평가 보고서를 AI가 처리합니다. 기록에 쓰던 시간을 다시 치료로 — 아동발달 임상 운영 솔루션.</p>
-      <div class="lp-hero-cta">
-        <button class="lp-btn-signup lp-btn-large" onclick="hideLanding(); showSignupScreen();">30초 만에 시작하기</button>
-        <a class="lp-btn-login lp-btn-large" href="mailto:namga1541@gmail.com?subject=아이마디 도입 상담 요청" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">도입 상담 문의</a>
+    <div class="lp-hero-grid">
+      <div class="lp-hero-copy">
+        <h1>선생님의 시간을<br><em>서류가 아닌 아이에게.</em></h1>
+        <p>말하면 세션 기록이 완성되고, 기록이 쌓이면 IEP·평가 보고서 초안이 만들어집니다. 언어치료 현장을 위한 임상 운영 도구.</p>
+        <div class="lp-hero-cta">
+          <button class="lp-btn-signup lp-btn-large" onclick="hideLanding(); showSignupScreen();">30초 만에 시작하기</button>
+          <a class="lp-btn-login lp-btn-large" href="mailto:namga1541@gmail.com?subject=아이마디 도입 상담 요청" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">도입 상담 문의</a>
+        </div>
+        <div class="lp-hero-trust">
+          <span><svg class="lp-tick" aria-hidden="true"><use href="#i-check"/></svg> AI 개인정보 가명화</span>
+          <span><svg class="lp-tick" aria-hidden="true"><use href="#i-check"/></svg> PIPA 기반 설계</span>
+          <span><svg class="lp-tick" aria-hidden="true"><use href="#i-check"/></svg> 설치 없이 바로</span>
+        </div>
       </div>
-      <div class="lp-hero-trust">
-        <span><b>✓</b> AI 개인정보 가명화</span>
-        <span><b>✓</b> PIPA 기반 설계</span>
-        <span><b>✓</b> 설치 없이 바로</span>
+      <div class="lp-hero-demo">
+        <div class="lp-demo-top"><span class="lp-demo-dot"></span>받아쓰기 기록 중</div>
+        <p class="lp-demo-said">"오늘 민서 /ㄹ/ 조음 어두 초성 중재했고, <b>자발 산출 60%</b> 정도. 집중 짧아서 강화물 바꿔줬어요."</p>
+        <div class="lp-demo-arrow">AI 정리 ↓</div>
+        <div class="lp-demo-out">금일 회기에서 목표 조음 /ㄹ/ 어두 초성 중재를 진행함. 자발 산출 정확도 약 60%로 전 회기 대비 향상. 주의 집중 시간이 짧아 강화물을 교체하여 참여를 유도함.</div>
       </div>
     </div>
-    <div class="lp-hero-wf-cards">
-      <div class="lp-wf-card">
-        <h4>AI 보고서 · IEP</h4>
-        <p>초안을 AI가 대신 작성</p>
-        <div class="lp-wf-thumb"><span></span><span></span><span></span></div>
-      </div>
-      <div class="lp-wf-card">
-        <h4>발달 추이 통계 <span class="lp-wf-new">NEW</span></h4>
-        <p>정체기 자동 감지</p>
-        <div class="lp-wf-thumb"><span></span><span></span><span></span></div>
-      </div>
-      <div class="lp-wf-card">
-        <h4>학부모 포털</h4>
-        <p>상담 준비가 한순간에</p>
-        <div class="lp-wf-thumb"><span></span><span></span><span></span></div>
-      </div>
+    <div class="lp-wave" aria-hidden="true">
+      <i style="height:22%"></i><i style="height:48%"></i><i style="height:74%"></i><i style="height:100%"></i><i style="height:62%"></i><i style="height:88%"></i><i style="height:36%"></i><i style="height:56%"></i><i style="height:92%"></i><i style="height:42%"></i><i style="height:68%"></i><i style="height:26%"></i><i style="height:78%"></i><i style="height:52%"></i><i style="height:96%"></i><i style="height:32%"></i><i style="height:60%"></i><i style="height:46%"></i><i style="height:82%"></i><i style="height:24%"></i><i style="height:58%"></i><i style="height:72%"></i><i style="height:38%"></i><i style="height:54%"></i>
     </div>
   </section>
 
@@ -792,8 +787,8 @@
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:780px;margin:32px auto 0;">
 
         <!-- 무료 체험 플랜 -->
-        <div style="background:#fff;border:2px solid var(--lp-mint,#0ea5a0);border-radius:18px;padding:28px 24px;box-shadow:0 4px 20px rgba(14,165,160,0.12);">
-          <div style="font-size:12px;font-weight:700;color:var(--lp-mint,#0ea5a0);letter-spacing:0.05em;margin-bottom:8px;">FREE TRIAL</div>
+        <div style="background:#fff;border:2px solid var(--lp-mint,#0E6B5C);border-radius:18px;padding:28px 24px;box-shadow:0 4px 20px rgba(14,107,92,0.12);">
+          <div style="font-size:12px;font-weight:700;color:var(--lp-mint,#0E6B5C);letter-spacing:0.05em;margin-bottom:8px;">FREE TRIAL</div>
           <div style="font-size:28px;font-weight:900;color:#1e293b;margin-bottom:4px;">무료 체험 <span style="font-size:14px;font-weight:500;color:#64748b;">기간 협의</span></div>
           <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.6;">도입 상담 후 체험 기간을 협의해 드립니다</div>
           <ul style="list-style:none;padding:0;margin:0 0 24px;font-size:13px;color:#374151;display:flex;flex-direction:column;gap:9px;">
@@ -806,7 +801,7 @@
         </div>
 
         <!-- 정식 도입 플랜 -->
-        <div style="background:linear-gradient(135deg,#0ea5a0,#0c8c88);border-radius:18px;padding:28px 24px;box-shadow:0 4px 20px rgba(14,165,160,0.25);">
+        <div style="background:linear-gradient(135deg,#0E6B5C,#0A574B);border-radius:18px;padding:28px 24px;box-shadow:0 4px 20px rgba(14,107,92,0.25);">
           <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:0.05em;margin-bottom:8px;">CENTER PLAN</div>
           <div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:4px;">정식 도입 <span style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.75);">맞춤 견적</span></div>
           <div style="font-size:13px;color:rgba(255,255,255,0.8);margin-bottom:20px;line-height:1.6;">센터 규모·선생님 수에 맞춰 합리적으로 안내드립니다</div>
@@ -1576,7 +1571,7 @@
     <div class="rep-grid-col">
       <div id="lastSessionRec"></div>
       <div class="card">
-        <div class="card-title"><div class="card-title-left">📋 최근 세션 <span id="sessionListCount" style="font-size:12px;color:#64748b;font-weight:500;margin-left:4px;"></span></div><button onclick="window.print()" style="padding:6px 14px;background:var(--mint,#0ea5a0);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📄 PDF/프린트</button></div>
+        <div class="card-title"><div class="card-title-left">📋 최근 세션 <span id="sessionListCount" style="font-size:12px;color:#64748b;font-weight:500;margin-left:4px;"></span></div><button onclick="window.print()" style="padding:6px 14px;background:var(--mint,#0E6B5C);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📄 PDF/프린트</button></div>
         <div id="sessionList"></div>
       </div>
     </div>
@@ -1606,7 +1601,7 @@
         <span class="week-label" id="schedNavLabel">2026년 5월</span>
         <button class="week-nav-btn" onclick="moveSchedPeriod(1)" aria-label="다음 기간">▶</button>
       </div>
-      <div id="teacherFilterBar" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"><button onclick="setTeacherFilter('전체')" style="padding:5px 12px;border-radius:20px;border:2px solid var(--mint);background:var(--mint);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">전체</button><button onclick="setTeacherFilter('한기성')" style="padding:5px 12px;border-radius:20px;border:2px solid #0ea5a0;background:white;color:#0ea5a0;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">한기성</button></div>
+      <div id="teacherFilterBar" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"><button onclick="setTeacherFilter('전체')" style="padding:5px 12px;border-radius:20px;border:2px solid var(--mint);background:var(--mint);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">전체</button><button onclick="setTeacherFilter('한기성')" style="padding:5px 12px;border-radius:20px;border:2px solid #0E6B5C;background:white;color:#0E6B5C;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;white-space:nowrap;">한기성</button></div>
       <div id="monthViewWrap">
         <div class="month-header">
           <div class="month-day-label" style="color:var(--red)">일</div>
@@ -1907,7 +1902,7 @@
 <!-- TAB 4: 월간 포트폴리오 -->
 <div class="sub-panel" id="panel6">
   <div class="content">
-    <div class="card" style="background:linear-gradient(135deg,#0ea5a0,#0c8c88);color:white;">
+    <div class="card" style="background:linear-gradient(135deg,#0E6B5C,#0A574B);color:white;">
       <div style="font-size:14px;font-weight:700;margin-bottom:8px;">📁 월간 포트폴리오</div>
       <p style="font-size:13px;line-height:1.7;opacity:0.95;">한 달간의 모든 세션 기록을 AI가 분석하여 <strong>전문 포트폴리오</strong>로 정리합니다. 부모님 면담 자료, 분기별 보고서, 바우처 평가서로 활용하세요.</p>
     </div>

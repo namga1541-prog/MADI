@@ -321,7 +321,7 @@ function renderGlobalNoticeCard(n, isSuperAdmin) {
     borderColor = '#f59e0b';
   } else {
     typeBadge   = '<span style="background:#e0f2fe;color:#0c4a6e;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">📢 일반</span>';
-    borderColor = '#0ea5a0';
+    borderColor = '#0E6B5C';
   }
   // 로그인 팝업 활성 배지 (모든 사용자에게 보임)
   var popupBadge = n.show_as_login_popup
@@ -568,7 +568,7 @@ function renderCenterNoticeCard(n, isAdminOrSuper, isSuperAdmin) {
     borderColor = '#f59e0b';
   } else {
     typeBadge   = '<span style="background:#e0f2fe;color:#0c4a6e;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">📢 일반</span>';
-    borderColor = '#0ea5a0';
+    borderColor = '#0E6B5C';
   }
 
   // 슈퍼어드민에게만 센터 이름 배지 표시

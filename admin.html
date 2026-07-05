@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://ujxdhafzjyrglaclarwe.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"
           integrity="sha384-DhxhYObIMeMNGyAG7iK11OHzBIKyEIeRL0ad1iFPAOwZB8iirUlTT0O/WJJUk8+o"
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -35,19 +35,29 @@
           integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <style>
+    @font-face {
+      font-family:'Pretendard';
+      src:url('fonts/PretendardVariable.woff2') format('woff2-variations');
+      font-weight:45 920;
+      font-style:normal;
+      font-display:swap;
+    }
     :root {
-      --mint:#0ea5a0; --mint2:#e0f7f6; --navy:#0f2942; --navy2:#1a3a5c;
-      --bg:#f4f8fb; --white:#fff; --red:#ef4444; --amber:#f59e0b;
-      --green:#10b981; --purple:#8b5cf6; --text:#1e293b; --text2:#64748b;
-      --border:#e2e8f0; --radius:14px; --shadow:0 2px 14px rgba(0,0,0,0.07);
+      --mint:#0E6B5C; --mint2:#EAF3F1; --navy:#16233B; --navy2:#1a3a5c;
+      --bg:#F7F8F6; --white:#fff; --red:#ef4444; --amber:#f59e0b;
+      --green:#10b981; --purple:#8b5cf6; --text:#16233B; --text2:#6B7280;
+      --border:#E5E6E1; --radius:10px;
+      --shadow:0 0 0 1px rgba(22,35,59,0.05), 0 1px 2px rgba(22,35,59,0.05);
       --card-bg:#fff; --input-bg:#fff; --input-border:#cbd5e1;
+      --brand-voice:#14A899; --brand-bright:#37C9B4;
     }
     body.dark-mode {
-      --mint:#2dd4bf; --mint2:#134e4a; --navy:#020617; --navy2:#0f172a;
+      --mint:#3FBFA8; --mint2:#12332D; --navy:#020617; --navy2:#0f172a;
       --bg:#0f172a; --white:#1e293b; --red:#f87171; --amber:#fbbf24;
       --green:#34d399; --purple:#a78bfa; --text:#e2e8f0; --text2:#94a3b8;
-      --border:#334155; --shadow:0 2px 14px rgba(0,0,0,0.4);
+      --border:#334155; --shadow:0 0 0 1px rgba(148,163,184,0.10), 0 1px 2px rgba(0,0,0,0.35);
       --card-bg:#1e293b; --input-bg:#0f172a; --input-border:#475569;
+      --brand-voice:#2BC0AC; --brand-bright:#48DFC8;
     }
     body.dark-mode .form-input,
     body.dark-mode select.form-input,
@@ -55,11 +65,11 @@
     body.dark-mode .card { background:var(--card-bg); border-color:var(--border); }
     body.dark-mode .toast { background:#475569; }
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; min-height:100dvh; }
+    body { font-family:'Pretendard',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; min-height:100dvh; }
 
     /* ── 헤더 ── */
     .header {
-      background:linear-gradient(135deg, #0ea5a0 0%, #0c8c88 100%); /* 마디 브랜드 그라데이션 통일 (D7) */
+      background:linear-gradient(135deg, #0E6B5C 0%, #0A574B 100%); /* 마디 브랜드 그라데이션 통일 (D7) */
       padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px;
       display:flex; align-items:center; gap:10px;
       box-shadow:0 2px 16px rgba(79,70,229,0.3);
@@ -92,7 +102,7 @@
       font-family:inherit; white-space:nowrap;
     }
     .svc-subtab-btn:hover { color:var(--text,#1e293b); }
-    .svc-subtab-btn.active { color:#0ea5a0; border-bottom-color:#0ea5a0; }
+    .svc-subtab-btn.active { color:#0E6B5C; border-bottom-color:#0E6B5C; }
 
     /* ── 사이드 네비 ── */
     .admin-layout { display:flex; min-height:calc(100vh - 60px); min-height:calc(100dvh - 60px); }
@@ -109,7 +119,7 @@
       text-decoration:none; cursor:pointer; border:none; background:none; width:100%; text-align:left;
     }
     .admin-sidenav a:hover { background:#f1f5f9; }
-    .admin-sidenav a.active { background:#e0f7f6; color:#0ea5a0; }
+    .admin-sidenav a.active { background:#EAF3F1; color:#0E6B5C; }
     .admin-sidenav .nav-divider { height:1px; background:var(--border,#e2e8f0); margin:8px 0; }
     .admin-main { flex:1; min-width:0; }
     @media (max-width:600px) {
@@ -141,12 +151,12 @@
     .card-title-left { display:flex; align-items:center; gap:6px; flex:1; min-width:0; }
     .form-group { margin-bottom:10px; }
     .form-label { font-size:12px; font-weight:700; color:var(--text2); margin-bottom:5px; display:block; }
-    .form-input { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:16px; font-family:'Noto Sans KR',sans-serif; color:var(--text); transition:border-color 0.15s; background:white; box-sizing:border-box; }
+    .form-input { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:16px; font-family:'Pretendard',sans-serif; color:var(--text); transition:border-color 0.15s; background:white; box-sizing:border-box; }
     .form-input:focus { outline:none; border-color:var(--mint); }
     select.form-input { appearance:none; -webkit-appearance:none; padding-right:32px; background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; }
     textarea.form-input { resize:vertical; min-height:80px; }
     /* 카드 헤더용 컴팩트 날짜·선택 컨트롤 */
-    .card-sel { padding:5px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; font-family:'Noto Sans KR',sans-serif; color:var(--text); background:#f8fafc; cursor:pointer; outline:none; flex-shrink:0; transition:border-color 0.15s; }
+    .card-sel { padding:5px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; font-family:'Pretendard',sans-serif; color:var(--text); background:#f8fafc; cursor:pointer; outline:none; flex-shrink:0; transition:border-color 0.15s; }
     .card-sel:focus { border-color:var(--mint); }
     select.card-sel { appearance:none; -webkit-appearance:none; padding-right:28px; background:#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 8px center; }
     body.dark-mode .card-sel { background-color:var(--input-bg); border-color:var(--input-border); color:var(--text); }
@@ -163,7 +173,7 @@
     body.dark-mode .admin-sidenav a.active { background:var(--input-bg); color:var(--mint); }
     .form-row { display:flex; gap:8px; margin-bottom:10px; }
     .btn { display:block; width:100%; padding:13px; border-radius:11px; font-size:15px; font-weight:700; border:none; cursor:pointer; touch-action:manipulation; min-height:44px; margin-top:10px; }
-    .btn-primary { background:linear-gradient(135deg,var(--mint),#06b6d4); color:#fff; box-shadow:0 4px 12px rgba(14,165,160,0.3); }
+    .btn-primary { background:linear-gradient(135deg,var(--mint),#06b6d4); color:#fff; box-shadow:0 4px 12px rgba(14,107,92,0.3); }
     .btn-ghost { background:none; border:1.5px solid var(--border); color:var(--text2); border-radius:9px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; min-height:36px; touch-action:manipulation; }
     .btn-ghost:hover { border-color:var(--mint); color:var(--mint); }
     .btn-del { background:#fee2e2; color:var(--red); border:none; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; cursor:pointer; min-height:32px; touch-action:manipulation; }
@@ -273,19 +283,19 @@
     </div>
 
     <!-- 운영 현황 대시보드 -->
-    <div class="card" style="border:2px solid #0ea5a0;">
+    <div class="card" style="border:2px solid #0E6B5C;">
       <div class="card-title">
-        <div class="card-title-left" style="color:#0ea5a0;">📊 운영 현황 대시보드</div>
+        <div class="card-title-left" style="color:#0E6B5C;">📊 운영 현황 대시보드</div>
         <input type="month" id="dashMonth" class="card-sel" onchange="renderOpsDashboard()">
       </div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;">
-        <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);text-align:center;"><div style="font-size:22px;font-weight:900;color:#0ea5a0;" id="kpiNewChildren">-</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">이번 달 신규</div></div>
+        <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);text-align:center;"><div style="font-size:22px;font-weight:900;color:#0E6B5C;" id="kpiNewChildren">-</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">이번 달 신규</div></div>
         <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);text-align:center;"><div style="font-size:22px;font-weight:900;color:#ef4444;" id="kpiClosedChildren">-</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">이번 달 종결</div></div>
         <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);text-align:center;"><div style="font-size:22px;font-weight:900;color:#8b5cf6;" id="kpiTotalSessions">-</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">이번 달 세션</div></div>
         <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);text-align:center;"><div style="font-size:22px;font-weight:900;color:#f59e0b;" id="kpiAvgGoal">-</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">평균 달성률</div></div>
       </div>
       <div style="margin-bottom:14px;"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">치료사별 세션 수</div><div id="opsTeacherBars"></div></div>
-      <div id="opsAIInsight" style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:12px 14px;display:none;"><div style="font-size:10px;color:#0ea5a0;font-weight:700;margin-bottom:4px;">✨ 인사이트</div><div id="opsInsightText" style="font-size:13px;color:#134e4a;line-height:1.65;"></div></div>
+      <div id="opsAIInsight" style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:12px 14px;display:none;"><div style="font-size:10px;color:#0E6B5C;font-weight:700;margin-bottom:4px;">✨ 인사이트</div><div id="opsInsightText" style="font-size:13px;color:#12332D;line-height:1.65;"></div></div>
     </div>
 
     <!-- 선생님별 통계 -->
@@ -365,7 +375,7 @@
       <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:all 0.15s;" id="aiModelHaikuLabel">
         <input type="radio" name="aiModelChoice" value="haiku" id="aiModelHaikuRadio"
           onchange="saveAIModelChoice('haiku')"
-          style="margin-top:3px;width:18px;height:18px;accent-color:#0ea5a0;flex-shrink:0;cursor:pointer;">
+          style="margin-top:3px;width:18px;height:18px;accent-color:#0E6B5C;flex-shrink:0;cursor:pointer;">
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
             <span style="font-weight:800;font-size:15px;color:var(--text);">⚡ Haiku 4.5</span>
@@ -513,9 +523,9 @@
     </div>
 
     <!-- 직원 관리 -->
-    <div class="card" style="border:2px solid #0ea5a0;">
+    <div class="card" style="border:2px solid #0E6B5C;">
       <div class="card-title">
-        <div class="card-title-left" style="color:#0ea5a0;">👥 직원 관리</div>
+        <div class="card-title-left" style="color:#0E6B5C;">👥 직원 관리</div>
       </div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
         새 직원을 직접 추가하거나, 기존 직원 계정을 관리합니다.<br>
@@ -531,7 +541,7 @@
             <option value="teacher" selected>선생님</option>
             <option value="admin" id="staffRoleAdminOpt">관리자 (센터장)</option>
           </select>
-          <button class="btn btn-primary" style="margin-top:0;background:#0ea5a0;border-color:#0ea5a0;font-size:13px;" onclick="addStaffAccount()">➕ 직원 추가</button>
+          <button class="btn btn-primary" style="margin-top:0;background:#0E6B5C;border-color:#0E6B5C;font-size:13px;" onclick="addStaffAccount()">➕ 직원 추가</button>
           <div id="staffAddResult" style="font-size:12px;margin-top:4px;"></div>
         </div>
       </div>
@@ -644,7 +654,7 @@
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn-outline" style="flex:1;margin:0;border-color:var(--accent);color:var(--accent);" onclick="sendPushTest()">🔔 웹 푸시 테스트 (구독 학부모 전원)</button>
-          <button class="btn-outline" style="flex:1;margin:0;border-color:#0ea5a0;color:#0ea5a0;" onclick="sendInAppNotifTest()">📬 인앱 알림 테스트 (학부모 전원)</button>
+          <button class="btn-outline" style="flex:1;margin:0;border-color:#0E6B5C;color:#0E6B5C;" onclick="sendInAppNotifTest()">📬 인앱 알림 테스트 (학부모 전원)</button>
         </div>
         <div id="pushSettingsStatus" style="font-size:12px;color:var(--text2);min-height:14px;"></div>
       </div>
@@ -906,7 +916,7 @@ var SUPA_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co';
 var EDGE_URL  = 'https://ujxdhafzjyrglaclarwe.supabase.co/functions/v1';
 // anon key 제거 (보안: GitHub 공개 방지)
 // (GITHUB_OWNER/GITHUB_REPO 제거 — admin.html 은 배포 기능이 없어 미사용 잔재였음. 배포는 index.html + madi-deploy.js)
-var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316','#06b6d4','#84cc16','#ec4899'];
+var TEACHER_COLORS = ['#0E6B5C','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316','#06b6d4','#84cc16','#ec4899'];
 
 function getToken()  { return _madiToken || ''; } // httpOnly 쿠키로 전환됨
 function getCenterId()    { return (currentUser && currentUser.center_id) ? currentUser.center_id : ''; }
@@ -1286,7 +1296,7 @@ function updateAIModelUI() {
   var currentLabel = document.getElementById('aiModelCurrentLabel');
   if (haikuRadio)  haikuRadio.checked  = (current === 'haiku');
   if (sonnetRadio) sonnetRadio.checked = (current === 'sonnet');
-  if (haikuLabel) { haikuLabel.style.borderColor = current === 'haiku' ? '#0ea5a0' : 'var(--border)'; haikuLabel.style.background = current === 'haiku' ? '#f0fdfa' : 'transparent'; }
+  if (haikuLabel) { haikuLabel.style.borderColor = current === 'haiku' ? '#0E6B5C' : 'var(--border)'; haikuLabel.style.background = current === 'haiku' ? '#f0fdfa' : 'transparent'; }
   if (sonnetLabel) { sonnetLabel.style.borderColor = current === 'sonnet' ? '#8b5cf6' : 'var(--border)'; sonnetLabel.style.background = current === 'sonnet' ? '#faf5ff' : 'transparent'; }
   if (currentLabel) { currentLabel.textContent = '현재: ' + (current === 'sonnet' ? '🎯 Sonnet' : '⚡ Haiku'); currentLabel.style.color = current === 'sonnet' ? '#7c3aed' : '#047857'; }
 }
@@ -1542,7 +1552,7 @@ function renderIntegratedSvc() {
       + '</div>';
   }
   if (statsEl) {
-    statsEl.innerHTML = statCard('📊','총 회기',totalAll,'#0ea5a0')
+    statsEl.innerHTML = statCard('📊','총 회기',totalAll,'#0E6B5C')
       + statCard('⏳','예정',totalPend,'#f59e0b')
       + statCard('✅','완료',totalDone,'#10b981')
       + statCard('❌','취소',totalCanc,'#ef4444');
@@ -1910,7 +1920,7 @@ function showStaffTrend(teacher) {
   if (_staffTrendChart) { _staffTrendChart.destroy(); _staffTrendChart=null; }
   _staffTrendChart = new Chart(ctx, {
     type:'bar',
-    data:{ labels:labels, datasets:[{ label:'세션 수', data:data, backgroundColor:'rgba(14,165,160,0.25)', borderColor:'#0ea5a0', borderWidth:2, borderRadius:6 }] },
+    data:{ labels:labels, datasets:[{ label:'세션 수', data:data, backgroundColor:'rgba(14,107,92,0.25)', borderColor:'#0E6B5C', borderWidth:2, borderRadius:6 }] },
     options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } }
   });
   wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
@@ -2481,7 +2491,7 @@ window.addEventListener('DOMContentLoaded', function() {
 // ★ 추가 기능
 // ══════════════════════════════════════════════
 var _aColorMap = {}, _aColorIdx = 0;
-var _ACOLORS = ['#0ea5a0','#6366f1','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#f97316','#3b82f6','#14b8a6'];
+var _ACOLORS = ['#0E6B5C','#6366f1','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#f97316','#3b82f6','#14b8a6'];
 function toggleTeacherRow(el) {
   var next = el.nextElementSibling;
   if (next) next.style.display = next.style.display === 'none' ? 'block' : 'none';
@@ -2672,7 +2682,7 @@ function filterParentChildList(q) {
     drop.innerHTML = filtered.slice(0,30).map(function(c) {
       return '<div onclick="selectParentChild(\'' + jsArg(String(c.id)) + '\',\'' + jsArg(c.name) + '\',\'' + jsArg(String(c.center_id||'')) + '\')" '
         + 'style="padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#1e293b;" '
-        + 'onmouseover="this.style.background=\'#e0f7f6\'" onmouseout="this.style.background=\'\'">'
+        + 'onmouseover="this.style.background=\'#EAF3F1\'" onmouseout="this.style.background=\'\'">'
         + escHtml(c.name) + (c.birth ? ' <span style="color:#94a3b8;font-size:11px;">(' + escHtml(c.birth) + ')</span>' : '')
         + '</div>';
     }).join('')
@@ -3289,7 +3299,7 @@ function deleteClientError(id) {
     b.id = 'swUpdateBanner';
     b.setAttribute('role', 'button'); b.tabIndex = 0;
     b.style.cssText = 'position:fixed;left:16px;right:16px;bottom:calc(22px + env(safe-area-inset-bottom,0px));'
-      + 'z-index:2147483646;background:var(--mint,#0ea5a0);color:#fff;font-weight:700;'
+      + 'z-index:2147483646;background:var(--mint,#0E6B5C);color:#fff;font-weight:700;'
       + 'font-size:14px;line-height:1.3;padding:13px 16px;border-radius:16px;cursor:pointer;'
       + 'box-shadow:0 6px 22px rgba(0,0,0,0.28);text-align:center;-webkit-tap-highlight-color:transparent;';
     b.textContent = '🔄 새 버전이 있습니다 — 탭하여 업데이트';

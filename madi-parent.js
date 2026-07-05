@@ -326,10 +326,10 @@ function downloadWordDoc(name) {
     + '@page { size:A4; margin:2.54cm; }\n'
     + 'body { font-family:"나눔고딕","맑은 고딕","Malgun Gothic",sans-serif; font-size:10pt; line-height:1.8; color:#1e293b; }\n'
     + 'h1 { font-size:16pt; font-weight:bold; text-align:center; color:#0f2942; margin:0 0 6pt; }\n'
-    + 'h2 { font-size:12pt; font-weight:bold; color:#0f2942; margin:14pt 0 4pt; border-bottom:1.5pt solid #0ea5a0; padding-bottom:3pt; }\n'
+    + 'h2 { font-size:12pt; font-weight:bold; color:#0f2942; margin:14pt 0 4pt; border-bottom:1.5pt solid #0E6B5C; padding-bottom:3pt; }\n'
     + 'p { margin:2pt 0; font-size:10pt; line-height:1.8; }\n'
     + 'table { width:100%; border-collapse:collapse; margin:8pt 0; font-size:10pt; }\n'
-    + 'th { background-color:#e0f7f6; font-weight:bold; text-align:center; border:0.75pt solid #94a3b8; padding:5pt 8pt; }\n'
+    + 'th { background-color:#EAF3F1; font-weight:bold; text-align:center; border:0.75pt solid #94a3b8; padding:5pt 8pt; }\n'
     + 'td { border:0.75pt solid #cbd5e1; padding:5pt 8pt; }\n'
     + '</style></head><body>\n'
     + '<div style="text-align:center;margin-bottom:16pt;border-bottom:2pt double #0f2942;padding-bottom:8pt;">\n'
@@ -693,7 +693,7 @@ function renderPortfolio(p, child, month, sessions, goalProgress, savedRow) {
 
   if (p.professionalNote) {
     html += '<div class="portfolio-section" style="background:#1e293b;color:white;">'
-      + '<div class="portfolio-section-title" style="color:#5eead4;border-bottom-color:#0ea5a0;">🔬 치료사 전문 메모</div>'
+      + '<div class="portfolio-section-title" style="color:#7FDCC9;border-bottom-color:#0E6B5C;">🔬 치료사 전문 메모</div>'
       + '<div style="font-size:13px;line-height:1.8;color:#cbd5e1;">' + escHtml(p.professionalNote) + '</div></div>';
   }
 

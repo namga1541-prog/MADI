@@ -70,8 +70,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var ROLES = {` — madi-core.js:7
 - `var DEFAULT_PERMS = { viewOtherChildren:true, deleteSession:true, useAI:true, deleteAssess` — madi-core.js:74
 - `var DISORDER_EMOJI = { '언어발달장애':'🗣️','조음음운장애':'👄','유창성장애':'💬','자폐스펙트럼':'🌈','지적장애':'🧩'` — madi-core.js:137
-- `var CHILD_COLORS = ['#0ea5a0','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];` — madi-core.js:138
-- `var TEACHER_COLORS = ['#0ea5a0','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316` — madi-core.js:139
+- `var CHILD_COLORS = ['#0E6B5C','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];` — madi-core.js:138
+- `var TEACHER_COLORS = ['#0E6B5C','#6366f1','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316` — madi-core.js:139
 - `var _teacherColorMap = {};` — madi-core.js:140
 - `var SUPA_URL = 'https://ujxdhafzjyrglaclarwe.supabase.co';` — madi-core.js:147
 - `var CENTER_SESSION_INTERVAL = 40;` — madi-core.js:148
@@ -1162,137 +1162,137 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `getReportStyleGuide` — madi-vocab.js:707
 
 ## admin.html (124함수)
-- `toKST` — admin.html:839
-- `nowKST` — admin.html:840
-- `ymd` — admin.html:841
-- `getTodayKST` — admin.html:842
-- `getMonthKST` — admin.html:843
-- `getToken` — admin.html:911
-- `getCenterId` — admin.html:912
-- `centerFilter` — admin.html:913
-- `fetchWithRetry` — admin.html:919
-- `doFetch` — admin.html:926
-- `supaFetch` — admin.html:943
-- `_supaFetchAll` — admin.html:963
-- `_page` — admin.html:966
-- `escHtml` — admin.html:980
-- `escJs` — admin.html:991
-- `jsArg` — admin.html:997
-- `adminErrMsg` — admin.html:1002
-- `showConfirm` — admin.html:1011
-- `close` — admin.html:1025
-- `_onKey` — admin.html:1026
-- `hashPassword` — admin.html:1036
-- `maskApiKey` — admin.html:1044
-- `validatePasswordStrength` — admin.html:1049
-- `showToast` — admin.html:1055
-- `showSvcSubTab` — admin.html:1072
-- `showAdminTab` — admin.html:1084
-- `loadPushSettings` — admin.html:1120
-- `savePushSettings` — admin.html:1138
-- `sendPushTest` — admin.html:1173
-- `sendInAppNotifTest` — admin.html:1219
-- `goBack` — admin.html:1261
-- `goToAppTab` — admin.html:1266
-- `saveAIModelChoice` — admin.html:1272
-- `updateAIModelUI` — admin.html:1279
-- `loadAdminData` — admin.html:1301
-- `safeMap` — admin.html:1307
-- `saveSchedulePatch` — admin.html:1328
-- `_voucherBadge` — admin.html:1344
-- `_svcStatusInfo` — admin.html:1351
-- `_schedStatus` — admin.html:1361
-- `changeSchedStatus` — admin.html:1366
-- `renderServiceStats` — admin.html:1374
-- `_populateSvcFilters` — admin.html:1397
-- `setSvcMode` — admin.html:1419
-- `populateIntSvcFilters` — admin.html:1439
-- `renderIntegratedSvc` — admin.html:1469
-- `statCard` — admin.html:1537
-- `renderMonthlyService` — admin.html:1581
-- `renderDailyService` — admin.html:1655
-- `renderSettlement` — admin.html:1707
-- `exportSettlementExcel` — admin.html:1764
-- `initSvcStaffMonth` — admin.html:1796
-- `renderStaffStats` — admin.html:1809
-- `showStaffTrend` — admin.html:1873
-- `loadPrograms` — admin.html:1926
-- `renderProgramList` — admin.html:1938
-- `loadTeacherList` — admin.html:1965
-- `loadTeacherPrograms` — admin.html:1978
-- `renderProgCheckList` — admin.html:1989
-- `onProgCheck` — admin.html:2005
-- `bulkAssign` — admin.html:2014
-- `saveTeacherPrograms` — admin.html:2026
-  ▸ _공지사항_ — L2043
-- `loadNotices` — admin.html:2045
-- `renderNoticeList` — admin.html:2059
-- `saveNotice` — admin.html:2078
-- `deleteNotice` — admin.html:2092
-  ▸ _센터 관리_ — L2100
-- `formatInviteExpiry` — admin.html:2101
-  ▸ _선생님 계정 관리_ — L2112
-- `loadStaffMgmtList` — admin.html:2113
-- `showStaffTrendFromCard` — admin.html:2137
-- `removeStaffAccountFromBtn` — admin.html:2138
-- `resetStaffPasswordFromBtn` — admin.html:2139
-- `removeStaffAccount` — admin.html:2141
-- `resetStaffPassword` — admin.html:2158
-  ▸ _2FA (TOTP) 관리 (SEC6, 2026-05-24)_ — L2188
-- `totpApi` — admin.html:2189
-- `totpRefreshStatus` — admin.html:2198
-- `totpStartSetup` — admin.html:2219
-- `totpConfirmEnroll` — admin.html:2234
-- `totpStartDisable` — admin.html:2251
-  ▸ _API 키 관리_ — L2273
-- `loadCenterApiKey` — admin.html:2276
-- `saveCenterApiKey` — admin.html:2279
-- `toggleCenterKeyVisibility` — admin.html:2282
-  ▸ _센터 초대 코드 관리_ — L2284
-- `loadCenterInfo` — admin.html:2285
-- `copyInviteCode` — admin.html:2310
-- `regenInviteCode` — admin.html:2325
-  ▸ _직원 추가_ — L2357
-- `addStaffAccount` — admin.html:2358
-  ▸ _다크모드_ — L2403
-- `toggleDarkMode` — admin.html:2404
-- `resetMaroPosition` — admin.html:2412
-- `toggleTeacherRow` — admin.html:2485
-- `getTeacherColor` — admin.html:2489
-- `renderOpsDashboard` — admin.html:2495
-- `set` — admin.html:2502
-- `renderTeacherChildMap` — admin.html:2544
-- `loadPermUserList` — admin.html:2596
-- `loadUserPerms` — admin.html:2612
-- `renderPermList` — admin.html:2621
-- `saveUserPerms` — admin.html:2636
-  ▸ _학부모_ — L2650
-- `populateParentChildSelect` — admin.html:2652
-- `filterParentChildList` — admin.html:2663
-- `showParentChildDrop` — admin.html:2684
-- `selectParentChild` — admin.html:2689
-- `createParentAccount` — admin.html:2698
-- `copyParentNewInfo` — admin.html:2753
-- `loadParentList` — admin.html:2773
-- `deleteParentAccount` — admin.html:2806
-  ▸ _오류 모니터링_ — L2832
-- `loadErrorLogs` — admin.html:2833
-- `clearOldErrorLogs` — admin.html:2888
-- `generateLicenseKey` — admin.html:2904
-- `refreshLicenseKey` — admin.html:2914
-- `calcExpiresAt` — admin.html:2919
-- `copyLicenseKey` — admin.html:2929
-- `issueLicense` — admin.html:2938
-- `loadLicenseList` — admin.html:2979
-- `loadMyLicense` — admin.html:3034
-- `activateLicense` — admin.html:3093
-- `loadVocabFeedback` — admin.html:3121
-- `deleteVocabFeedback` — admin.html:3176
-- `loadClientErrors` — admin.html:3190
-- `checkRlsStatus` — admin.html:3241
-- `dismissRlsBanner` — admin.html:3252
-- `deleteClientError` — admin.html:3259
-- `_dirty` — admin.html:3278
-- `_apply` — admin.html:3285
-- `_banner` — admin.html:3286
-- `_v` — admin.html:3305
+- `toKST` — admin.html:849
+- `nowKST` — admin.html:850
+- `ymd` — admin.html:851
+- `getTodayKST` — admin.html:852
+- `getMonthKST` — admin.html:853
+- `getToken` — admin.html:921
+- `getCenterId` — admin.html:922
+- `centerFilter` — admin.html:923
+- `fetchWithRetry` — admin.html:929
+- `doFetch` — admin.html:936
+- `supaFetch` — admin.html:953
+- `_supaFetchAll` — admin.html:973
+- `_page` — admin.html:976
+- `escHtml` — admin.html:990
+- `escJs` — admin.html:1001
+- `jsArg` — admin.html:1007
+- `adminErrMsg` — admin.html:1012
+- `showConfirm` — admin.html:1021
+- `close` — admin.html:1035
+- `_onKey` — admin.html:1036
+- `hashPassword` — admin.html:1046
+- `maskApiKey` — admin.html:1054
+- `validatePasswordStrength` — admin.html:1059
+- `showToast` — admin.html:1065
+- `showSvcSubTab` — admin.html:1082
+- `showAdminTab` — admin.html:1094
+- `loadPushSettings` — admin.html:1130
+- `savePushSettings` — admin.html:1148
+- `sendPushTest` — admin.html:1183
+- `sendInAppNotifTest` — admin.html:1229
+- `goBack` — admin.html:1271
+- `goToAppTab` — admin.html:1276
+- `saveAIModelChoice` — admin.html:1282
+- `updateAIModelUI` — admin.html:1289
+- `loadAdminData` — admin.html:1311
+- `safeMap` — admin.html:1317
+- `saveSchedulePatch` — admin.html:1338
+- `_voucherBadge` — admin.html:1354
+- `_svcStatusInfo` — admin.html:1361
+- `_schedStatus` — admin.html:1371
+- `changeSchedStatus` — admin.html:1376
+- `renderServiceStats` — admin.html:1384
+- `_populateSvcFilters` — admin.html:1407
+- `setSvcMode` — admin.html:1429
+- `populateIntSvcFilters` — admin.html:1449
+- `renderIntegratedSvc` — admin.html:1479
+- `statCard` — admin.html:1547
+- `renderMonthlyService` — admin.html:1591
+- `renderDailyService` — admin.html:1665
+- `renderSettlement` — admin.html:1717
+- `exportSettlementExcel` — admin.html:1774
+- `initSvcStaffMonth` — admin.html:1806
+- `renderStaffStats` — admin.html:1819
+- `showStaffTrend` — admin.html:1883
+- `loadPrograms` — admin.html:1936
+- `renderProgramList` — admin.html:1948
+- `loadTeacherList` — admin.html:1975
+- `loadTeacherPrograms` — admin.html:1988
+- `renderProgCheckList` — admin.html:1999
+- `onProgCheck` — admin.html:2015
+- `bulkAssign` — admin.html:2024
+- `saveTeacherPrograms` — admin.html:2036
+  ▸ _공지사항_ — L2053
+- `loadNotices` — admin.html:2055
+- `renderNoticeList` — admin.html:2069
+- `saveNotice` — admin.html:2088
+- `deleteNotice` — admin.html:2102
+  ▸ _센터 관리_ — L2110
+- `formatInviteExpiry` — admin.html:2111
+  ▸ _선생님 계정 관리_ — L2122
+- `loadStaffMgmtList` — admin.html:2123
+- `showStaffTrendFromCard` — admin.html:2147
+- `removeStaffAccountFromBtn` — admin.html:2148
+- `resetStaffPasswordFromBtn` — admin.html:2149
+- `removeStaffAccount` — admin.html:2151
+- `resetStaffPassword` — admin.html:2168
+  ▸ _2FA (TOTP) 관리 (SEC6, 2026-05-24)_ — L2198
+- `totpApi` — admin.html:2199
+- `totpRefreshStatus` — admin.html:2208
+- `totpStartSetup` — admin.html:2229
+- `totpConfirmEnroll` — admin.html:2244
+- `totpStartDisable` — admin.html:2261
+  ▸ _API 키 관리_ — L2283
+- `loadCenterApiKey` — admin.html:2286
+- `saveCenterApiKey` — admin.html:2289
+- `toggleCenterKeyVisibility` — admin.html:2292
+  ▸ _센터 초대 코드 관리_ — L2294
+- `loadCenterInfo` — admin.html:2295
+- `copyInviteCode` — admin.html:2320
+- `regenInviteCode` — admin.html:2335
+  ▸ _직원 추가_ — L2367
+- `addStaffAccount` — admin.html:2368
+  ▸ _다크모드_ — L2413
+- `toggleDarkMode` — admin.html:2414
+- `resetMaroPosition` — admin.html:2422
+- `toggleTeacherRow` — admin.html:2495
+- `getTeacherColor` — admin.html:2499
+- `renderOpsDashboard` — admin.html:2505
+- `set` — admin.html:2512
+- `renderTeacherChildMap` — admin.html:2554
+- `loadPermUserList` — admin.html:2606
+- `loadUserPerms` — admin.html:2622
+- `renderPermList` — admin.html:2631
+- `saveUserPerms` — admin.html:2646
+  ▸ _학부모_ — L2660
+- `populateParentChildSelect` — admin.html:2662
+- `filterParentChildList` — admin.html:2673
+- `showParentChildDrop` — admin.html:2694
+- `selectParentChild` — admin.html:2699
+- `createParentAccount` — admin.html:2708
+- `copyParentNewInfo` — admin.html:2763
+- `loadParentList` — admin.html:2783
+- `deleteParentAccount` — admin.html:2816
+  ▸ _오류 모니터링_ — L2842
+- `loadErrorLogs` — admin.html:2843
+- `clearOldErrorLogs` — admin.html:2898
+- `generateLicenseKey` — admin.html:2914
+- `refreshLicenseKey` — admin.html:2924
+- `calcExpiresAt` — admin.html:2929
+- `copyLicenseKey` — admin.html:2939
+- `issueLicense` — admin.html:2948
+- `loadLicenseList` — admin.html:2989
+- `loadMyLicense` — admin.html:3044
+- `activateLicense` — admin.html:3103
+- `loadVocabFeedback` — admin.html:3131
+- `deleteVocabFeedback` — admin.html:3186
+- `loadClientErrors` — admin.html:3200
+- `checkRlsStatus` — admin.html:3251
+- `dismissRlsBanner` — admin.html:3262
+- `deleteClientError` — admin.html:3269
+- `_dirty` — admin.html:3288
+- `_apply` — admin.html:3295
+- `_banner` — admin.html:3296
+- `_v` — admin.html:3315

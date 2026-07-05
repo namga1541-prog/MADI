@@ -69,7 +69,7 @@ function renderSIReport() {
   // 검사 체크박스 HTML
   var testsHtml = SI_TESTS.map(function(t) {
     return '<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:4px 0;">'
-      + '<input type="checkbox" class="si-test-chk" value="' + t.key + '" style="width:15px;height:15px;accent-color:var(--teal,#0ea5a0);"> '
+      + '<input type="checkbox" class="si-test-chk" value="' + t.key + '" style="width:15px;height:15px;accent-color:var(--teal,#0E6B5C);"> '
       + t.label + '</label>';
   }).join('');
 
@@ -253,7 +253,7 @@ function renderSIReport() {
     + 'ℹ️ 이 기능은 개인정보를 가명화하여 외부 AI(미국 Anthropic)로 전송해 처리합니다. '
     + '자세한 내용은 개인정보처리방침을 참고하세요.</div>'
     + '<button id="siReportBtn" class="btn btn-primary" onclick="generateSIReport()" '
-    + 'style="width:100%;background:var(--teal,#0ea5a0);border-color:var(--teal,#0ea5a0);">'
+    + 'style="width:100%;background:var(--teal,#0E6B5C);border-color:var(--teal,#0E6B5C);">'
     + '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)</button>'
 
     // 8. 결과 출력
@@ -423,9 +423,9 @@ function generateSIReport() {
       if (typeof sanitizeSLPOutput === 'function') raw = sanitizeSLPOutput(raw, 'clinical');
       var text = restoreName(raw, d.child.name).trim();
       /* eslint-disable-next-line no-unsanitized/property */
-      result.innerHTML = '<div style="border:1.5px solid var(--mint,#0ea5a0);border-radius:12px;padding:16px;margin-top:4px;">'
+      result.innerHTML = '<div style="border:1.5px solid var(--mint,#0E6B5C);border-radius:12px;padding:16px;margin-top:4px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
-        + '<span style="font-weight:700;font-size:14px;color:var(--mint,#0ea5a0);">🤖 AI 생성 보고서</span>'
+        + '<span style="font-weight:700;font-size:14px;color:var(--mint,#0E6B5C);">🤖 AI 생성 보고서</span>'
         + '<button onclick="copySIReport()" class="btn-ghost" style="font-size:11px;padding:5px 12px;">📋 복사</button>'
         + '</div>'
         + '<div id="siReportText" style="white-space:pre-wrap;font-size:13px;line-height:1.8;color:var(--text);">' + escHtml(text) + '</div>'
