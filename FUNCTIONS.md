@@ -790,14 +790,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _─_ — L1032
 
 ## madi-icons.js (6함수)
-- `mdIcon` — madi-icons.js:60
-- `_mountIcons` — madi-icons.js:75
-- `_autoMount` — madi-icons.js:90
-  ▸ _빈 상태 일러스트 (D5)_ — L97
-- `mdIllust` — madi-icons.js:146
-- `mdEmptyState` — madi-icons.js:149
-  ▸ _스켈레톤 (D6)_ — L163
-- `mdSkeletonList` — madi-icons.js:165
+- `mdIcon` — madi-icons.js:66
+- `_mountIcons` — madi-icons.js:81
+- `_autoMount` — madi-icons.js:96
+  ▸ _빈 상태 일러스트 (D5)_ — L103
+- `mdIllust` — madi-icons.js:152
+- `mdEmptyState` — madi-icons.js:155
+  ▸ _스켈레톤 (D6)_ — L169
+- `mdSkeletonList` — madi-icons.js:171
 
 ## madi-iep.js (23함수)
   ▸ _본인 세션 판별 (teacher_id 우선, 레거시는 이름 폴백)_ — L1

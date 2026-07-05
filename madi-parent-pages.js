@@ -398,7 +398,7 @@ function parentLookup() {
   }
   errEl.textContent = '';
   btn.disabled = true;
-  btn.textContent = '⏳ 조회 중...';
+  btn.textContent = '조회 중...';
 
   fetch(EDGE_URL + '/parent-auth', {
     method: 'POST',
@@ -409,7 +409,7 @@ function parentLookup() {
     .then(function(r) { return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
     .then(function(res) {
       btn.disabled = false;
-      btn.textContent = '🔍 내 아이 찾기';
+      btn.textContent = '내 아이 찾기';
       if (!res.ok) {
         errEl.textContent = '❌ ' + (res.data.error || '조회 실패');
         return;
@@ -443,7 +443,7 @@ function parentLookup() {
     })
     .catch(function(e) {
       btn.disabled = false;
-      btn.textContent = '🔍 내 아이 찾기';
+      btn.textContent = '내 아이 찾기';
       errEl.textContent = '❌ ' + _userErrMsg(e, '조회');
     });
 }
@@ -486,7 +486,7 @@ function parentSignup() {
 
   errEl.textContent = '';
   btn.disabled = true;
-  btn.textContent = '⏳ 가입 중...';
+  btn.textContent = '가입 중...';
 
   var childIds = _parentSignupMatchedChildren.map(function(c) { return c.childId; });
 
@@ -505,7 +505,7 @@ function parentSignup() {
     .then(function(r) { return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
     .then(function(res) {
       btn.disabled = false;
-      btn.textContent = '✨ 가입 완료';
+      btn.textContent = '가입 완료';
       if (!res.ok) {
         errEl.textContent = '❌ ' + (res.data.error || '가입 실패');
         return;
@@ -526,7 +526,7 @@ function parentSignup() {
     })
     .catch(function(e) {
       btn.disabled = false;
-      btn.textContent = '✨ 가입 완료';
+      btn.textContent = '가입 완료';
       errEl.textContent = '❌ ' + _userErrMsg(e, '가입');
     });
 }

@@ -340,7 +340,7 @@
       .sidebar-item:hover { background:var(--bg); color:var(--text); }
       .sidebar-item.active { background:#dbeafe; color:#2563eb; }
       body.dark-mode .sidebar-item.active { background:rgba(59,130,246,0.2); color:#93c5fd; }
-      .sidebar-item .s-ico { font-size:16px; width:22px; text-align:center; flex-shrink:0; }
+      .sidebar-item .s-ico { font-size:16px; width:22px; text-align:center; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; }
       .sidebar-item .s-lbl { font-size:13px; transition:opacity 0.15s; }
       .sidebar-divider { height:1px; background:var(--border); margin:6px 12px; }
       .app-main { flex:1; overflow-y:auto; overflow-x:hidden; }
@@ -1684,7 +1684,9 @@
       transition:all 0.15s;
     }
     .login-btn-sec:hover { border-color:var(--mint); background:#f0fdfa; transform:translateY(-1px); }
-    .login-btn-ic { width:40px; height:40px; border-radius:10px; background:#EAF3F1; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .login-btn-ic { width:40px; height:40px; border-radius:10px; background:#EAF3F1; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; color:var(--mint); }
+    /* data-icon SVG 인라인 텍스트 정렬 (링크·라벨 안) */
+    span[data-icon] svg { vertical-align:middle; }
     .login-btn-sec-text { flex:1; }
     .login-btn-sec-text b { display:block; font-size:14px; font-weight:800; color:#16233B; margin-bottom:2px; }
     .login-btn-sec-text em { display:block; font-size:11.5px; font-style:normal; color:#64748b; }
