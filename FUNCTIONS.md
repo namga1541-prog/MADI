@@ -90,7 +90,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var currentUser = null;` — madi-core.js:428
 - `var _errReportCount = 0;` — madi-core.js:482
 - `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:483
-- `var _DP_VOUCHER_PRICE = {` — madi-dashboard.js:394
+- `var _DP_VOUCHER_PRICE = {` — madi-dashboard.js:484
 - `var GITHUB_OWNER = 'namga1541-prog';` — madi-deploy.js:68
 - `var GITHUB_REPO = 'MADI';` — madi-deploy.js:69
 - `var GITHUB_SW = 'sw.js';` — madi-deploy.js:70
@@ -103,7 +103,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _showDischargedInSession = false;` — madi-growth.js:693
 - `var ALL_PANELS_NEW = ['panelHome','panel0','panel1','panel2','panel3','panel4','panel5','p` — madi-home.js:390
 - `var TAB_PANEL_MAP = ['panel2','panel0','panelReport','panelPortfolio','panelService','pane` — madi-home.js:392
-- `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':` — madi-home.js:419
+- `var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'기록', '3':'포트폴리오', '4':'서비스 관리', '5':'` — madi-home.js:419
 - `var currentReportTab = 'session';` — madi-home.js:551
 - `var currentPortfolioTab = 'trend';` — madi-home.js:581
 - `var _bannerNotices = [];` — madi-home.js:608
@@ -632,7 +632,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `_reportClientError` — madi-core.js:495
   ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L571
 
-## madi-dashboard.js (23함수)
+## madi-dashboard.js (27함수)
 - `_dpInitial` — madi-dashboard.js:13
 - `_dpAvatarClass` — madi-dashboard.js:17
 - `_dpMonday` — madi-dashboard.js:23
@@ -649,21 +649,28 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `renderDashboardTeacher` — madi-dashboard.js:103
 - `_isMine` — madi-dashboard.js:114
   ▸ _HTML_ — L181
-  ▸ _─_ — L389
-  ▸ _─_ — L391
-- `_dpEstSessionPrice` — madi-dashboard.js:402
-- `_dpFmtWon` — madi-dashboard.js:407
-- `_dpToggleRevBreakdown` — madi-dashboard.js:413
-- `renderDashboardAdmin` — madi-dashboard.js:424
-  ▸ _데이터 계산_ — L442
-- `_tsKey` — madi-dashboard.js:489
-- `_tsBucket` — madi-dashboard.js:490
-  ▸ _HTML_ — L525
-- `_pt` — madi-dashboard.js:639
-  ▸ _하단 2열: 운영 알림 + 빠른 액션_ — L709
-- `_dpRenderTeacherRows` — madi-dashboard.js:818
-- `_dpLoadAdminTeacherTable` — madi-dashboard.js:847
-- `_dpRenderTeacherTable` — madi-dashboard.js:891
+  ▸ _일정 행 → 해당 세션 빠른 기록 폼 직행 (data-action 위임)_ — L391
+- `dpOpenQuickRecord` — madi-dashboard.js:392
+  ▸ _원장 리마인드 수신 배너 (선생님 홈)_ — L402
+- `_dpLoadTeacherReminders` — madi-dashboard.js:404
+- `dpDismissReminder` — madi-dashboard.js:428
+  ▸ _미작성 세션 리마인드 원클릭 발송 (관리자 운영 알림 카드)_ — L439
+- `dpSendUnwrittenReminder` — madi-dashboard.js:440
+  ▸ _─_ — L479
+  ▸ _─_ — L481
+- `_dpEstSessionPrice` — madi-dashboard.js:492
+- `_dpFmtWon` — madi-dashboard.js:497
+- `_dpToggleRevBreakdown` — madi-dashboard.js:503
+- `renderDashboardAdmin` — madi-dashboard.js:514
+  ▸ _데이터 계산_ — L532
+- `_tsKey` — madi-dashboard.js:579
+- `_tsBucket` — madi-dashboard.js:580
+  ▸ _HTML_ — L615
+- `_pt` — madi-dashboard.js:729
+  ▸ _하단 2열: 운영 알림 + 빠른 액션_ — L799
+- `_dpRenderTeacherRows` — madi-dashboard.js:910
+- `_dpLoadAdminTeacherTable` — madi-dashboard.js:939
+- `_dpRenderTeacherTable` — madi-dashboard.js:983
 
 ## madi-deploy.js (12함수)
   ▸ _마디 폴더 핸들 관리 (IndexedDB)_ — L12

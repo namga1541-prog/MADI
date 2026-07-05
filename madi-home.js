@@ -416,7 +416,7 @@ function restoreSidebarState() {
   } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
 }
 // ─── Breadcrumb 업데이트 ───
-var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'보고서', '3':'포트폴리오', '4':'서비스 관리', '5':'관리자 설정', '6':'설정', '7':'게시판' };
+var _bcMap = { '-1':'', '0':'캘린더', '1':'아동 관리', '2':'기록', '3':'포트폴리오', '4':'서비스 관리', '5':'관리자 설정', '6':'설정', '7':'게시판' };
 function updateBreadcrumb(idx) {
   var sep = document.getElementById('bcSep');
   var cur = document.getElementById('bcCurrent');
@@ -956,7 +956,7 @@ function toggleHaptic() {
 // ── 시작 탭 ──
 function setStartTab(val) {
   safeSetItem('madi_start_tab', val);
-  var names = ['캘린더','아동 관리','보고서','성장기록'];
+  var names = ['캘린더','아동 관리','기록','성장기록'];
   showToast('🏁 시작 탭: ' + (names[parseInt(val,10)] || '캘린더'));
 }
 

@@ -197,7 +197,8 @@ function renderDashboardTeacher() {
     +   '</div>'
     +   '<h1 class="dp-title">' + titleText + '</h1>'
     +   '<p class="dp-sub">' + subText + '</p>'
-    + '</div>';
+    + '</div>'
+    + '<div id="dpTeacherReminderSlot"></div>';
 
   // 시급 배너 (미작성 있을 때만)
   if (unwritten.length > 0) {
@@ -274,7 +275,7 @@ function renderDashboardTeacher() {
       var tag = done ? '<span class="dp-tl-tag done">완료</span>' : '<span class="dp-tl-tag upcoming">예정</span>';
       var cls = done ? 'done' : 'upcoming';
       return ''
-        + '<div class="dp-tl-row ' + cls + '" ' + a11yClick(nm + ' 세션 기록으로 이동') + ' onclick="switchTab(2)">'
+        + '<div class="dp-tl-row ' + cls + '" ' + a11yClick(nm + ' 세션 기록으로 이동') + ' data-action="dpOpenQuickRecord" data-arg="' + escHtml(String(s.id)) + '">'
         +   '<div class="dp-tl-time">' + escHtml(st || '--:--') + (et ? '<em>~ ' + escHtml(et) + '</em>' : '') + '</div>'
         +   '<div class="dp-tl-dot"></div>'
         +   '<div class="dp-tl-card">'
@@ -384,6 +385,95 @@ function renderDashboardTeacher() {
   // eslint-disable-next-line no-unsanitized/property
   root.innerHTML = html;
 
+  _dpLoadTeacherReminders();
+}
+
+// ── 일정 행 → 해당 세션 빠른 기록 폼 직행 (data-action 위임) ──
+function dpOpenQuickRecord(schedId) {
+  if (currentUser && currentUser.role === 'teacher'
+      && typeof openQuickPanel === 'function' && typeof openQuickForm === 'function') {
+    openQuickPanel();
+    openQuickForm(String(schedId || ''));
+  } else {
+    switchTab(2); // 빠른 기록 미지원 역할·로드 실패 폴백
+  }
+}
+
+// ── 원장 리마인드 수신 배너 (선생님 홈) ──
+// madi_notifications 는 학부모만 읽던 테이블 — 선생님은 홈 진입 시 unread reminder 만 1회 조회.
+function _dpLoadTeacherReminders() {
+  var slot = document.getElementById('dpTeacherReminderSlot');
+  if (!slot || !currentUser || currentUser.role !== 'teacher') return;
+  supaFetch('madi_notifications?user_id=eq.' + encodeURIComponent(currentUser.id)
+    + '&type=eq.reminder&read_at=is.null&select=id,title,body,created_at&order=created_at.desc&limit=3', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) return;
+      var r = rows[0];
+      var ids = rows.map(function(x){ return x.id; });
+      slot.dataset.nids = ids.join(',');
+      // eslint-disable-next-line no-unsanitized/property -- 사용자 입력은 escHtml, 아이콘은 mdIcon 하드코딩 SVG
+      slot.innerHTML = ''
+        + '<div class="dp-urgent dp-remind">'
+        +   '<div class="dp-urgent-ic">' + mdIcon('bell', 18) + '</div>'
+        +   '<div class="dp-urgent-info">'
+        +     '<div class="dp-urgent-title">' + escHtml(r.title || '원장님 리마인드') + (rows.length > 1 ? ' 외 ' + (rows.length - 1) + '건' : '') + '</div>'
+        +     '<div class="dp-urgent-text">' + escHtml(r.body || '') + '</div>'
+        +   '</div>'
+        +   '<button class="dp-urgent-action" data-action="dpDismissReminder">확인했어요</button>'
+        + '</div>';
+    })
+    .catch(function(e){ if (window.console && console.warn) console.warn('[reminder]', e && e.message); });
+}
+
+function dpDismissReminder() {
+  var slot = document.getElementById('dpTeacherReminderSlot');
+  if (!slot) return;
+  var ids = (slot.dataset.nids || '').split(',').filter(Boolean);
+  slot.innerHTML = '';
+  if (!ids.length) return;
+  supaFetch('madi_notifications?id=in.(' + ids.map(encodeURIComponent).join(',') + ')', 'PATCH',
+    { read_at: new Date().toISOString() })
+    .catch(function(e){ if (window.console && console.warn) console.warn('[reminder-read]', e && e.message); });
+}
+
+// ── 미작성 세션 리마인드 원클릭 발송 (관리자 운영 알림 카드) ──
+function dpSendUnwrittenReminder(_arg, el) {
+  if (!currentUser || !isAdminRole(currentUser.role)) { showToast('⚠️ 권한이 없습니다'); return; }
+  var unwritten = (typeof getUnwrittenSessions === 'function') ? getUnwrittenSessions() : [];
+  if (!unwritten.length) { showToast('✅ 미작성 세션이 없습니다'); return; }
+  var byTeacher = {};
+  unwritten.forEach(function(u){ var t = u.teacher || ''; if (t) byTeacher[t] = (byTeacher[t] || 0) + 1; });
+  if (!Object.keys(byTeacher).length) { showToast('⚠️ 담당 선생님 정보가 없는 세션뿐이에요'); return; }
+  var btn = el;
+  if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
+  var q = 'madi_users?role=eq.teacher&select=id,name';
+  if (currentUser.center_id) q += '&center_id=eq.' + encodeURIComponent(currentUser.center_id);
+  supaFetch(q, 'GET').then(function(teachers) {
+    var rows = (Array.isArray(teachers) ? teachers : [])
+      .filter(function(t){ return byTeacher[t.name]; })
+      .map(function(t) {
+        return {
+          user_id: t.id,
+          center_id: currentUser.center_id || null,
+          type: 'reminder',
+          title: '미작성 세션 ' + byTeacher[t.name] + '건이 기다리고 있어요',
+          body: '최근 7일 일정 중 기록이 없는 세션이 있어요. 기록 탭에서 작성해 주세요.',
+          link: 'report'
+        };
+      });
+    if (!rows.length) {
+      showToast('⚠️ 대상 선생님 계정을 찾지 못했어요');
+      if (btn) { btn.disabled = false; btn.textContent = '리마인드 보내기'; }
+      return null;
+    }
+    return supaFetch('madi_notifications', 'POST', rows).then(function() {
+      showToast('✅ 선생님 ' + rows.length + '명에게 리마인드를 보냈어요');
+      if (btn) { btn.textContent = '전송 완료'; }
+    });
+  }).catch(function(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '리마인드 보내기'; }
+    showError(e, '리마인드 전송');
+  });
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -713,7 +803,7 @@ function renderDashboardAdmin() {
     alerts.push({
       ic: mdIcon('alert-tri', 16), cls: 'warn',
       title: '이번 달 미작성 세션 ' + pendingSched.length + '건',
-      text: '일정은 지났지만 아직 세션 기록이 작성되지 않았어요. 보고서 탭에서 작성할 수 있습니다.',
+      text: '일정은 지났지만 아직 세션 기록이 작성되지 않았어요. 기록 탭에서 작성할 수 있습니다.',
       time: '이번 달 누적'
     });
   }
@@ -727,8 +817,9 @@ function renderDashboardAdmin() {
     alerts.push({
       ic: mdIcon('message', 16), cls: 'info',
       title: '미작성 세션 ' + totalUnwritten.length + '건 (전체 선생님)',
-      text: byTeacherText + (Object.keys(byTeacher).length > 3 ? ' 외' : '') + '. 선생님께 리마인드 전송 가능합니다.',
-      time: '최근 7일 기준'
+      text: byTeacherText + (Object.keys(byTeacher).length > 3 ? ' 외' : ''),
+      time: '최근 7일 기준',
+      action: '<button class="dp-alert-act" data-action="dpSendUnwrittenReminder">리마인드 보내기</button>'
     });
   }
   if (_bannerNotices && _bannerNotices.length > 0) {
@@ -766,6 +857,7 @@ function renderDashboardAdmin() {
         // eslint-disable-next-line no-unsanitized/property -- a.text는 생성 시점에 escHtml 처리된 값(하드코딩 문자열 or escHtml() 래핑)으로만 구성됨
         +     '<div class="dp-alert-text">' + a.text + '</div>'
         +     (a.time ? '<div class="dp-alert-time">' + escHtml(a.time) + '</div>' : '')
+        +     (a.action || '')
         +   '</div>'
         + '</div>';
     }).join('') + '</div>';
