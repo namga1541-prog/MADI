@@ -254,7 +254,7 @@ function renderSIReport() {
     + '자세한 내용은 개인정보처리방침을 참고하세요.</div>'
     + '<button id="siReportBtn" class="btn btn-primary" onclick="generateSIReport()" '
     + 'style="width:100%;background:var(--teal,#0E6B5C);border-color:var(--teal,#0E6B5C);">'
-    + '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)</button>'
+    + 'AI 감통 보고서 생성 (종합 소견 + 권고사항)</button>'
 
     // 8. 결과 출력
     + '<div id="siReportResult" style="margin-top:14px;"></div>'
@@ -432,7 +432,7 @@ function generateSIReport() {
         + '</div>';
       showToast('✅ 감통 보고서 생성 완료!');
       btn.dataset.busy = ''; btn.disabled = false;
-      btn.textContent = '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)';
+      btn.textContent = 'AI 감통 보고서 생성 (종합 소견 + 권고사항)';
     })
     .catch(function(e) {
       if (window.console && console.warn) console.warn('[AI 감통 보고서]', e);
@@ -443,7 +443,7 @@ function generateSIReport() {
         + '<button onclick="generateSIReport()" class="btn" style="font-size:12px;padding:6px 14px;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;font-weight:700;">🔄 다시 시도</button>'
         + '</div>';
       btn.dataset.busy = ''; btn.disabled = false;
-      btn.textContent = '🤖 AI 감통 보고서 생성 (종합 소견 + 권고사항)';
+      btn.textContent = 'AI 감통 보고서 생성 (종합 소견 + 권고사항)';
     });
 }
 

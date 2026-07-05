@@ -523,7 +523,8 @@ function resetChatMicBtn() {
   isChatRecording = false;
   if (btn) {
     btn.classList.remove('recording');
-    btn.textContent = '🎤';
+    // eslint-disable-next-line no-unsanitized/property -- mdIcon()은 하드코딩 SVG만 반환
+    btn.innerHTML = (typeof mdIcon === 'function') ? mdIcon('mic', 16) : '🎤';
     btn.title = '음성 입력';
   }
 }

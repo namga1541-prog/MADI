@@ -46,12 +46,12 @@ function toggleVoiceInput() {
     showToast(voiceErrMsg(ev.error));
     isRecording = false;
     btn.classList.remove('recording');
-    btn.textContent = '🎤 음성 입력 시작';
+    btn.textContent = '음성 입력 시작';
   };
   recognition.onend = function() {
     isRecording = false;
     btn.classList.remove('recording');
-    btn.textContent = '🎤 음성 입력 시작';
+    btn.textContent = '음성 입력 시작';
   };
 
   recognition.start();
@@ -118,7 +118,7 @@ function togglePhonemeMatrix() {
   var isOpen = matrix.style.display !== 'none';
   matrix.style.display = isOpen ? 'none' : 'block';
   if (btn) {
-    btn.textContent = isOpen ? '🎯 조음 데이터 입력' : '🎯 조음 데이터 닫기';
+    btn.textContent = isOpen ? '조음 데이터 입력' : '조음 데이터 닫기';
     btn.style.background = isOpen ? '#fff0f6' : '#db2777';
     btn.style.color      = isOpen ? '#db2777' : 'white';
   }
@@ -243,7 +243,7 @@ function resetPhonemeMatrix() {
   var matrix = document.getElementById('phonemeMatrix');
   var btn    = document.getElementById('phonemeToggleBtn');
   if (matrix) matrix.style.display = 'none';
-  if (btn) { btn.textContent = '🎯 조음 데이터 입력'; btn.style.background = '#fff0f6'; btn.style.color = '#db2777'; }
+  if (btn) { btn.textContent = '조음 데이터 입력'; btn.style.background = '#fff0f6'; btn.style.color = '#db2777'; }
 }
 
 function cloneLastSession() {
@@ -269,7 +269,7 @@ function cloneLastSession() {
     var matrix = document.getElementById('phonemeMatrix');
     var btn    = document.getElementById('phonemeToggleBtn');
     if (matrix) matrix.style.display = 'block';
-    if (btn) { btn.textContent = '🎯 조음 데이터 닫기'; btn.style.background = '#db2777'; btn.style.color = 'white'; }
+    if (btn) { btn.textContent = '조음 데이터 닫기'; btn.style.background = '#db2777'; btn.style.color = 'white'; }
     initPhonemeChips();
     // 지난 세션 음소 행 추가 (점수는 빈칸)
     Object.keys(last.phonemes).forEach(function(p) {

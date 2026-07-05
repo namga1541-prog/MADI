@@ -50,8 +50,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var CHAT_MACROS = {` — madi-chat.js:360
 - `var chatRecognition = null;` — madi-chat.js:475
 - `var isChatRecording = false;` — madi-chat.js:476
-- `var _chatMasker = null;` — madi-chat.js:664
-- `var _chatTeacherMasker = null;` — madi-chat.js:665
+- `var _chatMasker = null;` — madi-chat.js:665
+- `var _chatTeacherMasker = null;` — madi-chat.js:666
 - `var inputMode = 0;` — madi-child-detail.js:1
 - `var recognition = null, isRecording = false;` — madi-child-detail.js:11
 - `var goalRows = [];` — madi-child-detail.js:61
@@ -497,11 +497,11 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _채팅 음성 입력 (W3)_ — L474
 - `toggleChatVoiceInput` — madi-chat.js:478
 - `resetChatMicBtn` — madi-chat.js:521
-- `sendChat` — madi-chat.js:531
-- `_aliasChatText` — madi-chat.js:666
-- `restoreChatNames` — madi-chat.js:670
-- `_restoreChatTeacher` — madi-chat.js:676
-- `buildChatContext` — madi-chat.js:678
+- `sendChat` — madi-chat.js:532
+- `_aliasChatText` — madi-chat.js:667
+- `restoreChatNames` — madi-chat.js:671
+- `_restoreChatTeacher` — madi-chat.js:677
+- `buildChatContext` — madi-chat.js:679
 
 ## madi-child-detail.js (36함수)
 - `setInputMode` — madi-child-detail.js:2
@@ -790,14 +790,14 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _─_ — L1032
 
 ## madi-icons.js (6함수)
-- `mdIcon` — madi-icons.js:66
-- `_mountIcons` — madi-icons.js:81
-- `_autoMount` — madi-icons.js:96
-  ▸ _빈 상태 일러스트 (D5)_ — L103
-- `mdIllust` — madi-icons.js:152
-- `mdEmptyState` — madi-icons.js:155
-  ▸ _스켈레톤 (D6)_ — L169
-- `mdSkeletonList` — madi-icons.js:171
+- `mdIcon` — madi-icons.js:68
+- `_mountIcons` — madi-icons.js:83
+- `_autoMount` — madi-icons.js:98
+  ▸ _빈 상태 일러스트 (D5)_ — L105
+- `mdIllust` — madi-icons.js:154
+- `mdEmptyState` — madi-icons.js:157
+  ▸ _스켈레톤 (D6)_ — L171
+- `mdSkeletonList` — madi-icons.js:173
 
 ## madi-iep.js (23함수)
   ▸ _본인 세션 판별 (teacher_id 우선, 레거시는 이름 폴백)_ — L1

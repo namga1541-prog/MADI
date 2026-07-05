@@ -204,7 +204,7 @@ function renderDashboardTeacher() {
     var sample = unwritten.slice(0,3).map(function(u){ return escHtml((u.date||'').slice(5).replace('-','/')) + ' (' + escHtml(u.childName) + ')'; }).join(', ');
     html += ''
       + '<div class="dp-urgent">'
-      +   '<div class="dp-urgent-ic">⚠️</div>'
+      +   '<div class="dp-urgent-ic">' + mdIcon('alert-tri', 18) + '</div>'
       +   '<div class="dp-urgent-info">'
       +     '<div class="dp-urgent-title">미작성 세션 ' + unwritten.length + '건이 있어요</div>'
       +     '<div class="dp-urgent-text">' + sample + (unwritten.length > 3 ? ' 외 ' + (unwritten.length - 3) + '건' : '') + ' 세션 기록이 작성 대기 중입니다.</div>'
@@ -217,17 +217,17 @@ function renderDashboardTeacher() {
   var todayTimesShort = todaySched.slice(0,3).map(function(s){ return (s.startTime||'').slice(0,5); }).filter(Boolean).join(' · ');
   html += ''
     + '<div class="dp-kpi-grid">'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-blue">👶</div><div class="dp-kpi-info">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-blue">' + mdIcon('user', 18) + '</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">내 담당 아동</div>'
     +     '<div class="dp-kpi-num">' + myChildren.length + '<em> 명</em></div>'
     +     '<div class="dp-kpi-delta flat">전체 ' + _children.length + '명 중</div>'
     +   '</div></div>'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-green">📅</div><div class="dp-kpi-info">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-green">' + mdIcon('calendar', 18) + '</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">오늘 세션</div>'
     +     '<div class="dp-kpi-num">' + todaySched.length + '<em> 건</em></div>'
     +     '<div class="dp-kpi-delta flat">' + (todayTimesShort || '없음') + '</div>'
     +   '</div></div>'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-purple">📝</div><div class="dp-kpi-info">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-purple">' + mdIcon('edit', 18) + '</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">이번 주 작성</div>'
     +     '<div class="dp-kpi-num">' + weekDone + '<em> / ' + weekSchedDue.length + (weekRatePct != null ? ' · ' + weekRatePct + '%' : '') + '</em></div>'
     +     '<div class="dp-kpi-delta ' + (weekPending ? 'warn' : 'flat') + '">' + (weekPending ? weekPending + '건 미작성' : (weekSchedDue.length ? '모두 작성 완료' : '도래한 일정 없음')) + (weekSchedFuture ? ' · 남은 일정 ' + weekSchedFuture + '건' : '') + '</div>'
@@ -249,7 +249,7 @@ function renderDashboardTeacher() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">📅 오늘의 일정</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('calendar', 14) + ' 오늘의 일정</div>'
     +       '<div class="dp-panel-sub">' + (todaySched.length ? todaySched.length + '개 세션' : '오늘 일정 없음') + '</div></div>'
     +     '<button class="dp-panel-link" onclick="switchTab(0)">주간 보기 →</button>'
     +   '</div>'
@@ -301,7 +301,7 @@ function renderDashboardTeacher() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">👥 내 담당 아동</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('users', 14) + ' 내 담당 아동</div>'
     +       '<div class="dp-panel-sub">최근 만난 순 · 총 ' + myChildren.length + '명</div></div>'
     +     '<button class="dp-panel-link" onclick="switchTab(1)">전체 →</button>'
     +   '</div>'
@@ -339,7 +339,7 @@ function renderDashboardTeacher() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">📊 내 이번 주 활동</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('chart', 14) + ' 내 이번 주 활동</div>'
     +       '<div class="dp-panel-sub">' + _dpFmtMD(mon) + ' ~ ' + _dpFmtMD(sun) + '</div></div>'
     +   '</div>'
     +   '<div class="dp-panel-body">'
@@ -357,22 +357,22 @@ function renderDashboardTeacher() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">⚡ 빠른 액션</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('zap', 14) + ' 빠른 액션</div>'
     +       '<div class="dp-panel-sub">자주 쓰는 작업</div></div>'
     +   '</div>'
     +   '<div class="dp-panel-body">'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:none;cursor:pointer;" ' + a11yClick('세션 기록 작성') + ' onclick="switchTab(2)">'
-    +       '<div class="dp-tl-av dp-av-2">📝</div>'
+    +       '<div class="dp-tl-av dp-av-2">' + mdIcon('edit', 16) + '</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">세션 기록 작성</div><div class="dp-tl-meta">' + (unwritten.length ? unwritten.length + '건 미작성 — 우선 처리' : '오늘 일정에서 시작') + '</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('캘린더 관리') + ' onclick="switchTab(0)">'
-    +       '<div class="dp-tl-av dp-av-1">📅</div>'
+    +       '<div class="dp-tl-av dp-av-1">' + mdIcon('calendar', 16) + '</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">캘린더 관리</div><div class="dp-tl-meta">주간 일정·새 일정 추가</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('게시판·메시지') + ' onclick="switchTab(7)">'
-    +       '<div class="dp-tl-av dp-av-3">💬</div>'
+    +       '<div class="dp-tl-av dp-av-3">' + mdIcon('message', 16) + '</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">게시판·메시지</div><div class="dp-tl-meta">학부모 · 동료 라운지</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
@@ -418,7 +418,7 @@ function _dpToggleRevBreakdown() {
   window._dpRevOpen = !isOpen;
   // 트리거 버튼 텍스트 갱신 (자세히 ▾ ↔ 접기 ▴)
   var btn = document.getElementById('dpRevToggleBtn');
-  if (btn) btn.textContent = '📌 바우처 단가 × 완료 세션 추정값 · ' + (isOpen ? '자세히 ▾' : '접기 ▴');
+  if (btn) btn.textContent = '바우처 단가 × 완료 세션 추정값 · ' + (isOpen ? '자세히 ▾' : '접기 ▴');
 }
 
 function renderDashboardAdmin() {
@@ -544,22 +544,22 @@ function renderDashboardAdmin() {
   // KPI
   html += ''
     + '<div class="dp-kpi-grid">'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-green">👶</div><div class="dp-kpi-info">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-green">' + mdIcon('user', 18) + '</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">활동 중인 아동</div>'
     +     '<div class="dp-kpi-num">' + kRegistered + '</div>'
     +     '<div class="dp-kpi-delta ' + (newThisWeek ? '' : 'flat') + '">' + (newThisWeek ? '↑ +' + newThisWeek + ' 이번 주' : '변동 없음') + '</div>'
     +   '</div></div>'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-amber">⏳</div><div class="dp-kpi-info">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-amber">' + mdIcon('clock', 18) + '</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">대기 / 초기 면담</div>'
     +     '<div class="dp-kpi-num">' + kWaiting + '</div>'
     +     '<div class="dp-kpi-delta ' + (waitThisWeek ? 'warn' : 'flat') + '">' + (waitThisWeek ? '+' + waitThisWeek + ' 이번 주 신규' : '변동 없음') + '</div>'
     +   '</div></div>'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-blue">✓</div><div class="dp-kpi-info">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-blue">' + mdIcon('check', 18) + '</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">이번 달 종결</div>'
     +     '<div class="dp-kpi-num">' + kClosedThisMonth + '</div>'
     +     '<div class="dp-kpi-delta flat">2026년 ' + (todayDate.getMonth()+1) + '월</div>'
     +   '</div></div>'
-    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-purple">🌳</div><div class="dp-kpi-info">'
+    +   '<div class="dp-kpi"><div class="dp-kpi-ic dp-kic-purple">' + mdIcon('users', 18) + '</div><div class="dp-kpi-info">'
     +     '<div class="dp-kpi-label">전체 누적</div>'
     +     '<div class="dp-kpi-num">' + kTotal + '</div>'
     +     '<div class="dp-kpi-delta flat">아동 등록 합계</div>'
@@ -573,7 +573,7 @@ function renderDashboardAdmin() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">👥 선생님별 활동 현황</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('users', 14) + ' 선생님별 활동 현황</div>'
     +       '<div class="dp-panel-sub" id="dpAdminTeacherSub">이번 주 (' + _dpFmtMD(mon) + ' ~ ' + _dpFmtMD(sun) + ') · 불러오는 중</div></div>'
     +     '<button class="dp-panel-link" onclick="goToAdmin(\'service\')">관리 →</button>'
     +   '</div>'
@@ -595,7 +595,7 @@ function renderDashboardAdmin() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">🔄 이번 주 아동 변동</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('refresh', 14) + ' 이번 주 아동 변동</div>'
     +       '<div class="dp-panel-sub">신규·종결·대기 전환</div></div>'
     +     '<button class="dp-panel-link" onclick="switchTab(1)">전체 →</button>'
     +   '</div>'
@@ -653,7 +653,7 @@ function renderDashboardAdmin() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">📊 이번 달 세션 추이</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('chart', 14) + ' 이번 달 세션 추이</div>'
     +       '<div class="dp-panel-sub">' + (monthStart.getMonth()+1) + '월 일별 세션 (계획 vs 실제)</div></div>'
     +   '</div>'
     +   '<div class="dp-panel-body">'
@@ -688,10 +688,10 @@ function renderDashboardAdmin() {
   html += ''
     + '<div class="dp-panel" style="margin-top:12px;">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">💰 이번 달 매출 추정</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('coins', 14) + ' 이번 달 매출 추정</div>'
     +       '<div class="dp-panel-sub">바우처 단가 × 완료 세션 기준 (추정값)</div></div>'
     +     '<button id="dpRevToggleBtn" class="dp-panel-link" onclick="_dpToggleRevBreakdown()">'
-    +       '📌 바우처 단가 × 완료 세션 추정값 · ' + (revOpen ? '접기 ▴' : '자세히 ▾')
+    +       '바우처 단가 × 완료 세션 추정값 · ' + (revOpen ? '접기 ▴' : '자세히 ▾')
     +     '</button>'
     +   '</div>'
     +   '<div class="dp-panel-body">'
@@ -711,7 +711,7 @@ function renderDashboardAdmin() {
   var alerts = [];
   if (pendingSched.length > 0) {
     alerts.push({
-      ic: '⚠️', cls: 'warn',
+      ic: mdIcon('alert-tri', 16), cls: 'warn',
       title: '이번 달 미작성 세션 ' + pendingSched.length + '건',
       text: '일정은 지났지만 아직 세션 기록이 작성되지 않았어요. 보고서 탭에서 작성할 수 있습니다.',
       time: '이번 달 누적'
@@ -725,7 +725,7 @@ function renderDashboardAdmin() {
     totalUnwritten.forEach(function(u){ byTeacher[u.teacher || '미배정'] = (byTeacher[u.teacher || '미배정'] || 0) + 1; });
     var byTeacherText = Object.keys(byTeacher).slice(0,3).map(function(t){ return escHtml(t) + ' ' + byTeacher[t] + '건'; }).join(' / ');
     alerts.push({
-      ic: '💬', cls: 'info',
+      ic: mdIcon('message', 16), cls: 'info',
       title: '미작성 세션 ' + totalUnwritten.length + '건 (전체 선생님)',
       text: byTeacherText + (Object.keys(byTeacher).length > 3 ? ' 외' : '') + '. 선생님께 리마인드 전송 가능합니다.',
       time: '최근 7일 기준'
@@ -735,7 +735,7 @@ function renderDashboardAdmin() {
     var topNotice = _bannerNotices[0];
     var noticeContent = (topNotice.content || '').toString();
     alerts.push({
-      ic: topNotice.notice_type === 'imp' ? '🔴' : '📢', cls: 'ok',
+      ic: topNotice.notice_type === 'imp' ? mdIcon('alert-tri', 16) : mdIcon('bell', 16), cls: 'ok',
       title: topNotice.title || '공지',
       // 사용자 입력 — escape 필수
       text: escHtml(noticeContent.slice(0, 80)) + (noticeContent.length > 80 ? '...' : ''),
@@ -749,7 +749,7 @@ function renderDashboardAdmin() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">📢 운영 알림</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('bell', 14) + ' 운영 알림</div>'
     +       '<div class="dp-panel-sub">' + (alerts.length ? '조치가 필요한 항목 ' + alerts.length + '건' : '모두 정상') + '</div></div>'
     +     '<button class="dp-panel-link" onclick="switchTab(1)">전체 →</button>'
     +   '</div>'
@@ -776,27 +776,27 @@ function renderDashboardAdmin() {
   html += ''
     + '<div class="dp-panel">'
     +   '<div class="dp-panel-head">'
-    +     '<div><div class="dp-panel-title">⚡ 빠른 액션</div>'
+    +     '<div><div class="dp-panel-title">' + mdIcon('zap', 14) + ' 빠른 액션</div>'
     +       '<div class="dp-panel-sub">자주 쓰는 운영 작업</div></div>'
     +   '</div>'
     +   '<div class="dp-panel-body">'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:none;cursor:pointer;" ' + a11yClick('세션 기록 작성') + ' onclick="switchTab(2)">'
-    +       '<div class="dp-tl-av dp-kic-amber">📝</div>'
+    +       '<div class="dp-tl-av dp-kic-amber">' + mdIcon('edit', 16) + '</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">' + (pendingSched.length ? '미작성 세션 ' + pendingSched.length + '건 작성' : '세션 기록 작성') + '</div><div class="dp-tl-meta">' + (pendingSched.length ? '이번 달 미작성 — 우선 처리 권장' : '대기 건 없음') + '</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('선생님 라운지·메시지') + ' onclick="switchTab(7)">'
-    +       '<div class="dp-tl-av dp-kic-blue">💬</div>'
+    +       '<div class="dp-tl-av dp-kic-blue">' + mdIcon('message', 16) + '</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">선생님 라운지·메시지</div><div class="dp-tl-meta">미작성 리마인드 / 공지 전송</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('선생님 관리·초대') + ' onclick="goToAdmin(\'service\')">'
-    +       '<div class="dp-tl-av dp-kic-green">➕</div>'
+    +       '<div class="dp-tl-av dp-kic-green">' + mdIcon('plus', 16) + '</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">선생님 관리·초대</div><div class="dp-tl-meta">관리자 콘솔에서 권한 설정</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'
     +     '<div class="dp-tl-row" style="grid-template-columns:auto 1fr auto;padding:11px 0;border-top:1px solid var(--border);cursor:pointer;" ' + a11yClick('월간 보고서·포트폴리오') + ' onclick="switchTab(2)">'
-    +       '<div class="dp-tl-av dp-kic-purple">📤</div>'
+    +       '<div class="dp-tl-av dp-kic-purple">' + mdIcon('upload', 16) + '</div>'
     +       '<div class="dp-tl-info"><div class="dp-tl-name">월간 보고서·포트폴리오</div><div class="dp-tl-meta">' + (todayDate.getMonth()+1) + '월 성과 출력</div></div>'
     +       '<div style="color:var(--text2);">→</div>'
     +     '</div>'

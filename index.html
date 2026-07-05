@@ -106,7 +106,7 @@
     </div>
 
     <div class="form-group" style="margin-bottom:16px;">
-      <label class="form-label" for="vfContext">📝 발견 상황 <span style="font-weight:400;color:var(--text2);">(선택)</span></label>
+      <label class="form-label" for="vfContext">발견 상황 <span style="font-weight:400;color:var(--text2);">(선택)</span></label>
       <textarea id="vfContext" class="form-input" rows="2"
         placeholder="예: 표준화검사 보고서 자동생성 결과 / PRES 검사 보고서 섹션"
         style="resize:vertical;"></textarea>
@@ -115,7 +115,7 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeVocabFeedbackModal()">취소</button>
       <button id="vfSubmitBtn" class="btn btn-primary" onclick="submitVocabFeedback()"
-        style="background:#7c3aed;border-color:#7c3aed;">📨 신고 제출</button>
+        style="background:#7c3aed;border-color:#7c3aed;">신고 제출</button>
     </div>
   </div>
 </div>
@@ -1248,7 +1248,7 @@
     <!-- 관리자 전용 배포 버튼 (로컬 파일에서만 표시) -->
     <button id="headerDeployBtn" onclick="deployToGitHub()" style="display:none;background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.3); color: rgb(255, 255, 255); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; min-height: 44px; touch-action: manipulation;" title="index.html 배포">🚀 배포</button>
     <!-- ⚡ 빠른 기록 버튼 (teacher 역할일 때만 표시) -->
-    <button id="headerQuickBtn" onclick="openQuickPanel()" style="display:none;background:rgba(250,204,21,0.18);border:1.5px solid rgba(250,204,21,0.55);color:#1a1a1a;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;min-height:44px;touch-action:manipulation;" title="오늘 수업 빠른 기록">⚡ 빠른 기록</button>
+    <button id="headerQuickBtn" onclick="openQuickPanel()" style="display:none;background:rgba(250,204,21,0.18);border:1.5px solid rgba(250,204,21,0.55);color:#1a1a1a;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;min-height:44px;touch-action:manipulation;" title="오늘 수업 빠른 기록">빠른 기록</button>
     <div class="header-clock" id="headerClock" style="text-align:right;color:white;line-height:1.15;">
       <div id="clockTime" style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;"></div>
       <div id="clockNext" style="display:none;"></div>
@@ -1262,7 +1262,7 @@
 </div>
 
 <div class="apikey-bar" id="apikeyBar" style="display:none;">
-  <label>🔑 API Key</label>
+  <label>API Key</label>
   <div style="flex:1;display:flex;align-items:center;gap:6px;position:relative;">
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" onfocus="onApiKeyFocus()" onblur="onApiKeyBlur()" style="display: none;">
     <button type="button" onclick="toggleApiKeyVisibility()" id="apiKeyEye" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); color: rgb(148, 163, 184); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0; display: none;" title="키 보기/숨기기" aria-label="API 키 보기/숨기기">👁️</button>
@@ -1358,7 +1358,7 @@
 <!-- 공지 배너 (탭바 아래 슬라이딩) -->
 <div id="noticeBanner" style="display:none;">
   <div class="notice-banner-track">
-    <div class="notice-banner-icon">📢</div>
+    <div class="notice-banner-icon" data-icon="bell" data-icon-size="16"></div>
     <div class="notice-banner-text" id="noticeBannerText" onclick="switchTab(7);switchBoardTab('center')"></div>
     <div class="notice-banner-dots" id="noticeBannerDots"></div>
     <button class="notice-banner-close" onclick="closeNoticeBanner()" title="닫기" aria-label="공지 배너 닫기">✕</button>
@@ -1384,19 +1384,19 @@
     </div>
     <div class="dash-grid">
       <div class="dash-card" onclick="switchTab(0)">
-        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-mint">📅</div><span class="dash-card-hd-title">오늘의 일정</span><span class="dash-arrow">›</span></div>
+        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-mint" data-icon="calendar" data-icon-size="16"></div><span class="dash-card-hd-title">오늘의 일정</span><span class="dash-arrow">›</span></div>
         <div class="dash-card-body" id="dashTodaySched"><div class="dash-empty">오늘 등록된 일정이 없습니다</div></div>
       </div>
       <div class="dash-card" onclick="switchTab(1)">
-        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-blue">👤</div><span class="dash-card-hd-title">아동 현황</span><span class="dash-arrow">›</span></div>
+        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-blue" data-icon="user" data-icon-size="16"></div><span class="dash-card-hd-title">아동 현황</span><span class="dash-arrow">›</span></div>
         <div class="dash-card-body" id="dashChildStat"><div class="dash-stat-row"><div class="dash-stat-item"><div class="dash-stat-num mint">–</div><div class="dash-stat-lbl">등록</div></div><div class="dash-stat-item"><div class="dash-stat-num amber">–</div><div class="dash-stat-lbl">대기</div></div><div class="dash-stat-item"><div class="dash-stat-num gray">–</div><div class="dash-stat-lbl">종결</div></div><div class="dash-stat-item"><div class="dash-stat-num navy">–</div><div class="dash-stat-lbl">전체</div></div></div></div>
       </div>
       <div class="dash-card" onclick="switchTab(2)">
-        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-amber">📝</div><span class="dash-card-hd-title">미작성 세션</span><span class="dash-arrow">›</span></div>
+        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-amber" data-icon="edit" data-icon-size="16"></div><span class="dash-card-hd-title">미작성 세션</span><span class="dash-arrow">›</span></div>
         <div class="dash-card-body" id="dashUnwritten"><div class="dash-empty">✅ 미작성 세션 없음</div></div>
       </div>
       <div class="dash-card" onclick="goToAdmin()">
-        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-purple">📢</div><span class="dash-card-hd-title">공지사항</span><span class="dash-arrow">›</span></div>
+        <div class="dash-card-hd"><div class="dash-card-ico dash-ico-purple" data-icon="bell" data-icon-size="16"></div><span class="dash-card-hd-title">공지사항</span><span class="dash-arrow">›</span></div>
         <div class="dash-card-body" id="dashNotices"><div class="dash-empty">등록된 공지가 없습니다</div></div>
       </div>
     </div>
@@ -1408,35 +1408,35 @@
     <!-- 아동 상태 탭 -->
     <div class="child-status-tabs" id="childStatusTabs">
       <button class="child-status-tab active" data-status="등록" onclick="setChildStatus('등록',this)">
-        ✅ 등록<span class="child-status-badge" id="badge_등록">456</span>
+        등록<span class="child-status-badge" id="badge_등록">456</span>
       </button>
       <button class="child-status-tab" data-status="대기" onclick="setChildStatus('대기',this)">
         ⏳ 대기<span class="child-status-badge" id="badge_대기">0</span>
       </button>
       <button class="child-status-tab" data-status="종결" onclick="setChildStatus('종결',this)">
-        🔒 종결<span class="child-status-badge" id="badge_종결">11</span>
+        종결<span class="child-status-badge" id="badge_종결">11</span>
       </button>
     </div>
 
     <!-- 아동 검색바 -->
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
-      <input class="form-input" type="text" id="childSearchInput" placeholder="🔍 이름 또는 전화번호 검색..." style="flex:1;margin-bottom:0;min-width:0;" oninput="onChildSearchInput()">
+      <input class="form-input" type="text" id="childSearchInput" placeholder="이름 또는 전화번호 검색..." style="flex:1;margin-bottom:0;min-width:0;" oninput="onChildSearchInput()">
       <select class="form-input" id="childSortSel" style="flex-shrink:0;width:78px;margin-bottom:0;font-size:16px;padding:10px 4px 10px 8px;" onchange="renderChildGrid()">
         <option value="name">가나다</option>
         <option value="recent">최근</option>
         <option value="reg">등록순</option>
       </select>
-      <button class="bulk-toggle-btn" id="bulkToggleBtn" onclick="toggleBulkMode()" title="일괄 처리 모드">☑️ 일괄</button>
-      <button class="btn btn-primary" style="flex-shrink:0;width:42px;height:42px;padding:0;font-size:20px;margin-top:0;" onclick="openChildRegModal()" title="이용자 등록" aria-label="이용자 등록">➕</button>
+      <button class="bulk-toggle-btn" id="bulkToggleBtn" onclick="toggleBulkMode()" title="일괄 처리 모드">일괄</button>
+      <button class="btn btn-primary" style="flex-shrink:0;width:42px;height:42px;padding:0;font-size:20px;margin-top:0;" onclick="openChildRegModal()" title="이용자 등록" aria-label="이용자 등록">+</button>
     </div>
 
     <!-- 일괄 처리 액션바 (일괄 모드 ON 시 표시) -->
     <div class="bulk-action-bar" id="bulkActionBar" style="display:none;">
       <span class="bulk-count" id="bulkCountLabel">0명 선택</span>
-      <button class="ba-all" onclick="bulkSelectAllVisible()">☑️ 전체선택</button>
-      <button class="ba-close" onclick="bulkChangeStatus('종결')" style="font-size:13px;padding:8px 14px;">🔒 일괄 종결</button>
-      <button class="ba-reg" onclick="bulkChangeStatus('등록')">✅ 등록</button>
-      <button class="ba-wait" onclick="bulkChangeStatus('대기')">⏳ 대기</button>
+      <button class="ba-all" onclick="bulkSelectAllVisible()">전체선택</button>
+      <button class="ba-close" onclick="bulkChangeStatus('종결')" style="font-size:13px;padding:8px 14px;">일괄 종결</button>
+      <button class="ba-reg" onclick="bulkChangeStatus('등록')">등록</button>
+      <button class="ba-wait" onclick="bulkChangeStatus('대기')">대기</button>
       <button class="ba-cancel" onclick="toggleBulkMode()">✕ 닫기</button>
     </div>
 
@@ -1462,10 +1462,10 @@
 <!-- TAB 3: 보고서 (서브탭 wrapper) -->
 <div class="tab-panel" id="panelReport" role="tabpanel" aria-labelledby="tabBtn2" tabindex="0">
   <div class="subtab-nav">
-    <button class="subtab-btn active" id="rtBtn_session" onclick="switchReportTab('session')">📝 세션기록</button>
-    <button class="subtab-btn" id="rtBtn_assess" onclick="switchReportTab('assess')">📋 AI 언어평가보고서</button>
-    <button class="subtab-btn" id="rtBtn_si" onclick="switchReportTab('si')">🧠 AI 발달평가보고서</button>
-    <button class="subtab-btn" id="rtBtn_report" onclick="switchReportTab('report')">📨 리포트·장단기계획</button>
+    <button class="subtab-btn active" id="rtBtn_session" onclick="switchReportTab('session')">세션기록</button>
+    <button class="subtab-btn" id="rtBtn_assess" onclick="switchReportTab('assess')">AI 언어평가보고서</button>
+    <button class="subtab-btn" id="rtBtn_si" onclick="switchReportTab('si')">AI 발달평가보고서</button>
+    <button class="subtab-btn" id="rtBtn_report" onclick="switchReportTab('report')">리포트·장단기계획</button>
   </div>
 </div>
 
@@ -1475,7 +1475,7 @@
     <div id="unwrittenAlert"></div>
     <div class="rep-grid-2 rg-wide-left">
     <div class="card">
-      <div class="card-title"><div class="card-title-left">📝 세션 기록</div></div>
+      <div class="card-title"><div class="card-title-left">세션 기록</div></div>
 
       <div class="form-group">
         <label class="form-label" for="sessionChild">아동 선택</label>
@@ -1487,8 +1487,8 @@
       </div>
 
       <div class="input-mode-toggle">
-        <button class="mode-btn active" id="modeBtn0" onclick="setInputMode(0)">✏️ 직접</button>
-        <button class="mode-btn" id="modeBtn1" onclick="setInputMode(1)">🤖 AI정리</button>
+        <button class="mode-btn active" id="modeBtn0" onclick="setInputMode(0)">직접</button>
+        <button class="mode-btn" id="modeBtn1" onclick="setInputMode(1)">AI정리</button>
       </div>
 
       <div id="directMode">
@@ -1508,7 +1508,7 @@
         <!-- 음소 오류 매트릭스 -->
         <div class="form-group" style="margin-top:4px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <button class="add-goal-btn" id="phonemeToggleBtn" onclick="togglePhonemeMatrix()" style="background:#fff0f6;color:#db2777;font-size:12px;">🎯 조음 데이터 입력</button>
+            <button class="add-goal-btn" id="phonemeToggleBtn" onclick="togglePhonemeMatrix()" style="background:#fff0f6;color:#db2777;font-size:12px;">조음 데이터 입력</button>
             <span id="phonemeCount" style="font-size:11px;color:var(--text2);display:none;"></span>
           </div>
           <div id="phonemeMatrix" style="display:none;">
@@ -1539,39 +1539,39 @@
         <!-- 발화 샘플 분석 패널 -->
         <div class="form-group" style="margin-top:4px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <button class="add-goal-btn" id="speechPanelToggleBtn" onclick="toggleSpeechPanel()" style="background:#f0f9ff;color:#0369a1;font-size:12px;">💬 발화 샘플 분석 (MLU·TTR)</button>
+            <button class="add-goal-btn" id="speechPanelToggleBtn" onclick="toggleSpeechPanel()" style="background:#f0f9ff;color:#0369a1;font-size:12px;">발화 샘플 분석 (MLU·TTR)</button>
           </div>
           <div id="speechSamplePanel" style="display:none;">
             <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5;">
               발화를 줄바꿈으로 구분하여 입력하면 평균발화길이(MLU)와 어휘다양도(TTR)를 자동으로 계산합니다.
             </div>
             <textarea class="form-input" id="speechSampleInput" placeholder="예:&#10;엄마 밥 줘&#10;나 이거 싫어&#10;강아지가 뛰어가요" style="min-height:100px;font-size:13px;"></textarea>
-            <button class="btn-ghost" style="margin-top:6px;width:100%;" onclick="runSpeechAnalysis()">📊 분석</button>
+            <button class="btn-ghost" style="margin-top:6px;width:100%;" onclick="runSpeechAnalysis()">분석</button>
             <div id="speechAnalysisResult" style="display:none;margin-top:10px;padding:12px;background:#f8fafc;border-radius:10px;border:1px solid var(--border);">
-              <div style="font-size:12px;font-weight:700;color:var(--mint);margin-bottom:8px;">📊 분석 결과</div>
+              <div style="font-size:12px;font-weight:700;color:var(--mint);margin-bottom:8px;">분석 결과</div>
               <div id="speechAnalysisStats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-              <button class="btn-ghost" style="width:100%;font-size:12px;" onclick="appendSpeechResultToMemo()">📋 세션 메모에 추가</button>
+              <button class="btn-ghost" style="width:100%;font-size:12px;" onclick="appendSpeechResultToMemo()">세션 메모에 추가</button>
             </div>
           </div>
         </div>
 
-        <button class="btn btn-primary" onclick="saveSession('')">💾 세션 저장</button>
+        <button class="btn btn-primary" onclick="saveSession('')">세션 저장</button>
       </div>
 
       <div id="aiMode" style="display:none;">
-        <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceInput()">🎤 음성 입력 시작</button>
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceInput()">음성 입력 시작</button>
         <div class="form-group">
           <label class="form-label" for="aiInput">자유롭게 입력 (AI가 자동 정리)</label>
           <textarea class="form-input" id="aiInput" placeholder="예: 오늘 민준이 ㅅ발음 7/10 성공, 집중력 양호" style="min-height:140px;"></textarea>
         </div>
-        <button class="btn btn-primary" id="aiSaveBtn" onclick="saveSessionAI()">🤖 AI 정리 후 저장</button>
+        <button class="btn btn-primary" id="aiSaveBtn" onclick="saveSessionAI()">AI 정리 후 저장</button>
       </div>
     </div>
 
     <div class="rep-grid-col">
       <div id="lastSessionRec"></div>
       <div class="card">
-        <div class="card-title"><div class="card-title-left">📋 최근 세션 <span id="sessionListCount" style="font-size:12px;color:#64748b;font-weight:500;margin-left:4px;"></span></div><button onclick="window.print()" style="padding:6px 14px;background:var(--mint,#0E6B5C);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📄 PDF/프린트</button></div>
+        <div class="card-title"><div class="card-title-left">최근 세션 <span id="sessionListCount" style="font-size:12px;color:#64748b;font-weight:500;margin-left:4px;"></span></div><button onclick="window.print()" style="padding:6px 14px;background:var(--mint,#0E6B5C);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">PDF/프린트</button></div>
         <div id="sessionList"></div>
       </div>
     </div>
@@ -1585,9 +1585,9 @@
   <div class="content" style="max-width:100%;padding:14px 20px;">
     <div class="card">
       <div class="card-title">
-        <div class="card-title-left">📅 스케줄</div>
+        <div class="card-title-left">스케줄</div>
         <div style="display:flex;gap:6px;">
-          <button class="btn-outline" style="font-size:12px;padding:6px 10px;" onclick="openScheduleExportModal()">📤 내보내기</button>
+          <button class="btn-outline" style="font-size:12px;padding:6px 10px;" onclick="openScheduleExportModal()">내보내기</button>
           <button class="btn-outline" onclick="openSchedModal(null,null)">+ 추가</button>
         </div>
       </div>
@@ -1629,12 +1629,12 @@
   <div class="content content-wide">
     <div class="rep-grid-2 rg-wide-left">
     <div class="card">
-      <div class="card-title"><div class="card-title-left">📄 AI 평가 보고서</div></div>
+      <div class="card-title"><div class="card-title-left">AI 평가 보고서</div></div>
       <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">검사 결과를 바탕으로 AI가 <strong>임상 수준의 전문 평가 보고서</strong>를 작성합니다. (아래에서 선택한 아동 기준)</p>
 
       <!-- 보고서 상세 정보 (선택사항) -->
       <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📝 보고서 상세 정보 <span style="font-weight:400;color:#94a3b8;">(선택 — 입력할수록 보고서 품질 향상)</span></div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">보고서 상세 정보 <span style="font-weight:400;color:#94a3b8;">(선택 — 입력할수록 보고서 품질 향상)</span></div>
         <div class="form-row">
           <div style="flex:1;">
             <label class="form-label" for="reportInstitution">기관명</label>
@@ -1650,19 +1650,19 @@
           <input class="form-input" type="text" id="reportReferralReason" placeholder="예: 현행 수준 파악 및 언어 발달 지연 여부 확인을 위해 내원">
         </div>
         <div class="form-group">
-          <label class="form-label" for="reportBgPregnancy">📌 임신·출산 정보</label>
+          <label class="form-label" for="reportBgPregnancy">임신·출산 정보</label>
           <textarea class="form-input" id="reportBgPregnancy" placeholder="예: 32주 3일 출산, 산모 32세, 출생 시 체중 2.5kg, 첫째" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label" for="reportBgLanguage">🗣️ 언어발달력</label>
+          <label class="form-label" for="reportBgLanguage">언어발달력</label>
           <textarea class="form-input" id="reportBgLanguage" placeholder="예: 12개월경 첫 낱말(엄마·아빠), 24개월경 두 단어 조합" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label" for="reportBgPhysical">🚶 신체발달력</label>
+          <label class="form-label" for="reportBgPhysical">신체발달력</label>
           <textarea class="form-input" id="reportBgPhysical" placeholder="예: 5개월 뒤집기, 10개월 배밀이, 14개월 첫 보행, 배변 훈련 24개월" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label" for="reportBgTreatment">📋 이전 평가 및 치료력</label>
+          <label class="form-label" for="reportBgTreatment">이전 평가 및 치료력</label>
           <textarea class="form-input" id="reportBgTreatment" placeholder="예: 24개월경 OO발달센터 6개월 언어치료(주2회), 평가 경험 없음" style="min-height:48px;"></textarea>
         </div>
         <div class="form-group" style="margin-bottom:0;">
@@ -1671,11 +1671,11 @@
         </div>
       </div>
 
-      <button class="btn btn-purple" id="assessReportBtn" onclick="generateAssessReport()">🤖 AI 평가 보고서 생성</button>
+      <button class="btn btn-purple" id="assessReportBtn" onclick="generateAssessReport()">AI 평가 보고서 생성</button>
       <div id="assessReportResult" style="margin-top:12px;"></div>
     </div>
     <div class="card">
-      <div class="card-title"><div class="card-title-left">📋 검사 결과 입력</div></div>
+      <div class="card-title"><div class="card-title-left">검사 결과 입력</div></div>
 
       <!-- 아동 선택 + 생활연령 자동 표시 -->
       <div class="form-group">
@@ -1719,7 +1719,7 @@
 
       <!-- AI 자동 계산 버튼 -->
       <button class="btn-outline" id="autoCalcBtn" onclick="autoCalcAssessScores()" style="width:100%;margin-bottom:6px;color:var(--purple);border-color:var(--purple);font-weight:700;padding:12px;">
-        🤖 원점수 → 등가연령·백분위 자동 계산
+        원점수 → 등가연령·백분위 자동 계산
       </button>
       <div id="assessCalcNote" style="display:none;font-size:11px;color:#b45309;background:#fffbeb;border-radius:8px;padding:8px 10px;margin-bottom:10px;">
         ⚠️ AI 추정값입니다. 공식 규준집과 반드시 대조 확인 후 사용하세요.
@@ -1736,7 +1736,7 @@
     </div>
     </div><!-- /.rep-grid-2 -->
     <div class="card">
-      <div class="card-title"><div class="card-title-left">📊 검사 결과 목록</div></div>
+      <div class="card-title"><div class="card-title-left">검사 결과 목록</div></div>
       <div id="assessmentList"></div>
     </div>
   </div>
@@ -1752,9 +1752,9 @@
 <!-- TAB 4: 포트폴리오&교육자료 (서브탭 wrapper) -->
 <div class="tab-panel" id="panelPortfolio">
   <div class="subtab-nav">
-    <button class="subtab-btn active" id="ptBtn_trend" onclick="switchPortfolioTab('trend')">📊 발달추이</button>
-    <button class="subtab-btn" id="ptBtn_portfolio" onclick="switchPortfolioTab('portfolio')">📁 포트폴리오</button>
-    <button class="subtab-btn" id="ptBtn_ai" onclick="switchPortfolioTab('ai')">🤖 AI·활동자료</button>
+    <button class="subtab-btn active" id="ptBtn_trend" onclick="switchPortfolioTab('trend')">발달추이</button>
+    <button class="subtab-btn" id="ptBtn_portfolio" onclick="switchPortfolioTab('portfolio')">포트폴리오</button>
+    <button class="subtab-btn" id="ptBtn_ai" onclick="switchPortfolioTab('ai')">AI·활동자료</button>
   </div>
 </div>
 
@@ -1762,9 +1762,9 @@
 <div class="sub-panel" id="panel4">
   <div class="content">
     <div class="card">
-      <div class="card-title"><div class="card-title-left">📊 아동 선택</div></div>
+      <div class="card-title"><div class="card-title-left">아동 선택</div></div>
       <select class="form-input" id="chartChild" onchange="renderChart()"><option value="">아동 검색...</option></select>
-      <button class="btn-outline" onclick="detectStagnation()" style="margin-top:8px;width:100%;color:var(--amber);border-color:var(--amber);">⚠️ AI 정체 감지 분석</button>
+      <button class="btn-outline" onclick="detectStagnation()" style="margin-top:8px;width:100%;color:var(--amber);border-color:var(--amber);">AI 정체 감지 분석</button>
     </div>
 
     <div id="stagnationResult"></div>
@@ -1775,14 +1775,14 @@
     </div>
 
     <div class="card" id="scoreCard">
-      <div class="card-title"><div class="card-title-left">🎯 목표별 최근 달성도</div></div>
+      <div class="card-title"><div class="card-title-left">목표별 최근 달성도</div></div>
       <div id="scoreBars"></div>
     </div>
 
     <!-- 음소 추이 차트 -->
     <div class="card" id="phonemeChartCard" style="display:none;">
       <div class="card-title">
-        <div class="card-title-left" style="color:#db2777;">🎯 음소 오류 추이</div>
+        <div class="card-title-left" style="color:#db2777;">음소 오류 추이</div>
       </div>
       <!-- 음소 선택 필터 -->
       <div id="phonemeChartFilter" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;"></div>
@@ -1806,7 +1806,7 @@
     <div class="rep-grid-2">
     <div class="rep-grid-col">
     <div class="card">
-      <div class="card-title"><div class="card-title-left">📨 부모보고 리포트</div></div>
+      <div class="card-title"><div class="card-title-left">부모보고 리포트</div></div>
       <div class="form-group">
         <label class="form-label" for="reportChild">아동 선택</label>
         <select class="form-input" id="reportChild"><option value="">아동 검색...</option></select>
@@ -1820,21 +1820,21 @@
           <option value="all">전체 세션</option>
         </select>
       </div>
-      <button class="btn btn-primary" id="reportBtn" onclick="generateReport()">🤖 AI 보고서 생성</button>
+      <button class="btn btn-primary" id="reportBtn" onclick="generateReport()">AI 보고서 생성</button>
     </div>
     <div id="reportResult"></div>
 
     <div class="card" style="margin-top:0;">
-      <div class="card-title"><div class="card-title-left">🏠 부모 교육 자료 생성</div></div>
+      <div class="card-title"><div class="card-title-left">부모 교육 자료 생성</div></div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">세션 내용을 바탕으로 부모가 집에서 바로 실천할 수 있는 <strong>A4 한 장짜리 교육 자료</strong>를 생성합니다.</p>
       <select class="form-input" id="eduChild" style="margin-bottom:8px;"><option value="">아동 검색...</option></select>
-      <button class="btn btn-primary" id="eduBtn" onclick="generateParentEdu()" style="background:var(--green);">🖨️ 부모 교육 자료 생성</button>
+      <button class="btn btn-primary" id="eduBtn" onclick="generateParentEdu()" style="background:var(--green);">부모 교육 자료 생성</button>
       <div id="eduResult" style="margin-top:12px;"></div>
     </div>
 
     <div class="card" style="margin-top:0;border:2px solid var(--mint);">
       <div class="card-title">
-        <div class="card-title-left" style="color:var(--mint);">📈 월간 성장 리포트</div>
+        <div class="card-title-left" style="color:var(--mint);">월간 성장 리포트</div>
         <span style="font-size:11px;color:var(--text2);font-weight:400;">자동 집계 · 검토만</span>
       </div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">한 달치 세션을 <strong>자동으로 집계</strong>해 달성률 변화·하이라이트·가정활동·다음 달 포커스를 한 장으로 정리합니다. 선생님은 검토 후 발송만 하면 됩니다.</p>
@@ -1846,14 +1846,14 @@
         <label class="form-label" for="mrMonth">대상 월</label>
         <select class="form-input" id="mrMonth" style="margin-bottom:8px;"><option value="">아동을 먼저 선택하세요</option></select>
       </div>
-      <button class="btn" id="mrBtn" style="background:var(--mint);color:#fff;" onclick="generateMonthlyReport()">📈 월간 리포트 생성 (AI)</button>
+      <button class="btn" id="mrBtn" style="background:var(--mint);color:#fff;" onclick="generateMonthlyReport()">월간 리포트 생성 (AI)</button>
       <div id="mrResult" style="margin-top:12px;"></div>
     </div>
     </div><!-- /.rep-grid-col (left) -->
 
     <div class="card" style="margin-top:0;border:2px solid var(--purple);">
       <div class="card-title">
-        <div class="card-title-left" style="color:var(--purple);">📋 장단기계획(IEP) 자동 생성</div>
+        <div class="card-title-left" style="color:var(--purple);">장단기계획(IEP) 자동 생성</div>
         <span style="font-size:11px;color:var(--text2);font-weight:400;">개별화 교육 계획</span>
       </div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">검사 결과 + 최근 세션 데이터를 기반으로 <strong>3개월 치료 계획 초안</strong>을 자동 생성합니다.<br>장기목표 · 단기목표(월별) · 권장 활동을 포함합니다.</p>
@@ -1861,12 +1861,12 @@
         <label class="form-label" for="iepChild">아동 선택</label>
         <select class="form-input" id="iepChild" style="margin-bottom:8px;"><option value="">아동 검색...</option></select>
       </div>
-      <button class="btn btn-purple" id="iepBtn" onclick="generateIEP()">📋 장단기계획(IEP) 초안 생성 (AI)</button>
+      <button class="btn btn-purple" id="iepBtn" onclick="generateIEP()">장단기계획(IEP) 초안 생성 (AI)</button>
       <div id="iepResult" style="margin-top:12px;"></div>
 
       <!-- 장단기계획(IEP) 히스토리 -->
       <div style="margin-top:16px;padding-top:14px;border-top:1.5px solid var(--border);">
-        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px;">🗂️ 저장된 장단기계획(IEP) 기록</div>
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px;">저장된 장단기계획(IEP) 기록</div>
         <div id="iepHistory">
           <div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">아동을 선택하면 기록이 표시됩니다.</div>
         </div>
@@ -1875,7 +1875,7 @@
 
     <div class="card" style="margin-top:12px;border:2px solid var(--mint);">
       <div class="card-title">
-        <div class="card-title-left" style="color:var(--mint);">✨ 오늘의 치료활동 추천</div>
+        <div class="card-title-left" style="color:var(--mint);">오늘의 치료활동 추천</div>
         <span style="font-size:11px;color:var(--text2);font-weight:400;">AI 활동 제안</span>
       </div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">아동을 선택하면 <strong>현재 목표를 자동으로 불러와</strong> 오늘 세션에서 바로 쓸 놀이치료 활동 3가지를 준비물·진행 단계까지 제안합니다.</p>
@@ -1892,7 +1892,7 @@
           <option value="50">50분</option>
         </select>
       </div>
-      <button class="btn" id="actBtn" style="background:var(--mint);color:#fff;" onclick="generateActivities()">✨ 오늘의 활동 추천받기 (AI)</button>
+      <button class="btn" id="actBtn" style="background:var(--mint);color:#fff;" onclick="generateActivities()">오늘의 활동 추천받기 (AI)</button>
       <div id="actResult" style="margin-top:12px;"></div>
     </div>
     </div><!-- /.rep-grid-2 -->
@@ -1903,7 +1903,7 @@
 <div class="sub-panel" id="panel6">
   <div class="content">
     <div class="card" style="background:linear-gradient(135deg,#0E6B5C,#0A574B);color:white;">
-      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">📁 월간 포트폴리오</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">월간 포트폴리오</div>
       <p style="font-size:13px;line-height:1.7;opacity:0.95;">한 달간의 모든 세션 기록을 AI가 분석하여 <strong>전문 포트폴리오</strong>로 정리합니다. 부모님 면담 자료, 분기별 보고서, 바우처 평가서로 활용하세요.</p>
     </div>
 
@@ -1916,7 +1916,7 @@
         <label class="form-label" for="portfolioMonth">대상 월</label>
         <input class="form-input" type="month" id="portfolioMonth">
       </div>
-      <button class="btn btn-purple" id="portfolioBtn" onclick="generatePortfolio()">📁 포트폴리오 생성</button>
+      <button class="btn btn-purple" id="portfolioBtn" onclick="generatePortfolio()">포트폴리오 생성</button>
     </div>
 
     <div id="portfolioResult"></div>
@@ -1924,7 +1924,7 @@
     <!-- 저장된 포트폴리오 히스토리 (학부모 공개 토글) -->
     <div class="card">
       <div class="card-title">
-        <div class="card-title-left">📂 저장된 포트폴리오</div>
+        <div class="card-title-left">저장된 포트폴리오</div>
         <span style="font-size:11px;color:var(--text2);font-weight:400;">학부모 공개 관리</span>
       </div>
       <p style="font-size:11.5px;color:var(--text2);line-height:1.6;margin:0 0 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;">
@@ -1944,7 +1944,7 @@
     <!-- W8: 효과 통계 대시보드 -->
     <div class="card" style="border:2px solid var(--mint);">
       <div class="card-title">
-        <div class="card-title-left" style="color:var(--mint);">📈 치료 효과 통계</div>
+        <div class="card-title-left" style="color:var(--mint);">치료 효과 통계</div>
         <button class="btn-ghost" onclick="renderEffectStats()">새로고침</button>
       </div>
       <div id="effectStatsBody">
@@ -1953,20 +1953,20 @@
     </div>
 
     <div class="card">
-      <div class="card-title"><div class="card-title-left">🔍 자연어 검색</div></div>
+      <div class="card-title"><div class="card-title-left">자연어 검색</div></div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6;">예: "민준이 ㅅ발음 70% 처음 넘은 게 언제?", "이번 주에 가장 진전된 아동은?"</p>
       <textarea class="form-input" id="searchQuery" placeholder="궁금한 걸 자연어로 입력하세요" style="min-height:60px;"></textarea>
-      <button class="btn btn-primary" id="searchBtn" onclick="naturalSearch()" style="margin-top:8px;">🔍 AI에게 물어보기</button>
+      <button class="btn btn-primary" id="searchBtn" onclick="naturalSearch()" style="margin-top:8px;">AI에게 물어보기</button>
       <div id="searchResult" style="margin-top:12px;"></div>
     </div>
 
     <div class="card">
-      <div class="card-title"><div class="card-title-left">💬 부모 FAQ 답변 보조</div></div>
+      <div class="card-title"><div class="card-title-left">부모 FAQ 답변 보조</div></div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6;">부모의 어려운 질문에 대한 전문 답변 예시를 AI가 작성해 드립니다.</p>
       <select class="form-input" id="faqChild" style="margin-bottom:8px;"><option value="">아동 검색...</option></select>
       <textarea class="form-input" id="faqQuestion" placeholder="예: 우리 아이는 왜 진전이 없나요?
 예: 언제까지 치료받아야 하나요?" style="min-height:70px;"></textarea>
-      <button class="btn btn-purple" id="faqBtn" onclick="generateFAQ()" style="margin-top:8px;">💬 답변 예시 생성</button>
+      <button class="btn btn-purple" id="faqBtn" onclick="generateFAQ()" style="margin-top:8px;">답변 예시 생성</button>
       <div id="faqResult" style="margin-top:12px;"></div>
     </div>
 
@@ -1988,17 +1988,17 @@
 <!-- ─── 게시판 탭 패널 (2단계: 골격) ─── -->
 <div class="tab-panel" id="panelBoard">
   <div class="subtab-nav">
-    <button class="subtab-btn active" id="bdBtn_global" onclick="switchBoardTab('global')">🌐 마디 공지사항</button>
-    <button class="subtab-btn" id="bdBtn_center" onclick="switchBoardTab('center')">📌 센터 공지사항</button>
-    <button class="subtab-btn" id="bdBtn_lounge" onclick="switchBoardTab('lounge')">📞 고객센터</button>
-    <button class="subtab-btn" id="bdBtn_library" onclick="switchBoardTab('library')">📚 자료실</button>
+    <button class="subtab-btn active" id="bdBtn_global" onclick="switchBoardTab('global')">마디 공지사항</button>
+    <button class="subtab-btn" id="bdBtn_center" onclick="switchBoardTab('center')">센터 공지사항</button>
+    <button class="subtab-btn" id="bdBtn_lounge" onclick="switchBoardTab('lounge')">고객센터</button>
+    <button class="subtab-btn" id="bdBtn_library" onclick="switchBoardTab('library')">자료실</button>
   </div>
   <div class="content">
 
     <!-- 마디 공지사항 -->
     <div class="board-sub" id="bdPanel_global">
       <div class="card">
-        <div class="card-title">🌐 마디 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">슈퍼어드민이 모든 센터에 발송</span></div>
+        <div class="card-title">마디 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">슈퍼어드민이 모든 센터에 발송</span></div>
         <div id="bdGlobalList">
           <div class="empty"><div class="empty-icon">🚧</div><p>준비 중입니다 (3단계에서 구현)</p></div>
         </div>
@@ -2008,7 +2008,7 @@
     <!-- 센터 공지사항 -->
     <div class="board-sub" id="bdPanel_center" style="display:none;">
       <div class="card">
-        <div class="card-title">📌 센터 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">센터장이 본인 센터에 발송</span></div>
+        <div class="card-title">센터 공지사항 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">센터장이 본인 센터에 발송</span></div>
         <div id="bdCenterList">
           <div class="empty"><div class="empty-icon">🚧</div><p>준비 중입니다 (4단계에서 구현)</p></div>
         </div>
@@ -2018,7 +2018,7 @@
     <!-- 고객센터 -->
     <div class="board-sub" id="bdPanel_lounge" style="display:none;">
       <div class="card">
-        <div class="card-title">📞 고객센터 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">자유 의견 + 1:1 문의</span></div>
+        <div class="card-title">고객센터 <span style="font-size:11px;color:var(--text2);font-weight:500;margin-left:6px;">자유 의견 + 1:1 문의</span></div>
         <div id="bdLoungeList">
           <div class="empty"><div class="empty-icon">🚧</div><p>준비 중입니다 (5~6단계에서 구현)</p></div>
         </div>
@@ -2039,18 +2039,18 @@
 
     <!-- 화면 설정 -->
     <div class="card">
-      <div class="card-title" style="margin-bottom:4px;">🎨 화면 설정</div>
+      <div class="card-title" style="margin-bottom:4px;">화면 설정</div>
       <!-- ⛔ BETA: 다크모드 봉인 — 라이트 전용 운영. 베타 후 style="display:none" 제거해 복원. -->
       <div class="setting-row" style="display:none;">
         <div class="setting-info">
-          <div class="setting-label">🌙 다크 모드</div>
+          <div class="setting-label">다크 모드</div>
           <div class="setting-desc">야간·어두운 환경에서 눈 편함</div>
         </div>
         <button class="toggle-pill" id="settingDarkMode" onclick="toggleDarkMode();updateSettingsUI()">꺼짐</button>
       </div>
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">🔤 글자 크기</div>
+          <div class="setting-label">글자 크기</div>
           <div class="setting-desc">앱 전체 텍스트 크기 조절</div>
         </div>
         <div class="seg-ctrl">
@@ -2063,17 +2063,17 @@
 
     <!-- 편의 기능 -->
     <div class="card">
-      <div class="card-title" style="margin-bottom:4px;">⚡ 편의 기능</div>
+      <div class="card-title" style="margin-bottom:4px;">편의 기능</div>
       <div class="setting-row" id="wakeLockRow">
         <div class="setting-info">
-          <div class="setting-label">💡 화면 항상 켜짐</div>
+          <div class="setting-label">화면 항상 켜짐</div>
           <div class="setting-desc">세션 기록 중 화면 꺼짐 방지</div>
         </div>
         <button class="toggle-pill" id="settingWakeLock" onclick="toggleWakeLock()">꺼짐</button>
       </div>
       <div class="setting-row" id="hapticRow">
         <div class="setting-info">
-          <div class="setting-label">📳 진동 피드백</div>
+          <div class="setting-label">진동 피드백</div>
           <div class="setting-desc">버튼 클릭 시 짧은 진동 (안드로이드)</div>
         </div>
         <button class="toggle-pill" id="settingHaptic" onclick="toggleHaptic()">꺼짐</button>
@@ -2082,17 +2082,17 @@
 
     <!-- 앱 설정 -->
     <div class="card">
-      <div class="card-title" style="margin-bottom:4px;">📱 앱 설정</div>
+      <div class="card-title" style="margin-bottom:4px;">앱 설정</div>
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">🏠 홈 화면에 추가</div>
+          <div class="setting-label">홈 화면에 추가</div>
           <div class="setting-desc">앱처럼 빠르게 실행 (PWA 설치)</div>
         </div>
         <button class="btn-ghost" onclick="showPWAInstall()" style="flex-shrink:0;font-size:13px;">설치 안내</button>
       </div>
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">🏁 시작 탭</div>
+          <div class="setting-label">시작 탭</div>
           <div class="setting-desc">로그인 후 첫 화면 선택</div>
         </div>
         <select id="startTabSelect" class="form-input" style="width:auto;font-size:13px;padding:8px 12px;flex-shrink:0;" onchange="setStartTab(this.value)">
@@ -2106,7 +2106,7 @@
 
     <!-- 비밀번호 변경 -->
     <div class="card">
-      <div class="card-title" style="margin-bottom:4px;">🔑 비밀번호 변경</div>
+      <div class="card-title" style="margin-bottom:4px;">비밀번호 변경</div>
       <div class="form-group" style="margin-bottom:10px;">
         <label class="form-label" for="oldPassword">현재 비밀번호</label>
         <input type="password" class="form-input" id="oldPassword" placeholder="현재 비밀번호 입력" autocomplete="current-password">
@@ -2119,7 +2119,7 @@
         <label class="form-label" for="newPassword2">새 비밀번호 확인</label>
         <input type="password" class="form-input" id="newPassword2" placeholder="새 비밀번호 다시 입력" autocomplete="new-password">
       </div>
-      <button class="btn btn-primary" onclick="changeMyPassword()" style="width:100%;margin-top:0;">💾 비밀번호 변경</button>
+      <button class="btn btn-primary" onclick="changeMyPassword()" style="width:100%;margin-top:0;">비밀번호 변경</button>
       <div id="pwChangeResult" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
     </div>
 
@@ -2142,11 +2142,11 @@
   <div class="content">
     <div id="quickHeader" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
       <div>
-        <div style="font-size:20px;font-weight:800;color:var(--text);">⚡ 빠른 기록</div>
+        <div style="font-size:20px;font-weight:800;color:var(--text);">빠른 기록</div>
         <div id="quickHeaderSub" style="font-size:12px;color:var(--text2);margin-top:2px;">오늘 본인 담당 수업을 한 번에 기록하세요</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-secondary" onclick="renderQuickCards()" style="padding:8px 14px;font-size:13px;min-height:48px;">🔄 새로고침</button>
+        <button class="btn btn-secondary" onclick="renderQuickCards()" style="padding:8px 14px;font-size:13px;min-height:48px;">새로고침</button>
         <button class="btn" onclick="showDashboard()" style="padding:8px 14px;font-size:13px;min-height:48px;background:var(--card-bg);border:1px solid var(--border);color:var(--text);">← 홈</button>
       </div>
     </div>
@@ -2173,7 +2173,7 @@
     <div id="parentNotifCard" style="display:none;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text);">
-          <span>🔔 알림</span>
+          <span>알림</span>
           <span id="parentNotifBadge" style="background:#ef4444;color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;">0</span>
         </div>
         <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;padding:4px 6px;">모두 읽음</button>
@@ -2199,7 +2199,7 @@
         <div class="dp-p-hero-stats" id="parentHeroStats"></div>
       </div>
       <div class="dp-p-hero-next">
-        <div class="dp-p-hero-next-label">📅 다음 세션</div>
+        <div class="dp-p-hero-next-label">다음 세션</div>
         <div class="dp-p-hero-next-time" id="parentNextSchedText">--:--</div>
         <div class="dp-p-hero-next-date" id="parentNextSchedSub">불러오는 중...</div>
         <div class="dp-p-hero-next-teacher" id="parentNextSchedTeacher"></div>
@@ -2211,7 +2211,7 @@
       <div class="dp-panel">
         <div class="dp-panel-head">
           <div>
-            <div class="dp-panel-title">📁 공개된 포트폴리오</div>
+            <div class="dp-panel-title">공개된 포트폴리오</div>
             <div class="dp-panel-sub" id="parentWeekRange">선생님이 공개한 월간 기록</div>
           </div>
           <button class="dp-panel-link dp-p-link" onclick="switchParentTab('report')">전체 →</button>
@@ -2227,7 +2227,7 @@
       <div class="dp-panel">
         <div class="dp-panel-head">
           <div>
-            <div class="dp-panel-title">💌 선생님 메시지</div>
+            <div class="dp-panel-title">선생님 메시지</div>
             <div class="dp-panel-sub" id="parentTeacherMsgSub">받은 메시지</div>
           </div>
           <button class="dp-panel-link dp-p-link" onclick="switchParentTab('notice')">전체 →</button>
@@ -2242,7 +2242,7 @@
     <div class="dp-panel" id="parentChartPanel">
       <div class="dp-panel-head">
         <div>
-          <div class="dp-panel-title">📈 발달 추이</div>
+          <div class="dp-panel-title">발달 추이</div>
           <div class="dp-panel-sub" id="parentChartSub">월별 평가 점수</div>
         </div>
       </div>
@@ -2256,7 +2256,7 @@
       <div class="dp-panel">
         <div class="dp-panel-head">
           <div>
-            <div class="dp-panel-title">🏡 이번 주 가정 활동</div>
+            <div class="dp-panel-title">이번 주 가정 활동</div>
             <div class="dp-panel-sub">선생님이 제안한 활동</div>
           </div>
         </div>
@@ -2268,7 +2268,7 @@
       <div class="dp-panel">
         <div class="dp-panel-head">
           <div>
-            <div class="dp-panel-title">📅 다음 일정 · 바우처</div>
+            <div class="dp-panel-title">다음 일정 · 바우처</div>
             <div class="dp-panel-sub" id="parentVoucherSub">예약된 세션과 잔여</div>
           </div>
         </div>
@@ -2283,9 +2283,9 @@
 
     <!-- 🔐 내 정보·자녀 데이터 권리 (PIPA: 열람/삭제 요청 진입점) -->
     <div style="margin-top:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-      <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">🔐 내 정보·자녀 데이터 권리</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">내 정보·자녀 데이터 권리</div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">개인정보 보호법에 따라 내 정보와 자녀 데이터의 <b>열람·정정·삭제</b>를 요청하실 수 있습니다.</p>
-      <button class="btn btn-primary" style="font-size:13px;" onclick="openParentDataRequest()">📩 데이터 열람·삭제 요청하기</button>
+      <button class="btn btn-primary" style="font-size:13px;" onclick="openParentDataRequest()">데이터 열람·삭제 요청하기</button>
     </div>
   </div>
 </div>
@@ -2295,7 +2295,7 @@
   <div class="content">
     <div class="card">
       <div class="card-title">
-        <div class="card-title-left">📅 치료 일정</div>
+        <div class="card-title-left">치료 일정</div>
         <span id="parentSchedChildName" style="font-size:12px;color:var(--text2);"></span>
       </div>
       <div id="parentSchedList">
@@ -2310,7 +2310,7 @@
   <div class="content content-wide">
     <div class="card">
       <div class="card-title">
-        <div class="card-title-left">📁 포트폴리오</div>
+        <div class="card-title-left">포트폴리오</div>
         <span id="parentReportChildName" style="font-size:12px;color:var(--text2);"></span>
       </div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7;">선생님이 검토 후 <b>공개로 설정한 월간 포트폴리오</b>만 표시됩니다. 세션별 상세 기록은 비공개 정책이에요.</p>
@@ -2325,7 +2325,7 @@
 <div class="tab-panel" id="parentPanelNotice" style="display:none;">
   <div class="content">
     <div class="card">
-      <div class="card-title"><div class="card-title-left">📢 센터 공지사항</div></div>
+      <div class="card-title"><div class="card-title-left">센터 공지사항</div></div>
       <div id="parentNoticeList">
         <div class="loading"><div class="spinner"></div><p>공지 불러오는 중...</p></div>
       </div>
@@ -2338,7 +2338,7 @@
 <!-- ─── 일정 내보내기 모달 ─── -->
 <div id="schedExportModal" onclick="if(event.target===this)closeScheduleExportModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center;cursor:pointer;">
   <div style="background:#ffffff;border-radius:18px;padding:24px;width:min(360px,92vw);box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-    <div style="font-size:16px;font-weight:700;margin-bottom:16px;">📤 일정 내보내기</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:16px;">일정 내보내기</div>
     <div style="margin-bottom:12px;">
       <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">시작일</label>
       <input type="date" id="exportDateFrom" class="form-input" style="margin-bottom:0;">
@@ -2354,9 +2354,9 @@
       </select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
-      <button onclick="exportSchedule('excel')" style="padding:12px 0;border-radius:10px;border:none;background:#10b981;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 2px 8px rgba(16,185,129,0.35);">📊 엑셀</button>
-      <button onclick="exportSchedule('pdf')" style="padding:12px 0;border-radius:10px;border:none;background:#ef4444;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 2px 8px rgba(239,68,68,0.35);">📄 PDF</button>
-      <button onclick="exportSchedule('hwp')" style="padding:12px 0;border-radius:10px;border:none;background:#3b82f6;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 2px 8px rgba(59,130,246,0.35);">📝 한글</button>
+      <button onclick="exportSchedule('excel')" style="padding:12px 0;border-radius:10px;border:none;background:#10b981;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 2px 8px rgba(16,185,129,0.35);">엑셀</button>
+      <button onclick="exportSchedule('pdf')" style="padding:12px 0;border-radius:10px;border:none;background:#ef4444;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 2px 8px rgba(239,68,68,0.35);">PDF</button>
+      <button onclick="exportSchedule('hwp')" style="padding:12px 0;border-radius:10px;border:none;background:#3b82f6;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 2px 8px rgba(59,130,246,0.35);">한글</button>
     </div>
     <button onclick="closeScheduleExportModal()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;cursor:pointer;font-family:inherit;touch-action:manipulation;">닫기</button>
   </div>
@@ -2395,7 +2395,7 @@
 
 <!-- ─── 플로팅 AI 비서 ─── -->
 <button class="float-btn" id="floatBtn" title="마로">
-  <span class="float-ico">🤖</span>
+  <span class="float-ico" data-icon="sparkles" data-icon-size="22"></span>
   <span class="float-name">마로</span>
   <span class="float-sub">AI 길잡이</span>
   <span class="unread-dot" id="unreadDot"></span>
@@ -2403,7 +2403,7 @@
 
 <div class="chat-window" id="chatWindow">
   <div class="chat-header">
-    <div class="chat-header-avatar">🤖</div>
+    <div class="chat-header-avatar" data-icon="sparkles" data-icon-size="18"></div>
     <div class="chat-header-info">
       <div class="chat-header-name">마로 (마디 AI)</div>
       <div class="chat-header-status">● 온라인 · 아동 데이터 연동 중</div>
@@ -2419,7 +2419,7 @@
   </div>
   <div class="chat-input-row">
     <textarea class="chat-input" id="chatInput" placeholder="무엇이든 물어보세요..." rows="1" onkeydown="onChatKeydown(event)" oninput="autoResizeChat(this)" onclick="this.focus()" style="font-size:16px;"></textarea>
-    <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleChatVoiceInput()" title="음성 입력" aria-label="음성 입력">🎤</button>
+    <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleChatVoiceInput()" data-icon="mic" data-icon-size="16" title="음성 입력" aria-label="음성 입력"></button>
     <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()" aria-label="메시지 보내기">➤</button>
   </div>
 </div>
@@ -2431,14 +2431,14 @@
 <div class="pwa-modal-bg" id="pwaGuideModal" onclick="if(event.target===this)closePWAGuide()" role="dialog" aria-modal="true" aria-labelledby="pwaModalTitle">
   <div class="pwa-modal">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div id="pwaModalTitle" style="font-size:16px;font-weight:700;color:var(--navy);">📱 홈 화면에 추가하기</div>
+      <div id="pwaModalTitle" style="font-size:16px;font-weight:700;color:var(--navy);">홈 화면에 추가하기</div>
       <button onclick="closePWAGuide()" aria-label="안내 닫기" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:4px;">✕</button>
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">🍎 아이폰 / 아이패드 (Safari)</div>
     <div class="pwa-step"><div class="pwa-step-num">1</div><div class="pwa-step-text">하단 가운데 <b>📤 공유</b> 버튼을 탭하세요</div></div>
     <div class="pwa-step"><div class="pwa-step-num">2</div><div class="pwa-step-text">스크롤해서 <b>"홈 화면에 추가"</b>를 탭하세요</div></div>
     <div class="pwa-step"><div class="pwa-step-num">3</div><div class="pwa-step-text">오른쪽 위 <b>"추가"</b>를 탭하면 완료!</div></div>
-    <div style="font-size:12px;font-weight:700;color:var(--text2);margin:14px 0 10px;">🤖 안드로이드 (Chrome)</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin:14px 0 10px;">안드로이드 (Chrome)</div>
     <div class="pwa-step"><div class="pwa-step-num">1</div><div class="pwa-step-text">오른쪽 위 <b>⋮ 메뉴</b>를 탭하세요</div></div>
     <div class="pwa-step"><div class="pwa-step-num">2</div><div class="pwa-step-text"><b>"홈 화면에 추가"</b> 또는 <b>"앱 설치"</b>를 탭하세요</div></div>
     <div class="pwa-step"><div class="pwa-step-num">3</div><div class="pwa-step-text"><b>"추가"</b>를 탭하면 앱 아이콘이 생겨요!</div></div>

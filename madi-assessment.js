@@ -904,7 +904,7 @@ function generateAssessReport() {
   if (!btn || !result) return;
   if (btn.dataset.busy === '1') return;
   btn.dataset.busy = '1';
-  btn.disabled = true; btn.textContent = '⏳ 보고서 생성 중...';
+  btn.disabled = true; btn.textContent = '보고서 생성 중...';
   result.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI가 검사 결과를 분석 중입니다...</p></div>';
 
   // 검사 데이터를 상세하게 텍스트로 변환
@@ -1048,7 +1048,7 @@ function generateAssessReport() {
         + '<button class="btn-outline" style="flex:1;padding:11px 16px;" onclick="downloadWordDoc(\'' + cn + '\')">📝 HWP/Word</button>'
         + '</div>';
     })
-    .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성'; })
+    .then(function(){ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = 'AI 평가 보고서 생성'; })
     .catch(function(err) {
       if(window.console&&console.warn)console.warn('[AI 평가보고서]',err&&err.message);
       // max_tokens 잘림: 부분 보고서를 저장/표시하지 않고 재생성 안내
@@ -1057,7 +1057,7 @@ function generateAssessReport() {
         : _userErrMsg(err, 'AI 평가 보고서 생성');
       // eslint-disable-next-line no-unsanitized/property
       result.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:14px;"><p style="color:#dc2626;font-size:13px;">⚠️ ' + escHtml(_msg) + '</p></div>';
-      btn.dataset.busy = ''; btn.disabled = false; btn.textContent = '🤖 AI 평가 보고서 생성';
+      btn.dataset.busy = ''; btn.disabled = false; btn.textContent = 'AI 평가 보고서 생성';
     });
 }
 

@@ -380,8 +380,8 @@ function renderDashboardLegacy() {
   if(nc){ if(!_bannerNotices||!_bannerNotices.length){nc.innerHTML='<div class="dash-empty">등록된 공지가 없습니다</div>';}
   else{
     var ncHtml=_bannerNotices.slice(0,3).map(function(n){
-      var ic=n.notice_type==='imp'?'🔴':n.notice_type==='pin'?'📌':'📢';
-      return '<div class="dash-notice-item"><span style="font-size:13px;flex-shrink:0;">'+ic+'</span><span class="dash-notice-title">'+escHtml(n.title)+'</span></div>';
+      var ic=n.notice_type==='imp'?mdIcon('alert-tri',13):n.notice_type==='pin'?mdIcon('star',13):mdIcon('bell',13);
+      return '<div class="dash-notice-item"><span style="flex-shrink:0;display:inline-flex;align-items:center;">'+ic+'</span><span class="dash-notice-title">'+escHtml(n.title)+'</span></div>';
     }).join('');
     // eslint-disable-next-line no-unsanitized/property
     nc.innerHTML=ncHtml;
@@ -724,7 +724,7 @@ function renderNoticeList() {
   var html = noticeDB.map(function(n) {
     var typeClass = n.notice_type === 'imp' ? 'important' : (n.notice_type === 'pin' ? 'pinned' : '');
     var badgeClass = n.notice_type === 'imp' ? 'imp' : (n.notice_type === 'pin' ? 'pin' : 'info');
-    var badgeText  = n.notice_type === 'imp' ? '🚨 긴급' : (n.notice_type === 'pin' ? '📍 중요' : '📌 일반');
+    var badgeText  = n.notice_type === 'imp' ? '긴급' : (n.notice_type === 'pin' ? '중요' : '일반');
     var dateStr = n.created_at ? n.created_at.slice(0,10) : '';
     // 권한: admin 또는 superadmin 모두 삭제 가능
     var canDelete = getRoleFlags().isAdminOrSuper;

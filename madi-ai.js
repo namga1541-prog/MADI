@@ -44,7 +44,7 @@ function generateReport() {
   function resetBtn() {
     btn.dataset.busy = '';
     btn.disabled = false;
-    btn.textContent = '🤖 AI 보고서 생성';
+    btn.textContent = 'AI 보고서 생성';
   }
   callClaude(SYSTEM, USER, 1500, getAIModel())
     .then(function(raw) {
@@ -453,7 +453,7 @@ function generateActivities() {
 
   function resetBtn() {
     btn.dataset.busy = ''; btn.disabled = false;
-    btn.textContent = '✨ 오늘의 활동 추천받기 (AI)';
+    btn.textContent = '오늘의 활동 추천받기 (AI)';
   }
   callClaude(SYSTEM, USER, 1800, MODEL_HAIKU)
     .then(function(raw) {
