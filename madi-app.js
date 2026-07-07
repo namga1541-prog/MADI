@@ -173,7 +173,9 @@ function _hashStr(s) {
 }
 
 // ── 컬렉션 저장 공통 헬퍼 ──
-// localStorage 미러 → 서버 배치 upsert(50개씩). 반환 Promise<boolean>(true=성공).
+// 서버 배치 upsert(50개씩). 반환 Promise<boolean>(true=성공).
+// ⚠️ safeSetItem 호출은 cn3_*(PII) 키에선 no-op — PII 평문을 localStorage 에 저장하지 않는 보안
+//   정책(safeSetItem 이 차단, tests/core-paths.test.js 박제). 오프라인 내구성은 supaFetch 쓰기 큐가 담당.
 // 실패 시 ❌ 토스트는 내부에서 표시. 호출부는 .then(ok) 로 성공 시에만 ✅ 표시(거짓 성공 방지).
 /**
  * @param {{db:any[], lsKey:string, table:string, label:string, mapRow?:Function, before?:Function}} o
@@ -222,7 +224,7 @@ function saveOneChild(row) {
 function _saveOneRow(o) {
   markMyChange();
   if (o.before) o.before();
-  safeSetItem(o.lsKey, JSON.stringify(o.db)); // 로컬 미러는 전체(로컬 전용·동시성 무관)
+  safeSetItem(o.lsKey, JSON.stringify(o.db)); // cn3_*(PII) 키는 safeSetItem 이 차단(no-op) — 위 헬퍼 주석 참조
   if (!o.row) return Promise.resolve(true);
   var cid = getCenterId();
   var mapRow = o.mapRow || function(x) { return { id: x.id, center_id: cid, data: x }; };
