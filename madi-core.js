@@ -1,6 +1,5 @@
 // ─────── 상수 ───────
 var MODEL_HAIKU  = 'claude-haiku-4-5-20251001';
-var MODEL_SONNET = 'claude-sonnet-4-6';
 
 // 역할 상수 — DB 컬럼 madi_users.role 값. 신규 코드는 이 상수만 사용.
 // (점진 치환 정책: 기존 'admin'/'teacher'/'parent'/'superadmin' 리터럴은 다음 PR 부터 교체)
@@ -107,32 +106,8 @@ function applyPermissions() {
   if (!canDo('useAI')) { var aiSubBtn = document.getElementById('ptBtn_ai'); if (aiSubBtn) aiSubBtn.style.display = 'none'; }
 }
 function getAIModel() {
-  // ⛔ AI 모델 Haiku 고정(대장님 방침) — 앱 전체 AI 분석을 Haiku 로 통일. 저장된 Sonnet
-  //   선택값이 있어도 무시한다. 되돌리려면 아래 return 줄을 지우고 주석 블록을 복원.
+  // AI 모델 Haiku 고정(대장님 방침) — 앱 전체 AI 호출의 단일 지점. 모델 변경 시 여기만 수정.
   return MODEL_HAIKU;
-  // try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') return MODEL_SONNET; if (v === 'haiku') return MODEL_HAIKU; } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
-  // return MODEL_HAIKU;
-}
-function saveAIModelChoice(choice) {
-  if (choice !== 'haiku' && choice !== 'sonnet') return;
-  try { localStorage.setItem('madi_ai_model', choice); } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
-  updateAIModelUI();
-  var label = choice === 'sonnet' ? '🎯 Sonnet 4.6 (임상 추론·정밀)' : '⚡ Haiku 4.5 (빠름·저렴)';
-  if (typeof showToast === 'function') showToast('✅ AI 모델이 ' + label + ' 으로 설정됐습니다');
-}
-function updateAIModelUI() {
-  var current = 'haiku';
-  try { var v = localStorage.getItem('madi_ai_model'); if (v === 'sonnet') current = 'sonnet'; } catch (e) { /* silent: 정상 시나리오 (private mode / 구브라우저 / 옵션 동작) */ }
-  var haikuRadio = document.getElementById('aiModelHaikuRadio');
-  var sonnetRadio = document.getElementById('aiModelSonnetRadio');
-  var haikuLabel = document.getElementById('aiModelHaikuLabel');
-  var sonnetLabel = document.getElementById('aiModelSonnetLabel');
-  var currentLabel = document.getElementById('aiModelCurrentLabel');
-  if (haikuRadio)  haikuRadio.checked  = (current === 'haiku');
-  if (sonnetRadio) sonnetRadio.checked = (current === 'sonnet');
-  if (haikuLabel) { haikuLabel.style.borderColor = current === 'haiku' ? '#0E6B5C' : 'var(--border)'; haikuLabel.style.background = current === 'haiku' ? '#f0fdfa' : 'transparent'; }
-  if (sonnetLabel) { sonnetLabel.style.borderColor = current === 'sonnet' ? '#8b5cf6' : 'var(--border)'; sonnetLabel.style.background = current === 'sonnet' ? '#faf5ff' : 'transparent'; }
-  if (currentLabel) { currentLabel.textContent = '현재: ' + (current === 'sonnet' ? '🎯 Sonnet' : '⚡ Haiku'); currentLabel.style.color = current === 'sonnet' ? '#7c3aed' : '#047857'; }
 }
 var DISORDER_EMOJI = { '언어발달장애':'🗣️','조음음운장애':'👄','유창성장애':'💬','자폐스펙트럼':'🌈','지적장애':'🧩','청각장애':'👂','기타':'📋' };
 var CHILD_COLORS = ['#0E6B5C','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981'];

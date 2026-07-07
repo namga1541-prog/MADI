@@ -111,12 +111,10 @@ Deno.serve(async (req: Request) => {
   // Prompt Injection 방어 + 남용 차단 가드
   // ──────────────────────────────────────────────────────────
   // 모델 화이트리스트: 정규식 대신 명시적 Set 으로 임의/고가 모델 호출 비용폭주 차단.
-  // 클라이언트(madi-01.js MODEL_HAIKU/MODEL_SONNET, madi-13.js fallback)에서 실제 사용하는 모델만 허용.
+  // AI 모델은 Haiku 고정(대장님 방침) — 서버에서도 강제해 상위 모델 비용 상승을 차단.
   // 신규 모델 도입 시 이 Set 에 반드시 추가할 것 — 누락 시 해당 AI 기능이 400 으로 중단됨.
   const ALLOWED_MODELS = new Set([
-    'claude-haiku-4-5-20251001',   // MODEL_HAIKU (기본값)
-    'claude-sonnet-4-6',           // MODEL_SONNET
-    'claude-3-5-sonnet-20241022',  // madi-13.js getAIModel 미정의 시 fallback
+    'claude-haiku-4-5-20251001',   // MODEL_HAIKU (madi-core.js)
   ])
   const MAX_TOKENS_CAP   = 8000          // 단일 응답 토큰 상한
   const MAX_CONTENT_LEN  = 60_000        // 단일 메시지 텍스트 상한 (약 15K tokens)
