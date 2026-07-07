@@ -424,10 +424,10 @@ Deno.serve(async (req: Request) => {
       // ★ 학부모 제한 — 이 분기는 parent default-deny 게이트(아래)보다 먼저 실행되므로,
       //   parent JWT 가 임의의 화이트리스트 action(DELETE_CHILD/UPDATE_PERMISSIONS 등)을 기록해
       //   감사 로그를 위조·스팸하는 우회를 여기서 차단한다. 학부모의 정당한 용도는
-      //   'client_error'(자동 오류 보고)와 'beta_feedback'(피드백 제출)뿐 — 그 외 action 은 거부.
+      //   _reportClientError 의 'client_error' 뿐 — beta_feedback 은 직원 전용(대장님 방침 2026-07-07).
       if (user.role === 'parent') {
         const _pAction = (body && typeof body === 'object') ? String((body as Record<string, unknown>).action || '') : ''
-        if (_pAction !== 'client_error' && _pAction !== 'beta_feedback') {
+        if (_pAction !== 'client_error') {
           return new Response(JSON.stringify({ error: '학부모는 해당 감사 이벤트를 기록할 수 없습니다' }), { status: 403, headers: CORS })
         }
       }
