@@ -92,6 +92,7 @@ const PARENT_USER_SCOPED: Record<string, string> = {
 //  madi-system.js savePermissions/deleteStaff, madi-board.js vocab feedback)
 const AUDIT_CLIENT_ACTIONS = new Set([
   'client_error', 'DELETE_CHILD', 'UPDATE_PERMISSIONS', 'DELETE_STAFF', 'vocab_feedback',
+  'beta_feedback', // 베타 피드백 채널 (madi-board.js submitBetaFeedback)
 ])
 
 // ── 클라이언트 감사 이벤트 서버 정제 INSERT ──────────────────────────────────
@@ -401,17 +402,32 @@ Deno.serve(async (req: Request) => {
     //   actor/center 는 JWT 강제, action 화이트리스트. GET(운영자 조회)·기타 method 는 차단.
     //   (이 분기가 없으면 클라 감사쓰기가 403 → .catch(()=>{}) 로 영구 폐기됐음.)
     if (tableName === 'madi_audit_log') {
+      // ★ 운영자(superadmin) 예외 — "클라이언트 발신" 이벤트(신고·피드백·오류)에 한해
+      //   GET(목록 조회)·DELETE(처리 후 정리)를 service_role 로 전달한다.
+      //   경로에 action=eq.<클라 action> 필터가 명시된 경우만 허용 → PostgREST 가 해당 action
+      //   행에만 작용하므로, 동의 증빙·설정 열람 감사 등 서버 발행 감사행은 조회·삭제 불가.
+      //   (이 예외가 없으면 admin.html 어휘신고·클라오류·베타피드백 목록/삭제가 403 으로 깨진다.)
+      const _clientEventFilter = /(?:^|&)action=eq\.(vocab_feedback|beta_feedback|client_error|client_other)(?:&|$)/
+      if (user.role === 'superadmin' && (method === 'GET' || method === 'DELETE')
+          && _clientEventFilter.test(path.split('?')[1] || '')) {
+        const auditListRes = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
+          method,
+          headers: { 'Authorization': `Bearer ${SUPA_KEY}`, 'apikey': SUPA_KEY },
+        })
+        const auditListBody = await auditListRes.text()
+        return new Response(auditListBody || '[]', { status: auditListRes.status, headers: { ...CORS, 'Content-Type': 'application/json' } })
+      }
       if (method !== 'POST') {
-        // GET 등 운영자 조회는 이 프록시로는 불허(직접 DB/별도 경로). POST 만 수용.
+        // 그 외 운영자 조회는 이 프록시로는 불허(직접 DB/별도 경로). POST 만 수용.
         return new Response(JSON.stringify({ error: '감사 로그는 기록(POST)만 가능합니다' }), { status: 403, headers: CORS })
       }
       // ★ 학부모 제한 — 이 분기는 parent default-deny 게이트(아래)보다 먼저 실행되므로,
       //   parent JWT 가 임의의 화이트리스트 action(DELETE_CHILD/UPDATE_PERMISSIONS 등)을 기록해
       //   감사 로그를 위조·스팸하는 우회를 여기서 차단한다. 학부모의 정당한 용도는
-      //   _reportClientError 의 'client_error' 뿐이므로 그 외 action 은 거부.
+      //   'client_error'(자동 오류 보고)와 'beta_feedback'(피드백 제출)뿐 — 그 외 action 은 거부.
       if (user.role === 'parent') {
         const _pAction = (body && typeof body === 'object') ? String((body as Record<string, unknown>).action || '') : ''
-        if (_pAction !== 'client_error') {
+        if (_pAction !== 'client_error' && _pAction !== 'beta_feedback') {
           return new Response(JSON.stringify({ error: '학부모는 해당 감사 이벤트를 기록할 수 없습니다' }), { status: 403, headers: CORS })
         }
       }

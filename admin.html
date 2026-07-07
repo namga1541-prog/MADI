@@ -752,6 +752,21 @@
       </div>
     </div>
 
+    <!-- 베타 피드백 현황 (슈퍼관리자 전용) -->
+    <div class="card" id="betaFeedbackSection" style="border:2px solid #0E6B5C;">
+      <div class="card-title">
+        <div class="card-title-left" style="color:#0E6B5C;">💬 베타 피드백 현황</div>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 12px;" onclick="loadBetaFeedback()">🔄 새로고침</button>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+        사용자(선생님·센터장·학부모)가 [더보기 → 피드백 보내기]로 제출한 버그·불편·제안 목록입니다.<br>
+        처리 완료한 항목은 🗑️ 로 정리하세요.
+      </p>
+      <div id="betaFeedbackList">
+        <div style="text-align:center;color:var(--text2);font-size:13px;padding:16px;">불러오는 중...</div>
+      </div>
+    </div>
+
     <!-- 어휘 오류 신고 현황 (슈퍼관리자 전용) -->
     <div class="card" id="vocabFeedbackSection" style="border:2px solid #7c3aed;">
       <div class="card-title">
@@ -1073,6 +1088,7 @@ function showAdminTab(tab) {
     loadCenterApiKey(false);
     if (currentUser && currentUser.role === 'superadmin') {
       loadLicenseList();
+      loadBetaFeedback();
       loadVocabFeedback();
       loadClientErrors();
       checkRlsStatus();
@@ -2386,11 +2402,13 @@ window.addEventListener('DOMContentLoaded', function() {
   var licHistory = document.getElementById('licHistorySuperadminSection');
   var licMine    = document.getElementById('myLicenseAdminSection');
   var vocabFB    = document.getElementById('vocabFeedbackSection');
+  var betaFB     = document.getElementById('betaFeedbackSection');
   var clientErr  = document.getElementById('clientErrorSection');
   if (licIssue)   licIssue.style.display   = isSuper ? '' : 'none';
   if (licHistory) licHistory.style.display = isSuper ? '' : 'none';
   if (licMine)    licMine.style.display    = isSuper ? 'none' : '';
   if (vocabFB)    vocabFB.style.display    = isSuper ? '' : 'none';
+  if (betaFB)     betaFB.style.display     = isSuper ? '' : 'none';
   if (clientErr)  clientErr.style.display  = isSuper ? '' : 'none';
   loadAdminData();
   loadPrograms();
@@ -3055,6 +3073,68 @@ function activateLicense() {
 }
 
 // ══════════════════════════════
+// 베타 피드백 현황 (슈퍼관리자)
+// ══════════════════════════════
+function loadBetaFeedback() {
+  if (!currentUser || currentUser.role !== 'superadmin') return;
+  var el = document.getElementById('betaFeedbackList');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:16px;">불러오는 중...</div>';
+
+  supaFetch('madi_audit_log?action=eq.beta_feedback&order=occurred_at.desc&limit=100', 'GET')
+    .then(function(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px;">📭 접수된 피드백이 없습니다.</div>';
+        return;
+      }
+      var typeColors = {
+        '버그':  { bg: '#fee2e2', fg: '#dc2626' },
+        '불편':  { bg: '#fef3c7', fg: '#b45309' },
+        '제안':  { bg: '#dbeafe', fg: '#1d4ed8' },
+        '기타':  { bg: '#f1f5f9', fg: '#475569' }
+      };
+      var html = rows.map(function(row) {
+        var data = {};
+        try { data = JSON.parse(row.changed_cols || '{}'); } catch(e) {}
+        var tc = typeColors[data.type] || typeColors['기타'];
+        var dateStr = row.occurred_at ? row.occurred_at.slice(0, 16).replace('T', ' ') : '';
+        var meta = [row.actor_role || '', dateStr].filter(Boolean).join(' · ');
+        return '<div style="border:1px solid #d1fae5;border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#f0fdfa;">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+          + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+          + '<span style="background:' + tc.bg + ';color:' + tc.fg + ';font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">' + escHtml(data.type || '기타') + '</span>'
+          + '<span style="font-size:11px;color:var(--text2);">' + escHtml(meta) + '</span>'
+          + '</div>'
+          + '<button onclick="deleteBetaFeedback(' + escHtml(String(row.id)) + ')" class="btn-ghost" style="font-size:11px;padding:4px 8px;color:#ef4444;flex-shrink:0;" title="처리 완료 후 삭제">🗑️</button>'
+          + '</div>'
+          + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-all;">' + escHtml(data.message || '(내용 없음)') + '</div>'
+          + ((data.page || data.ua)
+            ? '<div style="font-size:11px;color:var(--text2);border-top:1px solid #d1fae5;padding-top:6px;margin-top:8px;word-break:break-all;">'
+              + (data.page ? '📍 ' + escHtml(data.page) + ' ' : '') + (data.ua ? '· 🖥️ ' + escHtml(data.ua) : '')
+              + '</div>'
+            : '')
+          + '</div>';
+      }).join('');
+      el.innerHTML = html;
+    })
+    .catch(function(e) {
+      el.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px;">❌ 불러오기 실패: ' + escHtml(adminErrMsg(e)) + '</div>';
+    });
+}
+
+function deleteBetaFeedback(id) {
+  showConfirm('🗑️ 이 피드백을 삭제하시겠습니까?\n처리 완료 후에만 삭제하세요.', function() {
+    // 서버(api/index.ts)가 action=eq.<클라 action> 필터를 요구 — 동의 증빙 등 서버 발행 감사행 오삭제 방지
+    supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id) + '&action=eq.beta_feedback', 'DELETE')
+      .then(function() {
+        showToast('🗑️ 항목 삭제 완료');
+        loadBetaFeedback();
+      })
+      .catch(function(e) { showToast('❌ 삭제 실패: ' + adminErrMsg(e)); });
+  }, { okLabel: '삭제', cancelLabel: '취소', danger: true });
+}
+
+// ══════════════════════════════
 // 어휘 오류 신고 현황 (슈퍼관리자)
 // ══════════════════════════════
 function loadVocabFeedback() {
@@ -3114,7 +3194,8 @@ function loadVocabFeedback() {
 
 function deleteVocabFeedback(id) {
   showConfirm('🗑️ 이 신고 항목을 삭제하시겠습니까?\n검토 완료 후에만 삭제하세요.', function() {
-    supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id), 'DELETE')
+    // 서버가 action=eq.<클라 action> 필터를 요구(2026-07-07) — 필터 없인 403
+    supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id) + '&action=eq.vocab_feedback', 'DELETE')
       .then(function() {
         showToast('🗑️ 항목 삭제 완료');
         loadVocabFeedback();
@@ -3197,7 +3278,8 @@ function dismissRlsBanner() {
 
 function deleteClientError(id) {
   showConfirm('🗑️ 이 오류 항목을 삭제하시겠습니까?', function() {
-    supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id), 'DELETE')
+    // 서버가 action=eq.<클라 action> 필터를 요구(2026-07-07) — 필터 없인 403
+    supaFetch('madi_audit_log?id=eq.' + encodeURIComponent(id) + '&action=eq.client_error', 'DELETE')
       .then(function() {
         showToast('🗑️ 항목 삭제 완료');
         loadClientErrors();

@@ -73,6 +73,40 @@
 </head>
 <body class="theme-linear glass-ui">
 
+<!-- ─── 베타 피드백 모달 (버그·불편·제안 — madi_audit_log action='beta_feedback') ─── -->
+<div id="betaFeedbackModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="bfModalTitle">
+  <div class="modal-card">
+    <div class="modal-header" style="background:linear-gradient(135deg,#0E6B5C,#0d9488);border-radius:var(--r-lg) var(--r-lg) 0 0;">
+      <div class="modal-ico" data-icon="message" data-icon-size="26" style="color:#fff;"></div>
+      <h3 id="bfModalTitle" class="modal-title" style="color:#fff;">피드백 보내기</h3>
+      <p class="modal-subtitle" style="color:rgba(255,255,255,0.85);">사용하며 느낀 버그·불편·아이디어를 알려주세요.<br>운영자가 직접 확인하고 반영합니다.</p>
+    </div>
+
+    <div class="form-group" style="margin-top:4px;">
+      <label class="form-label" for="bfType">유형</label>
+      <select id="bfType" class="form-input">
+        <option value="버그">🐛 버그 — 뭔가 잘못 동작해요</option>
+        <option value="불편">😖 불편 — 되긴 하는데 번거로워요</option>
+        <option value="제안">💡 제안 — 이런 기능이 있으면 좋겠어요</option>
+        <option value="기타">📋 기타</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label" for="bfMessage">내용 <span style="color:#ef4444;font-weight:700;">*</span></label>
+      <textarea id="bfMessage" class="form-input" rows="5"
+        placeholder="예: 일정 탭에서 지난주로 넘기면 화면이 잠깐 깜빡여요 / 세션 기록 저장 버튼이 키보드에 가려져요"
+        style="resize:vertical;"></textarea>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px;">아동 이름 등 개인정보는 적지 말아주세요. 화면 정보는 자동으로 함께 전송됩니다.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-action="closeBetaFeedbackModal">취소</button>
+      <button id="bfSubmitBtn" class="btn btn-primary" data-action="submitBetaFeedback">보내기</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── 어휘/표현 오류 신고 모달 ─── -->
 <div id="vocabFeedbackModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="vfModalTitle">
   <div class="modal-card">
@@ -1286,6 +1320,9 @@
   </button>
   <button class="more-menu-item" onclick="closeMoreMenu();switchTab(7);">
     <span class="mmi-ico" data-icon="clipboard" data-icon-size="18"></span><span>게시판</span>
+  </button>
+  <button class="more-menu-item" data-action="openBetaFeedback">
+    <span class="mmi-ico" data-icon="message" data-icon-size="18"></span><span>피드백 보내기</span>
   </button>
   <button class="more-menu-item" id="moreItemService" onclick="closeMoreMenu();goToAdmin('service');">
     <span class="mmi-ico" data-icon="settings" data-icon-size="18"></span><span>서비스 관리</span>

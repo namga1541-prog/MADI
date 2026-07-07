@@ -1009,3 +1009,80 @@ function submitVocabFeedback() {
     showError(err, '어휘 피드백 제출');
   });
 }
+
+// ═══════════════════════════════════════════════════════════
+// 💬 베타 피드백 (버그·불편·제안 — 전 역할 공용 채널)
+// 제출 → madi_audit_log (action='beta_feedback', vocab_feedback 과 동일 경로)
+// superadmin 은 admin.html [베타 피드백 현황] 에서 목록 조회·처리
+// 진입점: 더보기 메뉴 data-action="openBetaFeedback"
+// ═══════════════════════════════════════════════════════════
+
+function openBetaFeedback() {
+  if (typeof closeMoreMenu === 'function') closeMoreMenu();
+  if (!currentUser) { showToast('⚠️ 로그인이 필요합니다'); return; }
+  var modal = document.getElementById('betaFeedbackModal');
+  if (!modal) { showToast('⚠️ 페이지를 새로고침 후 다시 시도해주세요'); return; }
+
+  var typeEl = document.getElementById('bfType');
+  var msgEl  = document.getElementById('bfMessage');
+  var btnEl  = document.getElementById('bfSubmitBtn');
+  if (typeEl) typeEl.selectedIndex = 0;
+  if (msgEl)  msgEl.value = '';
+  if (btnEl)  { btnEl.disabled = false; btnEl.textContent = '보내기'; }
+
+  modal.style.display = 'flex';
+  if (typeof attachModalA11y === 'function') attachModalA11y(modal, closeBetaFeedbackModal);
+  setTimeout(function() { if (msgEl) msgEl.focus(); }, 80);
+}
+
+function closeBetaFeedbackModal() {
+  var modal = document.getElementById('betaFeedbackModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function submitBetaFeedback() {
+  var type    = (document.getElementById('bfType')    || {}).value || '기타';
+  var message = ((document.getElementById('bfMessage') || {}).value || '').trim();
+
+  if (!message) {
+    showToast('⚠️ 내용을 입력해주세요');
+    var el = document.getElementById('bfMessage'); if (el) el.focus();
+    return;
+  }
+  if (message.length > 1000) { showToast('⚠️ 1000자 이내로 입력해주세요'); return; }
+
+  var btn = document.getElementById('bfSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 전송 중...'; }
+
+  // 진단 컨텍스트 자동 첨부 — 어느 화면·어느 환경에서 겪었는지 (개인정보 없음)
+  var page = '';
+  try {
+    var activeTab = document.querySelector('.tab-content[style*="block"], .tab-content.active');
+    page = (activeTab && activeTab.id) || location.hash || '';
+  } catch (e) { /* silent: 진단 정보는 best-effort */ }
+
+  var payload = {
+    actor_id:     currentUser.id,
+    actor_role:   currentUser.role,
+    action:       'beta_feedback',
+    table_name:   'beta',
+    row_id:       null,
+    center_id:    currentUser.center_id,
+    child_id:     null,
+    changed_cols: [JSON.stringify({
+      type:    type,
+      message: message,
+      page:    String(page).slice(0, 80),
+      ua:      (navigator.userAgent || '').slice(0, 120)
+    })]
+  };
+
+  supaFetch('madi_audit_log', 'POST', [payload]).then(function() {
+    closeBetaFeedbackModal();
+    showToast('💚 소중한 피드백 감사합니다! 확인 후 반영하겠습니다.', { duration: 4000 });
+  }).catch(function(err) {
+    if (btn) { btn.disabled = false; btn.textContent = '보내기'; }
+    showToast('⚠️ 전송 실패 — 다시 시도해주세요');
+    showError(err, '베타 피드백 제출');
+  });
+}
