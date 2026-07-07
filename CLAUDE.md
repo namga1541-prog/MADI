@@ -217,9 +217,10 @@ npx playwright test --project=sentinel
 
 ## 테스트
 ```bash
-node tests/smoke.js   # 유틸 함수 유닛 테스트
+node tests/smoke.js            # 유틸 함수 유닛 테스트 (복사-미러 방식)
+node tests/core-paths.test.js  # 핵심 경로 계약 테스트 — madi-core/app 실소스를 vm 로드해 저장·머지·권한·오프라인큐 검증
 ```
-pre-commit 훅에서 자동 실행됨.
+둘 다 pre-commit 훅에서 자동 실행됨.
 
 ## ESLint (XSS 자동 차단)
 

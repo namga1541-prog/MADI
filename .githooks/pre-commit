@@ -106,4 +106,9 @@ if [ -f "$TOPLEVEL/tests/smoke.js" ]; then
   node "$TOPLEVEL/tests/smoke.js" >/dev/null && echo "[pre-commit] smoke 통과 ✓"
 fi
 
+# ── 5-1. 핵심 경로 계약 테스트 (실소스 vm 로드 — 저장·머지·권한·오프라인큐) ──
+if [ -f "$TOPLEVEL/tests/core-paths.test.js" ]; then
+  node "$TOPLEVEL/tests/core-paths.test.js" >/dev/null && echo "[pre-commit] core-paths 통과 ✓"
+fi
+
 exit 0
