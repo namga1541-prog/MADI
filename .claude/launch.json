@@ -50,6 +50,12 @@
       "port": 5900
     },
     {
+      "name": "infinite-universe",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "6100", "C:\\Users\\남재현\\Desktop\\infinite-universe"],
+      "port": 6100
+    },
+    {
       "name": "정적 미리보기 서버 (로컬 개발)",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "-s", ".", "-l", "3000"],
