@@ -40,6 +40,8 @@ function uploadBoardImage(file, folder) {
 function isSafeUrl(url) {
   if (!url || typeof url !== 'string') return false;
   var lower = url.trim().toLowerCase();
+  // 프로토콜-상대 URL('//evil.com')은 외부 사이트로 향하므로 차단 — 앱 내부 절대경로('/…')만 허용.
+  if (lower.indexOf('//') === 0) return false;
   return lower.indexOf('https://') === 0 || lower.indexOf('/') === 0;
 }
 

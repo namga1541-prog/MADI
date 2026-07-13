@@ -11,7 +11,7 @@
  */
 
 import bcrypt from "npm:bcryptjs@2.4.3"
-import { makeCORS as makeBaseCORS, signJwt, checkRateLimit, verifyTotp, getClientIp } from '../_shared/auth.ts'
+import { makeCORS as makeBaseCORS, signJwt, checkRateLimit, verifyTotpStep, getClientIp } from '../_shared/auth.ts'
 
 function makeCORS(origin: string | null): Record<string, string> {
   return makeBaseCORS(origin, { headers: 'content-type' })
@@ -110,7 +110,7 @@ Deno.serve(async (req: Request) => {
   // BASE_COLS: 원래부터 존재하는 컬럼만 (status 도 일부 DB 에는 없을 수 있음)
   // EXT_COLS:  status + SEC3/4/6 신규 컬럼 (마이그레이션 후만)
   const BASE_COLS = 'id,username,name,password,role,center_id,color,permissions'
-  const EXT_COLS  = BASE_COLS + ',failed_login_count,last_failed_at,locked_until,totp_secret,totp_enabled,session_revoked_at'
+  const EXT_COLS  = BASE_COLS + ',failed_login_count,last_failed_at,locked_until,totp_secret,totp_enabled,session_revoked_at,totp_last_step'
   const userUrl = (cols: string) =>
     SUPA_URL + '/rest/v1/madi_users?username=eq.' + encodeURIComponent(username) + '&select=' + cols
 
@@ -187,6 +187,8 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── SEC6: 2FA 검증 — 비번 통과 후, totp_enabled 면 6자리 코드 요구 ──
+  // matchedTotpStep: 성공 시 매칭된 절대 step(리플레이 방어용으로 성공 후 totp_last_step 에 기록).
+  let matchedTotpStep = -1
   if (user.totp_enabled && user.totp_secret) {
     if (!totpCode) {
       return new Response(
@@ -197,8 +199,11 @@ Deno.serve(async (req: Request) => {
     if (!/^\d{6}$/.test(totpCode)) {
       return new Response(JSON.stringify({ require_totp: true, error: '6자리 숫자 코드 형식 오류' }), { status: 401, headers: CORS })
     }
-    const totpOk = await verifyTotp(String(user.totp_secret), totpCode, 1)
-    if (!totpOk) {
+    // 리플레이 방어: 마지막 성공 step 이하 코드는 거부(캡처 후 재사용 차단).
+    //   totp_last_step 컬럼 미존재(마이그레이션 전)면 undefined → -1 → 리플레이 검사만 생략(기존 동작).
+    const lastStep = (typeof user.totp_last_step === 'number') ? user.totp_last_step : -1
+    matchedTotpStep = await verifyTotpStep(String(user.totp_secret), totpCode, 1, lastStep)
+    if (matchedTotpStep < 0) {
       // 잘못된 TOTP 도 실패 카운터에 합산 (brute-force 방어)
       const within = user.last_failed_at && (now - new Date(user.last_failed_at).getTime()) < COUNT_WINDOW_MS
       const newCount = within ? Number(user.failed_login_count || 0) + 1 : 1
@@ -234,6 +239,17 @@ Deno.serve(async (req: Request) => {
         body:    JSON.stringify({ failed_login_count: 0, locked_until: null, last_failed_at: null, session_revoked_at: null }),
       })
     } catch(_) {}
+  }
+
+  // ── SEC6: TOTP 리플레이 방어 — 성공 step 을 totp_last_step 에 기록 ──
+  //   별도 best-effort PATCH(위 카운터 리셋과 분리) — totp_last_step 컬럼이 없으면 조용히 실패해도
+  //   로그인·카운터 리셋에는 영향 없음(리플레이 방어만 비활성). fire-and-forget.
+  if (matchedTotpStep >= 0) {
+    fetch(SUPA_URL + '/rest/v1/madi_users?id=eq.' + user.id, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+      body:    JSON.stringify({ totp_last_step: matchedTotpStep }),
+    }).catch(() => { /* 컬럼 미존재 등 — 리플레이 방어만 생략 */ })
   }
 
   // Lazy bcrypt 마이그레이션: SHA-256 해시 → bcrypt 로 재해싱

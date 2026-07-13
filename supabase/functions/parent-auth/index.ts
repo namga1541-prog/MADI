@@ -164,6 +164,8 @@ Deno.serve(async (req: Request) => {
 
   let body: {
     action?: string; phone?: string; password?: string; childIds?: string[]
+    // ★ 신원 확인 요소 — lookup/signup 모두 아동 이름+생년월일 대조로 '번호만 알면 통과'를 차단.
+    childName?: string; birth?: string; verifyName?: string; verifyBirth?: string
     consent?: { agreed?: unknown; sensitive?: unknown; version?: unknown }
   }
   try {
@@ -196,6 +198,17 @@ Deno.serve(async (req: Request) => {
       })
     }
 
+    // ★ [HIGH] 신원 확인 요소 필수 — 전화번호만으로는 아동 정보를 반환하지 않는다.
+    //   기존엔 번호만 알면 아동 실명·childId 가 노출(enumeration oracle) + 미가입 보호자로
+    //   가로채기 가입이 가능했다. 이제 이름 + 생년월일(6자리 이상)까지 대조해야 목록을 연다.
+    const childName   = body.childName ? String(body.childName).trim() : ''
+    const birthDigits = body.birth ? String(body.birth).replace(/[^0-9]/g, '') : ''
+    if (!childName || birthDigits.length < 6) {
+      return new Response(JSON.stringify({ error: '아동 이름과 생년월일을 입력해주세요' }), {
+        status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+
     const cleaned   = phone.replace(/[^0-9]/g, '')
     const formatted = `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`
 
@@ -209,27 +222,6 @@ Deno.serve(async (req: Request) => {
       }), {
         status: 429,
         headers: { ...cors, 'Content-Type': 'application/json', 'Retry-After': String(phoneRate.retryAfter ?? 60) }
-      })
-    }
-
-    // 이미 가입된 계정인지 확인
-    const existRes  = await fetchWithTimeout(
-      `${SUPABASE_URL}/rest/v1/madi_users?username=eq.${cleaned}&role=eq.parent&select=id`,
-      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } },
-      SUPA_TIMEOUT_MS
-    )
-    // DB 조회 실패(4xx/5xx)를 '미가입'으로 오인하지 않도록 명시 차단(M-20)
-    if (!existRes.ok) {
-      console.error('parent-auth lookup existRes:', existRes.status, await existRes.text())
-      return new Response(JSON.stringify({ error: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }), {
-        status: 503, headers: { ...cors, 'Content-Type': 'application/json' }
-      })
-    }
-    const existData = await existRes.json()
-    if (Array.isArray(existData) && existData.length > 0) {
-      // alreadyJoined: true — 클라이언트가 로그인 화면으로 안내
-      return new Response(JSON.stringify({ children: [], alreadyJoined: true }), {
-        status: 200, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
 
@@ -256,14 +248,50 @@ Deno.serve(async (req: Request) => {
       })
     }
     const children = await childRes.json()
+    const childArr = Array.isArray(children) ? children : []
+
+    // ★ 신원 확인 게이트 — 이 번호의 아동 중 (이름 + 생년월일)이 일치하는 아동이 하나라도
+    //   있어야만 목록을 반환한다. 불일치 시 '아동 없음'과 구분 불가한 빈 응답(oracle 차단).
+    //   형제(다자녀)는 한 명의 신원만 증명하면 같은 보호자 번호이므로 전원 반환.
+    const identityOk = childArr.some((c: any) => {
+      const nm = String((c.data || {}).name || '').trim()
+      const bd = String((c.data || {}).birth || '').replace(/[^0-9]/g, '')
+      return nm !== '' && nm === childName && bd.length >= 6 && bd === birthDigits
+    })
+    if (!identityOk) {
+      // User Enumeration 방지: 불일치도 '없음'과 동일한 빈 응답
+      return new Response(JSON.stringify({ children: [] }), {
+        status: 200, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // 신원 확인 통과 후에만 '이미 가입됨' 상태를 노출 (가입여부 oracle 도 게이트 뒤로).
+    const existRes  = await fetchWithTimeout(
+      `${SUPABASE_URL}/rest/v1/madi_users?username=eq.${cleaned}&role=eq.parent&select=id`,
+      { headers: { 'Authorization': `Bearer ${SERVICE_KEY}`, 'apikey': SERVICE_KEY } },
+      SUPA_TIMEOUT_MS
+    )
+    // DB 조회 실패(4xx/5xx)를 '미가입'으로 오인하지 않도록 명시 차단(M-20)
+    if (!existRes.ok) {
+      console.error('parent-auth lookup existRes:', existRes.status, await existRes.text())
+      return new Response(JSON.stringify({ error: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }), {
+        status: 503, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+    const existData = await existRes.json()
+    if (Array.isArray(existData) && existData.length > 0) {
+      // alreadyJoined: true — 클라이언트가 로그인 화면으로 안내
+      return new Response(JSON.stringify({ children: [], alreadyJoined: true }), {
+        status: 200, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
 
     // 최소 정보만 반환 — center_id 미노출
-    const matched = (Array.isArray(children) ? children : []).map((c: any) => ({
+    const matched = childArr.map((c: any) => ({
       childId: c.id,
       name:    (c.data || {}).name || '이름 없음',
     }))
 
-    // User Enumeration 방지: 없는 경우도 동일한 응답 구조
     return new Response(JSON.stringify({ children: matched }), {
       status: 200, headers: { ...cors, 'Content-Type': 'application/json' }
     })
@@ -334,9 +362,21 @@ Deno.serve(async (req: Request) => {
       })
     }
 
+    // ★ [HIGH] 신원 확인 요소 필수 — lookup 과 동일하게 이름 + 생년월일 재검증(위조 방지).
+    //   lookup 을 건너뛰고 signup 을 직접 호출해도, 서버가 childId 별 이름·생년월일을 다시
+    //   대조하므로 '번호만 알면 통과'가 성립하지 않는다.
+    const vName  = body.verifyName  ? String(body.verifyName).trim() : ''
+    const vBirth = body.verifyBirth ? String(body.verifyBirth).replace(/[^0-9]/g, '') : ''
+    if (!vName || vBirth.length < 6) {
+      return new Response(JSON.stringify({ error: '아동 이름과 생년월일을 입력해주세요' }), {
+        status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+
     // childIds 검증 + phone-child 매핑 재확인 + center_id 수집
     const safeChildIds = childIds.slice(0, 10) // 최대 10명
     let centerId = ''
+    let identityVerified = false // 연결 대상 중 (이름+생년월일) 일치 아동이 하나라도 있어야 함
     const childLinks: Array<{ child_id: string; center_id: string }> = []
 
     for (const cid of safeChildIds) {
@@ -355,6 +395,11 @@ Deno.serve(async (req: Request) => {
       const phoneMatches = phones.some((p: string) => p.replace(/[^0-9]/g, '') === cleanedPhone)
       if (!phoneMatches) continue // 번호 불일치 아동은 연결하지 않음
 
+      // 이름 + 생년월일 대조 — 이 번호의 자녀 중 최소 1명의 신원이 증명돼야 가입 통과.
+      const nm = String(d.name || '').trim()
+      const bd = String(d.birth || '').replace(/[^0-9]/g, '')
+      if (nm !== '' && nm === vName && bd.length >= 6 && bd === vBirth) identityVerified = true
+
       if (!centerId) centerId = child.center_id || ''
       childLinks.push({ child_id: String(cid), center_id: child.center_id || centerId })
     }
@@ -362,6 +407,13 @@ Deno.serve(async (req: Request) => {
     if (childLinks.length === 0) {
       return new Response(JSON.stringify({ error: '유효한 아동 정보가 없습니다. 다시 조회해주세요.' }), {
         status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // 신원 확인 게이트 — 이름+생년월일 미일치면 계정 생성 자체를 차단(가로채기 가입 방지).
+    if (!identityVerified) {
+      return new Response(JSON.stringify({ error: '아동 신원 확인에 실패했습니다. 이름과 생년월일을 다시 확인해주세요.' }), {
+        status: 403, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
 

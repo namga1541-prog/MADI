@@ -1197,6 +1197,17 @@
             <div class="login-field-hint">센터에 등록된 보호자 번호와 동일해야 합니다</div>
           </div>
 
+          <div class="login-field">
+            <label for="parentChildNameInput">아이 이름</label>
+            <input class="login-input" type="text" id="parentChildNameInput" placeholder="아이 이름" autocomplete="off" maxlength="40">
+          </div>
+
+          <div class="login-field">
+            <label for="parentChildBirthInput">아이 생년월일</label>
+            <input class="login-input" type="date" id="parentChildBirthInput" autocomplete="off">
+            <div class="login-field-hint">본인 확인용 — 센터에 등록된 아이 정보와 일치해야 합니다</div>
+          </div>
+
           <button class="login-btn-pri" id="parentLookupBtn" onclick="parentLookup()">내 아이 찾기</button>
           <div id="parentLookupError" class="login-error"></div>
 
@@ -1302,7 +1313,7 @@
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" onfocus="onApiKeyFocus()" onblur="onApiKeyBlur()" style="display: none;">
     <button type="button" onclick="toggleApiKeyVisibility()" id="apiKeyEye" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); color: rgb(148, 163, 184); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0; display: none;" title="키 보기/숨기기" aria-label="API 키 보기/숨기기">👁️</button>
   </div>
-  <span id="apiKeyMasked" style="display: block; font-family: monospace; font-size: 12px; color: rgb(148, 163, 184); flex: 1 1 0%; padding: 7px 12px; background: rgba(255, 255, 255, 0.07); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer;" onclick="editApiKey()" title="클릭해서 수정">sk-ant-a••••••••QAAA</span>
+  <span id="apiKeyMasked" style="display: block; font-family: monospace; font-size: 12px; color: rgb(148, 163, 184); flex: 1 1 0%; padding: 7px 12px; background: rgba(255, 255, 255, 0.07); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer;" onclick="editApiKey()" title="클릭해서 수정">sk-ant-••••••••••••</span>
 </div>
 
 <div class="tabs" role="tablist" aria-label="메인 탭">

@@ -442,6 +442,15 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: '접근 불가 테이블: ' + tableName }), { status: 403, headers: CORS })
     }
 
+    // ★ [M4] PostgREST 리소스 임베딩(외래 테이블 조인) 전면 차단.
+    //   select 에 '(' 가 있으면 `select=*,other_table(cols)` 형태로 연관 테이블 컬럼을 끌어와
+    //   테이블별 접근통제(select 정제·소유권 필터)를 우회할 수 있다. 클라이언트는 임베딩을
+    //   전혀 사용하지 않으므로('(' 미사용 조사 완료) 무조건 거부한다. '(' 는 인코딩(%28)도 함께 차단.
+    //   (madi_users 는 아래 자체 화이트리스트로 별도 방어 — 여기서도 걸리지만 무해)
+    if (/[?&]select=[^&]*(?:\(|%28)/i.test(path)) {
+      return new Response(JSON.stringify({ error: '허용되지 않은 select 구문입니다' }), { status: 400, headers: CORS })
+    }
+
     // 관리자 전용 테이블 체크
     if (ADMIN_ONLY_TABLES.includes(tableName) && user.role !== 'admin' && user.role !== 'superadmin') {
       return new Response(JSON.stringify({ error: '관리자 권한이 필요합니다' }), { status: 403, headers: CORS })

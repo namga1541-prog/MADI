@@ -528,6 +528,19 @@ if (typeof window !== 'undefined' && !window._madiErrorBound) {
 //       → saveChild('123', el, ev) 호출   (인자는 data-arg 1개 + 엘리먼트 + 이벤트)
 //       → 여러 인자가 필요하면 el.dataset 에서 직접 읽는다.
 //   기존 onclick 226곳은 그대로 두고(점진 이관), 새로 추가하는 핸들러만 이 패턴을 쓴다.
+// ★ [보안] 허용 액션 화이트리스트 — 디스패처가 window[name] 을 무제한 호출하면,
+//   어딘가에서 속성 이스케이프가 한 번이라도 누락돼 data-action 속성이 주입될 경우
+//   deleteChild·savePermissions 등 임의 민감 함수를 클릭 한 번으로 실행하는 가젯이 된다.
+//   따라서 여기 명시된 이름만 호출을 허용한다. 새 data-action 핸들러 추가 시 이 목록에도 등록할 것.
+var _MADI_ALLOWED_ACTIONS = {
+  saveChild: 1,
+  dpOpenQuickRecord: 1,
+  dpDismissReminder: 1,
+  dpSendUnwrittenReminder: 1,
+  openBetaFeedback: 1,
+  closeBetaFeedbackModal: 1,
+  submitBetaFeedback: 1
+};
 if (typeof document !== 'undefined' && typeof window !== 'undefined' && !window._madiActionBound) {
   window._madiActionBound = true;
   document.addEventListener('click', function(ev) {
@@ -536,6 +549,7 @@ if (typeof document !== 'undefined' && typeof window !== 'undefined' && !window.
     if (!el) return;
     var name = el.getAttribute('data-action');
     if (!name) return;
+    if (!Object.prototype.hasOwnProperty.call(_MADI_ALLOWED_ACTIONS, name)) return; // 화이트리스트 밖 액션 차단
     var fn = window[name];
     if (typeof fn !== 'function') return;  // 미정의 액션은 조용히 무시(오타·로드 전 안전)
     ev.preventDefault();

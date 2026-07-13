@@ -3,7 +3,7 @@
 `tools/gen-functions.js` 가 pre-commit 훅에서 생성. 탐색 비용(시간·토큰) 절감용.
 Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (전체 통독 금지).
 
-## 전역 변수 (181)
+## 전역 변수 (183)
 
 - `var AI_PROCESSING_NOTICE = '<div style="font-size:11px;color:var(--text2,#888);line-height` — madi-ai.js:2
 - `var _lastIepJson = null, _lastActivitiesJson = null;` — madi-app.js:332
@@ -29,16 +29,16 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _inviteCheckTimer = null;` — madi-auth.js:30
 - `var _loungePostImages = []; // 글 작성 폼 첨부 File 객체 배열 (최대 3장)` — madi-board-notice.js:2
 - `var _loungeCommentImages = {}; // { postId: File } 댓글 첨부 1장` — madi-board-notice.js:3
-- `var MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB` — madi-board-notice.js:115
-- `var ALLOWED_IMAGE_MIMES = ['image/jpeg','image/png','image/gif','image/webp'];` — madi-board-notice.js:117
-- `var currentBoardTab = 'global';` — madi-board-notice.js:201
-- `var _boardLoadGen = 0;` — madi-board-notice.js:203
-- `var globalNoticesDB = [];` — madi-board-notice.js:206
-- `var centerNoticesDB = [];` — madi-board-notice.js:207
-- `var loungePostsDB = [];` — madi-board-notice.js:208
-- `var loungeCommentsCache = {}; // { post_id: [comments...] } 펼친 글의 댓글만` — madi-board-notice.js:209
-- `var loungeExpandedPosts = {}; // { post_id: true } 댓글 영역 펼친 글` — madi-board-notice.js:210
-- `var centersByIdCache = null; // null=미로드, {}=로드됨 (슈퍼어드민이 센터 이름 표시용)` — madi-board-notice.js:211
+- `var MAX_IMG_BYTES = 5 * 1024 * 1024; // 5MB` — madi-board-notice.js:117
+- `var ALLOWED_IMAGE_MIMES = ['image/jpeg','image/png','image/gif','image/webp'];` — madi-board-notice.js:119
+- `var currentBoardTab = 'global';` — madi-board-notice.js:203
+- `var _boardLoadGen = 0;` — madi-board-notice.js:205
+- `var globalNoticesDB = [];` — madi-board-notice.js:208
+- `var centerNoticesDB = [];` — madi-board-notice.js:209
+- `var loungePostsDB = [];` — madi-board-notice.js:210
+- `var loungeCommentsCache = {}; // { post_id: [comments...] } 펼친 글의 댓글만` — madi-board-notice.js:211
+- `var loungeExpandedPosts = {}; // { post_id: true } 댓글 영역 펼친 글` — madi-board-notice.js:212
+- `var centersByIdCache = null; // null=미로드, {}=로드됨 (슈퍼어드민이 센터 이름 표시용)` — madi-board-notice.js:213
 - `var _libraryFiles = []; // 자료 첨부 File 객체 배열 (최대 5개)` — madi-board.js:492
 - `var libraryPostsDB = []; // 자료실 데이터 캐시 (editLibraryPost에서 참조)` — madi-board.js:493
 - `var LIBRARY_CATEGORIES = ['조음·음운', '언어발달', '유창성', '인지·학습', '부모교육', '평가도구', '기타'];` — madi-board.js:495
@@ -89,6 +89,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var currentUser = null;` — madi-core.js:403
 - `var _errReportCount = 0;` — madi-core.js:457
 - `var _ERR_REPORT_MAX = 5; // 세션당 최대 5건 — DB 폭주 방지` — madi-core.js:458
+- `var _MADI_ALLOWED_ACTIONS = {` — madi-core.js:535
 - `var _DP_VOUCHER_PRICE = {` — madi-dashboard.js:484
 - `var GITHUB_OWNER = 'namga1541-prog';` — madi-deploy.js:68
 - `var GITHUB_REPO = 'MADI';` — madi-deploy.js:69
@@ -125,7 +126,8 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `var _parentCurrentTab = 'home';` — madi-parent-home.js:5
 - `var MADI_VAPID_PUBLIC_KEY = 'BNH0y5wZW_nzhS5IG_6pMYAKmeDYoPWIkc9msFfNXyAsSxAeCzYjtEpW4NDdk` — madi-parent-home.js:7
 - `var _parentSignupMatchedChildren = []; // lookup 결과 캐시` — madi-parent-pages.js:329
-- `var _obsCategories = {` — madi-parent-pages.js:688
+- `var _parentSignupVerify = { name: '', birth: '' }; // 신원 확인 요소(이름·생년월일) 캐시 — signup 재전송용` — madi-parent-pages.js:330
+- `var _obsCategories = {` — madi-parent-pages.js:708
 - `var _preBriefingShownKey = '';` — madi-parent.js:206
 - `var _quickRec = null; // SpeechRecognition 인스턴스` — madi-quick.js:7
 - `var _quickRecActive = false; // 받아쓰기 진행 중 여부` — madi-quick.js:8
@@ -385,34 +387,34 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _게시판 이미지 업로드 유틸_ — L1
 - `uploadBoardImage` — madi-board-notice.js:7
 - `isSafeUrl` — madi-board-notice.js:40
-- `renderImageThumbs` — madi-board-notice.js:47
-  ▸ _board-images 서명 URL 통합_ — L62
-- `_boardImgPath` — madi-board-notice.js:65
-- `signBoardImages` — madi-board-notice.js:83
-- `_noopMap` — madi-board-notice.js:84
-- `onLoungeImagesChange` — madi-board-notice.js:119
-- `removeLoungeImage` — madi-board-notice.js:157
-- `onCommentImageChange` — madi-board-notice.js:176
-- `initBoard` — madi-board-notice.js:214
-- `switchBoardTab` — madi-board-notice.js:219
-- `renderGlobalNotices` — madi-board-notice.js:247
-- `loadGlobalNotices` — madi-board-notice.js:255
-- `renderGlobalNoticeUI` — madi-board-notice.js:276
-  ▸ _슈퍼어드민 전용 작성 폼_ — L282
-  ▸ _공지 목록_ — L302
-- `renderGlobalNoticeCard` — madi-board-notice.js:314
-- `saveGlobalNotice` — madi-board-notice.js:368
-- `togglePopupNotice` — madi-board-notice.js:413
-- `deleteGlobalNotice` — madi-board-notice.js:440
-- `renderCenterNotices` — madi-board-notice.js:457
-- `loadCentersByIdCache` — madi-board-notice.js:472
-- `loadCenterNotices` — madi-board-notice.js:482
-- `renderCenterNoticeUI` — madi-board-notice.js:517
-  ▸ _admin/superadmin 작성 폼_ — L525
-  ▸ _공지 목록_ — L547
-- `renderCenterNoticeCard` — madi-board-notice.js:561
-- `saveCenterNotice` — madi-board-notice.js:605
-- `deleteCenterNotice` — madi-board-notice.js:640
+- `renderImageThumbs` — madi-board-notice.js:49
+  ▸ _board-images 서명 URL 통합_ — L64
+- `_boardImgPath` — madi-board-notice.js:67
+- `signBoardImages` — madi-board-notice.js:85
+- `_noopMap` — madi-board-notice.js:86
+- `onLoungeImagesChange` — madi-board-notice.js:121
+- `removeLoungeImage` — madi-board-notice.js:159
+- `onCommentImageChange` — madi-board-notice.js:178
+- `initBoard` — madi-board-notice.js:216
+- `switchBoardTab` — madi-board-notice.js:221
+- `renderGlobalNotices` — madi-board-notice.js:249
+- `loadGlobalNotices` — madi-board-notice.js:257
+- `renderGlobalNoticeUI` — madi-board-notice.js:278
+  ▸ _슈퍼어드민 전용 작성 폼_ — L284
+  ▸ _공지 목록_ — L304
+- `renderGlobalNoticeCard` — madi-board-notice.js:316
+- `saveGlobalNotice` — madi-board-notice.js:370
+- `togglePopupNotice` — madi-board-notice.js:415
+- `deleteGlobalNotice` — madi-board-notice.js:442
+- `renderCenterNotices` — madi-board-notice.js:459
+- `loadCentersByIdCache` — madi-board-notice.js:474
+- `loadCenterNotices` — madi-board-notice.js:484
+- `renderCenterNoticeUI` — madi-board-notice.js:519
+  ▸ _admin/superadmin 작성 폼_ — L527
+  ▸ _공지 목록_ — L549
+- `renderCenterNoticeCard` — madi-board-notice.js:563
+- `saveCenterNotice` — madi-board-notice.js:607
+- `deleteCenterNotice` — madi-board-notice.js:642
 
 ## madi-board.js (34함수)
 - `renderLounge` — madi-board.js:15
@@ -630,7 +632,7 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
   ▸ _글로벌 에러 모니터링_ — L454
 - `_scrubErrPII` — madi-core.js:461
 - `_reportClientError` — madi-core.js:470
-  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L546
+  ▸ _MADI 네임스페이스 (점진적 캡슐화용)_ — L560
 
 ## madi-dashboard.js (27함수)
 - `_dpInitial` — madi-dashboard.js:13
@@ -881,29 +883,29 @@ Claude 는 여기서 줄번호를 찾아 **해당 줄 ±15줄만 Read** 한다 (
 - `markAllNotifRead` — madi-parent-pages.js:269
 - `openParentDataRequest` — madi-parent-pages.js:282
 - `formatTimeAgo` — madi-parent-pages.js:307
-  ▸ _화면 전환: 학부모 가입 화면 표시_ — L331
-- `showParentSignupScreen` — madi-parent-pages.js:332
-  ▸ _학부모 가입 → 로그인 화면 복귀_ — L345
-- `backToLoginFromParentSignup` — madi-parent-pages.js:346
-  ▸ _입력 시 자동 하이픈 (010-1234-5678)_ — L354
-- `formatParentPhone` — madi-parent-pages.js:355
-  ▸ _단계 2 → 단계 1로 되돌리기_ — L368
-- `resetParentSignup` — madi-parent-pages.js:369
-  ▸ _액션 1: 핸드폰 번호로 아동 조회_ — L387
-- `parentLookup` — madi-parent-pages.js:388
-  ▸ _액션 2: 학부모 가입 처리_ — L451
-- `parentSignup` — madi-parent-pages.js:452
-- `_b64UrlToUint8` — madi-parent-pages.js:538
-- `loadParentPushToggle` — madi-parent-pages.js:547
-- `onPushToggleTap` — madi-parent-pages.js:580
-- `_subscribePush` — madi-parent-pages.js:590
-- `_unsubscribePush` — madi-parent-pages.js:667
-  ▸ _관찰기록 홈 패널 렌더링 (홈 탭 하단에 삽입)_ — L694
-- `loadParentObservations` — madi-parent-pages.js:695
-- `_renderParentObsForm` — madi-parent-pages.js:707
-- `submitParentObservation` — madi-parent-pages.js:731
-- `_loadParentObsList` — madi-parent-pages.js:775
-- `_renderParentObsCard` — madi-parent-pages.js:805
+  ▸ _화면 전환: 학부모 가입 화면 표시_ — L332
+- `showParentSignupScreen` — madi-parent-pages.js:333
+  ▸ _학부모 가입 → 로그인 화면 복귀_ — L346
+- `backToLoginFromParentSignup` — madi-parent-pages.js:347
+  ▸ _입력 시 자동 하이픈 (010-1234-5678)_ — L355
+- `formatParentPhone` — madi-parent-pages.js:356
+  ▸ _단계 2 → 단계 1로 되돌리기_ — L369
+- `resetParentSignup` — madi-parent-pages.js:370
+  ▸ _액션 1: 핸드폰 번호로 아동 조회_ — L389
+- `parentLookup` — madi-parent-pages.js:390
+  ▸ _액션 2: 학부모 가입 처리_ — L468
+- `parentSignup` — madi-parent-pages.js:469
+- `_b64UrlToUint8` — madi-parent-pages.js:558
+- `loadParentPushToggle` — madi-parent-pages.js:567
+- `onPushToggleTap` — madi-parent-pages.js:600
+- `_subscribePush` — madi-parent-pages.js:610
+- `_unsubscribePush` — madi-parent-pages.js:687
+  ▸ _관찰기록 홈 패널 렌더링 (홈 탭 하단에 삽입)_ — L714
+- `loadParentObservations` — madi-parent-pages.js:715
+- `_renderParentObsForm` — madi-parent-pages.js:727
+- `submitParentObservation` — madi-parent-pages.js:751
+- `_loadParentObsList` — madi-parent-pages.js:795
+- `_renderParentObsCard` — madi-parent-pages.js:825
 
 ## madi-parent.js (21함수)
   ▸ _W6: 회기 후 자동 브리핑 모달_ — L2

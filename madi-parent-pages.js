@@ -327,6 +327,7 @@ function formatTimeAgo(isoTs) {
 // ══════════════════════════════════════════════════════════════
 
 var _parentSignupMatchedChildren = []; // lookup 결과 캐시
+var _parentSignupVerify = { name: '', birth: '' }; // 신원 확인 요소(이름·생년월일) 캐시 — signup 재전송용
 
 // ─── 화면 전환: 학부모 가입 화면 표시 ───
 function showParentSignupScreen() {
@@ -371,7 +372,7 @@ function resetParentSignup() {
   var step2 = document.getElementById('parentSignupStep2');
   if (step1) step1.style.display = '';
   if (step2) step2.style.display = 'none';
-  var fields = ['parentPhoneInput', 'parentSignupPassword', 'parentSignupPasswordConfirm'];
+  var fields = ['parentPhoneInput', 'parentChildNameInput', 'parentChildBirthInput', 'parentSignupPassword', 'parentSignupPasswordConfirm'];
   fields.forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.value = '';
@@ -382,11 +383,14 @@ function resetParentSignup() {
     if (el) el.textContent = '';
   });
   _parentSignupMatchedChildren = [];
+  _parentSignupVerify = { name: '', birth: '' };
 }
 
 // ─── 액션 1: 핸드폰 번호로 아동 조회 ───
 function parentLookup() {
   var phoneInput = document.getElementById('parentPhoneInput');
+  var nameInput = document.getElementById('parentChildNameInput');
+  var birthInput = document.getElementById('parentChildBirthInput');
   var errEl = document.getElementById('parentLookupError');
   var btn = document.getElementById('parentLookupBtn');
   if (!phoneInput || !errEl || !btn) return;
@@ -396,6 +400,19 @@ function parentLookup() {
     errEl.textContent = '⚠️ 올바른 핸드폰 번호를 입력해주세요';
     return;
   }
+  // 신원 확인 요소 — 번호만으로는 아동 정보가 조회되지 않는다(서버 게이트).
+  var childName = nameInput ? nameInput.value.trim() : '';
+  var childBirth = birthInput ? birthInput.value.replace(/[^0-9]/g, '') : '';
+  if (!childName) {
+    errEl.textContent = '⚠️ 아이 이름을 입력해주세요';
+    return;
+  }
+  if (childBirth.length < 6) {
+    errEl.textContent = '⚠️ 아이 생년월일을 입력해주세요';
+    return;
+  }
+  // 재조회 없이 가입 단계에서 재전송할 수 있도록 신원값 캐시
+  _parentSignupVerify = { name: childName, birth: childBirth };
   errEl.textContent = '';
   btn.disabled = true;
   btn.textContent = '조회 중...';
@@ -404,7 +421,7 @@ function parentLookup() {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'lookup', phone: phone })
+    body: JSON.stringify({ action: 'lookup', phone: phone, childName: childName, birth: childBirth })
   })
     .then(function(r) { return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
     .then(function(res) {
@@ -419,7 +436,7 @@ function parentLookup() {
         return;
       }
       if (!res.data.children || res.data.children.length === 0) {
-        errEl.textContent = '❌ 등록된 아동이 없습니다. 센터에 보호자 번호 등록을 요청해주세요.';
+        errEl.textContent = '❌ 일치하는 아이를 찾을 수 없습니다. 번호·이름·생년월일이 센터 등록 정보와 같은지 확인해주세요.';
         return;
       }
       // 매칭 성공 → 단계 2로 전환
@@ -499,6 +516,9 @@ function parentSignup() {
       phone: phone,
       password: pw,
       childIds: childIds,
+      // 신원 확인 재검증 — 서버가 childId 별 이름·생년월일을 재대조(가로채기 가입 방지)
+      verifyName: (_parentSignupVerify && _parentSignupVerify.name) || '',
+      verifyBirth: (_parentSignupVerify && _parentSignupVerify.birth) || '',
       consent: { agreed: true, sensitive: true, version: PRIVACY_POLICY_VERSION }
     })
   })

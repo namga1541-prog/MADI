@@ -258,6 +258,22 @@ export async function verifyTotp(secret: string, code: string, window: number = 
   return false
 }
 
+// 매칭된 절대 step 을 반환(없으면 -1). minStep 이 주어지면(>=0) 그 이하 step 은 리플레이로 거부.
+//   login 이 마지막 성공 step(totp_last_step)을 넘겨 동일 코드 재사용(캡처 후 재생)을 차단하는 데 사용.
+//   totp/index.ts 의 로컬 verifyTotpStep 과 동일 의미론 — 공유 모듈로 단일화.
+export async function verifyTotpStep(
+  secret: string, code: string, window: number, minStep: number
+): Promise<number> {
+  if (!secret || !/^\d{6}$/.test(code)) return -1
+  const step = Math.floor(Date.now() / 30000)
+  for (let w = -window; w <= window; w++) {
+    const s = step + w
+    if (minStep >= 0 && s <= minStep) continue   // 사용·만료된 step → 리플레이 거부
+    if (await _hotp(secret, s) === code) return s
+  }
+  return -1
+}
+
 export function generateTotpSecret(byteLength: number = 20): string {
   const bytes = crypto.getRandomValues(new Uint8Array(byteLength))
   return base32Encode(bytes)
